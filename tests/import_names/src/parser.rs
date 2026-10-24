@@ -66,14 +66,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                     // StartS : . start:S
                     SlotId(34) => {
                         if let Some((j, right_child)) = self.parse_s_ll1(input_index, None) {
-                            // StartS : start:S.
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(35));
+                            next = Some(slot_id.next());
                         } else {
                             self.add_failure(
                                 input_index,
-                                SlotId(34),
+                                slot_id,
                                 Some(gss_node_id),
                                 GLLFailureKind::UnexpectedToken(&FIRST_SET_S),
                             );
@@ -84,19 +83,18 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(35), result, None, &FOLLOW_SET_START_S);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_S);
                     }
                     // StartParse : . start:Parse
                     SlotId(36) => {
                         if let Some((j, right_child)) = self.parse_parse_ll1(input_index, None) {
-                            // StartParse : start:Parse.
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(37));
+                            next = Some(slot_id.next());
                         } else {
                             self.add_failure(
                                 input_index,
-                                SlotId(36),
+                                slot_id,
                                 Some(gss_node_id),
                                 GLLFailureKind::UnexpectedToken(&FIRST_SET_PARSE),
                             );
@@ -107,25 +105,18 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(
-                            gss_node_id,
-                            SlotId(37),
-                            result,
-                            None,
-                            &FOLLOW_SET_START_PARSE,
-                        );
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_PARSE);
                     }
                     // StartParser : . start:Parser
                     SlotId(38) => {
                         if let Some((j, right_child)) = self.parse_parser_ll1(input_index, None) {
-                            // StartParser : start:Parser.
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(39));
+                            next = Some(slot_id.next());
                         } else {
                             self.add_failure(
                                 input_index,
-                                SlotId(38),
+                                slot_id,
                                 Some(gss_node_id),
                                 GLLFailureKind::UnexpectedToken(&FIRST_SET_PARSER),
                             );
@@ -136,26 +127,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(
-                            gss_node_id,
-                            SlotId(39),
-                            result,
-                            None,
-                            &FOLLOW_SET_START_PARSER,
-                        );
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_PARSER);
                     }
                     // StartSPPFNode : . start:SPPFNode
                     SlotId(40) => {
                         if let Some((j, right_child)) = self.parse_sppf_node_ll1(input_index, None)
                         {
-                            // StartSPPFNode : start:SPPFNode.
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(41));
+                            next = Some(slot_id.next());
                         } else {
                             self.add_failure(
                                 input_index,
-                                SlotId(40),
+                                slot_id,
                                 Some(gss_node_id),
                                 GLLFailureKind::UnexpectedToken(&FIRST_SET_SPPF_NODE),
                             );
@@ -168,7 +152,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(41),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_SPPF_NODE,
@@ -177,14 +161,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                     // StartInput : . start:Input
                     SlotId(42) => {
                         if let Some((j, right_child)) = self.parse_input_ll1(input_index, None) {
-                            // StartInput : start:Input.
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(43));
+                            next = Some(slot_id.next());
                         } else {
                             self.add_failure(
                                 input_index,
-                                SlotId(42),
+                                slot_id,
                                 Some(gss_node_id),
                                 GLLFailureKind::UnexpectedToken(&FIRST_SET_INPUT),
                             );
@@ -195,27 +178,20 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(
-                            gss_node_id,
-                            SlotId(43),
-                            result,
-                            None,
-                            &FOLLOW_SET_START_INPUT,
-                        );
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_INPUT);
                     }
                     // StartParseError : . start:ParseError
                     SlotId(44) => {
                         if let Some((j, right_child)) =
                             self.parse_parse_error_ll1(input_index, None)
                         {
-                            // StartParseError : start:ParseError.
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(45));
+                            next = Some(slot_id.next());
                         } else {
                             self.add_failure(
                                 input_index,
-                                SlotId(44),
+                                slot_id,
                                 Some(gss_node_id),
                                 GLLFailureKind::UnexpectedToken(&FIRST_SET_PARSE_ERROR),
                             );
@@ -228,7 +204,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(45),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_PARSE_ERROR,
@@ -239,14 +215,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                         if let Some((j, right_child)) =
                             self.parse_parse_success_ll1(input_index, None)
                         {
-                            // StartParseSuccess : start:ParseSuccess.
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(47));
+                            next = Some(slot_id.next());
                         } else {
                             self.add_failure(
                                 input_index,
-                                SlotId(46),
+                                slot_id,
                                 Some(gss_node_id),
                                 GLLFailureKind::UnexpectedToken(&FIRST_SET_PARSE_SUCCESS),
                             );
@@ -259,7 +234,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(47),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_PARSE_SUCCESS,
@@ -268,14 +243,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                     // StartGrammar : . start:Grammar
                     SlotId(48) => {
                         if let Some((j, right_child)) = self.parse_grammar_ll1(input_index, None) {
-                            // StartGrammar : start:Grammar.
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(49));
+                            next = Some(slot_id.next());
                         } else {
                             self.add_failure(
                                 input_index,
-                                SlotId(48),
+                                slot_id,
                                 Some(gss_node_id),
                                 GLLFailureKind::UnexpectedToken(&FIRST_SET_GRAMMAR),
                             );
@@ -288,7 +262,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(49),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_GRAMMAR,
@@ -299,14 +273,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                         if let Some((j, right_child)) =
                             self.parse_nonterminal_ll1(input_index, None)
                         {
-                            // StartNonterminal : start:Nonterminal.
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(51));
+                            next = Some(slot_id.next());
                         } else {
                             self.add_failure(
                                 input_index,
-                                SlotId(50),
+                                slot_id,
                                 Some(gss_node_id),
                                 GLLFailureKind::UnexpectedToken(&FIRST_SET_NONTERMINAL),
                             );
@@ -319,7 +292,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(51),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_NONTERMINAL,
@@ -328,14 +301,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                     // StartTerminal : . start:Terminal
                     SlotId(52) => {
                         if let Some((j, right_child)) = self.parse_terminal_ll1(input_index, None) {
-                            // StartTerminal : start:Terminal.
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(53));
+                            next = Some(slot_id.next());
                         } else {
                             self.add_failure(
                                 input_index,
-                                SlotId(52),
+                                slot_id,
                                 Some(gss_node_id),
                                 GLLFailureKind::UnexpectedToken(&FIRST_SET_TERMINAL),
                             );
@@ -348,7 +320,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(53),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_TERMINAL,
@@ -357,14 +329,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                     // StartSlot : . start:Slot
                     SlotId(54) => {
                         if let Some((j, right_child)) = self.parse_slot_ll1(input_index, None) {
-                            // StartSlot : start:Slot.
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(55));
+                            next = Some(slot_id.next());
                         } else {
                             self.add_failure(
                                 input_index,
-                                SlotId(54),
+                                slot_id,
                                 Some(gss_node_id),
                                 GLLFailureKind::UnexpectedToken(&FIRST_SET_SLOT),
                             );
@@ -375,27 +346,20 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(
-                            gss_node_id,
-                            SlotId(55),
-                            result,
-                            None,
-                            &FOLLOW_SET_START_SLOT,
-                        );
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_SLOT);
                     }
                     // StartTerminalSet : . start:TerminalSet
                     SlotId(56) => {
                         if let Some((j, right_child)) =
                             self.parse_terminal_set_ll1(input_index, None)
                         {
-                            // StartTerminalSet : start:TerminalSet.
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(57));
+                            next = Some(slot_id.next());
                         } else {
                             self.add_failure(
                                 input_index,
-                                SlotId(56),
+                                slot_id,
                                 Some(gss_node_id),
                                 GLLFailureKind::UnexpectedToken(&FIRST_SET_TERMINAL_SET),
                             );
@@ -408,7 +372,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ImportNamesParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(57),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_TERMINAL_SET,

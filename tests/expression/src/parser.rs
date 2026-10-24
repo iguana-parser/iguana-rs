@@ -64,14 +64,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExpressionParser<'i, 'arena> {
                     gss_node_id
                 );
                 match slot_id {
-                    // E : . E "*" E
-                    SlotId(0) => {
+                    // E : . E "*" E, and 4 more slots
+                    SlotId(0) | SlotId(2) | SlotId(4) | SlotId(6) | SlotId(10) => {
                         self.create(
                             NonterminalId(0),
                             &PREDICTION_E,
                             result,
                             gss_node_id,
-                            SlotId(1),
+                            slot_id.next(),
                             env,
                         );
                     }
@@ -80,122 +80,67 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExpressionParser<'i, 'arena> {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(0),
                             input_index,
-                            SlotId(1),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(2), env)
-                            {
-                                // E : E "*" . E
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(2));
+                                next = Some(slot_id.next());
                             }
                         }
                     }
-                    // E : E "*" . E
-                    SlotId(2) => {
-                        self.create(
-                            NonterminalId(0),
-                            &PREDICTION_E,
-                            result,
-                            gss_node_id,
-                            SlotId(3),
-                            env,
-                        );
-                    }
-                    // E : E "*" E.
-                    SlotId(3) => {
+                    // E : E "*" E., and 2 more slots
+                    SlotId(3) | SlotId(7) | SlotId(9) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(3), result, None, &FOLLOW_SET_E);
-                    }
-                    // E : . E "+" E
-                    SlotId(4) => {
-                        self.create(
-                            NonterminalId(0),
-                            &PREDICTION_E,
-                            result,
-                            gss_node_id,
-                            SlotId(5),
-                            env,
-                        );
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_E);
                     }
                     // E : E . "+" E
                     SlotId(5) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(1),
                             input_index,
-                            SlotId(5),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(6), env)
-                            {
-                                // E : E "+" . E
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(6));
+                                next = Some(slot_id.next());
                             }
                         }
-                    }
-                    // E : E "+" . E
-                    SlotId(6) => {
-                        self.create(
-                            NonterminalId(0),
-                            &PREDICTION_E,
-                            result,
-                            gss_node_id,
-                            SlotId(7),
-                            env,
-                        );
-                    }
-                    // E : E "+" E.
-                    SlotId(7) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(7), result, None, &FOLLOW_SET_E);
                     }
                     // E : . "a"
                     SlotId(8) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(2),
                             input_index,
-                            SlotId(8),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // E : "a".
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(9));
+                            next = Some(slot_id.next());
                         }
-                    }
-                    // E : "a".
-                    SlotId(9) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(9), result, None, &FOLLOW_SET_E);
-                    }
-                    // StartE : . start:E
-                    SlotId(10) => {
-                        self.create(
-                            NonterminalId(0),
-                            &PREDICTION_E,
-                            result,
-                            gss_node_id,
-                            SlotId(11),
-                            env,
-                        );
                     }
                     // StartE : start:E.
                     SlotId(11) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(11), result, None, &FOLLOW_SET_START_E);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_E);
                     }
                     _ => {
                         panic!("Unknown grammar slot id: {slot_id}");

@@ -67,38 +67,37 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectPrecedenceParser<'i, 'arena> {
                     gss_node_id
                 );
                 match slot_id {
-                    // S : . E(0)
-                    SlotId(0) => {
-                        self.create_e(result, gss_node_id, SlotId(1), env, 0);
+                    // S : . E(0), and 2 more slots
+                    SlotId(0) | SlotId(24) | SlotId(4) => {
+                        self.create_e(result, gss_node_id, slot_id.next(), env, 0);
                     }
                     // S : E(0).
                     SlotId(1) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(1), result, None, &FOLLOW_SET_S);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_S);
                     }
                     // E(p: i32) : . "-" E(2) return 2
                     SlotId(10) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(0),
                             input_index,
-                            SlotId(10),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // E(p: i32) : "-" . E(2) return 2
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(11));
+                            next = Some(slot_id.next());
                         }
                     }
                     // E(p: i32) : "-" . E(2) return 2
                     SlotId(11) => {
-                        self.create_e(result, gss_node_id, SlotId(12), env, 2);
+                        self.create_e(result, gss_node_id, slot_id.next(), env, 2);
                     }
-                    // E(p: i32) : "-" E(2) . return 2
-                    SlotId(12) => {
-                        next = Some(SlotId(13));
+                    // E(p: i32) : "-" E(2) . return 2, and 5 more slots
+                    SlotId(12) | SlotId(16) | SlotId(19) | SlotId(22) | SlotId(27) | SlotId(30) => {
+                        next = Some(slot_id.next());
                     }
                     // E(p: i32) : "-" E(2) return 2.
                     SlotId(13) => {
@@ -108,7 +107,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectPrecedenceParser<'i, 'arena> {
                         let return_value = 2;
                         self.pop(
                             gss_node_id,
-                            SlotId(13),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_E,
@@ -117,48 +116,43 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectPrecedenceParser<'i, 'arena> {
                     // E(p: i32) : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] "*" F(1) return 1
                     SlotId(14) => {
                         if 1 >= self.lookup(BINDING_P, env.unwrap()) {
-                            next = Some(SlotId(15));
+                            next = Some(slot_id.next());
                         }
                     }
-                    // E(p: i32) : [1 >= p] . l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] "*" F(1) return 1
-                    SlotId(15) => {
+                    // E(p: i32) : [1 >= p] . l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] "*" F(1) return 1, and K(p:
+                    // i32) : . r_pr=E(p) return r_pr
+                    SlotId(15) | SlotId(29) => {
                         self.create_e(
                             result,
                             gss_node_id,
-                            SlotId(16),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                         );
-                    }
-                    // E(p: i32) : [1 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 1)] "*" F(1) return 1
-                    SlotId(16) => {
-                        next = Some(SlotId(17));
                     }
                     // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] . "*" F(1) return 1
                     SlotId(17) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(1),
                             input_index,
-                            SlotId(17),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(18), env)
-                            {
-                                // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] "*" . F(1) return 1
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(18));
+                                next = Some(slot_id.next());
                             }
                         }
                     }
                     // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] "*" . F(1) return 1
                     SlotId(18) => {
-                        self.create_f(result, gss_node_id, SlotId(19), env, 1);
-                    }
-                    // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] "*" F(1) . return 1
-                    SlotId(19) => {
-                        next = Some(SlotId(20));
+                        self.create_f(result, gss_node_id, slot_id.next(), env, 1);
                     }
                     // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] "*" F(1) return 1.
                     SlotId(20) => {
@@ -168,7 +162,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectPrecedenceParser<'i, 'arena> {
                         let return_value = 1;
                         self.pop(
                             gss_node_id,
-                            SlotId(20),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_E,
@@ -179,18 +173,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectPrecedenceParser<'i, 'arena> {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(2),
                             input_index,
-                            SlotId(21),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // E(p: i32) : "a" . return 0
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(22));
+                            next = Some(slot_id.next());
                         }
-                    }
-                    // E(p: i32) : "a" . return 0
-                    SlotId(22) => {
-                        next = Some(SlotId(23));
                     }
                     // E(p: i32) : "a" return 0.
                     SlotId(23) => {
@@ -200,31 +189,29 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectPrecedenceParser<'i, 'arena> {
                         let return_value = 0;
                         self.pop(
                             gss_node_id,
-                            SlotId(23),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_E,
                         );
-                    }
-                    // F(p: i32) : . E(0) "/" r_pr=K(p) return r_pr
-                    SlotId(24) => {
-                        self.create_e(result, gss_node_id, SlotId(25), env, 0);
                     }
                     // F(p: i32) : E(0) . "/" r_pr=K(p) return r_pr
                     SlotId(25) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(3),
                             input_index,
-                            SlotId(25),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(26), env)
-                            {
-                                // F(p: i32) : E(0) "/" . r_pr=K(p) return r_pr
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(26));
+                                next = Some(slot_id.next());
                             }
                         }
                     }
@@ -233,14 +220,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectPrecedenceParser<'i, 'arena> {
                         self.create_k(
                             result,
                             gss_node_id,
-                            SlotId(27),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                         );
-                    }
-                    // F(p: i32) : E(0) "/" r_pr=K(p) . return r_pr
-                    SlotId(27) => {
-                        next = Some(SlotId(28));
                     }
                     // F(p: i32) : E(0) "/" r_pr=K(p) return r_pr.
                     SlotId(28) => {
@@ -250,25 +233,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectPrecedenceParser<'i, 'arena> {
                         let return_value = self.lookup(BINDING_R_PR, env.unwrap());
                         self.pop(
                             gss_node_id,
-                            SlotId(28),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_F,
                         );
-                    }
-                    // K(p: i32) : . r_pr=E(p) return r_pr
-                    SlotId(29) => {
-                        self.create_e(
-                            result,
-                            gss_node_id,
-                            SlotId(30),
-                            env,
-                            self.lookup(BINDING_P, env.unwrap()),
-                        );
-                    }
-                    // K(p: i32) : r_pr=E(p) . return r_pr
-                    SlotId(30) => {
-                        next = Some(SlotId(31));
                     }
                     // K(p: i32) : r_pr=E(p) return r_pr.
                     SlotId(31) => {
@@ -278,7 +247,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectPrecedenceParser<'i, 'arena> {
                         let return_value = self.lookup(BINDING_R_PR, env.unwrap());
                         self.pop(
                             gss_node_id,
-                            SlotId(31),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_K,
@@ -291,7 +260,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectPrecedenceParser<'i, 'arena> {
                             &PREDICTION_S,
                             result,
                             gss_node_id,
-                            SlotId(3),
+                            slot_id.next(),
                             env,
                         );
                     }
@@ -300,40 +269,36 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectPrecedenceParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(3), result, None, &FOLLOW_SET_START_S);
-                    }
-                    // StartE : . start:E(0)
-                    SlotId(4) => {
-                        self.create_e(result, gss_node_id, SlotId(5), env, 0);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_S);
                     }
                     // StartE : start:E(0).
                     SlotId(5) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(5), result, None, &FOLLOW_SET_START_E);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_E);
                     }
                     // StartF : . start:F(0)
                     SlotId(6) => {
-                        self.create_f(result, gss_node_id, SlotId(7), env, 0);
+                        self.create_f(result, gss_node_id, slot_id.next(), env, 0);
                     }
                     // StartF : start:F(0).
                     SlotId(7) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(7), result, None, &FOLLOW_SET_START_F);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_F);
                     }
                     // StartK : . start:K(0)
                     SlotId(8) => {
-                        self.create_k(result, gss_node_id, SlotId(9), env, 0);
+                        self.create_k(result, gss_node_id, slot_id.next(), env, 0);
                     }
                     // StartK : start:K(0).
                     SlotId(9) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(9), result, None, &FOLLOW_SET_START_K);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_K);
                     }
                     _ => {
                         panic!("Unknown grammar slot id: {slot_id}");

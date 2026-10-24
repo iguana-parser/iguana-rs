@@ -119,6 +119,14 @@ pub struct GenConfig {
     /// only requires regenerating the parser. A parse tree from the first-parse
     /// mode does not contain `Amb` nodes.
     pub first_parse: bool,
+    /// When true, the generated parser shares the code that is the same for
+    /// different grammar slots: such slots share one arm of its main loop,
+    /// which makes the parser smaller and faster to compile. A shared arm
+    /// computes the ids of the current and the next slot from the matched slot
+    /// id instead of using constants.
+    ///
+    /// True by default.
+    pub merged_slots: bool,
     /// Whether rustfmt formats the generated Rust files.
     ///
     /// True by default.
@@ -133,6 +141,7 @@ impl Default for GenConfig {
             cli: true,
             wasm: false,
             first_parse: false,
+            merged_slots: true,
             format: true,
         }
     }

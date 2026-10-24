@@ -19,6 +19,7 @@ pub struct GenConfigFile {
     pub match_memo: Option<bool>,
     pub format: Option<bool>,
     pub first_parse: Option<bool>,
+    pub merged_slots: Option<bool>,
     pub bin_name: Option<String>,
     pub runtime_path: Option<PathBuf>,
 }
@@ -63,6 +64,9 @@ impl GenConfig {
         if let Some(first_parse) = file.first_parse {
             self.first_parse = first_parse;
         }
+        if let Some(merged_slots) = file.merged_slots {
+            self.merged_slots = merged_slots;
+        }
         if let Some(format) = file.format {
             self.format = format;
         }
@@ -80,6 +84,7 @@ mod tests {
         assert_eq!(file.match_memo, None);
         assert_eq!(file.format, None);
         assert_eq!(file.first_parse, None);
+        assert_eq!(file.merged_slots, None);
         assert_eq!(file.bin_name, None);
         assert_eq!(file.runtime_path, None);
     }
@@ -98,6 +103,16 @@ mod tests {
         let mut config = GenConfig::default();
         config.apply_file(&file);
         assert!(!config.format);
+    }
+
+    #[test]
+    fn merged_slots_key_parses_and_applies() {
+        let file: GenConfigFile = toml::from_str("merged_slots = false\n").unwrap();
+        assert_eq!(file.merged_slots, Some(false));
+
+        let mut config = GenConfig::default();
+        config.apply_file(&file);
+        assert!(!config.merged_slots);
     }
 
     #[test]

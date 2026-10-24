@@ -66,14 +66,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for PlusWithSepParser<'i, 'arena> {
                     // StartS : . start:S
                     SlotId(10) => {
                         if let Some((j, right_child)) = self.parse_s_ll1(input_index, None) {
-                            // StartS : start:S.
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(11));
+                            next = Some(slot_id.next());
                         } else {
                             self.add_failure(
                                 input_index,
-                                SlotId(10),
+                                slot_id,
                                 Some(gss_node_id),
                                 GLLFailureKind::UnexpectedToken(&FIRST_SET_S),
                             );
@@ -84,19 +83,18 @@ impl<'i, 'arena> Parser<'i, 'arena> for PlusWithSepParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(11), result, None, &FOLLOW_SET_START_S);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_S);
                     }
                     // StartA : . start:A
                     SlotId(12) => {
                         if let Some((j, right_child)) = self.parse_a_ll1(input_index, None) {
-                            // StartA : start:A.
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(13));
+                            next = Some(slot_id.next());
                         } else {
                             self.add_failure(
                                 input_index,
-                                SlotId(12),
+                                slot_id,
                                 Some(gss_node_id),
                                 GLLFailureKind::UnexpectedToken(&FIRST_SET_A),
                             );
@@ -107,7 +105,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for PlusWithSepParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(13), result, None, &FOLLOW_SET_START_A);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_A);
                     }
                     _ => {
                         panic!("Unknown grammar slot id: {slot_id}");

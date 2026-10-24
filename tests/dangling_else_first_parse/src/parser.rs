@@ -63,14 +63,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseFirstParseParser<'i, 'arena>
                     gss_node_id
                 );
                 match slot_id {
-                    // S : . Plus_0
-                    SlotId(0) => {
+                    // S : . Plus_0, and Plus_0 : . Plus_0 Layout Statement
+                    SlotId(0) | SlotId(32) => {
                         self.create(
                             NonterminalId(3),
                             &PREDICTION_PLUS_0,
                             result,
                             gss_node_id,
-                            SlotId(1),
+                            slot_id.next(),
                             env,
                         );
                     }
@@ -79,308 +79,126 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseFirstParseParser<'i, 'arena>
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(1), result, None, &FOLLOW_SET_S);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_S);
                     }
-                    // Statement : . "if" Layout "(" Layout Cond Layout ")" Layout Statement !>>> Else
-                    SlotId(2) => {
+                    // Statement : . "if" Layout "(" Layout Cond Layout ")" Layout Statement !>>> Else, and
+                    // Statement : . "if" Layout "(" Layout Cond Layout ")" Layout Statement Layout Else Layout
+                    // Statement
+                    SlotId(2) | SlotId(12) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(6),
                             input_index,
-                            SlotId(2),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // Statement : "if" . Layout "(" Layout Cond Layout ")" Layout Statement !>>> Else
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(3));
+                            next = Some(slot_id.next());
                         }
                     }
-                    // Statement : "if" . Layout "(" Layout Cond Layout ")" Layout Statement !>>> Else
-                    SlotId(3) => {
+                    // Statement : "if" . Layout "(" Layout Cond Layout ")" Layout Statement !>>> Else, and 13
+                    // more slots
+                    SlotId(3) | SlotId(5) | SlotId(7) | SlotId(9) | SlotId(13) | SlotId(15)
+                    | SlotId(17) | SlotId(19) | SlotId(21) | SlotId(23) | SlotId(27)
+                    | SlotId(33) | SlotId(52) | SlotId(56) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(4), env)
-                            {
-                                // Statement : "if" Layout . "(" Layout Cond Layout ")" Layout Statement !>>> Else
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(4));
+                                next = Some(slot_id.next());
                             }
                         }
                     }
-                    // Statement : "if" Layout . "(" Layout Cond Layout ")" Layout Statement !>>> Else
-                    SlotId(4) => {
+                    // Statement : "if" Layout . "(" Layout Cond Layout ")" Layout Statement !>>> Else, and
+                    // Statement : "if" Layout . "(" Layout Cond Layout ")" Layout Statement Layout Else Layout
+                    // Statement
+                    SlotId(4) | SlotId(14) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(7),
                             input_index,
-                            SlotId(4),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(5), env)
-                            {
-                                // Statement : "if" Layout "(" . Layout Cond Layout ")" Layout Statement !>>> Else
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(5));
+                                next = Some(slot_id.next());
                             }
                         }
                     }
-                    // Statement : "if" Layout "(" . Layout Cond Layout ")" Layout Statement !>>> Else
-                    SlotId(5) => {
-                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(6), env)
-                            {
-                                // Statement : "if" Layout "(" Layout . Cond Layout ")" Layout Statement !>>> Else
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(6));
-                            }
-                        }
-                    }
-                    // Statement : "if" Layout "(" Layout . Cond Layout ")" Layout Statement !>>> Else
-                    SlotId(6) => {
+                    // Statement : "if" Layout "(" Layout . Cond Layout ")" Layout Statement !>>> Else, and
+                    // Statement : "if" Layout "(" Layout . Cond Layout ")" Layout Statement Layout Else Layout
+                    // Statement
+                    SlotId(6) | SlotId(16) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(0),
                             input_index,
-                            SlotId(6),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(7), env)
-                            {
-                                // Statement : "if" Layout "(" Layout Cond . Layout ")" Layout Statement !>>> Else
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(7));
+                                next = Some(slot_id.next());
                             }
                         }
                     }
-                    // Statement : "if" Layout "(" Layout Cond . Layout ")" Layout Statement !>>> Else
-                    SlotId(7) => {
-                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(8), env)
-                            {
-                                // Statement : "if" Layout "(" Layout Cond Layout . ")" Layout Statement !>>> Else
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(8));
-                            }
-                        }
-                    }
-                    // Statement : "if" Layout "(" Layout Cond Layout . ")" Layout Statement !>>> Else
-                    SlotId(8) => {
+                    // Statement : "if" Layout "(" Layout Cond Layout . ")" Layout Statement !>>> Else, and
+                    // Statement : "if" Layout "(" Layout Cond Layout . ")" Layout Statement Layout Else Layout
+                    // Statement
+                    SlotId(8) | SlotId(18) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(8),
                             input_index,
-                            SlotId(8),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(9), env)
-                            {
-                                // Statement : "if" Layout "(" Layout Cond Layout ")" . Layout Statement !>>> Else
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(9));
+                                next = Some(slot_id.next());
                             }
                         }
                     }
-                    // Statement : "if" Layout "(" Layout Cond Layout ")" . Layout Statement !>>> Else
-                    SlotId(9) => {
-                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(10), env)
-                            {
-                                // Statement : "if" Layout "(" Layout Cond Layout ")" Layout . Statement !>>> Else
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(10));
-                            }
-                        }
-                    }
-                    // Statement : "if" Layout "(" Layout Cond Layout ")" Layout . Statement !>>> Else
-                    SlotId(10) => {
+                    // Statement : "if" Layout "(" Layout Cond Layout ")" Layout . Statement !>>> Else, and 5
+                    // more slots
+                    SlotId(10) | SlotId(20) | SlotId(24) | SlotId(34) | SlotId(36) | SlotId(55) => {
                         self.create(
                             NonterminalId(1),
                             &PREDICTION_STATEMENT,
                             result,
                             gss_node_id,
-                            SlotId(11),
+                            slot_id.next(),
                             env,
                         );
                     }
-                    // Statement : "if" Layout "(" Layout Cond Layout ")" Layout Statement !>>> Else.
-                    SlotId(11) => {
+                    // Statement : "if" Layout "(" Layout Cond Layout ")" Layout Statement !>>> Else., and 2 more
+                    // slots
+                    SlotId(11) | SlotId(25) | SlotId(29) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(11), result, None, &FOLLOW_SET_STATEMENT);
-                    }
-                    // Statement : . "if" Layout "(" Layout Cond Layout ")" Layout Statement Layout Else Layout
-                    // Statement
-                    SlotId(12) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(6),
-                            input_index,
-                            SlotId(12),
-                            Some(gss_node_id),
-                        ) {
-                            // Statement : "if" . Layout "(" Layout Cond Layout ")" Layout Statement Layout Else Layout
-                            // Statement
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(13));
-                        }
-                    }
-                    // Statement : "if" . Layout "(" Layout Cond Layout ")" Layout Statement Layout Else Layout
-                    // Statement
-                    SlotId(13) => {
-                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(14), env)
-                            {
-                                // Statement : "if" Layout . "(" Layout Cond Layout ")" Layout Statement Layout Else Layout
-                                // Statement
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(14));
-                            }
-                        }
-                    }
-                    // Statement : "if" Layout . "(" Layout Cond Layout ")" Layout Statement Layout Else Layout
-                    // Statement
-                    SlotId(14) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(7),
-                            input_index,
-                            SlotId(14),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(15), env)
-                            {
-                                // Statement : "if" Layout "(" . Layout Cond Layout ")" Layout Statement Layout Else Layout
-                                // Statement
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(15));
-                            }
-                        }
-                    }
-                    // Statement : "if" Layout "(" . Layout Cond Layout ")" Layout Statement Layout Else Layout
-                    // Statement
-                    SlotId(15) => {
-                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(16), env)
-                            {
-                                // Statement : "if" Layout "(" Layout . Cond Layout ")" Layout Statement Layout Else Layout
-                                // Statement
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(16));
-                            }
-                        }
-                    }
-                    // Statement : "if" Layout "(" Layout . Cond Layout ")" Layout Statement Layout Else Layout
-                    // Statement
-                    SlotId(16) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(0),
-                            input_index,
-                            SlotId(16),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(17), env)
-                            {
-                                // Statement : "if" Layout "(" Layout Cond . Layout ")" Layout Statement Layout Else Layout
-                                // Statement
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(17));
-                            }
-                        }
-                    }
-                    // Statement : "if" Layout "(" Layout Cond . Layout ")" Layout Statement Layout Else Layout
-                    // Statement
-                    SlotId(17) => {
-                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(18), env)
-                            {
-                                // Statement : "if" Layout "(" Layout Cond Layout . ")" Layout Statement Layout Else Layout
-                                // Statement
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(18));
-                            }
-                        }
-                    }
-                    // Statement : "if" Layout "(" Layout Cond Layout . ")" Layout Statement Layout Else Layout
-                    // Statement
-                    SlotId(18) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(8),
-                            input_index,
-                            SlotId(18),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(19), env)
-                            {
-                                // Statement : "if" Layout "(" Layout Cond Layout ")" . Layout Statement Layout Else Layout
-                                // Statement
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(19));
-                            }
-                        }
-                    }
-                    // Statement : "if" Layout "(" Layout Cond Layout ")" . Layout Statement Layout Else Layout
-                    // Statement
-                    SlotId(19) => {
-                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(20), env)
-                            {
-                                // Statement : "if" Layout "(" Layout Cond Layout ")" Layout . Statement Layout Else Layout
-                                // Statement
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(20));
-                            }
-                        }
-                    }
-                    // Statement : "if" Layout "(" Layout Cond Layout ")" Layout . Statement Layout Else Layout
-                    // Statement
-                    SlotId(20) => {
-                        self.create(
-                            NonterminalId(1),
-                            &PREDICTION_STATEMENT,
-                            result,
-                            gss_node_id,
-                            SlotId(21),
-                            env,
-                        );
-                    }
-                    // Statement : "if" Layout "(" Layout Cond Layout ")" Layout Statement . Layout Else Layout
-                    // Statement
-                    SlotId(21) => {
-                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(22), env)
-                            {
-                                // Statement : "if" Layout "(" Layout Cond Layout ")" Layout Statement Layout . Else Layout
-                                // Statement
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(22));
-                            }
-                        }
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_STATEMENT);
                     }
                     // Statement : "if" Layout "(" Layout Cond Layout ")" Layout Statement Layout . Else Layout
                     // Statement
@@ -388,80 +206,32 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseFirstParseParser<'i, 'arena>
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(2),
                             input_index,
-                            SlotId(22),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(23), env)
-                            {
-                                // Statement : "if" Layout "(" Layout Cond Layout ")" Layout Statement Layout Else . Layout
-                                // Statement
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(23));
+                                next = Some(slot_id.next());
                             }
                         }
-                    }
-                    // Statement : "if" Layout "(" Layout Cond Layout ")" Layout Statement Layout Else . Layout
-                    // Statement
-                    SlotId(23) => {
-                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(24), env)
-                            {
-                                // Statement : "if" Layout "(" Layout Cond Layout ")" Layout Statement Layout Else Layout .
-                                // Statement
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(24));
-                            }
-                        }
-                    }
-                    // Statement : "if" Layout "(" Layout Cond Layout ")" Layout Statement Layout Else Layout .
-                    // Statement
-                    SlotId(24) => {
-                        self.create(
-                            NonterminalId(1),
-                            &PREDICTION_STATEMENT,
-                            result,
-                            gss_node_id,
-                            SlotId(25),
-                            env,
-                        );
-                    }
-                    // Statement : "if" Layout "(" Layout Cond Layout ")" Layout Statement Layout Else Layout
-                    // Statement.
-                    SlotId(25) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(25), result, None, &FOLLOW_SET_STATEMENT);
                     }
                     // Statement : . Id Layout ";"
                     SlotId(26) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(1),
                             input_index,
-                            SlotId(26),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // Statement : Id . Layout ";"
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(27));
-                        }
-                    }
-                    // Statement : Id . Layout ";"
-                    SlotId(27) => {
-                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(28), env)
-                            {
-                                // Statement : Id Layout . ";"
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(28));
-                            }
+                            next = Some(slot_id.next());
                         }
                     }
                     // Statement : Id Layout . ";"
@@ -469,93 +239,34 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseFirstParseParser<'i, 'arena>
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(9),
                             input_index,
-                            SlotId(28),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(29), env)
-                            {
-                                // Statement : Id Layout ";".
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(29));
+                                next = Some(slot_id.next());
                             }
                         }
                     }
-                    // Statement : Id Layout ";".
-                    SlotId(29) => {
+                    // Plus_0 : Plus_0 Layout Statement., and Plus_0 : Statement.
+                    SlotId(35) | SlotId(37) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(29), result, None, &FOLLOW_SET_STATEMENT);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_PLUS_0);
                     }
-                    // Plus_0 : . Plus_0 Layout Statement
-                    SlotId(32) => {
-                        self.create(
-                            NonterminalId(3),
-                            &PREDICTION_PLUS_0,
-                            result,
-                            gss_node_id,
-                            SlotId(33),
-                            env,
-                        );
-                    }
-                    // Plus_0 : Plus_0 . Layout Statement
-                    SlotId(33) => {
+                    // StartS : . Layout start:S Layout, and 2 more slots
+                    SlotId(50) | SlotId(54) | SlotId(58) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(34), env)
-                            {
-                                // Plus_0 : Plus_0 Layout . Statement
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(34));
-                            }
-                        }
-                    }
-                    // Plus_0 : Plus_0 Layout . Statement
-                    SlotId(34) => {
-                        self.create(
-                            NonterminalId(1),
-                            &PREDICTION_STATEMENT,
-                            result,
-                            gss_node_id,
-                            SlotId(35),
-                            env,
-                        );
-                    }
-                    // Plus_0 : Plus_0 Layout Statement.
-                    SlotId(35) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(35), result, None, &FOLLOW_SET_PLUS_0);
-                    }
-                    // Plus_0 : . Statement
-                    SlotId(36) => {
-                        self.create(
-                            NonterminalId(1),
-                            &PREDICTION_STATEMENT,
-                            result,
-                            gss_node_id,
-                            SlotId(37),
-                            env,
-                        );
-                    }
-                    // Plus_0 : Statement.
-                    SlotId(37) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(37), result, None, &FOLLOW_SET_PLUS_0);
-                    }
-                    // StartS : . Layout start:S Layout
-                    SlotId(50) => {
-                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
-                            // StartS : Layout . start:S Layout
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(51));
+                            next = Some(slot_id.next());
                         }
                     }
                     // StartS : Layout . start:S Layout
@@ -565,62 +276,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseFirstParseParser<'i, 'arena>
                             &PREDICTION_S,
                             result,
                             gss_node_id,
-                            SlotId(52),
+                            slot_id.next(),
                             env,
                         );
-                    }
-                    // StartS : Layout start:S . Layout
-                    SlotId(52) => {
-                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(53), env)
-                            {
-                                // StartS : Layout start:S Layout.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(53));
-                            }
-                        }
                     }
                     // StartS : Layout start:S Layout.
                     SlotId(53) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(53), result, None, &FOLLOW_SET_START_S);
-                    }
-                    // StartStatement : . Layout start:Statement Layout
-                    SlotId(54) => {
-                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
-                            // StartStatement : Layout . start:Statement Layout
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(55));
-                        }
-                    }
-                    // StartStatement : Layout . start:Statement Layout
-                    SlotId(55) => {
-                        self.create(
-                            NonterminalId(1),
-                            &PREDICTION_STATEMENT,
-                            result,
-                            gss_node_id,
-                            SlotId(56),
-                            env,
-                        );
-                    }
-                    // StartStatement : Layout start:Statement . Layout
-                    SlotId(56) => {
-                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(57), env)
-                            {
-                                // StartStatement : Layout start:Statement Layout.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(57));
-                            }
-                        }
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_S);
                     }
                     // StartStatement : Layout start:Statement Layout.
                     SlotId(57) => {
@@ -629,33 +294,18 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseFirstParseParser<'i, 'arena>
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(57),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_STATEMENT,
                         );
-                    }
-                    // StartLayout : . start:Layout
-                    SlotId(58) => {
-                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
-                            // StartLayout : start:Layout.
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(59));
-                        }
                     }
                     // StartLayout : start:Layout.
                     SlotId(59) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(
-                            gss_node_id,
-                            SlotId(59),
-                            result,
-                            None,
-                            &FOLLOW_SET_START_LAYOUT,
-                        );
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_LAYOUT);
                     }
                     _ => {
                         panic!("Unknown grammar slot id: {slot_id}");

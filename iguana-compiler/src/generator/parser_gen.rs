@@ -1,3 +1,4 @@
+use indexmap::IndexMap;
 use proc_macro2::Ident;
 use proc_macro2::Literal;
 use proc_macro2::TokenStream;
@@ -369,7 +370,7 @@ impl<'a> ParserGen<'a> {
     }
 
     fn gen_execute_method(&self) -> TokenStream {
-        let mut slot_quotes = vec![];
+        let mut slot_bodies = vec![];
         for nonterminal in self.grammar.nonterminals() {
             // An LL(1) nonterminal is parsed by its LL(1) method, so we do not
             // create a slot entry in the execute method for it, except for a
@@ -381,66 +382,35 @@ impl<'a> ParserGen<'a> {
             for alternative in alternatives.iter() {
                 for pos in 0..alternative.symbols.len() {
                     let slot = Slot::new(nonterminal, alternative, pos);
-                    slot_quotes.push(self.gen_slot_code(slot));
+                    if let Some(body) = self.gen_slot_code(&slot) {
+                        slot_bodies.push((slot, body));
+                    }
                 }
-                // Handle the last grammar slot
-                let last_symbol_index = alternative.symbols.len();
-                let end_slot = Slot::new(nonterminal, alternative, last_symbol_index);
-                let end_slot_name = end_slot.name();
-                let end_slot_id = self.slot_ids.get_id(&end_slot);
-                let follow_set = format_ident!(
-                    "FOLLOW_SET_{}",
-                    to_snake_case(&nonterminal.name).to_uppercase(),
-                );
-                // An end slot is one call to `pop`, which tests the FOLLOW set,
-                // builds the nonterminal node, and returns to the callers. An
-                // empty alternative has an epsilon node as its result.
-                let slot_body = if last_symbol_index == 0 {
-                    quote! {
-                        let result = self.get_or_create_epsilon_node(input_index);
-                        self.pop(gss_node_id, #end_slot_id, result, None, &#follow_set);
-                    }
-                } else {
-                    let last_symbol = alternative.symbols.last().unwrap();
-                    if let Symbol::Return(expr) = last_symbol {
-                        let expr = Self::gen_expr(expr);
-                        // Conditions and returns do not create an SPPF node. An
-                        // otherwise empty alternative still needs an epsilon
-                        // child, like an undecorated empty alternative.
-                        let result = if alternative.symbols.iter().any(Symbol::is_parse_tree_symbol)
-                        {
-                            quote! {
-                                let Some(result) = result else {
-                                    unreachable!("result cannot be None here.")
-                                };
-                            }
-                        } else {
-                            quote! {
-                                let result = self.get_or_create_epsilon_node(input_index);
-                            }
-                        };
-                        quote! {
-                            #result
-                            let return_value = #expr;
-                            self.pop(gss_node_id, #end_slot_id, result, Some(return_value), &#follow_set);
-                        }
-                    } else {
-                        quote! {
-                            let Some(result) = result else {
-                                unreachable!("result cannot be None here.")
-                            };
-                            self.pop(gss_node_id, #end_slot_id, result, None, &#follow_set);
-                        }
-                    }
-                };
-                slot_quotes.push(quote! {
-                    #[comment = #end_slot_name]
-                    #end_slot_id => {
-                        #slot_body
-                    }
-                });
+                let end_slot = Slot::new(nonterminal, alternative, alternative.symbols.len());
+                slot_bodies.push((end_slot.clone(), self.gen_end_slot_code(&end_slot)));
             }
         }
+        let slot_quotes: Vec<_> = self
+            .group_slots(slot_bodies)
+            .into_iter()
+            .map(|(slots, body)| {
+                let comment = match slots.as_slice() {
+                    [slot] => slot.name(),
+                    [first, second] => format!("{}, and {}", first.name(), second.name()),
+                    [first, rest @ ..] => {
+                        format!("{}, and {} more slots", first.name(), rest.len())
+                    }
+                    [] => unreachable!("an arm has at least one slot"),
+                };
+                let slot_ids = slots.iter().map(|slot| self.slot_ids.get_id(slot));
+                quote! {
+                    #[comment = #comment]
+                    #(#slot_ids)|* => {
+                        #body
+                    }
+                }
+            })
+            .collect();
 
         let slots = quote! { #(#slot_quotes)* };
         // A grammar whose alternatives never reach a second symbol has no
@@ -484,12 +454,67 @@ impl<'a> ParserGen<'a> {
         }
     }
 
+    /// Groups the slots into the arms of `execute`, in the order of their
+    /// first slots. With merged slots, the slots whose bodies are the same
+    /// share one arm, and otherwise every slot has its own arm.
+    fn group_slots(
+        &self,
+        slot_bodies: Vec<(Slot<'a>, TokenStream)>,
+    ) -> Vec<(Vec<Slot<'a>>, TokenStream)> {
+        if !self.config.merged_slots {
+            return slot_bodies
+                .into_iter()
+                .map(|(slot, body)| (vec![slot], body))
+                .collect();
+        }
+        let mut arms: IndexMap<String, (Vec<Slot<'a>>, TokenStream)> = IndexMap::new();
+        for (slot, body) in slot_bodies {
+            // Two bodies are the same when the Rust source they become is the
+            // same. The comments that name the slots are added after grouping.
+            arms.entry(body.to_string())
+                .or_insert_with(|| (vec![], body))
+                .0
+                .push(slot);
+        }
+        arms.into_values().collect()
+    }
+
+    /// The id of `slot` in the body of its `execute` arm. With merged slots,
+    /// the arm can match more than one slot, so the body uses the matched
+    /// `slot_id`.
+    fn slot_id(&self, slot: &Slot<'a>) -> TokenStream {
+        if self.config.merged_slots {
+            quote! { slot_id }
+        } else {
+            let slot_id = self.slot_ids.get_id(slot);
+            quote! { #slot_id }
+        }
+    }
+
+    /// The id of the slot after `slot` in the body of its `execute` arm. With
+    /// merged slots, the body computes the id from the matched `slot_id`.
+    fn next_slot_id(&self, slot: &Slot<'a>) -> TokenStream {
+        if self.config.merged_slots {
+            quote! { slot_id.next() }
+        } else {
+            let next_slot_id = self.slot_ids.get_id(&slot.next());
+            quote! { #next_slot_id }
+        }
+    }
+
     /// The transition to the next slot of the alternative: the matched node
     /// becomes the result, its right extent `j` the input index, and the
-    /// dispatch loop continues with the slot.
-    fn gen_advance(next_slot_name: &str, next_slot_id: SlotId, node: TokenStream) -> TokenStream {
+    /// dispatch loop continues with the slot. A comment names the next slot,
+    /// except with merged slots, where the arm can continue at more than one
+    /// slot.
+    fn gen_advance(&self, slot: &Slot<'a>, node: TokenStream) -> TokenStream {
+        let next_slot_name = (!self.config.merged_slots).then(|| {
+            let next_slot_name = slot.next().name();
+            quote! { #[comment = #next_slot_name] }
+        });
+        let next_slot_id = self.next_slot_id(slot);
         quote! {
-            #[comment = #next_slot_name]
+            #next_slot_name
             input_index = j;
             result = Some(#node);
             next = Some(#next_slot_id);
@@ -515,7 +540,7 @@ impl<'a> ParserGen<'a> {
     /// failure instead of the transition.
     fn guard_post_conditions(
         post_conditions: &[TokenStream],
-        next_slot_id: SlotId,
+        next_slot_id: &TokenStream,
         body: TokenStream,
     ) -> TokenStream {
         if post_conditions.is_empty() {
@@ -531,13 +556,15 @@ impl<'a> ParserGen<'a> {
         }
     }
 
-    fn gen_slot_code(&self, slot: Slot<'a>) -> TokenStream {
+    /// The body of the `execute` arm of `slot`, or `None` when `slot` does
+    /// not have an arm.
+    fn gen_slot_code(&self, slot: &Slot<'a>) -> Option<TokenStream> {
         match slot.symbol() {
             Some(Symbol::Condition(expr)) => {
-                return self.gen_condition_code(expr, &slot);
+                return Some(self.gen_condition_code(expr, slot));
             }
             Some(Symbol::Return(_)) => {
-                return self.gen_return_code(&slot);
+                return Some(self.gen_return_code(slot));
             }
             Some(Symbol::Exclude { .. }) => {
                 unreachable!("Exclude should be desugared before code generation")
@@ -573,7 +600,7 @@ impl<'a> ParserGen<'a> {
             };
             let def_id = identifier.resolve();
             let def = self.grammar.definition(def_id);
-            match def {
+            let body = match def {
                 Definition::Terminal(terminal) => {
                     self.gen_terminal_slot(terminal, slot, &pre_conditions, &post_conditions)
                 }
@@ -587,9 +614,10 @@ impl<'a> ParserGen<'a> {
                         &post_conditions,
                     )
                 }
-            }
+            };
+            Some(body)
         } else {
-            quote! {}
+            None
         }
     }
 
@@ -626,21 +654,18 @@ impl<'a> ParserGen<'a> {
     fn gen_terminal_slot(
         &self,
         terminal: &Terminal,
-        slot: Slot<'a>,
+        slot: &Slot<'a>,
         pre_conditions: &[TokenStream],
         post_conditions: &[TokenStream],
     ) -> TokenStream {
         let terminal_id = &self.terminal_ids.get_id(terminal);
-        let slot_id = self.slot_ids.get_id(&slot);
-        let current_slot_name = slot.name();
-        let next_slot = slot.next();
-        let next_slot_id = self.slot_ids.get_id(&next_slot);
-        let next_slot_name = next_slot.name();
+        let slot_id = self.slot_id(slot);
+        let next_slot_id = self.next_slot_id(slot);
         // At grammar position 0, we do not need to create an intermediate node.
         let advance = if slot.is_first() {
-            Self::gen_advance(&next_slot_name, next_slot_id, quote! { right_child })
+            self.gen_advance(slot, quote! { right_child })
         } else {
-            let advance = Self::gen_advance(&next_slot_name, next_slot_id, quote! { new_node });
+            let advance = self.gen_advance(slot, quote! { new_node });
             quote! {
                 if let Some(new_node) = self.create_intermediate_node(
                     result, right_child, #next_slot_id, env,
@@ -649,21 +674,15 @@ impl<'a> ParserGen<'a> {
                 }
             }
         };
-        let advance = Self::guard_post_conditions(post_conditions, next_slot_id, advance);
-        let body = Self::guard_pre_conditions(
+        let advance = Self::guard_post_conditions(post_conditions, &next_slot_id, advance);
+        Self::guard_pre_conditions(
             pre_conditions,
             quote! {
                 if let Some((j, right_child)) = self.match_terminal(#terminal_id, input_index, #slot_id, Some(gss_node_id)) {
                     #advance
                 }
             },
-        );
-        quote! {
-            #[comment = #current_slot_name]
-            #slot_id => {
-                #body
-            }
-        }
+        )
     }
 
     fn gen_post_conditions_method(&mut self) -> TokenStream {
@@ -1012,16 +1031,13 @@ impl<'a> ParserGen<'a> {
         &self,
         nonterminal: &'a Nonterminal,
         arguments: &[Expr],
-        slot: Slot<'a>,
+        slot: &Slot<'a>,
         pre_conditions: &[TokenStream],
         post_conditions: &[TokenStream],
     ) -> TokenStream {
-        let slot_id = self.slot_ids.get_id(&slot);
-        let slot_name = slot.name();
-        let next_slot = slot.next();
-        let next_slot_id = self.slot_ids.get_id(&next_slot);
+        let slot_id = self.slot_id(slot);
+        let next_slot_id = self.next_slot_id(slot);
         let body = if self.ll1_nonterminals.contains(nonterminal) {
-            let next_slot_name = next_slot.name();
             let method_name = format_ident!("parse_{}_ll1", to_snake_case(&nonterminal.name));
             // An LL(1) function has no GSS node, so the main loop records a failed
             // call's `expected FIRST(X)` itself, after any failures recorded inside
@@ -1039,8 +1055,8 @@ impl<'a> ParserGen<'a> {
             if slot.is_first() {
                 let advance = Self::guard_post_conditions(
                     post_conditions,
-                    next_slot_id,
-                    Self::gen_advance(&next_slot_name, next_slot_id, quote! { right_child }),
+                    &next_slot_id,
+                    self.gen_advance(slot, quote! { right_child }),
                 );
                 quote! {
                     if let Some((j, right_child)) = self.#method_name(input_index, None) {
@@ -1048,10 +1064,10 @@ impl<'a> ParserGen<'a> {
                     } #call_failure
                 }
             } else {
-                let advance = Self::gen_advance(&next_slot_name, next_slot_id, quote! { new_node });
+                let advance = self.gen_advance(slot, quote! { new_node });
                 let advance = Self::guard_post_conditions(
                     post_conditions,
-                    next_slot_id,
+                    &next_slot_id,
                     quote! {
                         if let Some(new_node) = self.create_intermediate_node(
                             result, right_child, #next_slot_id, env,
@@ -1082,13 +1098,7 @@ impl<'a> ParserGen<'a> {
                 self.#method_name(#arguments);
             }
         };
-        let body = Self::guard_pre_conditions(pre_conditions, body);
-        quote! {
-            #[comment = #slot_name]
-            #slot_id => {
-                #body
-            }
-        }
+        Self::guard_pre_conditions(pre_conditions, body)
     }
 
     /// The identifier of the `Prediction` static that a generated call of
@@ -1125,17 +1135,14 @@ impl<'a> ParserGen<'a> {
     }
 
     fn gen_condition_code(&self, expr: &Expr, slot: &Slot<'a>) -> TokenStream {
-        let slot_id = self.slot_ids.get_id(slot);
-        let slot_name = slot.name();
-        let next_slot = slot.next();
-        let next_slot_id = self.slot_ids.get_id(&next_slot);
+        let next_slot_id = self.next_slot_id(slot);
         let symbols = &slot.alternative().symbols;
         let first_condition = symbols[..slot.pos()]
             .iter()
             .rposition(|symbol| !matches!(symbol, Symbol::Condition(_)))
             .map_or(0, |pos| pos + 1);
         let return_slot = Slot::new(slot.head(), slot.alternative(), first_condition);
-        let body = if return_slot.is_return_slot(self.grammar)
+        if return_slot.is_return_slot(self.grammar)
             && !is_ll1_return_slot(self.grammar, self.ll1_nonterminals, &return_slot)
         {
             quote! { next = Some(#next_slot_id); }
@@ -1146,24 +1153,58 @@ impl<'a> ParserGen<'a> {
                     next = Some(#next_slot_id);
                 }
             }
-        };
-        quote! {
-            #[comment = #slot_name]
-            #slot_id => {
-                #body
-            }
         }
     }
 
     fn gen_return_code(&self, slot: &Slot<'a>) -> TokenStream {
-        let slot_id = self.slot_ids.get_id(slot);
-        let slot_name = slot.name();
-        let next_slot = slot.next();
-        let next_slot_id = self.slot_ids.get_id(&next_slot);
+        let next_slot_id = self.next_slot_id(slot);
         quote! {
-            #[comment = #slot_name]
-            #slot_id => {
-                next = Some(#next_slot_id);
+            next = Some(#next_slot_id);
+        }
+    }
+
+    /// An end slot is one call to `pop`, which tests the FOLLOW set, builds
+    /// the nonterminal node, and returns to the callers. An empty alternative
+    /// has an epsilon node as its result.
+    fn gen_end_slot_code(&self, slot: &Slot<'a>) -> TokenStream {
+        let alternative = slot.alternative();
+        let slot_id = self.slot_id(slot);
+        let follow_set = format_ident!(
+            "FOLLOW_SET_{}",
+            to_snake_case(&slot.head().name).to_uppercase(),
+        );
+        if alternative.symbols.is_empty() {
+            quote! {
+                let result = self.get_or_create_epsilon_node(input_index);
+                self.pop(gss_node_id, #slot_id, result, None, &#follow_set);
+            }
+        } else if let Some(Symbol::Return(expr)) = alternative.symbols.last() {
+            let expr = Self::gen_expr(expr);
+            // Conditions and returns do not create an SPPF node. An otherwise
+            // empty alternative still needs an epsilon child, like an
+            // undecorated empty alternative.
+            let result = if alternative.symbols.iter().any(Symbol::is_parse_tree_symbol) {
+                quote! {
+                    let Some(result) = result else {
+                        unreachable!("result cannot be None here.")
+                    };
+                }
+            } else {
+                quote! {
+                    let result = self.get_or_create_epsilon_node(input_index);
+                }
+            };
+            quote! {
+                #result
+                let return_value = #expr;
+                self.pop(gss_node_id, #slot_id, result, Some(return_value), &#follow_set);
+            }
+        } else {
+            quote! {
+                let Some(result) = result else {
+                    unreachable!("result cannot be None here.")
+                };
+                self.pop(gss_node_id, #slot_id, result, None, &#follow_set);
             }
         }
     }

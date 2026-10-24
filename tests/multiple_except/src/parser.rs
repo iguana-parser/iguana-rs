@@ -68,14 +68,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for MultipleExceptParser<'i, 'arena> {
                         if let Some((j, right_child)) =
                             self.parse_syntax_identifier_ll1(input_index, None)
                         {
-                            // StartSyntaxIdentifier : start:SyntaxIdentifier.
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(5));
+                            next = Some(slot_id.next());
                         } else {
                             self.add_failure(
                                 input_index,
-                                SlotId(4),
+                                slot_id,
                                 Some(gss_node_id),
                                 GLLFailureKind::UnexpectedToken(&FIRST_SET_SYNTAX_IDENTIFIER),
                             );
@@ -88,7 +87,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for MultipleExceptParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(5),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_SYNTAX_IDENTIFIER,
@@ -99,14 +98,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for MultipleExceptParser<'i, 'arena> {
                         if let Some((j, right_child)) =
                             self.parse_lexical_identifier_ll1(input_index, None)
                         {
-                            // StartLexicalIdentifier : start:LexicalIdentifier.
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(7));
+                            next = Some(slot_id.next());
                         } else {
                             self.add_failure(
                                 input_index,
-                                SlotId(6),
+                                slot_id,
                                 Some(gss_node_id),
                                 GLLFailureKind::UnexpectedToken(&FIRST_SET_LEXICAL_IDENTIFIER),
                             );
@@ -119,7 +117,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for MultipleExceptParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(7),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_LEXICAL_IDENTIFIER,

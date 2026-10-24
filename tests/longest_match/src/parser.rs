@@ -64,14 +64,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for LongestMatchParser<'i, 'arena> {
                     gss_node_id
                 );
                 match slot_id {
-                    // S : . X "x"
-                    SlotId(0) => {
+                    // S : . X "x", and StartX : . start:X
+                    SlotId(0) | SlotId(9) => {
                         self.create(
                             NonterminalId(1),
                             &PREDICTION_X,
                             result,
                             gss_node_id,
-                            SlotId(1),
+                            slot_id.next(),
                             env,
                         );
                     }
@@ -80,16 +80,18 @@ impl<'i, 'arena> Parser<'i, 'arena> for LongestMatchParser<'i, 'arena> {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(0),
                             input_index,
-                            SlotId(1),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(2), env)
-                            {
-                                // S : X "x".
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(2));
+                                next = Some(slot_id.next());
                             }
                         }
                     }
@@ -98,49 +100,40 @@ impl<'i, 'arena> Parser<'i, 'arena> for LongestMatchParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(2), result, None, &FOLLOW_SET_S);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_S);
                     }
                     // X : . "<"
                     SlotId(3) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(1),
                             input_index,
-                            SlotId(3),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // X : "<".
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(4));
+                            next = Some(slot_id.next());
                         }
                     }
-                    // X : "<".
-                    SlotId(4) => {
+                    // X : "<"., and X : "<=".
+                    SlotId(4) | SlotId(6) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(4), result, None, &FOLLOW_SET_X);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_X);
                     }
                     // X : . "<="
                     SlotId(5) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(2),
                             input_index,
-                            SlotId(5),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // X : "<=".
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(6));
+                            next = Some(slot_id.next());
                         }
-                    }
-                    // X : "<=".
-                    SlotId(6) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(6), result, None, &FOLLOW_SET_X);
                     }
                     // StartS : . start:S
                     SlotId(7) => {
@@ -149,7 +142,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for LongestMatchParser<'i, 'arena> {
                             &PREDICTION_S,
                             result,
                             gss_node_id,
-                            SlotId(8),
+                            slot_id.next(),
                             env,
                         );
                     }
@@ -158,25 +151,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for LongestMatchParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(8), result, None, &FOLLOW_SET_START_S);
-                    }
-                    // StartX : . start:X
-                    SlotId(9) => {
-                        self.create(
-                            NonterminalId(1),
-                            &PREDICTION_X,
-                            result,
-                            gss_node_id,
-                            SlotId(10),
-                            env,
-                        );
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_S);
                     }
                     // StartX : start:X.
                     SlotId(10) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(10), result, None, &FOLLOW_SET_START_X);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_X);
                     }
                     _ => {
                         panic!("Unknown grammar slot id: {slot_id}");

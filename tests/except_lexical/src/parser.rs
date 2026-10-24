@@ -66,14 +66,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExceptLexicalParser<'i, 'arena> {
                     // StartS : . start:S
                     SlotId(2) => {
                         if let Some((j, right_child)) = self.parse_s_ll1(input_index, None) {
-                            // StartS : start:S.
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(3));
+                            next = Some(slot_id.next());
                         } else {
                             self.add_failure(
                                 input_index,
-                                SlotId(2),
+                                slot_id,
                                 Some(gss_node_id),
                                 GLLFailureKind::UnexpectedToken(&FIRST_SET_S),
                             );
@@ -84,7 +83,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExceptLexicalParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(3), result, None, &FOLLOW_SET_START_S);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_S);
                     }
                     _ => {
                         panic!("Unknown grammar slot id: {slot_id}");

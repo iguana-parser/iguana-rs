@@ -67,25 +67,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExceptNonterminalLongestMatchParser<'i, 
                     gss_node_id
                 );
                 match slot_id {
-                    // S : . Id Id
-                    SlotId(0) => {
+                    // S : . Id Id, and 2 more slots
+                    SlotId(0) | SlotId(1) | SlotId(12) => {
                         self.create(
                             NonterminalId(1),
                             &PREDICTION_ID,
                             result,
                             gss_node_id,
-                            SlotId(1),
-                            env,
-                        );
-                    }
-                    // S : Id . Id
-                    SlotId(1) => {
-                        self.create(
-                            NonterminalId(1),
-                            &PREDICTION_ID,
-                            result,
-                            gss_node_id,
-                            SlotId(2),
+                            slot_id.next(),
                             env,
                         );
                     }
@@ -94,16 +83,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExceptNonterminalLongestMatchParser<'i, 
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(2), result, None, &FOLLOW_SET_S);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_S);
                     }
-                    // Id : . Name \ Keyword
-                    SlotId(3) => {
+                    // Id : . Name \ Keyword, and StartName : . start:Name
+                    SlotId(3) | SlotId(14) => {
                         self.create(
                             NonterminalId(2),
                             &PREDICTION_NAME,
                             result,
                             gss_node_id,
-                            SlotId(4),
+                            slot_id.next(),
                             env,
                         );
                     }
@@ -112,20 +101,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExceptNonterminalLongestMatchParser<'i, 
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(4), result, None, &FOLLOW_SET_ID);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_ID);
                     }
-                    // Name : . Letter Letter
-                    SlotId(5) => {
+                    // Name : . Letter Letter, and Name : . Letter
+                    SlotId(5) | SlotId(8) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(0),
                             input_index,
-                            SlotId(5),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // Name : Letter . Letter
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(6));
+                            next = Some(slot_id.next());
                         }
                     }
                     // Name : Letter . Letter
@@ -133,46 +121,27 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExceptNonterminalLongestMatchParser<'i, 
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(0),
                             input_index,
-                            SlotId(6),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(7), env)
-                            {
-                                // Name : Letter Letter.
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(7));
+                                next = Some(slot_id.next());
                             }
                         }
                     }
-                    // Name : Letter Letter.
-                    SlotId(7) => {
+                    // Name : Letter Letter., and Name : Letter.
+                    SlotId(7) | SlotId(9) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(7), result, None, &FOLLOW_SET_NAME);
-                    }
-                    // Name : . Letter
-                    SlotId(8) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(0),
-                            input_index,
-                            SlotId(8),
-                            Some(gss_node_id),
-                        ) {
-                            // Name : Letter.
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(9));
-                        }
-                    }
-                    // Name : Letter.
-                    SlotId(9) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(9), result, None, &FOLLOW_SET_NAME);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_NAME);
                     }
                     // StartS : . start:S
                     SlotId(10) => {
@@ -181,7 +150,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExceptNonterminalLongestMatchParser<'i, 
                             &PREDICTION_S,
                             result,
                             gss_node_id,
-                            SlotId(11),
+                            slot_id.next(),
                             env,
                         );
                     }
@@ -190,49 +159,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExceptNonterminalLongestMatchParser<'i, 
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(11), result, None, &FOLLOW_SET_START_S);
-                    }
-                    // StartId : . start:Id
-                    SlotId(12) => {
-                        self.create(
-                            NonterminalId(1),
-                            &PREDICTION_ID,
-                            result,
-                            gss_node_id,
-                            SlotId(13),
-                            env,
-                        );
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_S);
                     }
                     // StartId : start:Id.
                     SlotId(13) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(13), result, None, &FOLLOW_SET_START_ID);
-                    }
-                    // StartName : . start:Name
-                    SlotId(14) => {
-                        self.create(
-                            NonterminalId(2),
-                            &PREDICTION_NAME,
-                            result,
-                            gss_node_id,
-                            SlotId(15),
-                            env,
-                        );
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_ID);
                     }
                     // StartName : start:Name.
                     SlotId(15) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(
-                            gss_node_id,
-                            SlotId(15),
-                            result,
-                            None,
-                            &FOLLOW_SET_START_NAME,
-                        );
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_NAME);
                     }
                     _ => {
                         panic!("Unknown grammar slot id: {slot_id}");

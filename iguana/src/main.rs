@@ -37,8 +37,8 @@ enum Commands {
     },
     /// Generate a parser crate from an iggy grammar
     ///
-    /// Generation knobs (ll1, match_memo, format, first_parse, bin_name,
-    /// runtime_path) can be persisted in a gen.toml beside the grammar.
+    /// Generation knobs (ll1, match_memo, format, first_parse, merged_slots,
+    /// bin_name, runtime_path) can be persisted in a gen.toml beside the grammar.
     /// Precedence is the built-in default, then gen.toml, then an explicit
     /// flag.
     Generate {
@@ -81,6 +81,12 @@ enum Commands {
         /// The parse tree types are the same in both modes.
         #[arg(long, num_args = 0..=1, default_missing_value = "true")]
         first_parse: Option<bool>,
+
+        /// Share the code that is the same for different grammar slots
+        ///
+        /// True by default.
+        #[arg(long, num_args = 0..=1, default_missing_value = "true")]
+        merged_slots: Option<bool>,
 
         /// Scaffold a CLI binary (Cargo.toml + src/main.rs)
         ///
@@ -159,6 +165,7 @@ fn run() -> io::Result<()> {
             match_memo,
             format,
             first_parse,
+            merged_slots,
             cli,
             wasm,
             runtime_path,
@@ -222,6 +229,9 @@ fn run() -> io::Result<()> {
             }
             if let Some(first_parse) = first_parse {
                 config.first_parse = first_parse;
+            }
+            if let Some(merged_slots) = merged_slots {
+                config.merged_slots = merged_slots;
             }
             let bin_name = bin_name.or(file.bin_name);
             let runtime_path = runtime_path.or(file.runtime_path);

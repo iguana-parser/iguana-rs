@@ -69,30 +69,31 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordPrecedeParser<'i, 'arena> {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(2),
                             input_index,
-                            SlotId(12),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // StartS : WS . start:S WS
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(13));
+                            next = Some(slot_id.next());
                         }
                     }
                     // StartS : WS . start:S WS
                     SlotId(13) => {
                         if let Some((j, right_child)) = self.parse_s_ll1(input_index, None) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(14), env)
-                            {
-                                // StartS : WS start:S . WS
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(14));
+                                next = Some(slot_id.next());
                             }
                         } else {
                             self.add_failure(
                                 input_index,
-                                SlotId(13),
+                                slot_id,
                                 Some(gss_node_id),
                                 GLLFailureKind::UnexpectedToken(&FIRST_SET_S),
                             );
@@ -103,16 +104,18 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordPrecedeParser<'i, 'arena> {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(2),
                             input_index,
-                            SlotId(14),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(15), env)
-                            {
-                                // StartS : WS start:S WS.
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(15));
+                                next = Some(slot_id.next());
                             }
                         }
                     }
@@ -121,7 +124,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordPrecedeParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(15), result, None, &FOLLOW_SET_START_S);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_S);
                     }
                     _ => {
                         panic!("Unknown grammar slot id: {slot_id}");

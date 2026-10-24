@@ -42,6 +42,15 @@ impl SlotId {
     pub fn index(&self) -> usize {
         self.0 as usize
     }
+
+    /// The id of the next slot, which moves the dot one symbol forward in the
+    /// alternative. The generator numbers the slots of an alternative
+    /// consecutively in position order, so the next slot is the one with the
+    /// next higher id. The slot must not be at the end of its alternative.
+    #[inline(always)]
+    pub fn next(self) -> SlotId {
+        SlotId(self.0 + 1)
+    }
 }
 
 impl std::fmt::Display for SlotId {

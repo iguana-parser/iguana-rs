@@ -74,34 +74,81 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     gss_node_id
                 );
                 match slot_id {
-                    // S : . E(0)
-                    SlotId(0) => {
-                        self.create_e(result, gss_node_id, SlotId(1), env, 0);
+                    // S : . E(0), and StartE : WS . start:E(0) WS
+                    SlotId(0) | SlotId(70) => {
+                        self.create_e(result, gss_node_id, slot_id.next(), env, 0);
                     }
                     // S : E(0).
                     SlotId(1) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(1), result, None, &FOLLOW_SET_S);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_S);
                     }
-                    // E(p: i32) : . "a" return 0
-                    SlotId(397) => {
+                    // E(p: i32) : . "a" return 0, and 15 more slots
+                    SlotId(397) | SlotId(741) | SlotId(767) | SlotId(790) | SlotId(810)
+                    | SlotId(862) | SlotId(887) | SlotId(913) | SlotId(937) | SlotId(975)
+                    | SlotId(984) | SlotId(1001) | SlotId(1018) | SlotId(1039) | SlotId(1057)
+                    | SlotId(1076) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(2),
                             input_index,
-                            SlotId(397),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // E(p: i32) : "a" . return 0
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(398));
+                            next = Some(slot_id.next());
                         }
                     }
-                    // E(p: i32) : "a" . return 0
-                    SlotId(398) => {
-                        next = Some(SlotId(399));
+                    // E(p: i32) : "a" . return 0, and 225 more slots
+                    SlotId(398) | SlotId(402) | SlotId(407) | SlotId(411) | SlotId(416)
+                    | SlotId(420) | SlotId(425) | SlotId(428) | SlotId(431) | SlotId(435)
+                    | SlotId(440) | SlotId(443) | SlotId(446) | SlotId(450) | SlotId(455)
+                    | SlotId(459) | SlotId(464) | SlotId(467) | SlotId(471) | SlotId(476)
+                    | SlotId(479) | SlotId(482) | SlotId(486) | SlotId(491) | SlotId(494)
+                    | SlotId(497) | SlotId(504) | SlotId(507) | SlotId(510) | SlotId(514)
+                    | SlotId(519) | SlotId(522) | SlotId(525) | SlotId(529) | SlotId(534)
+                    | SlotId(537) | SlotId(540) | SlotId(543) | SlotId(548) | SlotId(549)
+                    | SlotId(552) | SlotId(559) | SlotId(17) | SlotId(562) | SlotId(569)
+                    | SlotId(572) | SlotId(575) | SlotId(578) | SlotId(583) | SlotId(584)
+                    | SlotId(587) | SlotId(590) | SlotId(593) | SlotId(596) | SlotId(600)
+                    | SlotId(605) | SlotId(608) | SlotId(611) | SlotId(616) | SlotId(617)
+                    | SlotId(620) | SlotId(623) | SlotId(630) | SlotId(24) | SlotId(633)
+                    | SlotId(636) | SlotId(641) | SlotId(642) | SlotId(647) | SlotId(650)
+                    | SlotId(653) | SlotId(656) | SlotId(661) | SlotId(662) | SlotId(667)
+                    | SlotId(670) | SlotId(673) | SlotId(676) | SlotId(680) | SlotId(685)
+                    | SlotId(686) | SlotId(691) | SlotId(694) | SlotId(697) | SlotId(700)
+                    | SlotId(705) | SlotId(706) | SlotId(713) | SlotId(716) | SlotId(719)
+                    | SlotId(722) | SlotId(723) | SlotId(728) | SlotId(729) | SlotId(732)
+                    | SlotId(739) | SlotId(27) | SlotId(30) | SlotId(33) | SlotId(36)
+                    | SlotId(742) | SlotId(746) | SlotId(751) | SlotId(754) | SlotId(759)
+                    | SlotId(762) | SlotId(765) | SlotId(768) | SlotId(772) | SlotId(777)
+                    | SlotId(782) | SlotId(785) | SlotId(788) | SlotId(791) | SlotId(796)
+                    | SlotId(799) | SlotId(802) | SlotId(805) | SlotId(808) | SlotId(811)
+                    | SlotId(815) | SlotId(820) | SlotId(823) | SlotId(826) | SlotId(829)
+                    | SlotId(833) | SlotId(838) | SlotId(843) | SlotId(848) | SlotId(853)
+                    | SlotId(857) | SlotId(860) | SlotId(863) | SlotId(867) | SlotId(868)
+                    | SlotId(873) | SlotId(878) | SlotId(882) | SlotId(885) | SlotId(888)
+                    | SlotId(893) | SlotId(894) | SlotId(899) | SlotId(904) | SlotId(908)
+                    | SlotId(911) | SlotId(914) | SlotId(917) | SlotId(918) | SlotId(923)
+                    | SlotId(924) | SlotId(929) | SlotId(932) | SlotId(935) | SlotId(938)
+                    | SlotId(941) | SlotId(944) | SlotId(39) | SlotId(42) | SlotId(947)
+                    | SlotId(952) | SlotId(953) | SlotId(958) | SlotId(961) | SlotId(964)
+                    | SlotId(967) | SlotId(972) | SlotId(973) | SlotId(976) | SlotId(979)
+                    | SlotId(982) | SlotId(985) | SlotId(990) | SlotId(994) | SlotId(999)
+                    | SlotId(1002) | SlotId(1007) | SlotId(1011) | SlotId(1016) | SlotId(1019)
+                    | SlotId(1023) | SlotId(1028) | SlotId(1032) | SlotId(1037) | SlotId(1040)
+                    | SlotId(1043) | SlotId(1048) | SlotId(1049) | SlotId(1052) | SlotId(1055)
+                    | SlotId(1058) | SlotId(1062) | SlotId(1067) | SlotId(1068) | SlotId(1071)
+                    | SlotId(1074) | SlotId(1077) | SlotId(1080) | SlotId(1085) | SlotId(1086)
+                    | SlotId(1089) | SlotId(1090) | SlotId(1093) | SlotId(60) | SlotId(1096)
+                    | SlotId(1099) | SlotId(1104) | SlotId(1105) | SlotId(1108) | SlotId(1113)
+                    | SlotId(1114) | SlotId(1117) | SlotId(1120) | SlotId(1123) | SlotId(1126)
+                    | SlotId(1130) | SlotId(1135) | SlotId(1139) | SlotId(1144) | SlotId(1147)
+                    | SlotId(1150) | SlotId(1152) | SlotId(1155) | SlotId(1157) | SlotId(1160)
+                    | SlotId(1162) => {
+                        next = Some(slot_id.next());
                     }
                     // E(p: i32) : "a" return 0.
                     SlotId(399) => {
@@ -111,105 +158,120 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 0;
                         self.pop(
                             gss_node_id,
-                            SlotId(399),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_E,
                         );
                     }
                     // E(p: i32) : . [2 >= p] l_pr=L(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS "*" WS L(3, 1) return
-                    // 2
-                    SlotId(400) => {
+                    // 2, and 5 more slots
+                    SlotId(400) | SlotId(448) | SlotId(744) | SlotId(770) | SlotId(1021)
+                    | SlotId(1128) => {
                         if 2 >= self.lookup(BINDING_P, env.unwrap()) {
-                            next = Some(SlotId(401));
+                            next = Some(slot_id.next());
                         }
                     }
                     // E(p: i32) : [2 >= p] . l_pr=L(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS "*" WS L(3, 1) return
-                    // 2
-                    SlotId(401) => {
+                    // 2, and E(p: i32) : [1 >= p] . l_pr=L(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "-" WS E(2)
+                    // return 1
+                    SlotId(401) | SlotId(419) => {
                         self.create_l(
                             result,
                             gss_node_id,
-                            SlotId(402),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             0,
                         );
                     }
-                    // E(p: i32) : [2 >= p] l_pr=L(p, 0) . [(l_pr == 0) || (l_pr >= 2)] WS "*" WS L(3, 1) return
-                    // 2
-                    SlotId(402) => {
-                        next = Some(SlotId(403));
-                    }
                     // E(p: i32) : [2 >= p] l_pr=L(p, 0) [(l_pr == 0) || (l_pr >= 2)] . WS "*" WS L(3, 1) return
-                    // 2
-                    SlotId(403) => {
+                    // 2, and 203 more slots
+                    SlotId(403) | SlotId(405) | SlotId(412) | SlotId(414) | SlotId(421)
+                    | SlotId(423) | SlotId(436) | SlotId(438) | SlotId(451) | SlotId(453)
+                    | SlotId(460) | SlotId(462) | SlotId(472) | SlotId(474) | SlotId(487)
+                    | SlotId(489) | SlotId(3) | SlotId(5) | SlotId(7) | SlotId(9) | SlotId(500)
+                    | SlotId(502) | SlotId(13) | SlotId(515) | SlotId(517) | SlotId(530)
+                    | SlotId(532) | SlotId(544) | SlotId(546) | SlotId(555) | SlotId(557)
+                    | SlotId(565) | SlotId(567) | SlotId(20) | SlotId(579) | SlotId(581)
+                    | SlotId(601) | SlotId(603) | SlotId(612) | SlotId(614) | SlotId(626)
+                    | SlotId(628) | SlotId(637) | SlotId(639) | SlotId(645) | SlotId(657)
+                    | SlotId(659) | SlotId(665) | SlotId(681) | SlotId(683) | SlotId(689)
+                    | SlotId(701) | SlotId(703) | SlotId(709) | SlotId(711) | SlotId(724)
+                    | SlotId(726) | SlotId(735) | SlotId(737) | SlotId(747) | SlotId(749)
+                    | SlotId(755) | SlotId(757) | SlotId(773) | SlotId(775) | SlotId(780)
+                    | SlotId(794) | SlotId(800) | SlotId(816) | SlotId(818) | SlotId(834)
+                    | SlotId(836) | SlotId(844) | SlotId(846) | SlotId(851) | SlotId(858)
+                    | SlotId(869) | SlotId(871) | SlotId(876) | SlotId(883) | SlotId(895)
+                    | SlotId(897) | SlotId(902) | SlotId(909) | SlotId(919) | SlotId(921)
+                    | SlotId(927) | SlotId(933) | SlotId(948) | SlotId(950) | SlotId(956)
+                    | SlotId(962) | SlotId(968) | SlotId(970) | SlotId(988) | SlotId(995)
+                    | SlotId(997) | SlotId(45) | SlotId(1005) | SlotId(1012) | SlotId(1014)
+                    | SlotId(52) | SlotId(1024) | SlotId(1026) | SlotId(1033) | SlotId(1035)
+                    | SlotId(56) | SlotId(1044) | SlotId(1046) | SlotId(1063) | SlotId(1065)
+                    | SlotId(1081) | SlotId(1083) | SlotId(1100) | SlotId(1102) | SlotId(1109)
+                    | SlotId(1111) | SlotId(1131) | SlotId(1133) | SlotId(1140) | SlotId(1142)
+                    | SlotId(67) | SlotId(71) | SlotId(75) | SlotId(79) | SlotId(83)
+                    | SlotId(87) | SlotId(91) | SlotId(95) | SlotId(99) | SlotId(103)
+                    | SlotId(107) | SlotId(111) | SlotId(115) | SlotId(119) | SlotId(123)
+                    | SlotId(127) | SlotId(131) | SlotId(135) | SlotId(139) | SlotId(143)
+                    | SlotId(147) | SlotId(151) | SlotId(155) | SlotId(159) | SlotId(163)
+                    | SlotId(167) | SlotId(171) | SlotId(175) | SlotId(179) | SlotId(183)
+                    | SlotId(187) | SlotId(191) | SlotId(195) | SlotId(199) | SlotId(203)
+                    | SlotId(207) | SlotId(211) | SlotId(215) | SlotId(219) | SlotId(223)
+                    | SlotId(227) | SlotId(231) | SlotId(235) | SlotId(239) | SlotId(243)
+                    | SlotId(247) | SlotId(251) | SlotId(255) | SlotId(259) | SlotId(263)
+                    | SlotId(267) | SlotId(271) | SlotId(275) | SlotId(279) | SlotId(283)
+                    | SlotId(287) | SlotId(291) | SlotId(295) | SlotId(299) | SlotId(303)
+                    | SlotId(307) | SlotId(311) | SlotId(315) | SlotId(319) | SlotId(323)
+                    | SlotId(327) | SlotId(331) | SlotId(335) | SlotId(339) | SlotId(343)
+                    | SlotId(347) | SlotId(351) | SlotId(355) | SlotId(359) | SlotId(363)
+                    | SlotId(367) | SlotId(371) | SlotId(375) | SlotId(379) | SlotId(383)
+                    | SlotId(387) | SlotId(391) | SlotId(395) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(1),
                             input_index,
-                            SlotId(403),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(404), env)
-                            {
-                                // E(p: i32) : [2 >= p] l_pr=L(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS . "*" WS L(3, 1) return
-                                // 2
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(404));
+                                next = Some(slot_id.next());
                             }
                         }
                     }
                     // E(p: i32) : [2 >= p] l_pr=L(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS . "*" WS L(3, 1) return
-                    // 2
-                    SlotId(404) => {
+                    // 2, and 6 more slots
+                    SlotId(404) | SlotId(473) | SlotId(748) | SlotId(835) | SlotId(1025)
+                    | SlotId(1101) | SlotId(1132) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(3),
                             input_index,
-                            SlotId(404),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(405), env)
-                            {
-                                // E(p: i32) : [2 >= p] l_pr=L(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS "*" . WS L(3, 1) return
-                                // 2
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(405));
-                            }
-                        }
-                    }
-                    // E(p: i32) : [2 >= p] l_pr=L(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS "*" . WS L(3, 1) return
-                    // 2
-                    SlotId(405) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(405),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(406), env)
-                            {
-                                // E(p: i32) : [2 >= p] l_pr=L(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS "*" WS . L(3, 1) return
-                                // 2
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(406));
+                                next = Some(slot_id.next());
                             }
                         }
                     }
                     // E(p: i32) : [2 >= p] l_pr=L(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS "*" WS . L(3, 1) return
                     // 2
                     SlotId(406) => {
-                        self.create_l(result, gss_node_id, SlotId(407), env, 3, 1);
-                    }
-                    // E(p: i32) : [2 >= p] l_pr=L(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS "*" WS L(3, 1) . return
-                    // 2
-                    SlotId(407) => {
-                        next = Some(SlotId(408));
+                        self.create_l(result, gss_node_id, slot_id.next(), env, 3, 1);
                     }
                     // E(p: i32) : [2 >= p] l_pr=L(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS "*" WS L(3, 1) return 2.
                     SlotId(408) => {
@@ -219,218 +281,103 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 2;
                         self.pop(
                             gss_node_id,
-                            SlotId(408),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_E,
                         );
                     }
-                    // E(p: i32) : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" WS L(2, 1) return 1
-                    SlotId(409) => {
+                    // E(p: i32) : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" WS L(2, 1) return 1,
+                    // and 22 more slots
+                    SlotId(409) | SlotId(418) | SlotId(433) | SlotId(457) | SlotId(469)
+                    | SlotId(484) | SlotId(512) | SlotId(527) | SlotId(598) | SlotId(678)
+                    | SlotId(813) | SlotId(831) | SlotId(840) | SlotId(855) | SlotId(865)
+                    | SlotId(880) | SlotId(890) | SlotId(906) | SlotId(992) | SlotId(1009)
+                    | SlotId(1030) | SlotId(1060) | SlotId(1137) => {
                         if 1 >= self.lookup(BINDING_P, env.unwrap()) {
-                            next = Some(SlotId(410));
+                            next = Some(slot_id.next());
                         }
                     }
-                    // E(p: i32) : [1 >= p] . l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" WS L(2, 1) return 1
-                    SlotId(410) => {
+                    // E(p: i32) : [1 >= p] . l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" WS L(2, 1) return 1,
+                    // and L(p: i32, end: i32) : . v_pr=E(p) return v_pr
+                    SlotId(410) | SlotId(427) => {
                         self.create_e(
                             result,
                             gss_node_id,
-                            SlotId(411),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                         );
                     }
-                    // E(p: i32) : [1 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 1)] WS "+" WS L(2, 1) return 1
-                    SlotId(411) => {
-                        next = Some(SlotId(412));
-                    }
-                    // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] . WS "+" WS L(2, 1) return 1
-                    SlotId(412) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(412),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(413), env)
-                            {
-                                // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS . "+" WS L(2, 1) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(413));
-                            }
-                        }
-                    }
-                    // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS . "+" WS L(2, 1) return 1
-                    SlotId(413) => {
+                    // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS . "+" WS L(2, 1) return 1,
+                    // and 24 more slots
+                    SlotId(413) | SlotId(461) | SlotId(488) | SlotId(613) | SlotId(638)
+                    | SlotId(658) | SlotId(682) | SlotId(702) | SlotId(725) | SlotId(756)
+                    | SlotId(774) | SlotId(817) | SlotId(845) | SlotId(870) | SlotId(896)
+                    | SlotId(920) | SlotId(949) | SlotId(996) | SlotId(1013) | SlotId(1034)
+                    | SlotId(1045) | SlotId(1064) | SlotId(1082) | SlotId(1110) | SlotId(1141) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(4),
                             input_index,
-                            SlotId(413),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(414), env)
-                            {
-                                // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" . WS L(2, 1) return 1
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(414));
-                            }
-                        }
-                    }
-                    // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" . WS L(2, 1) return 1
-                    SlotId(414) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(414),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(415), env)
-                            {
-                                // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" WS . L(2, 1) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(415));
+                                next = Some(slot_id.next());
                             }
                         }
                     }
                     // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" WS . L(2, 1) return 1
                     SlotId(415) => {
-                        self.create_l(result, gss_node_id, SlotId(416), env, 2, 1);
+                        self.create_l(result, gss_node_id, slot_id.next(), env, 2, 1);
                     }
-                    // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" WS L(2, 1) . return 1
-                    SlotId(416) => {
-                        next = Some(SlotId(417));
-                    }
-                    // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" WS L(2, 1) return 1.
-                    SlotId(417) => {
+                    // E(p: i32) : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" WS L(2, 1) return 1.,
+                    // and E(p: i32) : [1 >= p] l_pr=L(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "-" WS E(2) return
+                    // 1.
+                    SlotId(417) | SlotId(426) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         let return_value = 1;
                         self.pop(
                             gss_node_id,
-                            SlotId(417),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_E,
                         );
                     }
-                    // E(p: i32) : . [1 >= p] l_pr=L(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "-" WS E(2) return 1
-                    SlotId(418) => {
-                        if 1 >= self.lookup(BINDING_P, env.unwrap()) {
-                            next = Some(SlotId(419));
-                        }
-                    }
-                    // E(p: i32) : [1 >= p] . l_pr=L(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "-" WS E(2) return 1
-                    SlotId(419) => {
-                        self.create_l(
-                            result,
-                            gss_node_id,
-                            SlotId(420),
-                            env,
-                            self.lookup(BINDING_P, env.unwrap()),
-                            0,
-                        );
-                    }
-                    // E(p: i32) : [1 >= p] l_pr=L(p, 0) . [(l_pr == 0) || (l_pr >= 1)] WS "-" WS E(2) return 1
-                    SlotId(420) => {
-                        next = Some(SlotId(421));
-                    }
-                    // E(p: i32) : [1 >= p] l_pr=L(p, 0) [(l_pr == 0) || (l_pr >= 1)] . WS "-" WS E(2) return 1
-                    SlotId(421) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(421),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(422), env)
-                            {
-                                // E(p: i32) : [1 >= p] l_pr=L(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS . "-" WS E(2) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(422));
-                            }
-                        }
-                    }
-                    // E(p: i32) : [1 >= p] l_pr=L(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS . "-" WS E(2) return 1
-                    SlotId(422) => {
+                    // E(p: i32) : [1 >= p] l_pr=L(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS . "-" WS E(2) return 1,
+                    // and 2 more slots
+                    SlotId(422) | SlotId(452) | SlotId(1006) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(5),
                             input_index,
-                            SlotId(422),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(423), env)
-                            {
-                                // E(p: i32) : [1 >= p] l_pr=L(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "-" . WS E(2) return 1
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(423));
-                            }
-                        }
-                    }
-                    // E(p: i32) : [1 >= p] l_pr=L(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "-" . WS E(2) return 1
-                    SlotId(423) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(423),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(424), env)
-                            {
-                                // E(p: i32) : [1 >= p] l_pr=L(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "-" WS . E(2) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(424));
+                                next = Some(slot_id.next());
                             }
                         }
                     }
                     // E(p: i32) : [1 >= p] l_pr=L(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "-" WS . E(2) return 1
                     SlotId(424) => {
-                        self.create_e(result, gss_node_id, SlotId(425), env, 2);
-                    }
-                    // E(p: i32) : [1 >= p] l_pr=L(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "-" WS E(2) . return 1
-                    SlotId(425) => {
-                        next = Some(SlotId(426));
-                    }
-                    // E(p: i32) : [1 >= p] l_pr=L(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "-" WS E(2) return 1.
-                    SlotId(426) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        let return_value = 1;
-                        self.pop(
-                            gss_node_id,
-                            SlotId(426),
-                            result,
-                            Some(return_value),
-                            &FOLLOW_SET_E,
-                        );
-                    }
-                    // L(p: i32, end: i32) : . v_pr=E(p) return v_pr
-                    SlotId(427) => {
-                        self.create_e(
-                            result,
-                            gss_node_id,
-                            SlotId(428),
-                            env,
-                            self.lookup(BINDING_P, env.unwrap()),
-                        );
-                    }
-                    // L(p: i32, end: i32) : v_pr=E(p) . return v_pr
-                    SlotId(428) => {
-                        next = Some(SlotId(429));
+                        self.create_e(result, gss_node_id, slot_id.next(), env, 2);
                     }
                     // L(p: i32, end: i32) : v_pr=E(p) return v_pr.
                     SlotId(429) => {
@@ -440,29 +387,25 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = self.lookup(BINDING_V_PR, env.unwrap());
                         self.pop(
                             gss_node_id,
-                            SlotId(429),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_L,
                         );
                     }
-                    // Only(p: i32) : . "b" return 0
-                    SlotId(430) => {
+                    // Only(p: i32) : . "b" return 0, and 7 more slots
+                    SlotId(430) | SlotId(764) | SlotId(787) | SlotId(807) | SlotId(828)
+                    | SlotId(943) | SlotId(981) | SlotId(1092) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(6),
                             input_index,
-                            SlotId(430),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // Only(p: i32) : "b" . return 0
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(431));
+                            next = Some(slot_id.next());
                         }
-                    }
-                    // Only(p: i32) : "b" . return 0
-                    SlotId(431) => {
-                        next = Some(SlotId(432));
                     }
                     // Only(p: i32) : "b" return 0.
                     SlotId(432) => {
@@ -472,18 +415,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 0;
                         self.pop(
                             gss_node_id,
-                            SlotId(432),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_ONLY,
                         );
-                    }
-                    // Only(p: i32) : . [1 >= p] l_pr=OnlyOperand(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "^" WS
-                    // OnlyOperand(2, 1) return 1
-                    SlotId(433) => {
-                        if 1 >= self.lookup(BINDING_P, env.unwrap()) {
-                            next = Some(SlotId(434));
-                        }
                     }
                     // Only(p: i32) : [1 >= p] . l_pr=OnlyOperand(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "^" WS
                     // OnlyOperand(2, 1) return 1
@@ -491,36 +427,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_only_operand(
                             result,
                             gss_node_id,
-                            SlotId(435),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             0,
                         );
-                    }
-                    // Only(p: i32) : [1 >= p] l_pr=OnlyOperand(p, 0) . [(l_pr == 0) || (l_pr >= 1)] WS "^" WS
-                    // OnlyOperand(2, 1) return 1
-                    SlotId(435) => {
-                        next = Some(SlotId(436));
-                    }
-                    // Only(p: i32) : [1 >= p] l_pr=OnlyOperand(p, 0) [(l_pr == 0) || (l_pr >= 1)] . WS "^" WS
-                    // OnlyOperand(2, 1) return 1
-                    SlotId(436) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(436),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(437), env)
-                            {
-                                // Only(p: i32) : [1 >= p] l_pr=OnlyOperand(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS . "^" WS
-                                // OnlyOperand(2, 1) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(437));
-                            }
-                        }
                     }
                     // Only(p: i32) : [1 >= p] l_pr=OnlyOperand(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS . "^" WS
                     // OnlyOperand(2, 1) return 1
@@ -528,49 +439,25 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(7),
                             input_index,
-                            SlotId(437),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(438), env)
-                            {
-                                // Only(p: i32) : [1 >= p] l_pr=OnlyOperand(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "^" . WS
-                                // OnlyOperand(2, 1) return 1
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(438));
-                            }
-                        }
-                    }
-                    // Only(p: i32) : [1 >= p] l_pr=OnlyOperand(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "^" . WS
-                    // OnlyOperand(2, 1) return 1
-                    SlotId(438) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(438),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(439), env)
-                            {
-                                // Only(p: i32) : [1 >= p] l_pr=OnlyOperand(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "^" WS .
-                                // OnlyOperand(2, 1) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(439));
+                                next = Some(slot_id.next());
                             }
                         }
                     }
                     // Only(p: i32) : [1 >= p] l_pr=OnlyOperand(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "^" WS .
                     // OnlyOperand(2, 1) return 1
                     SlotId(439) => {
-                        self.create_only_operand(result, gss_node_id, SlotId(440), env, 2, 1);
-                    }
-                    // Only(p: i32) : [1 >= p] l_pr=OnlyOperand(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "^" WS
-                    // OnlyOperand(2, 1) . return 1
-                    SlotId(440) => {
-                        next = Some(SlotId(441));
+                        self.create_only_operand(result, gss_node_id, slot_id.next(), env, 2, 1);
                     }
                     // Only(p: i32) : [1 >= p] l_pr=OnlyOperand(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "^" WS
                     // OnlyOperand(2, 1) return 1.
@@ -581,7 +468,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 1;
                         self.pop(
                             gss_node_id,
-                            SlotId(441),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_ONLY,
@@ -592,14 +479,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_only(
                             result,
                             gss_node_id,
-                            SlotId(443),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                         );
-                    }
-                    // OnlyOperand(p: i32, end: i32) : v_pr=Only(p) . return v_pr
-                    SlotId(443) => {
-                        next = Some(SlotId(444));
                     }
                     // OnlyOperand(p: i32, end: i32) : v_pr=Only(p) return v_pr.
                     SlotId(444) => {
@@ -609,7 +492,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = self.lookup(BINDING_V_PR, env.unwrap());
                         self.pop(
                             gss_node_id,
-                            SlotId(444),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_ONLY_OPERAND,
@@ -620,287 +503,71 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(8),
                             input_index,
-                            SlotId(445),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // Cross(p: i32) : "c" . return 0
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(446));
+                            next = Some(slot_id.next());
                         }
                     }
-                    // Cross(p: i32) : "c" . return 0
-                    SlotId(446) => {
-                        next = Some(SlotId(447));
-                    }
-                    // Cross(p: i32) : "c" return 0.
-                    SlotId(447) => {
+                    // Cross(p: i32) : "c" return 0., and 2 more slots
+                    SlotId(447) | SlotId(456) | SlotId(465) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         let return_value = 0;
                         self.pop(
                             gss_node_id,
-                            SlotId(447),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_CROSS,
                         );
-                    }
-                    // Cross(p: i32) : . [2 >= p] l_pr=Cross(p) [(l_pr == 0) || (l_pr >= 2)] WS "-" WS Foreign(0)
-                    // return 0
-                    SlotId(448) => {
-                        if 2 >= self.lookup(BINDING_P, env.unwrap()) {
-                            next = Some(SlotId(449));
-                        }
                     }
                     // Cross(p: i32) : [2 >= p] . l_pr=Cross(p) [(l_pr == 0) || (l_pr >= 2)] WS "-" WS Foreign(0)
-                    // return 0
-                    SlotId(449) => {
+                    // return 0, and Cross(p: i32) : [1 >= p] . l_pr=Cross(p) [(l_pr == 0) || (l_pr >= 1)] WS "+"
+                    // WS Foreign(0) return 0
+                    SlotId(449) | SlotId(458) => {
                         self.create_cross(
                             result,
                             gss_node_id,
-                            SlotId(450),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                         );
-                    }
-                    // Cross(p: i32) : [2 >= p] l_pr=Cross(p) . [(l_pr == 0) || (l_pr >= 2)] WS "-" WS Foreign(0)
-                    // return 0
-                    SlotId(450) => {
-                        next = Some(SlotId(451));
-                    }
-                    // Cross(p: i32) : [2 >= p] l_pr=Cross(p) [(l_pr == 0) || (l_pr >= 2)] . WS "-" WS Foreign(0)
-                    // return 0
-                    SlotId(451) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(451),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(452), env)
-                            {
-                                // Cross(p: i32) : [2 >= p] l_pr=Cross(p) [(l_pr == 0) || (l_pr >= 2)] WS . "-" WS Foreign(0)
-                                // return 0
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(452));
-                            }
-                        }
-                    }
-                    // Cross(p: i32) : [2 >= p] l_pr=Cross(p) [(l_pr == 0) || (l_pr >= 2)] WS . "-" WS Foreign(0)
-                    // return 0
-                    SlotId(452) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(5),
-                            input_index,
-                            SlotId(452),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(453), env)
-                            {
-                                // Cross(p: i32) : [2 >= p] l_pr=Cross(p) [(l_pr == 0) || (l_pr >= 2)] WS "-" . WS Foreign(0)
-                                // return 0
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(453));
-                            }
-                        }
-                    }
-                    // Cross(p: i32) : [2 >= p] l_pr=Cross(p) [(l_pr == 0) || (l_pr >= 2)] WS "-" . WS Foreign(0)
-                    // return 0
-                    SlotId(453) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(453),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(454), env)
-                            {
-                                // Cross(p: i32) : [2 >= p] l_pr=Cross(p) [(l_pr == 0) || (l_pr >= 2)] WS "-" WS . Foreign(0)
-                                // return 0
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(454));
-                            }
-                        }
                     }
                     // Cross(p: i32) : [2 >= p] l_pr=Cross(p) [(l_pr == 0) || (l_pr >= 2)] WS "-" WS . Foreign(0)
-                    // return 0
-                    SlotId(454) => {
-                        self.create_foreign(result, gss_node_id, SlotId(455), env, 0);
-                    }
-                    // Cross(p: i32) : [2 >= p] l_pr=Cross(p) [(l_pr == 0) || (l_pr >= 2)] WS "-" WS Foreign(0) .
-                    // return 0
-                    SlotId(455) => {
-                        next = Some(SlotId(456));
-                    }
-                    // Cross(p: i32) : [2 >= p] l_pr=Cross(p) [(l_pr == 0) || (l_pr >= 2)] WS "-" WS Foreign(0)
-                    // return 0.
-                    SlotId(456) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        let return_value = 0;
-                        self.pop(
-                            gss_node_id,
-                            SlotId(456),
-                            result,
-                            Some(return_value),
-                            &FOLLOW_SET_CROSS,
-                        );
-                    }
-                    // Cross(p: i32) : . [1 >= p] l_pr=Cross(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" WS Foreign(0)
-                    // return 0
-                    SlotId(457) => {
-                        if 1 >= self.lookup(BINDING_P, env.unwrap()) {
-                            next = Some(SlotId(458));
-                        }
-                    }
-                    // Cross(p: i32) : [1 >= p] . l_pr=Cross(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" WS Foreign(0)
-                    // return 0
-                    SlotId(458) => {
-                        self.create_cross(
-                            result,
-                            gss_node_id,
-                            SlotId(459),
-                            env,
-                            self.lookup(BINDING_P, env.unwrap()),
-                        );
-                    }
-                    // Cross(p: i32) : [1 >= p] l_pr=Cross(p) . [(l_pr == 0) || (l_pr >= 1)] WS "+" WS Foreign(0)
-                    // return 0
-                    SlotId(459) => {
-                        next = Some(SlotId(460));
-                    }
-                    // Cross(p: i32) : [1 >= p] l_pr=Cross(p) [(l_pr == 0) || (l_pr >= 1)] . WS "+" WS Foreign(0)
-                    // return 0
-                    SlotId(460) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(460),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(461), env)
-                            {
-                                // Cross(p: i32) : [1 >= p] l_pr=Cross(p) [(l_pr == 0) || (l_pr >= 1)] WS . "+" WS Foreign(0)
-                                // return 0
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(461));
-                            }
-                        }
-                    }
-                    // Cross(p: i32) : [1 >= p] l_pr=Cross(p) [(l_pr == 0) || (l_pr >= 1)] WS . "+" WS Foreign(0)
-                    // return 0
-                    SlotId(461) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(4),
-                            input_index,
-                            SlotId(461),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(462), env)
-                            {
-                                // Cross(p: i32) : [1 >= p] l_pr=Cross(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" . WS Foreign(0)
-                                // return 0
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(462));
-                            }
-                        }
-                    }
-                    // Cross(p: i32) : [1 >= p] l_pr=Cross(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" . WS Foreign(0)
-                    // return 0
-                    SlotId(462) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(462),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(463), env)
-                            {
-                                // Cross(p: i32) : [1 >= p] l_pr=Cross(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" WS . Foreign(0)
-                                // return 0
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(463));
-                            }
-                        }
-                    }
-                    // Cross(p: i32) : [1 >= p] l_pr=Cross(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" WS . Foreign(0)
-                    // return 0
-                    SlotId(463) => {
-                        self.create_foreign(result, gss_node_id, SlotId(464), env, 0);
-                    }
-                    // Cross(p: i32) : [1 >= p] l_pr=Cross(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" WS Foreign(0) .
-                    // return 0
-                    SlotId(464) => {
-                        next = Some(SlotId(465));
-                    }
-                    // Cross(p: i32) : [1 >= p] l_pr=Cross(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" WS Foreign(0)
-                    // return 0.
-                    SlotId(465) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        let return_value = 0;
-                        self.pop(
-                            gss_node_id,
-                            SlotId(465),
-                            result,
-                            Some(return_value),
-                            &FOLLOW_SET_CROSS,
-                        );
+                    // return 0, and 2 more slots
+                    SlotId(454) | SlotId(463) | SlotId(90) => {
+                        self.create_foreign(result, gss_node_id, slot_id.next(), env, 0);
                     }
                     // Foreign(p: i32) : . "d" return 0
                     SlotId(466) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(9),
                             input_index,
-                            SlotId(466),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // Foreign(p: i32) : "d" . return 0
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(467));
+                            next = Some(slot_id.next());
                         }
                     }
-                    // Foreign(p: i32) : "d" . return 0
-                    SlotId(467) => {
-                        next = Some(SlotId(468));
-                    }
-                    // Foreign(p: i32) : "d" return 0.
-                    SlotId(468) => {
+                    // Foreign(p: i32) : "d" return 0., and Foreign(p: i32) : Cross(0) return 0.
+                    SlotId(468) | SlotId(480) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         let return_value = 0;
                         self.pop(
                             gss_node_id,
-                            SlotId(468),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_FOREIGN,
                         );
-                    }
-                    // Foreign(p: i32) : . [1 >= p] l_pr=Foreign(p) [(l_pr == 0) || (l_pr >= 1)] WS "*" WS
-                    // Foreign(2) return 1
-                    SlotId(469) => {
-                        if 1 >= self.lookup(BINDING_P, env.unwrap()) {
-                            next = Some(SlotId(470));
-                        }
                     }
                     // Foreign(p: i32) : [1 >= p] . l_pr=Foreign(p) [(l_pr == 0) || (l_pr >= 1)] WS "*" WS
                     // Foreign(2) return 1
@@ -908,85 +575,15 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_foreign(
                             result,
                             gss_node_id,
-                            SlotId(471),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                         );
                     }
-                    // Foreign(p: i32) : [1 >= p] l_pr=Foreign(p) . [(l_pr == 0) || (l_pr >= 1)] WS "*" WS
-                    // Foreign(2) return 1
-                    SlotId(471) => {
-                        next = Some(SlotId(472));
-                    }
-                    // Foreign(p: i32) : [1 >= p] l_pr=Foreign(p) [(l_pr == 0) || (l_pr >= 1)] . WS "*" WS
-                    // Foreign(2) return 1
-                    SlotId(472) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(472),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(473), env)
-                            {
-                                // Foreign(p: i32) : [1 >= p] l_pr=Foreign(p) [(l_pr == 0) || (l_pr >= 1)] WS . "*" WS
-                                // Foreign(2) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(473));
-                            }
-                        }
-                    }
-                    // Foreign(p: i32) : [1 >= p] l_pr=Foreign(p) [(l_pr == 0) || (l_pr >= 1)] WS . "*" WS
-                    // Foreign(2) return 1
-                    SlotId(473) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(3),
-                            input_index,
-                            SlotId(473),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(474), env)
-                            {
-                                // Foreign(p: i32) : [1 >= p] l_pr=Foreign(p) [(l_pr == 0) || (l_pr >= 1)] WS "*" . WS
-                                // Foreign(2) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(474));
-                            }
-                        }
-                    }
-                    // Foreign(p: i32) : [1 >= p] l_pr=Foreign(p) [(l_pr == 0) || (l_pr >= 1)] WS "*" . WS
-                    // Foreign(2) return 1
-                    SlotId(474) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(474),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(475), env)
-                            {
-                                // Foreign(p: i32) : [1 >= p] l_pr=Foreign(p) [(l_pr == 0) || (l_pr >= 1)] WS "*" WS .
-                                // Foreign(2) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(475));
-                            }
-                        }
-                    }
                     // Foreign(p: i32) : [1 >= p] l_pr=Foreign(p) [(l_pr == 0) || (l_pr >= 1)] WS "*" WS .
                     // Foreign(2) return 1
                     SlotId(475) => {
-                        self.create_foreign(result, gss_node_id, SlotId(476), env, 2);
-                    }
-                    // Foreign(p: i32) : [1 >= p] l_pr=Foreign(p) [(l_pr == 0) || (l_pr >= 1)] WS "*" WS
-                    // Foreign(2) . return 1
-                    SlotId(476) => {
-                        next = Some(SlotId(477));
+                        self.create_foreign(result, gss_node_id, slot_id.next(), env, 2);
                     }
                     // Foreign(p: i32) : [1 >= p] l_pr=Foreign(p) [(l_pr == 0) || (l_pr >= 1)] WS "*" WS
                     // Foreign(2) return 1.
@@ -997,72 +594,42 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 1;
                         self.pop(
                             gss_node_id,
-                            SlotId(477),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_FOREIGN,
                         );
                     }
-                    // Foreign(p: i32) : . Cross(0) return 0
-                    SlotId(478) => {
-                        self.create_cross(result, gss_node_id, SlotId(479), env, 0);
+                    // Foreign(p: i32) : . Cross(0) return 0, and StartCross : WS . start:Cross(0) WS
+                    SlotId(478) | SlotId(86) => {
+                        self.create_cross(result, gss_node_id, slot_id.next(), env, 0);
                     }
-                    // Foreign(p: i32) : Cross(0) . return 0
-                    SlotId(479) => {
-                        next = Some(SlotId(480));
-                    }
-                    // Foreign(p: i32) : Cross(0) return 0.
-                    SlotId(480) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        let return_value = 0;
-                        self.pop(
-                            gss_node_id,
-                            SlotId(480),
-                            result,
-                            Some(return_value),
-                            &FOLLOW_SET_FOREIGN,
-                        );
-                    }
-                    // Cascade(p: i32) : . "t" return 0
-                    SlotId(481) => {
+                    // Cascade(p: i32) : . "t" return 0, and ExcludeOnly : . "t" return (0, NO_LABEL)
+                    SlotId(481) | SlotId(32) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(10),
                             input_index,
-                            SlotId(481),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // Cascade(p: i32) : "t" . return 0
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(482));
+                            next = Some(slot_id.next());
                         }
                     }
-                    // Cascade(p: i32) : "t" . return 0
-                    SlotId(482) => {
-                        next = Some(SlotId(483));
-                    }
-                    // Cascade(p: i32) : "t" return 0.
-                    SlotId(483) => {
+                    // Cascade(p: i32) : "t" return 0., and Cascade(p: i32) : Ternary return 0.
+                    SlotId(483) | SlotId(495) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         let return_value = 0;
                         self.pop(
                             gss_node_id,
-                            SlotId(483),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_CASCADE,
                         );
-                    }
-                    // Cascade(p: i32) : . [1 >= p] l_pr=Cascade(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" WS
-                    // Cascade(2) return 1
-                    SlotId(484) => {
-                        if 1 >= self.lookup(BINDING_P, env.unwrap()) {
-                            next = Some(SlotId(485));
-                        }
                     }
                     // Cascade(p: i32) : [1 >= p] . l_pr=Cascade(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" WS
                     // Cascade(2) return 1
@@ -1070,85 +637,15 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_cascade(
                             result,
                             gss_node_id,
-                            SlotId(486),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                         );
                     }
-                    // Cascade(p: i32) : [1 >= p] l_pr=Cascade(p) . [(l_pr == 0) || (l_pr >= 1)] WS "+" WS
-                    // Cascade(2) return 1
-                    SlotId(486) => {
-                        next = Some(SlotId(487));
-                    }
-                    // Cascade(p: i32) : [1 >= p] l_pr=Cascade(p) [(l_pr == 0) || (l_pr >= 1)] . WS "+" WS
-                    // Cascade(2) return 1
-                    SlotId(487) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(487),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(488), env)
-                            {
-                                // Cascade(p: i32) : [1 >= p] l_pr=Cascade(p) [(l_pr == 0) || (l_pr >= 1)] WS . "+" WS
-                                // Cascade(2) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(488));
-                            }
-                        }
-                    }
-                    // Cascade(p: i32) : [1 >= p] l_pr=Cascade(p) [(l_pr == 0) || (l_pr >= 1)] WS . "+" WS
-                    // Cascade(2) return 1
-                    SlotId(488) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(4),
-                            input_index,
-                            SlotId(488),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(489), env)
-                            {
-                                // Cascade(p: i32) : [1 >= p] l_pr=Cascade(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" . WS
-                                // Cascade(2) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(489));
-                            }
-                        }
-                    }
-                    // Cascade(p: i32) : [1 >= p] l_pr=Cascade(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" . WS
-                    // Cascade(2) return 1
-                    SlotId(489) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(489),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(490), env)
-                            {
-                                // Cascade(p: i32) : [1 >= p] l_pr=Cascade(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" WS .
-                                // Cascade(2) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(490));
-                            }
-                        }
-                    }
                     // Cascade(p: i32) : [1 >= p] l_pr=Cascade(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" WS .
                     // Cascade(2) return 1
                     SlotId(490) => {
-                        self.create_cascade(result, gss_node_id, SlotId(491), env, 2);
-                    }
-                    // Cascade(p: i32) : [1 >= p] l_pr=Cascade(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" WS
-                    // Cascade(2) . return 1
-                    SlotId(491) => {
-                        next = Some(SlotId(492));
+                        self.create_cascade(result, gss_node_id, slot_id.next(), env, 2);
                     }
                     // Cascade(p: i32) : [1 >= p] l_pr=Cascade(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" WS
                     // Cascade(2) return 1.
@@ -1159,118 +656,44 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 1;
                         self.pop(
                             gss_node_id,
-                            SlotId(492),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_CASCADE,
                         );
                     }
-                    // Cascade(p: i32) : . Ternary return 0
-                    SlotId(493) => {
+                    // Cascade(p: i32) : . Ternary return 0, and StartTernary : WS . start:Ternary WS
+                    SlotId(493) | SlotId(98) => {
                         self.create(
                             NonterminalId(1),
                             &PREDICTION_TERNARY,
                             result,
                             gss_node_id,
-                            SlotId(494),
+                            slot_id.next(),
                             env,
                         );
                     }
-                    // Cascade(p: i32) : Ternary . return 0
-                    SlotId(494) => {
-                        next = Some(SlotId(495));
-                    }
-                    // Cascade(p: i32) : Ternary return 0.
-                    SlotId(495) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        let return_value = 0;
-                        self.pop(
-                            gss_node_id,
-                            SlotId(495),
-                            result,
-                            Some(return_value),
-                            &FOLLOW_SET_CASCADE,
-                        );
-                    }
-                    // Ternary : . Cascade(0) WS "?" WS Cascade(0) WS ":" WS Cascade(0)
-                    SlotId(2) => {
-                        self.create_cascade(result, gss_node_id, SlotId(3), env, 0);
-                    }
-                    // Ternary : Cascade(0) . WS "?" WS Cascade(0) WS ":" WS Cascade(0)
-                    SlotId(3) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(3),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(4), env)
-                            {
-                                // Ternary : Cascade(0) WS . "?" WS Cascade(0) WS ":" WS Cascade(0)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(4));
-                            }
-                        }
+                    // Ternary : . Cascade(0) WS "?" WS Cascade(0) WS ":" WS Cascade(0), and 3 more slots
+                    SlotId(2) | SlotId(6) | SlotId(10) | SlotId(94) => {
+                        self.create_cascade(result, gss_node_id, slot_id.next(), env, 0);
                     }
                     // Ternary : Cascade(0) WS . "?" WS Cascade(0) WS ":" WS Cascade(0)
                     SlotId(4) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(11),
                             input_index,
-                            SlotId(4),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(5), env)
-                            {
-                                // Ternary : Cascade(0) WS "?" . WS Cascade(0) WS ":" WS Cascade(0)
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(5));
-                            }
-                        }
-                    }
-                    // Ternary : Cascade(0) WS "?" . WS Cascade(0) WS ":" WS Cascade(0)
-                    SlotId(5) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(5),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(6), env)
-                            {
-                                // Ternary : Cascade(0) WS "?" WS . Cascade(0) WS ":" WS Cascade(0)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(6));
-                            }
-                        }
-                    }
-                    // Ternary : Cascade(0) WS "?" WS . Cascade(0) WS ":" WS Cascade(0)
-                    SlotId(6) => {
-                        self.create_cascade(result, gss_node_id, SlotId(7), env, 0);
-                    }
-                    // Ternary : Cascade(0) WS "?" WS Cascade(0) . WS ":" WS Cascade(0)
-                    SlotId(7) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(7),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(8), env)
-                            {
-                                // Ternary : Cascade(0) WS "?" WS Cascade(0) WS . ":" WS Cascade(0)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(8));
+                                next = Some(slot_id.next());
                             }
                         }
                     }
@@ -1279,65 +702,40 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(12),
                             input_index,
-                            SlotId(8),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(9), env)
-                            {
-                                // Ternary : Cascade(0) WS "?" WS Cascade(0) WS ":" . WS Cascade(0)
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(9));
+                                next = Some(slot_id.next());
                             }
                         }
-                    }
-                    // Ternary : Cascade(0) WS "?" WS Cascade(0) WS ":" . WS Cascade(0)
-                    SlotId(9) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(9),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(10), env)
-                            {
-                                // Ternary : Cascade(0) WS "?" WS Cascade(0) WS ":" WS . Cascade(0)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(10));
-                            }
-                        }
-                    }
-                    // Ternary : Cascade(0) WS "?" WS Cascade(0) WS ":" WS . Cascade(0)
-                    SlotId(10) => {
-                        self.create_cascade(result, gss_node_id, SlotId(11), env, 0);
                     }
                     // Ternary : Cascade(0) WS "?" WS Cascade(0) WS ":" WS Cascade(0).
                     SlotId(11) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(11), result, None, &FOLLOW_SET_TERNARY);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_TERNARY);
                     }
                     // Nullable(p: i32) : . "n" return 0
                     SlotId(496) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(13),
                             input_index,
-                            SlotId(496),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // Nullable(p: i32) : "n" . return 0
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(497));
+                            next = Some(slot_id.next());
                         }
-                    }
-                    // Nullable(p: i32) : "n" . return 0
-                    SlotId(497) => {
-                        next = Some(SlotId(498));
                     }
                     // Nullable(p: i32) : "n" return 0.
                     SlotId(498) => {
@@ -1347,84 +745,47 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 0;
                         self.pop(
                             gss_node_id,
-                            SlotId(498),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_NULLABLE,
                         );
                     }
-                    // Nullable(p: i32) : . NullableLeft WS "%" WS NullableRight(1) return 1
-                    SlotId(499) => {
+                    // Nullable(p: i32) : . NullableLeft WS "%" WS NullableRight(1) return 1, and
+                    // StartNullableLeft : WS . start:NullableLeft WS
+                    SlotId(499) | SlotId(106) => {
                         self.create(
                             NonterminalId(2),
                             &PREDICTION_NULLABLE_LEFT,
                             result,
                             gss_node_id,
-                            SlotId(500),
+                            slot_id.next(),
                             env,
                         );
-                    }
-                    // Nullable(p: i32) : NullableLeft . WS "%" WS NullableRight(1) return 1
-                    SlotId(500) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(500),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(501), env)
-                            {
-                                // Nullable(p: i32) : NullableLeft WS . "%" WS NullableRight(1) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(501));
-                            }
-                        }
                     }
                     // Nullable(p: i32) : NullableLeft WS . "%" WS NullableRight(1) return 1
                     SlotId(501) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(14),
                             input_index,
-                            SlotId(501),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(502), env)
-                            {
-                                // Nullable(p: i32) : NullableLeft WS "%" . WS NullableRight(1) return 1
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(502));
-                            }
-                        }
-                    }
-                    // Nullable(p: i32) : NullableLeft WS "%" . WS NullableRight(1) return 1
-                    SlotId(502) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(502),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(503), env)
-                            {
-                                // Nullable(p: i32) : NullableLeft WS "%" WS . NullableRight(1) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(503));
+                                next = Some(slot_id.next());
                             }
                         }
                     }
                     // Nullable(p: i32) : NullableLeft WS "%" WS . NullableRight(1) return 1
                     SlotId(503) => {
-                        self.create_nullable_right(result, gss_node_id, SlotId(504), env, 1);
-                    }
-                    // Nullable(p: i32) : NullableLeft WS "%" WS NullableRight(1) . return 1
-                    SlotId(504) => {
-                        next = Some(SlotId(505));
+                        self.create_nullable_right(result, gss_node_id, slot_id.next(), env, 1);
                     }
                     // Nullable(p: i32) : NullableLeft WS "%" WS NullableRight(1) return 1.
                     SlotId(505) => {
@@ -1434,7 +795,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 1;
                         self.pop(
                             gss_node_id,
-                            SlotId(505),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_NULLABLE,
@@ -1447,31 +808,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                             &PREDICTION_OPT_0,
                             result,
                             gss_node_id,
-                            SlotId(13),
+                            slot_id.next(),
                             env,
                         );
                     }
-                    // NullableLeft : Opt_0 . WS Nullable(0)
-                    SlotId(13) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(13),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(14), env)
-                            {
-                                // NullableLeft : Opt_0 WS . Nullable(0)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(14));
-                            }
-                        }
-                    }
-                    // NullableLeft : Opt_0 WS . Nullable(0)
-                    SlotId(14) => {
-                        self.create_nullable(result, gss_node_id, SlotId(15), env, 0);
+                    // NullableLeft : Opt_0 WS . Nullable(0), and StartNullable : WS . start:Nullable(0) WS
+                    SlotId(14) | SlotId(102) => {
+                        self.create_nullable(result, gss_node_id, slot_id.next(), env, 0);
                     }
                     // NullableLeft : Opt_0 WS Nullable(0).
                     SlotId(15) => {
@@ -1480,7 +823,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(15),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_NULLABLE_LEFT,
@@ -1491,14 +834,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_nullable(
                             result,
                             gss_node_id,
-                            SlotId(507),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                         );
-                    }
-                    // NullableRight(p: i32) : r_pr=Nullable(p) . return r_pr
-                    SlotId(507) => {
-                        next = Some(SlotId(508));
                     }
                     // NullableRight(p: i32) : r_pr=Nullable(p) return r_pr.
                     SlotId(508) => {
@@ -1508,7 +847,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = self.lookup(BINDING_R_PR, env.unwrap());
                         self.pop(
                             gss_node_id,
-                            SlotId(508),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_NULLABLE_RIGHT,
@@ -1519,18 +858,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(16),
                             input_index,
-                            SlotId(509),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // RightExpr(p: i32) : "r" . return 0
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(510));
+                            next = Some(slot_id.next());
                         }
-                    }
-                    // RightExpr(p: i32) : "r" . return 0
-                    SlotId(510) => {
-                        next = Some(SlotId(511));
                     }
                     // RightExpr(p: i32) : "r" return 0.
                     SlotId(511) => {
@@ -1540,18 +874,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 0;
                         self.pop(
                             gss_node_id,
-                            SlotId(511),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_RIGHT_EXPR,
                         );
-                    }
-                    // RightExpr(p: i32) : . [1 >= p] l_pr=RightOperand(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS ">"
-                    // WS RightOperand(1, 1) return 1
-                    SlotId(512) => {
-                        if 1 >= self.lookup(BINDING_P, env.unwrap()) {
-                            next = Some(SlotId(513));
-                        }
                     }
                     // RightExpr(p: i32) : [1 >= p] . l_pr=RightOperand(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS ">"
                     // WS RightOperand(1, 1) return 1
@@ -1559,36 +886,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_right_operand(
                             result,
                             gss_node_id,
-                            SlotId(514),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             0,
                         );
-                    }
-                    // RightExpr(p: i32) : [1 >= p] l_pr=RightOperand(p, 0) . [(l_pr == 0) || (l_pr >= 2)] WS ">"
-                    // WS RightOperand(1, 1) return 1
-                    SlotId(514) => {
-                        next = Some(SlotId(515));
-                    }
-                    // RightExpr(p: i32) : [1 >= p] l_pr=RightOperand(p, 0) [(l_pr == 0) || (l_pr >= 2)] . WS ">"
-                    // WS RightOperand(1, 1) return 1
-                    SlotId(515) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(515),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(516), env)
-                            {
-                                // RightExpr(p: i32) : [1 >= p] l_pr=RightOperand(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS . ">"
-                                // WS RightOperand(1, 1) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(516));
-                            }
-                        }
                     }
                     // RightExpr(p: i32) : [1 >= p] l_pr=RightOperand(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS . ">"
                     // WS RightOperand(1, 1) return 1
@@ -1596,49 +898,25 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(17),
                             input_index,
-                            SlotId(516),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(517), env)
-                            {
-                                // RightExpr(p: i32) : [1 >= p] l_pr=RightOperand(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS ">" .
-                                // WS RightOperand(1, 1) return 1
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(517));
-                            }
-                        }
-                    }
-                    // RightExpr(p: i32) : [1 >= p] l_pr=RightOperand(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS ">" .
-                    // WS RightOperand(1, 1) return 1
-                    SlotId(517) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(517),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(518), env)
-                            {
-                                // RightExpr(p: i32) : [1 >= p] l_pr=RightOperand(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS ">"
-                                // WS . RightOperand(1, 1) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(518));
+                                next = Some(slot_id.next());
                             }
                         }
                     }
                     // RightExpr(p: i32) : [1 >= p] l_pr=RightOperand(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS ">"
                     // WS . RightOperand(1, 1) return 1
                     SlotId(518) => {
-                        self.create_right_operand(result, gss_node_id, SlotId(519), env, 1, 1);
-                    }
-                    // RightExpr(p: i32) : [1 >= p] l_pr=RightOperand(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS ">"
-                    // WS RightOperand(1, 1) . return 1
-                    SlotId(519) => {
-                        next = Some(SlotId(520));
+                        self.create_right_operand(result, gss_node_id, slot_id.next(), env, 1, 1);
                     }
                     // RightExpr(p: i32) : [1 >= p] l_pr=RightOperand(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS ">"
                     // WS RightOperand(1, 1) return 1.
@@ -1649,7 +927,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 1;
                         self.pop(
                             gss_node_id,
-                            SlotId(520),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_RIGHT_EXPR,
@@ -1660,14 +938,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_right_expr(
                             result,
                             gss_node_id,
-                            SlotId(522),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                         );
-                    }
-                    // RightOperand(p: i32, end: i32) : v_pr=RightExpr(p) . return v_pr
-                    SlotId(522) => {
-                        next = Some(SlotId(523));
                     }
                     // RightOperand(p: i32, end: i32) : v_pr=RightExpr(p) return v_pr.
                     SlotId(523) => {
@@ -1677,7 +951,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = self.lookup(BINDING_V_PR, env.unwrap());
                         self.pop(
                             gss_node_id,
-                            SlotId(523),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_RIGHT_OPERAND,
@@ -1688,18 +962,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(18),
                             input_index,
-                            SlotId(524),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // NoneExpr(p: i32) : "z" . return 0
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(525));
+                            next = Some(slot_id.next());
                         }
-                    }
-                    // NoneExpr(p: i32) : "z" . return 0
-                    SlotId(525) => {
-                        next = Some(SlotId(526));
                     }
                     // NoneExpr(p: i32) : "z" return 0.
                     SlotId(526) => {
@@ -1709,18 +978,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 0;
                         self.pop(
                             gss_node_id,
-                            SlotId(526),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_NONE_EXPR,
                         );
-                    }
-                    // NoneExpr(p: i32) : . [1 >= p] l_pr=NoneOperand(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS "="
-                    // WS NoneOperand(2, 1) return 1
-                    SlotId(527) => {
-                        if 1 >= self.lookup(BINDING_P, env.unwrap()) {
-                            next = Some(SlotId(528));
-                        }
                     }
                     // NoneExpr(p: i32) : [1 >= p] . l_pr=NoneOperand(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS "="
                     // WS NoneOperand(2, 1) return 1
@@ -1728,36 +990,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_none_operand(
                             result,
                             gss_node_id,
-                            SlotId(529),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             0,
                         );
-                    }
-                    // NoneExpr(p: i32) : [1 >= p] l_pr=NoneOperand(p, 0) . [(l_pr == 0) || (l_pr >= 2)] WS "="
-                    // WS NoneOperand(2, 1) return 1
-                    SlotId(529) => {
-                        next = Some(SlotId(530));
-                    }
-                    // NoneExpr(p: i32) : [1 >= p] l_pr=NoneOperand(p, 0) [(l_pr == 0) || (l_pr >= 2)] . WS "="
-                    // WS NoneOperand(2, 1) return 1
-                    SlotId(530) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(530),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(531), env)
-                            {
-                                // NoneExpr(p: i32) : [1 >= p] l_pr=NoneOperand(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS . "="
-                                // WS NoneOperand(2, 1) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(531));
-                            }
-                        }
                     }
                     // NoneExpr(p: i32) : [1 >= p] l_pr=NoneOperand(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS . "="
                     // WS NoneOperand(2, 1) return 1
@@ -1765,49 +1002,25 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(19),
                             input_index,
-                            SlotId(531),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(532), env)
-                            {
-                                // NoneExpr(p: i32) : [1 >= p] l_pr=NoneOperand(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS "=" .
-                                // WS NoneOperand(2, 1) return 1
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(532));
-                            }
-                        }
-                    }
-                    // NoneExpr(p: i32) : [1 >= p] l_pr=NoneOperand(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS "=" .
-                    // WS NoneOperand(2, 1) return 1
-                    SlotId(532) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(532),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(533), env)
-                            {
-                                // NoneExpr(p: i32) : [1 >= p] l_pr=NoneOperand(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS "=" WS
-                                // . NoneOperand(2, 1) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(533));
+                                next = Some(slot_id.next());
                             }
                         }
                     }
                     // NoneExpr(p: i32) : [1 >= p] l_pr=NoneOperand(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS "=" WS
                     // . NoneOperand(2, 1) return 1
                     SlotId(533) => {
-                        self.create_none_operand(result, gss_node_id, SlotId(534), env, 2, 1);
-                    }
-                    // NoneExpr(p: i32) : [1 >= p] l_pr=NoneOperand(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS "=" WS
-                    // NoneOperand(2, 1) . return 1
-                    SlotId(534) => {
-                        next = Some(SlotId(535));
+                        self.create_none_operand(result, gss_node_id, slot_id.next(), env, 2, 1);
                     }
                     // NoneExpr(p: i32) : [1 >= p] l_pr=NoneOperand(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS "=" WS
                     // NoneOperand(2, 1) return 1.
@@ -1818,7 +1031,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 1;
                         self.pop(
                             gss_node_id,
-                            SlotId(535),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_NONE_EXPR,
@@ -1829,14 +1042,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_none_expr(
                             result,
                             gss_node_id,
-                            SlotId(537),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                         );
-                    }
-                    // NoneOperand(p: i32, end: i32) : v_pr=NoneExpr(p) . return v_pr
-                    SlotId(537) => {
-                        next = Some(SlotId(538));
                     }
                     // NoneOperand(p: i32, end: i32) : v_pr=NoneExpr(p) return v_pr.
                     SlotId(538) => {
@@ -1846,7 +1055,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = self.lookup(BINDING_V_PR, env.unwrap());
                         self.pop(
                             gss_node_id,
-                            SlotId(538),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_NONE_OPERAND,
@@ -1857,18 +1066,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(20),
                             input_index,
-                            SlotId(539),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // Excluded(p: i32, a: i32) : "e" . return 0
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(540));
+                            next = Some(slot_id.next());
                         }
-                    }
-                    // Excluded(p: i32, a: i32) : "e" . return 0
-                    SlotId(540) => {
-                        next = Some(SlotId(541));
                     }
                     // Excluded(p: i32, a: i32) : "e" return 0.
                     SlotId(541) => {
@@ -1878,7 +1082,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 0;
                         self.pop(
                             gss_node_id,
-                            SlotId(541),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_EXCLUDED,
@@ -1893,46 +1097,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_excluded_operand(
                             result,
                             gss_node_id,
-                            SlotId(543),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             0,
                             0,
                         );
-                    }
-                    // Excluded(p: i32, a: i32) : (l_pr, l_label)=ExcludedOperand(p, 0, 0) . [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "&" WS (r_pr,
-                    // r_label)=ExcludedOperand(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [((l_pr ==
-                    // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return (r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : 1
-                    SlotId(543) => {
-                        next = Some(SlotId(544));
-                    }
-                    // Excluded(p: i32, a: i32) : (l_pr, l_label)=ExcludedOperand(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] . WS "&" WS (r_pr,
-                    // r_label)=ExcludedOperand(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [((l_pr ==
-                    // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return (r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : 1
-                    SlotId(544) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(544),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(545), env)
-                            {
-                                // Excluded(p: i32, a: i32) : (l_pr, l_label)=ExcludedOperand(p, 0, 0) [(l_pr ==
-                                // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS . "&" WS (r_pr,
-                                // r_label)=ExcludedOperand(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [((l_pr ==
-                                // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return (r_pr ==
-                                // UNDEFINED_PRECEDENCE) ? 0 : 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(545));
-                            }
-                        }
                     }
                     // Excluded(p: i32, a: i32) : (l_pr, l_label)=ExcludedOperand(p, 0, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS . "&" WS (r_pr,
@@ -1943,46 +1113,18 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(21),
                             input_index,
-                            SlotId(545),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(546), env)
-                            {
-                                // Excluded(p: i32, a: i32) : (l_pr, l_label)=ExcludedOperand(p, 0, 0) [(l_pr ==
-                                // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "&" . WS (r_pr,
-                                // r_label)=ExcludedOperand(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [((l_pr ==
-                                // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return (r_pr ==
-                                // UNDEFINED_PRECEDENCE) ? 0 : 1
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(546));
-                            }
-                        }
-                    }
-                    // Excluded(p: i32, a: i32) : (l_pr, l_label)=ExcludedOperand(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "&" . WS (r_pr,
-                    // r_label)=ExcludedOperand(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [((l_pr ==
-                    // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return (r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : 1
-                    SlotId(546) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(546),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(547), env)
-                            {
-                                // Excluded(p: i32, a: i32) : (l_pr, l_label)=ExcludedOperand(p, 0, 0) [(l_pr ==
-                                // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "&" WS . (r_pr,
-                                // r_label)=ExcludedOperand(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [((l_pr ==
-                                // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return (r_pr ==
-                                // UNDEFINED_PRECEDENCE) ? 0 : 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(547));
+                                next = Some(slot_id.next());
                             }
                         }
                     }
@@ -1995,7 +1137,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_excluded_operand(
                             result,
                             gss_node_id,
-                            SlotId(548),
+                            slot_id.next(),
                             env,
                             1,
                             1,
@@ -2005,22 +1147,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                                 1
                             },
                         );
-                    }
-                    // Excluded(p: i32, a: i32) : (l_pr, l_label)=ExcludedOperand(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "&" WS (r_pr,
-                    // r_label)=ExcludedOperand(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) . [((l_pr ==
-                    // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return (r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : 1
-                    SlotId(548) => {
-                        next = Some(SlotId(549));
-                    }
-                    // Excluded(p: i32, a: i32) : (l_pr, l_label)=ExcludedOperand(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "&" WS (r_pr,
-                    // r_label)=ExcludedOperand(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [((l_pr ==
-                    // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] . return (r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : 1
-                    SlotId(549) => {
-                        next = Some(SlotId(550));
                     }
                     // Excluded(p: i32, a: i32) : (l_pr, l_label)=ExcludedOperand(p, 0, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "&" WS (r_pr,
@@ -2038,7 +1164,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(550),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_EXCLUDED,
@@ -2049,15 +1175,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_excluded(
                             result,
                             gss_node_id,
-                            SlotId(552),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             self.lookup(BINDING_A, env.unwrap()),
                         );
-                    }
-                    // ExcludedOperand(p: i32, end: i32, a: i32) : v_pr=Excluded(p, a) . return (v_pr, 0)
-                    SlotId(552) => {
-                        next = Some(SlotId(553));
                     }
                     // ExcludedOperand(p: i32, end: i32, a: i32) : v_pr=Excluded(p, a) return (v_pr, 0).
                     SlotId(553) => {
@@ -2067,105 +1189,59 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = (self.lookup(BINDING_V_PR, env.unwrap())) << (16);
                         self.pop(
                             gss_node_id,
-                            SlotId(553),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_EXCLUDED_OPERAND,
                         );
                     }
                     // ExcludedOperand(p: i32, end: i32, a: i32) : . "(" WS ExcludedOperand(0, 0, 0) WS ")"
-                    // return (UNDEFINED_PRECEDENCE, 1)
-                    SlotId(554) => {
+                    // return (UNDEFINED_PRECEDENCE, 1), and 2 more slots
+                    SlotId(554) | SlotId(625) | SlotId(734) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(22),
                             input_index,
-                            SlotId(554),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // ExcludedOperand(p: i32, end: i32, a: i32) : "(" . WS ExcludedOperand(0, 0, 0) WS ")"
-                            // return (UNDEFINED_PRECEDENCE, 1)
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(555));
-                        }
-                    }
-                    // ExcludedOperand(p: i32, end: i32, a: i32) : "(" . WS ExcludedOperand(0, 0, 0) WS ")"
-                    // return (UNDEFINED_PRECEDENCE, 1)
-                    SlotId(555) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(555),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(556), env)
-                            {
-                                // ExcludedOperand(p: i32, end: i32, a: i32) : "(" WS . ExcludedOperand(0, 0, 0) WS ")"
-                                // return (UNDEFINED_PRECEDENCE, 1)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(556));
-                            }
+                            next = Some(slot_id.next());
                         }
                     }
                     // ExcludedOperand(p: i32, end: i32, a: i32) : "(" WS . ExcludedOperand(0, 0, 0) WS ")"
-                    // return (UNDEFINED_PRECEDENCE, 1)
-                    SlotId(556) => {
+                    // return (UNDEFINED_PRECEDENCE, 1), and 2 more slots
+                    SlotId(556) | SlotId(16) | SlotId(134) => {
                         self.create_excluded_operand(
                             result,
                             gss_node_id,
-                            SlotId(557),
+                            slot_id.next(),
                             env,
                             0,
                             0,
                             0,
                         );
                     }
-                    // ExcludedOperand(p: i32, end: i32, a: i32) : "(" WS ExcludedOperand(0, 0, 0) . WS ")"
-                    // return (UNDEFINED_PRECEDENCE, 1)
-                    SlotId(557) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(557),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(558), env)
-                            {
-                                // ExcludedOperand(p: i32, end: i32, a: i32) : "(" WS ExcludedOperand(0, 0, 0) WS . ")"
-                                // return (UNDEFINED_PRECEDENCE, 1)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(558));
-                            }
-                        }
-                    }
                     // ExcludedOperand(p: i32, end: i32, a: i32) : "(" WS ExcludedOperand(0, 0, 0) WS . ")"
-                    // return (UNDEFINED_PRECEDENCE, 1)
-                    SlotId(558) => {
+                    // return (UNDEFINED_PRECEDENCE, 1), and 2 more slots
+                    SlotId(558) | SlotId(629) | SlotId(738) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(23),
                             input_index,
-                            SlotId(558),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(559), env)
-                            {
-                                // ExcludedOperand(p: i32, end: i32, a: i32) : "(" WS ExcludedOperand(0, 0, 0) WS ")" .
-                                // return (UNDEFINED_PRECEDENCE, 1)
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(559));
+                                next = Some(slot_id.next());
                             }
                         }
-                    }
-                    // ExcludedOperand(p: i32, end: i32, a: i32) : "(" WS ExcludedOperand(0, 0, 0) WS ")" .
-                    // return (UNDEFINED_PRECEDENCE, 1)
-                    SlotId(559) => {
-                        next = Some(SlotId(560));
                     }
                     // ExcludedOperand(p: i32, end: i32, a: i32) : "(" WS ExcludedOperand(0, 0, 0) WS ")" return
                     // (UNDEFINED_PRECEDENCE, 1).
@@ -2176,21 +1252,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = -65535;
                         self.pop(
                             gss_node_id,
-                            SlotId(560),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_EXCLUDED_OPERAND,
                         );
-                    }
-                    // Filtered : . (x_pr, x_label)=ExcludedOperand(0, 0, 0) [(x_label == NO_LABEL) || ((2 >>
-                    // x_label) & 1 == 0)]
-                    SlotId(16) => {
-                        self.create_excluded_operand(result, gss_node_id, SlotId(17), env, 0, 0, 0);
-                    }
-                    // Filtered : (x_pr, x_label)=ExcludedOperand(0, 0, 0) . [(x_label == NO_LABEL) || ((2 >>
-                    // x_label) & 1 == 0)]
-                    SlotId(17) => {
-                        next = Some(SlotId(18));
                     }
                     // Filtered : (x_pr, x_label)=ExcludedOperand(0, 0, 0) [(x_label == NO_LABEL) || ((2 >>
                     // x_label) & 1 == 0)].
@@ -2198,25 +1264,20 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(18), result, None, &FOLLOW_SET_FILTERED);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_FILTERED);
                     }
                     // LexNullable(p: i32) : . "q" return 0
                     SlotId(561) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(24),
                             input_index,
-                            SlotId(561),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // LexNullable(p: i32) : "q" . return 0
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(562));
+                            next = Some(slot_id.next());
                         }
-                    }
-                    // LexNullable(p: i32) : "q" . return 0
-                    SlotId(562) => {
-                        next = Some(SlotId(563));
                     }
                     // LexNullable(p: i32) : "q" return 0.
                     SlotId(563) => {
@@ -2226,84 +1287,47 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 0;
                         self.pop(
                             gss_node_id,
-                            SlotId(563),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_LEX_NULLABLE,
                         );
                     }
-                    // LexNullable(p: i32) : . LexNullableLeft WS "/" WS LexNullableRight(1) return 1
-                    SlotId(564) => {
+                    // LexNullable(p: i32) : . LexNullableLeft WS "/" WS LexNullableRight(1) return 1, and
+                    // StartLexNullableLeft : WS . start:LexNullableLeft WS
+                    SlotId(564) | SlotId(146) => {
                         self.create(
                             NonterminalId(4),
                             &PREDICTION_LEX_NULLABLE_LEFT,
                             result,
                             gss_node_id,
-                            SlotId(565),
+                            slot_id.next(),
                             env,
                         );
-                    }
-                    // LexNullable(p: i32) : LexNullableLeft . WS "/" WS LexNullableRight(1) return 1
-                    SlotId(565) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(565),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(566), env)
-                            {
-                                // LexNullable(p: i32) : LexNullableLeft WS . "/" WS LexNullableRight(1) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(566));
-                            }
-                        }
                     }
                     // LexNullable(p: i32) : LexNullableLeft WS . "/" WS LexNullableRight(1) return 1
                     SlotId(566) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(25),
                             input_index,
-                            SlotId(566),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(567), env)
-                            {
-                                // LexNullable(p: i32) : LexNullableLeft WS "/" . WS LexNullableRight(1) return 1
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(567));
-                            }
-                        }
-                    }
-                    // LexNullable(p: i32) : LexNullableLeft WS "/" . WS LexNullableRight(1) return 1
-                    SlotId(567) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(567),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(568), env)
-                            {
-                                // LexNullable(p: i32) : LexNullableLeft WS "/" WS . LexNullableRight(1) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(568));
+                                next = Some(slot_id.next());
                             }
                         }
                     }
                     // LexNullable(p: i32) : LexNullableLeft WS "/" WS . LexNullableRight(1) return 1
                     SlotId(568) => {
-                        self.create_lex_nullable_right(result, gss_node_id, SlotId(569), env, 1);
-                    }
-                    // LexNullable(p: i32) : LexNullableLeft WS "/" WS LexNullableRight(1) . return 1
-                    SlotId(569) => {
-                        next = Some(SlotId(570));
+                        self.create_lex_nullable_right(result, gss_node_id, slot_id.next(), env, 1);
                     }
                     // LexNullable(p: i32) : LexNullableLeft WS "/" WS LexNullableRight(1) return 1.
                     SlotId(570) => {
@@ -2313,47 +1337,30 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 1;
                         self.pop(
                             gss_node_id,
-                            SlotId(570),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_LEX_NULLABLE,
                         );
                     }
-                    // LexNullableLeft : . Digits WS LexNullable(0)
-                    SlotId(19) => {
+                    // LexNullableLeft : . Digits WS LexNullable(0), and NullableLexMaybe(p: i32, a: i32) : .
+                    // Digits return (UNDEFINED_PRECEDENCE, 0)
+                    SlotId(19) | SlotId(672) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(0),
                             input_index,
-                            SlotId(19),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // LexNullableLeft : Digits . WS LexNullable(0)
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(20));
+                            next = Some(slot_id.next());
                         }
                     }
-                    // LexNullableLeft : Digits . WS LexNullable(0)
-                    SlotId(20) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(20),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(21), env)
-                            {
-                                // LexNullableLeft : Digits WS . LexNullable(0)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(21));
-                            }
-                        }
-                    }
-                    // LexNullableLeft : Digits WS . LexNullable(0)
-                    SlotId(21) => {
-                        self.create_lex_nullable(result, gss_node_id, SlotId(22), env, 0);
+                    // LexNullableLeft : Digits WS . LexNullable(0), and StartLexNullable : WS .
+                    // start:LexNullable(0) WS
+                    SlotId(21) | SlotId(142) => {
+                        self.create_lex_nullable(result, gss_node_id, slot_id.next(), env, 0);
                     }
                     // LexNullableLeft : Digits WS LexNullable(0).
                     SlotId(22) => {
@@ -2362,7 +1369,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(22),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_LEX_NULLABLE_LEFT,
@@ -2373,14 +1380,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_lex_nullable(
                             result,
                             gss_node_id,
-                            SlotId(572),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                         );
-                    }
-                    // LexNullableRight(p: i32) : r_pr=LexNullable(p) . return r_pr
-                    SlotId(572) => {
-                        next = Some(SlotId(573));
                     }
                     // LexNullableRight(p: i32) : r_pr=LexNullable(p) return r_pr.
                     SlotId(573) => {
@@ -2390,7 +1393,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = self.lookup(BINDING_R_PR, env.unwrap());
                         self.pop(
                             gss_node_id,
-                            SlotId(573),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_LEX_NULLABLE_RIGHT,
@@ -2401,18 +1404,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(26),
                             input_index,
-                            SlotId(574),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // MixedScale(p: i32, a: i32) : "m" . return 0
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(575));
+                            next = Some(slot_id.next());
                         }
-                    }
-                    // MixedScale(p: i32, a: i32) : "m" . return 0
-                    SlotId(575) => {
-                        next = Some(SlotId(576));
                     }
                     // MixedScale(p: i32, a: i32) : "m" return 0.
                     SlotId(576) => {
@@ -2422,7 +1420,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 0;
                         self.pop(
                             gss_node_id,
-                            SlotId(576),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_MIXED_SCALE,
@@ -2435,39 +1433,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_mixed_operand(
                             result,
                             gss_node_id,
-                            SlotId(578),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             0,
                         );
-                    }
-                    // MixedScale(p: i32, a: i32) : l_pr=MixedOperand(p, 0) . [(l_pr == UNDEFINED_PRECEDENCE) ||
-                    // ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "~" WS r_pr=MixedRight(1, (l_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : 1) [(l_pr == UNDEFINED_PRECEDENCE) || (a != 1)] return 1
-                    SlotId(578) => {
-                        next = Some(SlotId(579));
-                    }
-                    // MixedScale(p: i32, a: i32) : l_pr=MixedOperand(p, 0) [(l_pr == UNDEFINED_PRECEDENCE) ||
-                    // ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] . WS "~" WS r_pr=MixedRight(1, (l_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : 1) [(l_pr == UNDEFINED_PRECEDENCE) || (a != 1)] return 1
-                    SlotId(579) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(579),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(580), env)
-                            {
-                                // MixedScale(p: i32, a: i32) : l_pr=MixedOperand(p, 0) [(l_pr == UNDEFINED_PRECEDENCE) ||
-                                // ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS . "~" WS r_pr=MixedRight(1, (l_pr ==
-                                // UNDEFINED_PRECEDENCE) ? 0 : 1) [(l_pr == UNDEFINED_PRECEDENCE) || (a != 1)] return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(580));
-                            }
-                        }
                     }
                     // MixedScale(p: i32, a: i32) : l_pr=MixedOperand(p, 0) [(l_pr == UNDEFINED_PRECEDENCE) ||
                     // ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS . "~" WS r_pr=MixedRight(1, (l_pr ==
@@ -2476,40 +1446,18 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(27),
                             input_index,
-                            SlotId(580),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(581), env)
-                            {
-                                // MixedScale(p: i32, a: i32) : l_pr=MixedOperand(p, 0) [(l_pr == UNDEFINED_PRECEDENCE) ||
-                                // ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "~" . WS r_pr=MixedRight(1, (l_pr ==
-                                // UNDEFINED_PRECEDENCE) ? 0 : 1) [(l_pr == UNDEFINED_PRECEDENCE) || (a != 1)] return 1
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(581));
-                            }
-                        }
-                    }
-                    // MixedScale(p: i32, a: i32) : l_pr=MixedOperand(p, 0) [(l_pr == UNDEFINED_PRECEDENCE) ||
-                    // ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "~" . WS r_pr=MixedRight(1, (l_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : 1) [(l_pr == UNDEFINED_PRECEDENCE) || (a != 1)] return 1
-                    SlotId(581) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(581),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(582), env)
-                            {
-                                // MixedScale(p: i32, a: i32) : l_pr=MixedOperand(p, 0) [(l_pr == UNDEFINED_PRECEDENCE) ||
-                                // ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "~" WS . r_pr=MixedRight(1, (l_pr ==
-                                // UNDEFINED_PRECEDENCE) ? 0 : 1) [(l_pr == UNDEFINED_PRECEDENCE) || (a != 1)] return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(582));
+                                next = Some(slot_id.next());
                             }
                         }
                     }
@@ -2520,7 +1468,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_mixed_right(
                             result,
                             gss_node_id,
-                            SlotId(583),
+                            slot_id.next(),
                             env,
                             1,
                             if self.lookup(BINDING_L_PR, env.unwrap()) == -1 {
@@ -2532,18 +1480,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // MixedScale(p: i32, a: i32) : l_pr=MixedOperand(p, 0) [(l_pr == UNDEFINED_PRECEDENCE) ||
                     // ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "~" WS r_pr=MixedRight(1, (l_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : 1) . [(l_pr == UNDEFINED_PRECEDENCE) || (a != 1)] return 1
-                    SlotId(583) => {
-                        next = Some(SlotId(584));
-                    }
-                    // MixedScale(p: i32, a: i32) : l_pr=MixedOperand(p, 0) [(l_pr == UNDEFINED_PRECEDENCE) ||
-                    // ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "~" WS r_pr=MixedRight(1, (l_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : 1) [(l_pr == UNDEFINED_PRECEDENCE) || (a != 1)] . return 1
-                    SlotId(584) => {
-                        next = Some(SlotId(585));
-                    }
-                    // MixedScale(p: i32, a: i32) : l_pr=MixedOperand(p, 0) [(l_pr == UNDEFINED_PRECEDENCE) ||
-                    // ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "~" WS r_pr=MixedRight(1, (l_pr ==
                     // UNDEFINED_PRECEDENCE) ? 0 : 1) [(l_pr == UNDEFINED_PRECEDENCE) || (a != 1)] return 1.
                     SlotId(585) => {
                         let Some(result) = result else {
@@ -2552,26 +1488,23 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 1;
                         self.pop(
                             gss_node_id,
-                            SlotId(585),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_MIXED_SCALE,
                         );
                     }
-                    // MixedOperand(p: i32, a: i32) : . l_pr=MixedScale(p, a) return l_pr
-                    SlotId(586) => {
+                    // MixedOperand(p: i32, a: i32) : . l_pr=MixedScale(p, a) return l_pr, and MixedRight(p: i32,
+                    // a: i32) : . r_pr=MixedScale(p, a) return r_pr
+                    SlotId(586) | SlotId(592) => {
                         self.create_mixed_scale(
                             result,
                             gss_node_id,
-                            SlotId(587),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             self.lookup(BINDING_A, env.unwrap()),
                         );
-                    }
-                    // MixedOperand(p: i32, a: i32) : l_pr=MixedScale(p, a) . return l_pr
-                    SlotId(587) => {
-                        next = Some(SlotId(588));
                     }
                     // MixedOperand(p: i32, a: i32) : l_pr=MixedScale(p, a) return l_pr.
                     SlotId(588) => {
@@ -2581,19 +1514,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = self.lookup(BINDING_L_PR, env.unwrap());
                         self.pop(
                             gss_node_id,
-                            SlotId(588),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_MIXED_OPERAND,
                         );
                     }
-                    // MixedOperand(p: i32, a: i32) : . MixedForeign(0) return UNDEFINED_PRECEDENCE
-                    SlotId(589) => {
-                        self.create_mixed_foreign(result, gss_node_id, SlotId(590), env, 0);
-                    }
-                    // MixedOperand(p: i32, a: i32) : MixedForeign(0) . return UNDEFINED_PRECEDENCE
-                    SlotId(590) => {
-                        next = Some(SlotId(591));
+                    // MixedOperand(p: i32, a: i32) : . MixedForeign(0) return UNDEFINED_PRECEDENCE, and
+                    // StartMixedForeign : WS . start:MixedForeign(0) WS
+                    SlotId(589) | SlotId(166) => {
+                        self.create_mixed_foreign(result, gss_node_id, slot_id.next(), env, 0);
                     }
                     // MixedOperand(p: i32, a: i32) : MixedForeign(0) return UNDEFINED_PRECEDENCE.
                     SlotId(591) => {
@@ -2603,26 +1533,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = -1;
                         self.pop(
                             gss_node_id,
-                            SlotId(591),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_MIXED_OPERAND,
                         );
-                    }
-                    // MixedRight(p: i32, a: i32) : . r_pr=MixedScale(p, a) return r_pr
-                    SlotId(592) => {
-                        self.create_mixed_scale(
-                            result,
-                            gss_node_id,
-                            SlotId(593),
-                            env,
-                            self.lookup(BINDING_P, env.unwrap()),
-                            self.lookup(BINDING_A, env.unwrap()),
-                        );
-                    }
-                    // MixedRight(p: i32, a: i32) : r_pr=MixedScale(p, a) . return r_pr
-                    SlotId(593) => {
-                        next = Some(SlotId(594));
                     }
                     // MixedRight(p: i32, a: i32) : r_pr=MixedScale(p, a) return r_pr.
                     SlotId(594) => {
@@ -2632,7 +1547,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = self.lookup(BINDING_R_PR, env.unwrap());
                         self.pop(
                             gss_node_id,
-                            SlotId(594),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_MIXED_RIGHT,
@@ -2643,18 +1558,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(28),
                             input_index,
-                            SlotId(595),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // MixedForeign(p: i32) : "f" . return 0
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(596));
+                            next = Some(slot_id.next());
                         }
-                    }
-                    // MixedForeign(p: i32) : "f" . return 0
-                    SlotId(596) => {
-                        next = Some(SlotId(597));
                     }
                     // MixedForeign(p: i32) : "f" return 0.
                     SlotId(597) => {
@@ -2664,18 +1574,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 0;
                         self.pop(
                             gss_node_id,
-                            SlotId(597),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_MIXED_FOREIGN,
                         );
-                    }
-                    // MixedForeign(p: i32) : . [1 >= p] l_pr=MixedForeign(p) [(l_pr == 0) || (l_pr >= 1)] WS "!"
-                    // WS MixedForeign(2) return 1
-                    SlotId(598) => {
-                        if 1 >= self.lookup(BINDING_P, env.unwrap()) {
-                            next = Some(SlotId(599));
-                        }
                     }
                     // MixedForeign(p: i32) : [1 >= p] . l_pr=MixedForeign(p) [(l_pr == 0) || (l_pr >= 1)] WS "!"
                     // WS MixedForeign(2) return 1
@@ -2683,85 +1586,37 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_mixed_foreign(
                             result,
                             gss_node_id,
-                            SlotId(600),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                         );
                     }
-                    // MixedForeign(p: i32) : [1 >= p] l_pr=MixedForeign(p) . [(l_pr == 0) || (l_pr >= 1)] WS "!"
-                    // WS MixedForeign(2) return 1
-                    SlotId(600) => {
-                        next = Some(SlotId(601));
-                    }
-                    // MixedForeign(p: i32) : [1 >= p] l_pr=MixedForeign(p) [(l_pr == 0) || (l_pr >= 1)] . WS "!"
-                    // WS MixedForeign(2) return 1
-                    SlotId(601) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(601),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(602), env)
-                            {
-                                // MixedForeign(p: i32) : [1 >= p] l_pr=MixedForeign(p) [(l_pr == 0) || (l_pr >= 1)] WS . "!"
-                                // WS MixedForeign(2) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(602));
-                            }
-                        }
-                    }
                     // MixedForeign(p: i32) : [1 >= p] l_pr=MixedForeign(p) [(l_pr == 0) || (l_pr >= 1)] WS . "!"
-                    // WS MixedForeign(2) return 1
-                    SlotId(602) => {
+                    // WS MixedForeign(2) return 1, and 6 more slots
+                    SlotId(602) | SlotId(801) | SlotId(859) | SlotId(884) | SlotId(910)
+                    | SlotId(934) | SlotId(963) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(29),
                             input_index,
-                            SlotId(602),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(603), env)
-                            {
-                                // MixedForeign(p: i32) : [1 >= p] l_pr=MixedForeign(p) [(l_pr == 0) || (l_pr >= 1)] WS "!" .
-                                // WS MixedForeign(2) return 1
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(603));
-                            }
-                        }
-                    }
-                    // MixedForeign(p: i32) : [1 >= p] l_pr=MixedForeign(p) [(l_pr == 0) || (l_pr >= 1)] WS "!" .
-                    // WS MixedForeign(2) return 1
-                    SlotId(603) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(603),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(604), env)
-                            {
-                                // MixedForeign(p: i32) : [1 >= p] l_pr=MixedForeign(p) [(l_pr == 0) || (l_pr >= 1)] WS "!"
-                                // WS . MixedForeign(2) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(604));
+                                next = Some(slot_id.next());
                             }
                         }
                     }
                     // MixedForeign(p: i32) : [1 >= p] l_pr=MixedForeign(p) [(l_pr == 0) || (l_pr >= 1)] WS "!"
                     // WS . MixedForeign(2) return 1
                     SlotId(604) => {
-                        self.create_mixed_foreign(result, gss_node_id, SlotId(605), env, 2);
-                    }
-                    // MixedForeign(p: i32) : [1 >= p] l_pr=MixedForeign(p) [(l_pr == 0) || (l_pr >= 1)] WS "!"
-                    // WS MixedForeign(2) . return 1
-                    SlotId(605) => {
-                        next = Some(SlotId(606));
+                        self.create_mixed_foreign(result, gss_node_id, slot_id.next(), env, 2);
                     }
                     // MixedForeign(p: i32) : [1 >= p] l_pr=MixedForeign(p) [(l_pr == 0) || (l_pr >= 1)] WS "!"
                     // WS MixedForeign(2) return 1.
@@ -2772,7 +1627,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 1;
                         self.pop(
                             gss_node_id,
-                            SlotId(606),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_MIXED_FOREIGN,
@@ -2783,18 +1638,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(30),
                             input_index,
-                            SlotId(607),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // Packed(p: i32, a: i32) : "p" . return (0, 0)
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(608));
+                            next = Some(slot_id.next());
                         }
-                    }
-                    // Packed(p: i32, a: i32) : "p" . return (0, 0)
-                    SlotId(608) => {
-                        next = Some(SlotId(609));
                     }
                     // Packed(p: i32, a: i32) : "p" return (0, 0).
                     SlotId(609) => {
@@ -2804,7 +1654,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 0;
                         self.pop(
                             gss_node_id,
-                            SlotId(609),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_PACKED,
@@ -2819,98 +1669,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_packed_operand(
                             result,
                             gss_node_id,
-                            SlotId(611),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             0,
                             0,
                         );
-                    }
-                    // Packed(p: i32, a: i32) : (l_pr, l_assoc)=PackedOperand(p, 0, 0) . [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
-                    // r_assoc)=PackedOperand(1, 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
-                    // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
-                    // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
-                    SlotId(611) => {
-                        next = Some(SlotId(612));
-                    }
-                    // Packed(p: i32, a: i32) : (l_pr, l_assoc)=PackedOperand(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] . WS "+" WS (r_pr,
-                    // r_assoc)=PackedOperand(1, 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
-                    // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
-                    // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
-                    SlotId(612) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(612),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(613), env)
-                            {
-                                // Packed(p: i32, a: i32) : (l_pr, l_assoc)=PackedOperand(p, 0, 0) [(l_pr ==
-                                // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS . "+" WS (r_pr,
-                                // r_assoc)=PackedOperand(1, 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
-                                // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
-                                // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(613));
-                            }
-                        }
-                    }
-                    // Packed(p: i32, a: i32) : (l_pr, l_assoc)=PackedOperand(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS . "+" WS (r_pr,
-                    // r_assoc)=PackedOperand(1, 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
-                    // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
-                    // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
-                    SlotId(613) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(4),
-                            input_index,
-                            SlotId(613),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(614), env)
-                            {
-                                // Packed(p: i32, a: i32) : (l_pr, l_assoc)=PackedOperand(p, 0, 0) [(l_pr ==
-                                // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" . WS (r_pr,
-                                // r_assoc)=PackedOperand(1, 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
-                                // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
-                                // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(614));
-                            }
-                        }
-                    }
-                    // Packed(p: i32, a: i32) : (l_pr, l_assoc)=PackedOperand(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" . WS (r_pr,
-                    // r_assoc)=PackedOperand(1, 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
-                    // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
-                    // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
-                    SlotId(614) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(614),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(615), env)
-                            {
-                                // Packed(p: i32, a: i32) : (l_pr, l_assoc)=PackedOperand(p, 0, 0) [(l_pr ==
-                                // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS . (r_pr,
-                                // r_assoc)=PackedOperand(1, 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
-                                // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
-                                // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(615));
-                            }
-                        }
                     }
                     // Packed(p: i32, a: i32) : (l_pr, l_assoc)=PackedOperand(p, 0, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS . (r_pr,
@@ -2918,23 +1682,15 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
                     // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
                     SlotId(615) => {
-                        self.create_packed_operand(result, gss_node_id, SlotId(616), env, 1, 1, 0);
-                    }
-                    // Packed(p: i32, a: i32) : (l_pr, l_assoc)=PackedOperand(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
-                    // r_assoc)=PackedOperand(1, 1, 0) . [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
-                    // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
-                    // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
-                    SlotId(616) => {
-                        next = Some(SlotId(617));
-                    }
-                    // Packed(p: i32, a: i32) : (l_pr, l_assoc)=PackedOperand(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
-                    // r_assoc)=PackedOperand(1, 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
-                    // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] . return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 :
-                    // 1, ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
-                    SlotId(617) => {
-                        next = Some(SlotId(618));
+                        self.create_packed_operand(
+                            result,
+                            gss_node_id,
+                            slot_id.next(),
+                            env,
+                            1,
+                            1,
+                            0,
+                        );
                     }
                     // Packed(p: i32, a: i32) : (l_pr, l_assoc)=PackedOperand(p, 0, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
@@ -2959,7 +1715,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                             });
                         self.pop(
                             gss_node_id,
-                            SlotId(618),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_PACKED,
@@ -2971,17 +1727,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_packed_middle(
                             result,
                             gss_node_id,
-                            SlotId(620),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             self.lookup(BINDING_END, env.unwrap()),
                             self.lookup(BINDING_A, env.unwrap()),
                         );
-                    }
-                    // PackedOperand(p: i32, end: i32, a: i32) : (v_pr, v_assoc, v_label)=PackedMiddle(p, end, a)
-                    // . return (v_pr, v_assoc)
-                    SlotId(620) => {
-                        next = Some(SlotId(621));
                     }
                     // PackedOperand(p: i32, end: i32, a: i32) : (v_pr, v_assoc, v_label)=PackedMiddle(p, end, a)
                     // return (v_pr, v_assoc).
@@ -2993,7 +1744,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                             | (self.lookup(BINDING_V_ASSOC, env.unwrap()));
                         self.pop(
                             gss_node_id,
-                            SlotId(621),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_PACKED_OPERAND,
@@ -3005,16 +1756,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_packed(
                             result,
                             gss_node_id,
-                            SlotId(623),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             self.lookup(BINDING_A, env.unwrap()),
                         );
-                    }
-                    // PackedMiddle(p: i32, end: i32, a: i32) : (v_pr, v_assoc)=Packed(p, a) . return (v_pr,
-                    // v_assoc, 0)
-                    SlotId(623) => {
-                        next = Some(SlotId(624));
                     }
                     // PackedMiddle(p: i32, end: i32, a: i32) : (v_pr, v_assoc)=Packed(p, a) return (v_pr,
                     // v_assoc, 0).
@@ -3026,97 +1772,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                             | ((self.lookup(BINDING_V_ASSOC, env.unwrap())) << (5));
                         self.pop(
                             gss_node_id,
-                            SlotId(624),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_PACKED_MIDDLE,
                         );
                     }
-                    // PackedMiddle(p: i32, end: i32, a: i32) : . "(" WS Packed(0, 0) WS ")" return
-                    // (UNDEFINED_PRECEDENCE, 0, 1)
-                    SlotId(625) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(22),
-                            input_index,
-                            SlotId(625),
-                            Some(gss_node_id),
-                        ) {
-                            // PackedMiddle(p: i32, end: i32, a: i32) : "(" . WS Packed(0, 0) WS ")" return
-                            // (UNDEFINED_PRECEDENCE, 0, 1)
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(626));
-                        }
-                    }
-                    // PackedMiddle(p: i32, end: i32, a: i32) : "(" . WS Packed(0, 0) WS ")" return
-                    // (UNDEFINED_PRECEDENCE, 0, 1)
-                    SlotId(626) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(626),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(627), env)
-                            {
-                                // PackedMiddle(p: i32, end: i32, a: i32) : "(" WS . Packed(0, 0) WS ")" return
-                                // (UNDEFINED_PRECEDENCE, 0, 1)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(627));
-                            }
-                        }
-                    }
                     // PackedMiddle(p: i32, end: i32, a: i32) : "(" WS . Packed(0, 0) WS ")" return
-                    // (UNDEFINED_PRECEDENCE, 0, 1)
-                    SlotId(627) => {
-                        self.create_packed(result, gss_node_id, SlotId(628), env, 0, 0);
-                    }
-                    // PackedMiddle(p: i32, end: i32, a: i32) : "(" WS Packed(0, 0) . WS ")" return
-                    // (UNDEFINED_PRECEDENCE, 0, 1)
-                    SlotId(628) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(628),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(629), env)
-                            {
-                                // PackedMiddle(p: i32, end: i32, a: i32) : "(" WS Packed(0, 0) WS . ")" return
-                                // (UNDEFINED_PRECEDENCE, 0, 1)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(629));
-                            }
-                        }
-                    }
-                    // PackedMiddle(p: i32, end: i32, a: i32) : "(" WS Packed(0, 0) WS . ")" return
-                    // (UNDEFINED_PRECEDENCE, 0, 1)
-                    SlotId(629) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(23),
-                            input_index,
-                            SlotId(629),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(630), env)
-                            {
-                                // PackedMiddle(p: i32, end: i32, a: i32) : "(" WS Packed(0, 0) WS ")" . return
-                                // (UNDEFINED_PRECEDENCE, 0, 1)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(630));
-                            }
-                        }
-                    }
-                    // PackedMiddle(p: i32, end: i32, a: i32) : "(" WS Packed(0, 0) WS ")" . return
-                    // (UNDEFINED_PRECEDENCE, 0, 1)
-                    SlotId(630) => {
-                        next = Some(SlotId(631));
+                    // (UNDEFINED_PRECEDENCE, 0, 1), and StartPacked : WS . start:Packed(0, 0) WS
+                    SlotId(627) | SlotId(170) => {
+                        self.create_packed(result, gss_node_id, slot_id.next(), env, 0, 0);
                     }
                     // PackedMiddle(p: i32, end: i32, a: i32) : "(" WS Packed(0, 0) WS ")" return
                     // (UNDEFINED_PRECEDENCE, 0, 1).
@@ -3127,21 +1792,24 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = -262143;
                         self.pop(
                             gss_node_id,
-                            SlotId(631),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_PACKED_MIDDLE,
                         );
                     }
                     // PackedFiltered : . (x_pr, x_assoc, x_label)=PackedMiddle(0, 0, 0) [(x_label == NO_LABEL)
-                    // || ((2 >> x_label) & 1 == 0)]
-                    SlotId(23) => {
-                        self.create_packed_middle(result, gss_node_id, SlotId(24), env, 0, 0, 0);
-                    }
-                    // PackedFiltered : (x_pr, x_assoc, x_label)=PackedMiddle(0, 0, 0) . [(x_label == NO_LABEL)
-                    // || ((2 >> x_label) & 1 == 0)]
-                    SlotId(24) => {
-                        next = Some(SlotId(25));
+                    // || ((2 >> x_label) & 1 == 0)], and StartPackedMiddle : WS . start:PackedMiddle(0, 0, 0) WS
+                    SlotId(23) | SlotId(178) => {
+                        self.create_packed_middle(
+                            result,
+                            gss_node_id,
+                            slot_id.next(),
+                            env,
+                            0,
+                            0,
+                            0,
+                        );
                     }
                     // PackedFiltered : (x_pr, x_assoc, x_label)=PackedMiddle(0, 0, 0) [(x_label == NO_LABEL) ||
                     // ((2 >> x_label) & 1 == 0)].
@@ -3151,7 +1819,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(25),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_PACKED_FILTERED,
@@ -3162,18 +1830,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(31),
                             input_index,
-                            SlotId(632),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // NullableRecursive(p: i32, a: i32) : "u" . return (0, 0)
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(633));
+                            next = Some(slot_id.next());
                         }
-                    }
-                    // NullableRecursive(p: i32, a: i32) : "u" . return (0, 0)
-                    SlotId(633) => {
-                        next = Some(SlotId(634));
                     }
                     // NullableRecursive(p: i32, a: i32) : "u" return (0, 0).
                     SlotId(634) => {
@@ -3183,7 +1846,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 0;
                         self.pop(
                             gss_node_id,
-                            SlotId(634),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_NULLABLE_RECURSIVE,
@@ -3197,111 +1860,25 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_nullable_operand(
                             result,
                             gss_node_id,
-                            SlotId(636),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             0,
                         );
-                    }
-                    // NullableRecursive(p: i32, a: i32) : (l_pr, l_assoc)=NullableOperand(p, 0) . [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
-                    // r_assoc)=NullableRecursive(1, 0) [(l_pr == UNDEFINED_PRECEDENCE) || (l_assoc != 1)] return
-                    // (1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
-                    SlotId(636) => {
-                        next = Some(SlotId(637));
-                    }
-                    // NullableRecursive(p: i32, a: i32) : (l_pr, l_assoc)=NullableOperand(p, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] . WS "+" WS (r_pr,
-                    // r_assoc)=NullableRecursive(1, 0) [(l_pr == UNDEFINED_PRECEDENCE) || (l_assoc != 1)] return
-                    // (1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
-                    SlotId(637) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(637),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(638), env)
-                            {
-                                // NullableRecursive(p: i32, a: i32) : (l_pr, l_assoc)=NullableOperand(p, 0) [(l_pr ==
-                                // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS . "+" WS (r_pr,
-                                // r_assoc)=NullableRecursive(1, 0) [(l_pr == UNDEFINED_PRECEDENCE) || (l_assoc != 1)] return
-                                // (1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(638));
-                            }
-                        }
-                    }
-                    // NullableRecursive(p: i32, a: i32) : (l_pr, l_assoc)=NullableOperand(p, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS . "+" WS (r_pr,
-                    // r_assoc)=NullableRecursive(1, 0) [(l_pr == UNDEFINED_PRECEDENCE) || (l_assoc != 1)] return
-                    // (1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
-                    SlotId(638) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(4),
-                            input_index,
-                            SlotId(638),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(639), env)
-                            {
-                                // NullableRecursive(p: i32, a: i32) : (l_pr, l_assoc)=NullableOperand(p, 0) [(l_pr ==
-                                // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" . WS (r_pr,
-                                // r_assoc)=NullableRecursive(1, 0) [(l_pr == UNDEFINED_PRECEDENCE) || (l_assoc != 1)] return
-                                // (1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(639));
-                            }
-                        }
-                    }
-                    // NullableRecursive(p: i32, a: i32) : (l_pr, l_assoc)=NullableOperand(p, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" . WS (r_pr,
-                    // r_assoc)=NullableRecursive(1, 0) [(l_pr == UNDEFINED_PRECEDENCE) || (l_assoc != 1)] return
-                    // (1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
-                    SlotId(639) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(639),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(640), env)
-                            {
-                                // NullableRecursive(p: i32, a: i32) : (l_pr, l_assoc)=NullableOperand(p, 0) [(l_pr ==
-                                // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS . (r_pr,
-                                // r_assoc)=NullableRecursive(1, 0) [(l_pr == UNDEFINED_PRECEDENCE) || (l_assoc != 1)] return
-                                // (1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(640));
-                            }
-                        }
                     }
                     // NullableRecursive(p: i32, a: i32) : (l_pr, l_assoc)=NullableOperand(p, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS . (r_pr,
                     // r_assoc)=NullableRecursive(1, 0) [(l_pr == UNDEFINED_PRECEDENCE) || (l_assoc != 1)] return
                     // (1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
                     SlotId(640) => {
-                        self.create_nullable_recursive(result, gss_node_id, SlotId(641), env, 1, 0);
-                    }
-                    // NullableRecursive(p: i32, a: i32) : (l_pr, l_assoc)=NullableOperand(p, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
-                    // r_assoc)=NullableRecursive(1, 0) . [(l_pr == UNDEFINED_PRECEDENCE) || (l_assoc != 1)]
-                    // return (1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
-                    SlotId(641) => {
-                        next = Some(SlotId(642));
-                    }
-                    // NullableRecursive(p: i32, a: i32) : (l_pr, l_assoc)=NullableOperand(p, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
-                    // r_assoc)=NullableRecursive(1, 0) [(l_pr == UNDEFINED_PRECEDENCE) || (l_assoc != 1)] .
-                    // return (1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
-                    SlotId(642) => {
-                        next = Some(SlotId(643));
+                        self.create_nullable_recursive(
+                            result,
+                            gss_node_id,
+                            slot_id.next(),
+                            env,
+                            1,
+                            0,
+                        );
                     }
                     // NullableRecursive(p: i32, a: i32) : (l_pr, l_assoc)=NullableOperand(p, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
@@ -3319,7 +1896,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                             });
                         self.pop(
                             gss_node_id,
-                            SlotId(643),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_NULLABLE_RECURSIVE,
@@ -3331,41 +1908,24 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_nullable_maybe(
                             result,
                             gss_node_id,
-                            SlotId(645),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             self.lookup(BINDING_A, env.unwrap()),
                         );
                     }
-                    // NullableOperand(p: i32, a: i32) : (l_pr, l_assoc)=NullableMaybe(p, a) . WS
-                    // NullableRecursive(0, 0) return (l_pr, l_assoc)
-                    SlotId(645) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(645),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(646), env)
-                            {
-                                // NullableOperand(p: i32, a: i32) : (l_pr, l_assoc)=NullableMaybe(p, a) WS .
-                                // NullableRecursive(0, 0) return (l_pr, l_assoc)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(646));
-                            }
-                        }
-                    }
                     // NullableOperand(p: i32, a: i32) : (l_pr, l_assoc)=NullableMaybe(p, a) WS .
-                    // NullableRecursive(0, 0) return (l_pr, l_assoc)
-                    SlotId(646) => {
-                        self.create_nullable_recursive(result, gss_node_id, SlotId(647), env, 0, 0);
-                    }
-                    // NullableOperand(p: i32, a: i32) : (l_pr, l_assoc)=NullableMaybe(p, a) WS
-                    // NullableRecursive(0, 0) . return (l_pr, l_assoc)
-                    SlotId(647) => {
-                        next = Some(SlotId(648));
+                    // NullableRecursive(0, 0) return (l_pr, l_assoc), and StartNullableRecursive : WS .
+                    // start:NullableRecursive(0, 0) WS
+                    SlotId(646) | SlotId(186) => {
+                        self.create_nullable_recursive(
+                            result,
+                            gss_node_id,
+                            slot_id.next(),
+                            env,
+                            0,
+                            0,
+                        );
                     }
                     // NullableOperand(p: i32, a: i32) : (l_pr, l_assoc)=NullableMaybe(p, a) WS
                     // NullableRecursive(0, 0) return (l_pr, l_assoc).
@@ -3377,7 +1937,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                             | (self.lookup(BINDING_L_ASSOC, env.unwrap()));
                         self.pop(
                             gss_node_id,
-                            SlotId(648),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_NULLABLE_OPERAND,
@@ -3388,15 +1948,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_opt_1(
                             result,
                             gss_node_id,
-                            SlotId(650),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             self.lookup(BINDING_A, env.unwrap()),
                         );
-                    }
-                    // NullableMaybe(p: i32, a: i32) : (l_pr, l_assoc)=Opt_1(p, a) . return (l_pr, l_assoc)
-                    SlotId(650) => {
-                        next = Some(SlotId(651));
                     }
                     // NullableMaybe(p: i32, a: i32) : (l_pr, l_assoc)=Opt_1(p, a) return (l_pr, l_assoc).
                     SlotId(651) => {
@@ -3407,7 +1963,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                             | (self.lookup(BINDING_L_ASSOC, env.unwrap()));
                         self.pop(
                             gss_node_id,
-                            SlotId(651),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_NULLABLE_MAYBE,
@@ -3418,18 +1974,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(32),
                             input_index,
-                            SlotId(652),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // NullableLexRecursive(p: i32, a: i32) : "v" . return (0, 0)
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(653));
+                            next = Some(slot_id.next());
                         }
-                    }
-                    // NullableLexRecursive(p: i32, a: i32) : "v" . return (0, 0)
-                    SlotId(653) => {
-                        next = Some(SlotId(654));
                     }
                     // NullableLexRecursive(p: i32, a: i32) : "v" return (0, 0).
                     SlotId(654) => {
@@ -3439,7 +1990,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 0;
                         self.pop(
                             gss_node_id,
-                            SlotId(654),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_NULLABLE_LEX_RECURSIVE,
@@ -3453,90 +2004,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_nullable_lex_operand(
                             result,
                             gss_node_id,
-                            SlotId(656),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             0,
                         );
-                    }
-                    // NullableLexRecursive(p: i32, a: i32) : (l_pr, l_assoc)=NullableLexOperand(p, 0) . [(l_pr
-                    // == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
-                    // r_assoc)=NullableLexRecursive(1, 0) [(l_pr == UNDEFINED_PRECEDENCE) || (l_assoc != 1)]
-                    // return (1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
-                    SlotId(656) => {
-                        next = Some(SlotId(657));
-                    }
-                    // NullableLexRecursive(p: i32, a: i32) : (l_pr, l_assoc)=NullableLexOperand(p, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] . WS "+" WS (r_pr,
-                    // r_assoc)=NullableLexRecursive(1, 0) [(l_pr == UNDEFINED_PRECEDENCE) || (l_assoc != 1)]
-                    // return (1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
-                    SlotId(657) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(657),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(658), env)
-                            {
-                                // NullableLexRecursive(p: i32, a: i32) : (l_pr, l_assoc)=NullableLexOperand(p, 0) [(l_pr ==
-                                // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS . "+" WS (r_pr,
-                                // r_assoc)=NullableLexRecursive(1, 0) [(l_pr == UNDEFINED_PRECEDENCE) || (l_assoc != 1)]
-                                // return (1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(658));
-                            }
-                        }
-                    }
-                    // NullableLexRecursive(p: i32, a: i32) : (l_pr, l_assoc)=NullableLexOperand(p, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS . "+" WS (r_pr,
-                    // r_assoc)=NullableLexRecursive(1, 0) [(l_pr == UNDEFINED_PRECEDENCE) || (l_assoc != 1)]
-                    // return (1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
-                    SlotId(658) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(4),
-                            input_index,
-                            SlotId(658),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(659), env)
-                            {
-                                // NullableLexRecursive(p: i32, a: i32) : (l_pr, l_assoc)=NullableLexOperand(p, 0) [(l_pr ==
-                                // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" . WS (r_pr,
-                                // r_assoc)=NullableLexRecursive(1, 0) [(l_pr == UNDEFINED_PRECEDENCE) || (l_assoc != 1)]
-                                // return (1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(659));
-                            }
-                        }
-                    }
-                    // NullableLexRecursive(p: i32, a: i32) : (l_pr, l_assoc)=NullableLexOperand(p, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" . WS (r_pr,
-                    // r_assoc)=NullableLexRecursive(1, 0) [(l_pr == UNDEFINED_PRECEDENCE) || (l_assoc != 1)]
-                    // return (1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
-                    SlotId(659) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(659),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(660), env)
-                            {
-                                // NullableLexRecursive(p: i32, a: i32) : (l_pr, l_assoc)=NullableLexOperand(p, 0) [(l_pr ==
-                                // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS . (r_pr,
-                                // r_assoc)=NullableLexRecursive(1, 0) [(l_pr == UNDEFINED_PRECEDENCE) || (l_assoc != 1)]
-                                // return (1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(660));
-                            }
-                        }
                     }
                     // NullableLexRecursive(p: i32, a: i32) : (l_pr, l_assoc)=NullableLexOperand(p, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS . (r_pr,
@@ -3546,25 +2018,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_nullable_lex_recursive(
                             result,
                             gss_node_id,
-                            SlotId(661),
+                            slot_id.next(),
                             env,
                             1,
                             0,
                         );
-                    }
-                    // NullableLexRecursive(p: i32, a: i32) : (l_pr, l_assoc)=NullableLexOperand(p, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
-                    // r_assoc)=NullableLexRecursive(1, 0) . [(l_pr == UNDEFINED_PRECEDENCE) || (l_assoc != 1)]
-                    // return (1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
-                    SlotId(661) => {
-                        next = Some(SlotId(662));
-                    }
-                    // NullableLexRecursive(p: i32, a: i32) : (l_pr, l_assoc)=NullableLexOperand(p, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
-                    // r_assoc)=NullableLexRecursive(1, 0) [(l_pr == UNDEFINED_PRECEDENCE) || (l_assoc != 1)] .
-                    // return (1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
-                    SlotId(662) => {
-                        next = Some(SlotId(663));
                     }
                     // NullableLexRecursive(p: i32, a: i32) : (l_pr, l_assoc)=NullableLexOperand(p, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
@@ -3582,7 +2040,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                             });
                         self.pop(
                             gss_node_id,
-                            SlotId(663),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_NULLABLE_LEX_RECURSIVE,
@@ -3594,48 +2052,24 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_nullable_lex_maybe(
                             result,
                             gss_node_id,
-                            SlotId(665),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             self.lookup(BINDING_A, env.unwrap()),
                         );
                     }
-                    // NullableLexOperand(p: i32, a: i32) : (l_pr, l_assoc)=NullableLexMaybe(p, a) . WS
-                    // NullableLexRecursive(0, 0) return (l_pr, l_assoc)
-                    SlotId(665) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(665),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(666), env)
-                            {
-                                // NullableLexOperand(p: i32, a: i32) : (l_pr, l_assoc)=NullableLexMaybe(p, a) WS .
-                                // NullableLexRecursive(0, 0) return (l_pr, l_assoc)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(666));
-                            }
-                        }
-                    }
                     // NullableLexOperand(p: i32, a: i32) : (l_pr, l_assoc)=NullableLexMaybe(p, a) WS .
-                    // NullableLexRecursive(0, 0) return (l_pr, l_assoc)
-                    SlotId(666) => {
+                    // NullableLexRecursive(0, 0) return (l_pr, l_assoc), and StartNullableLexRecursive : WS .
+                    // start:NullableLexRecursive(0, 0) WS
+                    SlotId(666) | SlotId(198) => {
                         self.create_nullable_lex_recursive(
                             result,
                             gss_node_id,
-                            SlotId(667),
+                            slot_id.next(),
                             env,
                             0,
                             0,
                         );
-                    }
-                    // NullableLexOperand(p: i32, a: i32) : (l_pr, l_assoc)=NullableLexMaybe(p, a) WS
-                    // NullableLexRecursive(0, 0) . return (l_pr, l_assoc)
-                    SlotId(667) => {
-                        next = Some(SlotId(668));
                     }
                     // NullableLexOperand(p: i32, a: i32) : (l_pr, l_assoc)=NullableLexMaybe(p, a) WS
                     // NullableLexRecursive(0, 0) return (l_pr, l_assoc).
@@ -3647,7 +2081,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                             | (self.lookup(BINDING_L_ASSOC, env.unwrap()));
                         self.pop(
                             gss_node_id,
-                            SlotId(668),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_NULLABLE_LEX_OPERAND,
@@ -3659,16 +2093,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_nullable_lex_recursive(
                             result,
                             gss_node_id,
-                            SlotId(670),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             self.lookup(BINDING_A, env.unwrap()),
                         );
-                    }
-                    // NullableLexMaybe(p: i32, a: i32) : (l_pr, l_assoc)=NullableLexRecursive(p, a) . return
-                    // (l_pr, l_assoc)
-                    SlotId(670) => {
-                        next = Some(SlotId(671));
                     }
                     // NullableLexMaybe(p: i32, a: i32) : (l_pr, l_assoc)=NullableLexRecursive(p, a) return
                     // (l_pr, l_assoc).
@@ -3680,29 +2109,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                             | (self.lookup(BINDING_L_ASSOC, env.unwrap()));
                         self.pop(
                             gss_node_id,
-                            SlotId(671),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_NULLABLE_LEX_MAYBE,
                         );
-                    }
-                    // NullableLexMaybe(p: i32, a: i32) : . Digits return (UNDEFINED_PRECEDENCE, 0)
-                    SlotId(672) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(0),
-                            input_index,
-                            SlotId(672),
-                            Some(gss_node_id),
-                        ) {
-                            // NullableLexMaybe(p: i32, a: i32) : Digits . return (UNDEFINED_PRECEDENCE, 0)
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(673));
-                        }
-                    }
-                    // NullableLexMaybe(p: i32, a: i32) : Digits . return (UNDEFINED_PRECEDENCE, 0)
-                    SlotId(673) => {
-                        next = Some(SlotId(674));
                     }
                     // NullableLexMaybe(p: i32, a: i32) : Digits return (UNDEFINED_PRECEDENCE, 0).
                     SlotId(674) => {
@@ -3712,7 +2123,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = -65536;
                         self.pop(
                             gss_node_id,
-                            SlotId(674),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_NULLABLE_LEX_MAYBE,
@@ -3723,18 +2134,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(33),
                             input_index,
-                            SlotId(675),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // NullableSuffix(p: i32, a: i32) : "w" . return 0
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(676));
+                            next = Some(slot_id.next());
                         }
-                    }
-                    // NullableSuffix(p: i32, a: i32) : "w" . return 0
-                    SlotId(676) => {
-                        next = Some(SlotId(677));
                     }
                     // NullableSuffix(p: i32, a: i32) : "w" return 0.
                     SlotId(677) => {
@@ -3744,19 +2150,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 0;
                         self.pop(
                             gss_node_id,
-                            SlotId(677),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_NULLABLE_SUFFIX,
                         );
-                    }
-                    // NullableSuffix(p: i32, a: i32) : . [1 >= p] l_pr=NullableSuffix(p, 0) [(l_pr == 0) ||
-                    // (l_pr >= 1)] WS "+" WS r_pr=NullableSuffixOperand(1, 1) [(r_pr == UNDEFINED_PRECEDENCE) ||
-                    // (a != 1)] return (r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1
-                    SlotId(678) => {
-                        if 1 >= self.lookup(BINDING_P, env.unwrap()) {
-                            next = Some(SlotId(679));
-                        }
                     }
                     // NullableSuffix(p: i32, a: i32) : [1 >= p] . l_pr=NullableSuffix(p, 0) [(l_pr == 0) ||
                     // (l_pr >= 1)] WS "+" WS r_pr=NullableSuffixOperand(1, 1) [(r_pr == UNDEFINED_PRECEDENCE) ||
@@ -3765,83 +2163,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_nullable_suffix(
                             result,
                             gss_node_id,
-                            SlotId(680),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             0,
                         );
-                    }
-                    // NullableSuffix(p: i32, a: i32) : [1 >= p] l_pr=NullableSuffix(p, 0) . [(l_pr == 0) ||
-                    // (l_pr >= 1)] WS "+" WS r_pr=NullableSuffixOperand(1, 1) [(r_pr == UNDEFINED_PRECEDENCE) ||
-                    // (a != 1)] return (r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1
-                    SlotId(680) => {
-                        next = Some(SlotId(681));
-                    }
-                    // NullableSuffix(p: i32, a: i32) : [1 >= p] l_pr=NullableSuffix(p, 0) [(l_pr == 0) || (l_pr
-                    // >= 1)] . WS "+" WS r_pr=NullableSuffixOperand(1, 1) [(r_pr == UNDEFINED_PRECEDENCE) || (a
-                    // != 1)] return (r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1
-                    SlotId(681) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(681),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(682), env)
-                            {
-                                // NullableSuffix(p: i32, a: i32) : [1 >= p] l_pr=NullableSuffix(p, 0) [(l_pr == 0) || (l_pr
-                                // >= 1)] WS . "+" WS r_pr=NullableSuffixOperand(1, 1) [(r_pr == UNDEFINED_PRECEDENCE) || (a
-                                // != 1)] return (r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(682));
-                            }
-                        }
-                    }
-                    // NullableSuffix(p: i32, a: i32) : [1 >= p] l_pr=NullableSuffix(p, 0) [(l_pr == 0) || (l_pr
-                    // >= 1)] WS . "+" WS r_pr=NullableSuffixOperand(1, 1) [(r_pr == UNDEFINED_PRECEDENCE) || (a
-                    // != 1)] return (r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1
-                    SlotId(682) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(4),
-                            input_index,
-                            SlotId(682),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(683), env)
-                            {
-                                // NullableSuffix(p: i32, a: i32) : [1 >= p] l_pr=NullableSuffix(p, 0) [(l_pr == 0) || (l_pr
-                                // >= 1)] WS "+" . WS r_pr=NullableSuffixOperand(1, 1) [(r_pr == UNDEFINED_PRECEDENCE) || (a
-                                // != 1)] return (r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(683));
-                            }
-                        }
-                    }
-                    // NullableSuffix(p: i32, a: i32) : [1 >= p] l_pr=NullableSuffix(p, 0) [(l_pr == 0) || (l_pr
-                    // >= 1)] WS "+" . WS r_pr=NullableSuffixOperand(1, 1) [(r_pr == UNDEFINED_PRECEDENCE) || (a
-                    // != 1)] return (r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1
-                    SlotId(683) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(683),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(684), env)
-                            {
-                                // NullableSuffix(p: i32, a: i32) : [1 >= p] l_pr=NullableSuffix(p, 0) [(l_pr == 0) || (l_pr
-                                // >= 1)] WS "+" WS . r_pr=NullableSuffixOperand(1, 1) [(r_pr == UNDEFINED_PRECEDENCE) || (a
-                                // != 1)] return (r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(684));
-                            }
-                        }
                     }
                     // NullableSuffix(p: i32, a: i32) : [1 >= p] l_pr=NullableSuffix(p, 0) [(l_pr == 0) || (l_pr
                     // >= 1)] WS "+" WS . r_pr=NullableSuffixOperand(1, 1) [(r_pr == UNDEFINED_PRECEDENCE) || (a
@@ -3850,23 +2176,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_nullable_suffix_operand(
                             result,
                             gss_node_id,
-                            SlotId(685),
+                            slot_id.next(),
                             env,
                             1,
                             1,
                         );
-                    }
-                    // NullableSuffix(p: i32, a: i32) : [1 >= p] l_pr=NullableSuffix(p, 0) [(l_pr == 0) || (l_pr
-                    // >= 1)] WS "+" WS r_pr=NullableSuffixOperand(1, 1) . [(r_pr == UNDEFINED_PRECEDENCE) || (a
-                    // != 1)] return (r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1
-                    SlotId(685) => {
-                        next = Some(SlotId(686));
-                    }
-                    // NullableSuffix(p: i32, a: i32) : [1 >= p] l_pr=NullableSuffix(p, 0) [(l_pr == 0) || (l_pr
-                    // >= 1)] WS "+" WS r_pr=NullableSuffixOperand(1, 1) [(r_pr == UNDEFINED_PRECEDENCE) || (a !=
-                    // 1)] . return (r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1
-                    SlotId(686) => {
-                        next = Some(SlotId(687));
                     }
                     // NullableSuffix(p: i32, a: i32) : [1 >= p] l_pr=NullableSuffix(p, 0) [(l_pr == 0) || (l_pr
                     // >= 1)] WS "+" WS r_pr=NullableSuffixOperand(1, 1) [(r_pr == UNDEFINED_PRECEDENCE) || (a !=
@@ -3882,36 +2196,17 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(687),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_NULLABLE_SUFFIX,
                         );
                     }
                     // NullableSuffixOperand(p: i32, a: i32) : . NullableSuffix(0, 0) WS
-                    // r_pr=NullableSuffixMaybe(p, a) return r_pr
-                    SlotId(688) => {
-                        self.create_nullable_suffix(result, gss_node_id, SlotId(689), env, 0, 0);
-                    }
-                    // NullableSuffixOperand(p: i32, a: i32) : NullableSuffix(0, 0) . WS
-                    // r_pr=NullableSuffixMaybe(p, a) return r_pr
-                    SlotId(689) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(689),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(690), env)
-                            {
-                                // NullableSuffixOperand(p: i32, a: i32) : NullableSuffix(0, 0) WS .
-                                // r_pr=NullableSuffixMaybe(p, a) return r_pr
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(690));
-                            }
-                        }
+                    // r_pr=NullableSuffixMaybe(p, a) return r_pr, and StartNullableSuffix : WS .
+                    // start:NullableSuffix(0, 0) WS
+                    SlotId(688) | SlotId(210) => {
+                        self.create_nullable_suffix(result, gss_node_id, slot_id.next(), env, 0, 0);
                     }
                     // NullableSuffixOperand(p: i32, a: i32) : NullableSuffix(0, 0) WS .
                     // r_pr=NullableSuffixMaybe(p, a) return r_pr
@@ -3919,16 +2214,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_nullable_suffix_maybe(
                             result,
                             gss_node_id,
-                            SlotId(691),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             self.lookup(BINDING_A, env.unwrap()),
                         );
-                    }
-                    // NullableSuffixOperand(p: i32, a: i32) : NullableSuffix(0, 0) WS
-                    // r_pr=NullableSuffixMaybe(p, a) . return r_pr
-                    SlotId(691) => {
-                        next = Some(SlotId(692));
                     }
                     // NullableSuffixOperand(p: i32, a: i32) : NullableSuffix(0, 0) WS
                     // r_pr=NullableSuffixMaybe(p, a) return r_pr.
@@ -3939,7 +2229,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = self.lookup(BINDING_R_PR, env.unwrap());
                         self.pop(
                             gss_node_id,
-                            SlotId(692),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_NULLABLE_SUFFIX_OPERAND,
@@ -3950,15 +2240,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_opt_2(
                             result,
                             gss_node_id,
-                            SlotId(694),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             self.lookup(BINDING_A, env.unwrap()),
                         );
-                    }
-                    // NullableSuffixMaybe(p: i32, a: i32) : r_pr=Opt_2(p, a) . return r_pr
-                    SlotId(694) => {
-                        next = Some(SlotId(695));
                     }
                     // NullableSuffixMaybe(p: i32, a: i32) : r_pr=Opt_2(p, a) return r_pr.
                     SlotId(695) => {
@@ -3968,7 +2254,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = self.lookup(BINDING_R_PR, env.unwrap());
                         self.pop(
                             gss_node_id,
-                            SlotId(695),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_NULLABLE_SUFFIX_MAYBE,
@@ -3979,18 +2265,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(34),
                             input_index,
-                            SlotId(696),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // NullableShared(p: i32, a: i32) : "j" . return (0, 0)
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(697));
+                            next = Some(slot_id.next());
                         }
-                    }
-                    // NullableShared(p: i32, a: i32) : "j" . return (0, 0)
-                    SlotId(697) => {
-                        next = Some(SlotId(698));
                     }
                     // NullableShared(p: i32, a: i32) : "j" return (0, 0).
                     SlotId(698) => {
@@ -4000,7 +2281,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 0;
                         self.pop(
                             gss_node_id,
-                            SlotId(698),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_NULLABLE_SHARED,
@@ -4015,98 +2296,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_nullable_shared_operand(
                             result,
                             gss_node_id,
-                            SlotId(700),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             0,
                             0,
                         );
-                    }
-                    // NullableShared(p: i32, a: i32) : (l_pr, l_assoc)=NullableSharedOperand(p, 0, 0) . [(l_pr
-                    // == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
-                    // r_assoc)=NullableSharedOperand(1, 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
-                    // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
-                    // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
-                    SlotId(700) => {
-                        next = Some(SlotId(701));
-                    }
-                    // NullableShared(p: i32, a: i32) : (l_pr, l_assoc)=NullableSharedOperand(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] . WS "+" WS (r_pr,
-                    // r_assoc)=NullableSharedOperand(1, 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
-                    // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
-                    // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
-                    SlotId(701) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(701),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(702), env)
-                            {
-                                // NullableShared(p: i32, a: i32) : (l_pr, l_assoc)=NullableSharedOperand(p, 0, 0) [(l_pr ==
-                                // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS . "+" WS (r_pr,
-                                // r_assoc)=NullableSharedOperand(1, 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
-                                // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
-                                // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(702));
-                            }
-                        }
-                    }
-                    // NullableShared(p: i32, a: i32) : (l_pr, l_assoc)=NullableSharedOperand(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS . "+" WS (r_pr,
-                    // r_assoc)=NullableSharedOperand(1, 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
-                    // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
-                    // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
-                    SlotId(702) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(4),
-                            input_index,
-                            SlotId(702),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(703), env)
-                            {
-                                // NullableShared(p: i32, a: i32) : (l_pr, l_assoc)=NullableSharedOperand(p, 0, 0) [(l_pr ==
-                                // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" . WS (r_pr,
-                                // r_assoc)=NullableSharedOperand(1, 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
-                                // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
-                                // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(703));
-                            }
-                        }
-                    }
-                    // NullableShared(p: i32, a: i32) : (l_pr, l_assoc)=NullableSharedOperand(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" . WS (r_pr,
-                    // r_assoc)=NullableSharedOperand(1, 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
-                    // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
-                    // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
-                    SlotId(703) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(703),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(704), env)
-                            {
-                                // NullableShared(p: i32, a: i32) : (l_pr, l_assoc)=NullableSharedOperand(p, 0, 0) [(l_pr ==
-                                // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS . (r_pr,
-                                // r_assoc)=NullableSharedOperand(1, 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
-                                // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
-                                // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(704));
-                            }
-                        }
                     }
                     // NullableShared(p: i32, a: i32) : (l_pr, l_assoc)=NullableSharedOperand(p, 0, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS . (r_pr,
@@ -4117,28 +2312,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_nullable_shared_operand(
                             result,
                             gss_node_id,
-                            SlotId(705),
+                            slot_id.next(),
                             env,
                             1,
                             1,
                             0,
                         );
-                    }
-                    // NullableShared(p: i32, a: i32) : (l_pr, l_assoc)=NullableSharedOperand(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
-                    // r_assoc)=NullableSharedOperand(1, 1, 0) . [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
-                    // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
-                    // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
-                    SlotId(705) => {
-                        next = Some(SlotId(706));
-                    }
-                    // NullableShared(p: i32, a: i32) : (l_pr, l_assoc)=NullableSharedOperand(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
-                    // r_assoc)=NullableSharedOperand(1, 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
-                    // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] . return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 :
-                    // 1, ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
-                    SlotId(706) => {
-                        next = Some(SlotId(707));
                     }
                     // NullableShared(p: i32, a: i32) : (l_pr, l_assoc)=NullableSharedOperand(p, 0, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
@@ -4163,7 +2342,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                             });
                         self.pop(
                             gss_node_id,
-                            SlotId(707),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_NULLABLE_SHARED,
@@ -4177,7 +2356,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_nullable_shared_maybe(
                             result,
                             gss_node_id,
-                            SlotId(709),
+                            slot_id.next(),
                             env,
                             if self.lookup(BINDING_END, env.unwrap()) == 0 {
                                 self.lookup(BINDING_P, env.unwrap())
@@ -4193,59 +2372,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         );
                     }
                     // NullableSharedOperand(p: i32, end: i32, a: i32) : (l_pr, l_assoc)=NullableSharedMaybe((end
-                    // == 0) ? p : 0, 0, (end == 0) ? a : 0) . WS NullableShared(0, 0) WS (r_pr,
-                    // r_assoc)=NullableSharedMaybe((end == 1) ? p : 0, 1, (end == 1) ? a : 0) return ((end == 0)
-                    // ? l_pr : r_pr, (end == 0) ? l_assoc : r_assoc)
-                    SlotId(709) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(709),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(710), env)
-                            {
-                                // NullableSharedOperand(p: i32, end: i32, a: i32) : (l_pr, l_assoc)=NullableSharedMaybe((end
-                                // == 0) ? p : 0, 0, (end == 0) ? a : 0) WS . NullableShared(0, 0) WS (r_pr,
-                                // r_assoc)=NullableSharedMaybe((end == 1) ? p : 0, 1, (end == 1) ? a : 0) return ((end == 0)
-                                // ? l_pr : r_pr, (end == 0) ? l_assoc : r_assoc)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(710));
-                            }
-                        }
-                    }
-                    // NullableSharedOperand(p: i32, end: i32, a: i32) : (l_pr, l_assoc)=NullableSharedMaybe((end
                     // == 0) ? p : 0, 0, (end == 0) ? a : 0) WS . NullableShared(0, 0) WS (r_pr,
                     // r_assoc)=NullableSharedMaybe((end == 1) ? p : 0, 1, (end == 1) ? a : 0) return ((end == 0)
-                    // ? l_pr : r_pr, (end == 0) ? l_assoc : r_assoc)
-                    SlotId(710) => {
-                        self.create_nullable_shared(result, gss_node_id, SlotId(711), env, 0, 0);
-                    }
-                    // NullableSharedOperand(p: i32, end: i32, a: i32) : (l_pr, l_assoc)=NullableSharedMaybe((end
-                    // == 0) ? p : 0, 0, (end == 0) ? a : 0) WS NullableShared(0, 0) . WS (r_pr,
-                    // r_assoc)=NullableSharedMaybe((end == 1) ? p : 0, 1, (end == 1) ? a : 0) return ((end == 0)
-                    // ? l_pr : r_pr, (end == 0) ? l_assoc : r_assoc)
-                    SlotId(711) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(711),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(712), env)
-                            {
-                                // NullableSharedOperand(p: i32, end: i32, a: i32) : (l_pr, l_assoc)=NullableSharedMaybe((end
-                                // == 0) ? p : 0, 0, (end == 0) ? a : 0) WS NullableShared(0, 0) WS . (r_pr,
-                                // r_assoc)=NullableSharedMaybe((end == 1) ? p : 0, 1, (end == 1) ? a : 0) return ((end == 0)
-                                // ? l_pr : r_pr, (end == 0) ? l_assoc : r_assoc)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(712));
-                            }
-                        }
+                    // ? l_pr : r_pr, (end == 0) ? l_assoc : r_assoc), and StartNullableShared : WS .
+                    // start:NullableShared(0, 0) WS
+                    SlotId(710) | SlotId(222) => {
+                        self.create_nullable_shared(result, gss_node_id, slot_id.next(), env, 0, 0);
                     }
                     // NullableSharedOperand(p: i32, end: i32, a: i32) : (l_pr, l_assoc)=NullableSharedMaybe((end
                     // == 0) ? p : 0, 0, (end == 0) ? a : 0) WS NullableShared(0, 0) WS . (r_pr,
@@ -4255,7 +2387,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_nullable_shared_maybe(
                             result,
                             gss_node_id,
-                            SlotId(713),
+                            slot_id.next(),
                             env,
                             if self.lookup(BINDING_END, env.unwrap()) == 1 {
                                 self.lookup(BINDING_P, env.unwrap())
@@ -4269,13 +2401,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                                 0
                             },
                         );
-                    }
-                    // NullableSharedOperand(p: i32, end: i32, a: i32) : (l_pr, l_assoc)=NullableSharedMaybe((end
-                    // == 0) ? p : 0, 0, (end == 0) ? a : 0) WS NullableShared(0, 0) WS (r_pr,
-                    // r_assoc)=NullableSharedMaybe((end == 1) ? p : 0, 1, (end == 1) ? a : 0) . return ((end ==
-                    // 0) ? l_pr : r_pr, (end == 0) ? l_assoc : r_assoc)
-                    SlotId(713) => {
-                        next = Some(SlotId(714));
                     }
                     // NullableSharedOperand(p: i32, end: i32, a: i32) : (l_pr, l_assoc)=NullableSharedMaybe((end
                     // == 0) ? p : 0, 0, (end == 0) ? a : 0) WS NullableShared(0, 0) WS (r_pr,
@@ -4297,7 +2422,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                             });
                         self.pop(
                             gss_node_id,
-                            SlotId(714),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_NULLABLE_SHARED_OPERAND,
@@ -4309,17 +2434,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_opt_3(
                             result,
                             gss_node_id,
-                            SlotId(716),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             self.lookup(BINDING_END, env.unwrap()),
                             self.lookup(BINDING_A, env.unwrap()),
                         );
-                    }
-                    // NullableSharedMaybe(p: i32, end: i32, a: i32) : (v_pr, v_assoc)=Opt_3(p, end, a) . return
-                    // (v_pr, v_assoc)
-                    SlotId(716) => {
-                        next = Some(SlotId(717));
                     }
                     // NullableSharedMaybe(p: i32, end: i32, a: i32) : (v_pr, v_assoc)=Opt_3(p, end, a) return
                     // (v_pr, v_assoc).
@@ -4331,7 +2451,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                             | (self.lookup(BINDING_V_ASSOC, env.unwrap()));
                         self.pop(
                             gss_node_id,
-                            SlotId(717),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_NULLABLE_SHARED_MAYBE,
@@ -4342,18 +2462,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(35),
                             input_index,
-                            SlotId(718),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // OwnLabel(p: i32, a: i32) : "k" . return (0, 0)
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(719));
+                            next = Some(slot_id.next());
                         }
-                    }
-                    // OwnLabel(p: i32, a: i32) : "k" . return (0, 0)
-                    SlotId(719) => {
-                        next = Some(SlotId(720));
                     }
                     // OwnLabel(p: i32, a: i32) : "k" return (0, 0).
                     SlotId(720) => {
@@ -4363,7 +2478,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 0;
                         self.pop(
                             gss_node_id,
-                            SlotId(720),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_OWN_LABEL,
@@ -4378,106 +2493,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_own_operand(
                             result,
                             gss_node_id,
-                            SlotId(722),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             0,
                             0,
                         );
-                    }
-                    // OwnLabel(p: i32, a: i32) : (l_pr, l_label)=OwnOperand(p, 0, 0) . [(l_label == NO_LABEL) ||
-                    // ((2 >> l_label) & 1 == 0)] [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) ||
-                    // (l_pr >= 1)))] WS "+" WS (r_pr, r_label)=OwnOperand(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ?
-                    // 0 : 1) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)]
-                    // return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 1)
-                    SlotId(722) => {
-                        next = Some(SlotId(723));
-                    }
-                    // OwnLabel(p: i32, a: i32) : (l_pr, l_label)=OwnOperand(p, 0, 0) [(l_label == NO_LABEL) ||
-                    // ((2 >> l_label) & 1 == 0)] . [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0)
-                    // || (l_pr >= 1)))] WS "+" WS (r_pr, r_label)=OwnOperand(1, 1, (l_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : 1) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
-                    // UNDEFINED_PRECEDENCE)) || (a != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 1)
-                    SlotId(723) => {
-                        next = Some(SlotId(724));
-                    }
-                    // OwnLabel(p: i32, a: i32) : (l_pr, l_label)=OwnOperand(p, 0, 0) [(l_label == NO_LABEL) ||
-                    // ((2 >> l_label) & 1 == 0)] [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) ||
-                    // (l_pr >= 1)))] . WS "+" WS (r_pr, r_label)=OwnOperand(1, 1, (l_pr == UNDEFINED_PRECEDENCE)
-                    // ? 0 : 1) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)]
-                    // return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 1)
-                    SlotId(724) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(724),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(725), env)
-                            {
-                                // OwnLabel(p: i32, a: i32) : (l_pr, l_label)=OwnOperand(p, 0, 0) [(l_label == NO_LABEL) ||
-                                // ((2 >> l_label) & 1 == 0)] [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) ||
-                                // (l_pr >= 1)))] WS . "+" WS (r_pr, r_label)=OwnOperand(1, 1, (l_pr == UNDEFINED_PRECEDENCE)
-                                // ? 0 : 1) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)]
-                                // return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 1)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(725));
-                            }
-                        }
-                    }
-                    // OwnLabel(p: i32, a: i32) : (l_pr, l_label)=OwnOperand(p, 0, 0) [(l_label == NO_LABEL) ||
-                    // ((2 >> l_label) & 1 == 0)] [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) ||
-                    // (l_pr >= 1)))] WS . "+" WS (r_pr, r_label)=OwnOperand(1, 1, (l_pr == UNDEFINED_PRECEDENCE)
-                    // ? 0 : 1) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)]
-                    // return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 1)
-                    SlotId(725) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(4),
-                            input_index,
-                            SlotId(725),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(726), env)
-                            {
-                                // OwnLabel(p: i32, a: i32) : (l_pr, l_label)=OwnOperand(p, 0, 0) [(l_label == NO_LABEL) ||
-                                // ((2 >> l_label) & 1 == 0)] [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) ||
-                                // (l_pr >= 1)))] WS "+" . WS (r_pr, r_label)=OwnOperand(1, 1, (l_pr == UNDEFINED_PRECEDENCE)
-                                // ? 0 : 1) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)]
-                                // return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 1)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(726));
-                            }
-                        }
-                    }
-                    // OwnLabel(p: i32, a: i32) : (l_pr, l_label)=OwnOperand(p, 0, 0) [(l_label == NO_LABEL) ||
-                    // ((2 >> l_label) & 1 == 0)] [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) ||
-                    // (l_pr >= 1)))] WS "+" . WS (r_pr, r_label)=OwnOperand(1, 1, (l_pr == UNDEFINED_PRECEDENCE)
-                    // ? 0 : 1) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)]
-                    // return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 1)
-                    SlotId(726) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(726),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(727), env)
-                            {
-                                // OwnLabel(p: i32, a: i32) : (l_pr, l_label)=OwnOperand(p, 0, 0) [(l_label == NO_LABEL) ||
-                                // ((2 >> l_label) & 1 == 0)] [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) ||
-                                // (l_pr >= 1)))] WS "+" WS . (r_pr, r_label)=OwnOperand(1, 1, (l_pr == UNDEFINED_PRECEDENCE)
-                                // ? 0 : 1) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)]
-                                // return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 1)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(727));
-                            }
-                        }
                     }
                     // OwnLabel(p: i32, a: i32) : (l_pr, l_label)=OwnOperand(p, 0, 0) [(l_label == NO_LABEL) ||
                     // ((2 >> l_label) & 1 == 0)] [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) ||
@@ -4488,7 +2509,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_own_operand(
                             result,
                             gss_node_id,
-                            SlotId(728),
+                            slot_id.next(),
                             env,
                             1,
                             1,
@@ -4498,22 +2519,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                                 1
                             },
                         );
-                    }
-                    // OwnLabel(p: i32, a: i32) : (l_pr, l_label)=OwnOperand(p, 0, 0) [(l_label == NO_LABEL) ||
-                    // ((2 >> l_label) & 1 == 0)] [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) ||
-                    // (l_pr >= 1)))] WS "+" WS (r_pr, r_label)=OwnOperand(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ?
-                    // 0 : 1) . [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)]
-                    // return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 1)
-                    SlotId(728) => {
-                        next = Some(SlotId(729));
-                    }
-                    // OwnLabel(p: i32, a: i32) : (l_pr, l_label)=OwnOperand(p, 0, 0) [(l_label == NO_LABEL) ||
-                    // ((2 >> l_label) & 1 == 0)] [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) ||
-                    // (l_pr >= 1)))] WS "+" WS (r_pr, r_label)=OwnOperand(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ?
-                    // 0 : 1) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] .
-                    // return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 1)
-                    SlotId(729) => {
-                        next = Some(SlotId(730));
                     }
                     // OwnLabel(p: i32, a: i32) : (l_pr, l_label)=OwnOperand(p, 0, 0) [(l_label == NO_LABEL) ||
                     // ((2 >> l_label) & 1 == 0)] [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) ||
@@ -4532,7 +2537,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                             | (1);
                         self.pop(
                             gss_node_id,
-                            SlotId(730),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_OWN_LABEL,
@@ -4543,15 +2548,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_own_label(
                             result,
                             gss_node_id,
-                            SlotId(732),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             self.lookup(BINDING_A, env.unwrap()),
                         );
-                    }
-                    // OwnOperand(p: i32, end: i32, a: i32) : (v_pr, v_label)=OwnLabel(p, a) . return (v_pr, 0)
-                    SlotId(732) => {
-                        next = Some(SlotId(733));
                     }
                     // OwnOperand(p: i32, end: i32, a: i32) : (v_pr, v_label)=OwnLabel(p, a) return (v_pr, 0).
                     SlotId(733) => {
@@ -4561,97 +2562,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = (self.lookup(BINDING_V_PR, env.unwrap())) << (16);
                         self.pop(
                             gss_node_id,
-                            SlotId(733),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_OWN_OPERAND,
                         );
                     }
-                    // OwnOperand(p: i32, end: i32, a: i32) : . "(" WS OwnLabel(0, 0) WS ")" return
-                    // (UNDEFINED_PRECEDENCE, 1)
-                    SlotId(734) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(22),
-                            input_index,
-                            SlotId(734),
-                            Some(gss_node_id),
-                        ) {
-                            // OwnOperand(p: i32, end: i32, a: i32) : "(" . WS OwnLabel(0, 0) WS ")" return
-                            // (UNDEFINED_PRECEDENCE, 1)
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(735));
-                        }
-                    }
-                    // OwnOperand(p: i32, end: i32, a: i32) : "(" . WS OwnLabel(0, 0) WS ")" return
-                    // (UNDEFINED_PRECEDENCE, 1)
-                    SlotId(735) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(735),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(736), env)
-                            {
-                                // OwnOperand(p: i32, end: i32, a: i32) : "(" WS . OwnLabel(0, 0) WS ")" return
-                                // (UNDEFINED_PRECEDENCE, 1)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(736));
-                            }
-                        }
-                    }
                     // OwnOperand(p: i32, end: i32, a: i32) : "(" WS . OwnLabel(0, 0) WS ")" return
-                    // (UNDEFINED_PRECEDENCE, 1)
-                    SlotId(736) => {
-                        self.create_own_label(result, gss_node_id, SlotId(737), env, 0, 0);
-                    }
-                    // OwnOperand(p: i32, end: i32, a: i32) : "(" WS OwnLabel(0, 0) . WS ")" return
-                    // (UNDEFINED_PRECEDENCE, 1)
-                    SlotId(737) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(737),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(738), env)
-                            {
-                                // OwnOperand(p: i32, end: i32, a: i32) : "(" WS OwnLabel(0, 0) WS . ")" return
-                                // (UNDEFINED_PRECEDENCE, 1)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(738));
-                            }
-                        }
-                    }
-                    // OwnOperand(p: i32, end: i32, a: i32) : "(" WS OwnLabel(0, 0) WS . ")" return
-                    // (UNDEFINED_PRECEDENCE, 1)
-                    SlotId(738) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(23),
-                            input_index,
-                            SlotId(738),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(739), env)
-                            {
-                                // OwnOperand(p: i32, end: i32, a: i32) : "(" WS OwnLabel(0, 0) WS ")" . return
-                                // (UNDEFINED_PRECEDENCE, 1)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(739));
-                            }
-                        }
-                    }
-                    // OwnOperand(p: i32, end: i32, a: i32) : "(" WS OwnLabel(0, 0) WS ")" . return
-                    // (UNDEFINED_PRECEDENCE, 1)
-                    SlotId(739) => {
-                        next = Some(SlotId(740));
+                    // (UNDEFINED_PRECEDENCE, 1), and 2 more slots
+                    SlotId(736) | SlotId(26) | SlotId(234) => {
+                        self.create_own_label(result, gss_node_id, slot_id.next(), env, 0, 0);
                     }
                     // OwnOperand(p: i32, end: i32, a: i32) : "(" WS OwnLabel(0, 0) WS ")" return
                     // (UNDEFINED_PRECEDENCE, 1).
@@ -4662,21 +2582,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = -65535;
                         self.pop(
                             gss_node_id,
-                            SlotId(740),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_OWN_OPERAND,
                         );
-                    }
-                    // OwnHeadFiltered : . (x_pr, x_label)=OwnLabel(0, 0) [(x_label == NO_LABEL) || ((1 >>
-                    // x_label) & 1 == 0)]
-                    SlotId(26) => {
-                        self.create_own_label(result, gss_node_id, SlotId(27), env, 0, 0);
-                    }
-                    // OwnHeadFiltered : (x_pr, x_label)=OwnLabel(0, 0) . [(x_label == NO_LABEL) || ((1 >>
-                    // x_label) & 1 == 0)]
-                    SlotId(27) => {
-                        next = Some(SlotId(28));
                     }
                     // OwnHeadFiltered : (x_pr, x_label)=OwnLabel(0, 0) [(x_label == NO_LABEL) || ((1 >> x_label)
                     // & 1 == 0)].
@@ -4686,7 +2596,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(28),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_OWN_HEAD_FILTERED,
@@ -4697,18 +2607,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(36),
                             input_index,
-                            SlotId(29),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // ExcludeOnly : "s" . return (0, 0)
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(30));
+                            next = Some(slot_id.next());
                         }
-                    }
-                    // ExcludeOnly : "s" . return (0, 0)
-                    SlotId(30) => {
-                        next = Some(SlotId(31));
                     }
                     // ExcludeOnly : "s" return (0, 0).
                     SlotId(31) => {
@@ -4718,29 +2623,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 0;
                         self.pop(
                             gss_node_id,
-                            SlotId(31),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_EXCLUDE_ONLY,
                         );
-                    }
-                    // ExcludeOnly : . "t" return (0, NO_LABEL)
-                    SlotId(32) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(10),
-                            input_index,
-                            SlotId(32),
-                            Some(gss_node_id),
-                        ) {
-                            // ExcludeOnly : "t" . return (0, NO_LABEL)
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(33));
-                        }
-                    }
-                    // ExcludeOnly : "t" . return (0, NO_LABEL)
-                    SlotId(33) => {
-                        next = Some(SlotId(34));
                     }
                     // ExcludeOnly : "t" return (0, NO_LABEL).
                     SlotId(34) => {
@@ -4750,28 +2637,23 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 31;
                         self.pop(
                             gss_node_id,
-                            SlotId(34),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_EXCLUDE_ONLY,
                         );
                     }
                     // ExcludeOnlyFiltered : . (x_pr, x_label)=ExcludeOnly [(x_label == NO_LABEL) || ((1 >>
-                    // x_label) & 1 == 0)]
-                    SlotId(35) => {
+                    // x_label) & 1 == 0)], and StartExcludeOnly : WS . start:ExcludeOnly WS
+                    SlotId(35) | SlotId(246) => {
                         self.create(
                             NonterminalId(7),
                             &PREDICTION_EXCLUDE_ONLY,
                             result,
                             gss_node_id,
-                            SlotId(36),
+                            slot_id.next(),
                             env,
                         );
-                    }
-                    // ExcludeOnlyFiltered : (x_pr, x_label)=ExcludeOnly . [(x_label == NO_LABEL) || ((1 >>
-                    // x_label) & 1 == 0)]
-                    SlotId(36) => {
-                        next = Some(SlotId(37));
                     }
                     // ExcludeOnlyFiltered : (x_pr, x_label)=ExcludeOnly [(x_label == NO_LABEL) || ((1 >>
                     // x_label) & 1 == 0)].
@@ -4781,29 +2663,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(37),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_EXCLUDE_ONLY_FILTERED,
                         );
-                    }
-                    // Absent(p: i32) : . "a" return 0
-                    SlotId(741) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(2),
-                            input_index,
-                            SlotId(741),
-                            Some(gss_node_id),
-                        ) {
-                            // Absent(p: i32) : "a" . return 0
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(742));
-                        }
-                    }
-                    // Absent(p: i32) : "a" . return 0
-                    SlotId(742) => {
-                        next = Some(SlotId(743));
                     }
                     // Absent(p: i32) : "a" return 0.
                     SlotId(743) => {
@@ -4813,104 +2677,28 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 0;
                         self.pop(
                             gss_node_id,
-                            SlotId(743),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_ABSENT,
                         );
                     }
-                    // Absent(p: i32) : . [2 >= p] l_pr=Absent(p) [(l_pr == 0) || (l_pr >= 2)] WS "*" WS
-                    // r_pr=Absent(2) return (r_pr == 0) ? 2 : min(r_pr, 2)
-                    SlotId(744) => {
-                        if 2 >= self.lookup(BINDING_P, env.unwrap()) {
-                            next = Some(SlotId(745));
-                        }
-                    }
                     // Absent(p: i32) : [2 >= p] . l_pr=Absent(p) [(l_pr == 0) || (l_pr >= 2)] WS "*" WS
-                    // r_pr=Absent(2) return (r_pr == 0) ? 2 : min(r_pr, 2)
-                    SlotId(745) => {
+                    // r_pr=Absent(2) return (r_pr == 0) ? 2 : min(r_pr, 2), and AbsentOperand(p: i32, end: i32)
+                    // : . v_pr=Absent(p) return v_pr
+                    SlotId(745) | SlotId(761) => {
                         self.create_absent(
                             result,
                             gss_node_id,
-                            SlotId(746),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                         );
                     }
-                    // Absent(p: i32) : [2 >= p] l_pr=Absent(p) . [(l_pr == 0) || (l_pr >= 2)] WS "*" WS
-                    // r_pr=Absent(2) return (r_pr == 0) ? 2 : min(r_pr, 2)
-                    SlotId(746) => {
-                        next = Some(SlotId(747));
-                    }
-                    // Absent(p: i32) : [2 >= p] l_pr=Absent(p) [(l_pr == 0) || (l_pr >= 2)] . WS "*" WS
-                    // r_pr=Absent(2) return (r_pr == 0) ? 2 : min(r_pr, 2)
-                    SlotId(747) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(747),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(748), env)
-                            {
-                                // Absent(p: i32) : [2 >= p] l_pr=Absent(p) [(l_pr == 0) || (l_pr >= 2)] WS . "*" WS
-                                // r_pr=Absent(2) return (r_pr == 0) ? 2 : min(r_pr, 2)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(748));
-                            }
-                        }
-                    }
-                    // Absent(p: i32) : [2 >= p] l_pr=Absent(p) [(l_pr == 0) || (l_pr >= 2)] WS . "*" WS
-                    // r_pr=Absent(2) return (r_pr == 0) ? 2 : min(r_pr, 2)
-                    SlotId(748) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(3),
-                            input_index,
-                            SlotId(748),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(749), env)
-                            {
-                                // Absent(p: i32) : [2 >= p] l_pr=Absent(p) [(l_pr == 0) || (l_pr >= 2)] WS "*" . WS
-                                // r_pr=Absent(2) return (r_pr == 0) ? 2 : min(r_pr, 2)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(749));
-                            }
-                        }
-                    }
-                    // Absent(p: i32) : [2 >= p] l_pr=Absent(p) [(l_pr == 0) || (l_pr >= 2)] WS "*" . WS
-                    // r_pr=Absent(2) return (r_pr == 0) ? 2 : min(r_pr, 2)
-                    SlotId(749) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(749),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(750), env)
-                            {
-                                // Absent(p: i32) : [2 >= p] l_pr=Absent(p) [(l_pr == 0) || (l_pr >= 2)] WS "*" WS .
-                                // r_pr=Absent(2) return (r_pr == 0) ? 2 : min(r_pr, 2)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(750));
-                            }
-                        }
-                    }
                     // Absent(p: i32) : [2 >= p] l_pr=Absent(p) [(l_pr == 0) || (l_pr >= 2)] WS "*" WS .
                     // r_pr=Absent(2) return (r_pr == 0) ? 2 : min(r_pr, 2)
                     SlotId(750) => {
-                        self.create_absent(result, gss_node_id, SlotId(751), env, 2);
-                    }
-                    // Absent(p: i32) : [2 >= p] l_pr=Absent(p) [(l_pr == 0) || (l_pr >= 2)] WS "*" WS
-                    // r_pr=Absent(2) . return (r_pr == 0) ? 2 : min(r_pr, 2)
-                    SlotId(751) => {
-                        next = Some(SlotId(752));
+                        self.create_absent(result, gss_node_id, slot_id.next(), env, 2);
                     }
                     // Absent(p: i32) : [2 >= p] l_pr=Absent(p) [(l_pr == 0) || (l_pr >= 2)] WS "*" WS
                     // r_pr=Absent(2) return (r_pr == 0) ? 2 : min(r_pr, 2).
@@ -4925,7 +2713,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(752),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_ABSENT,
@@ -4938,95 +2726,17 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_absent_operand(
                             result,
                             gss_node_id,
-                            SlotId(754),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             0,
                         );
                     }
-                    // Absent(p: i32) : l_pr=AbsentOperand(p, 0) . [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p)
-                    // && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS r_pr=AbsentOperand(1, 1) return (r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : 1
-                    SlotId(754) => {
-                        next = Some(SlotId(755));
-                    }
-                    // Absent(p: i32) : l_pr=AbsentOperand(p, 0) [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) &&
-                    // ((l_pr == 0) || (l_pr >= 1)))] . WS "+" WS r_pr=AbsentOperand(1, 1) return (r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : 1
-                    SlotId(755) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(755),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(756), env)
-                            {
-                                // Absent(p: i32) : l_pr=AbsentOperand(p, 0) [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) &&
-                                // ((l_pr == 0) || (l_pr >= 1)))] WS . "+" WS r_pr=AbsentOperand(1, 1) return (r_pr ==
-                                // UNDEFINED_PRECEDENCE) ? 0 : 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(756));
-                            }
-                        }
-                    }
-                    // Absent(p: i32) : l_pr=AbsentOperand(p, 0) [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) &&
-                    // ((l_pr == 0) || (l_pr >= 1)))] WS . "+" WS r_pr=AbsentOperand(1, 1) return (r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : 1
-                    SlotId(756) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(4),
-                            input_index,
-                            SlotId(756),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(757), env)
-                            {
-                                // Absent(p: i32) : l_pr=AbsentOperand(p, 0) [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) &&
-                                // ((l_pr == 0) || (l_pr >= 1)))] WS "+" . WS r_pr=AbsentOperand(1, 1) return (r_pr ==
-                                // UNDEFINED_PRECEDENCE) ? 0 : 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(757));
-                            }
-                        }
-                    }
-                    // Absent(p: i32) : l_pr=AbsentOperand(p, 0) [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) &&
-                    // ((l_pr == 0) || (l_pr >= 1)))] WS "+" . WS r_pr=AbsentOperand(1, 1) return (r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : 1
-                    SlotId(757) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(757),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(758), env)
-                            {
-                                // Absent(p: i32) : l_pr=AbsentOperand(p, 0) [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) &&
-                                // ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS . r_pr=AbsentOperand(1, 1) return (r_pr ==
-                                // UNDEFINED_PRECEDENCE) ? 0 : 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(758));
-                            }
-                        }
-                    }
                     // Absent(p: i32) : l_pr=AbsentOperand(p, 0) [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) &&
                     // ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS . r_pr=AbsentOperand(1, 1) return (r_pr ==
                     // UNDEFINED_PRECEDENCE) ? 0 : 1
                     SlotId(758) => {
-                        self.create_absent_operand(result, gss_node_id, SlotId(759), env, 1, 1);
-                    }
-                    // Absent(p: i32) : l_pr=AbsentOperand(p, 0) [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) &&
-                    // ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS r_pr=AbsentOperand(1, 1) . return (r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : 1
-                    SlotId(759) => {
-                        next = Some(SlotId(760));
+                        self.create_absent_operand(result, gss_node_id, slot_id.next(), env, 1, 1);
                     }
                     // Absent(p: i32) : l_pr=AbsentOperand(p, 0) [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) &&
                     // ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS r_pr=AbsentOperand(1, 1) return (r_pr ==
@@ -5042,25 +2752,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(760),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_ABSENT,
                         );
-                    }
-                    // AbsentOperand(p: i32, end: i32) : . v_pr=Absent(p) return v_pr
-                    SlotId(761) => {
-                        self.create_absent(
-                            result,
-                            gss_node_id,
-                            SlotId(762),
-                            env,
-                            self.lookup(BINDING_P, env.unwrap()),
-                        );
-                    }
-                    // AbsentOperand(p: i32, end: i32) : v_pr=Absent(p) . return v_pr
-                    SlotId(762) => {
-                        next = Some(SlotId(763));
                     }
                     // AbsentOperand(p: i32, end: i32) : v_pr=Absent(p) return v_pr.
                     SlotId(763) => {
@@ -5070,29 +2766,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = self.lookup(BINDING_V_PR, env.unwrap());
                         self.pop(
                             gss_node_id,
-                            SlotId(763),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_ABSENT_OPERAND,
                         );
-                    }
-                    // AbsentOperand(p: i32, end: i32) : . "b" return UNDEFINED_PRECEDENCE
-                    SlotId(764) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(6),
-                            input_index,
-                            SlotId(764),
-                            Some(gss_node_id),
-                        ) {
-                            // AbsentOperand(p: i32, end: i32) : "b" . return UNDEFINED_PRECEDENCE
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(765));
-                        }
-                    }
-                    // AbsentOperand(p: i32, end: i32) : "b" . return UNDEFINED_PRECEDENCE
-                    SlotId(765) => {
-                        next = Some(SlotId(766));
                     }
                     // AbsentOperand(p: i32, end: i32) : "b" return UNDEFINED_PRECEDENCE.
                     SlotId(766) => {
@@ -5102,29 +2780,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = -1;
                         self.pop(
                             gss_node_id,
-                            SlotId(766),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_ABSENT_OPERAND,
                         );
-                    }
-                    // ClosedPrefix(p: i32) : . "a" return 0
-                    SlotId(767) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(2),
-                            input_index,
-                            SlotId(767),
-                            Some(gss_node_id),
-                        ) {
-                            // ClosedPrefix(p: i32) : "a" . return 0
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(768));
-                        }
-                    }
-                    // ClosedPrefix(p: i32) : "a" . return 0
-                    SlotId(768) => {
-                        next = Some(SlotId(769));
                     }
                     // ClosedPrefix(p: i32) : "a" return 0.
                     SlotId(769) => {
@@ -5134,104 +2794,28 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 0;
                         self.pop(
                             gss_node_id,
-                            SlotId(769),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_CLOSED_PREFIX,
                         );
                     }
-                    // ClosedPrefix(p: i32) : . [2 >= p] l_pr=ClosedPrefix(p) [(l_pr == 0) || (l_pr >= 2)] WS "+"
-                    // WS r_pr=ClosedPrefix(2) return (r_pr == 0) ? 2 : min(r_pr, 2)
-                    SlotId(770) => {
-                        if 2 >= self.lookup(BINDING_P, env.unwrap()) {
-                            next = Some(SlotId(771));
-                        }
-                    }
                     // ClosedPrefix(p: i32) : [2 >= p] . l_pr=ClosedPrefix(p) [(l_pr == 0) || (l_pr >= 2)] WS "+"
-                    // WS r_pr=ClosedPrefix(2) return (r_pr == 0) ? 2 : min(r_pr, 2)
-                    SlotId(771) => {
+                    // WS r_pr=ClosedPrefix(2) return (r_pr == 0) ? 2 : min(r_pr, 2), and ClosedPrefixBody(p:
+                    // i32) : . r_pr=ClosedPrefix(p) return r_pr
+                    SlotId(771) | SlotId(784) => {
                         self.create_closed_prefix(
                             result,
                             gss_node_id,
-                            SlotId(772),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                         );
                     }
-                    // ClosedPrefix(p: i32) : [2 >= p] l_pr=ClosedPrefix(p) . [(l_pr == 0) || (l_pr >= 2)] WS "+"
-                    // WS r_pr=ClosedPrefix(2) return (r_pr == 0) ? 2 : min(r_pr, 2)
-                    SlotId(772) => {
-                        next = Some(SlotId(773));
-                    }
-                    // ClosedPrefix(p: i32) : [2 >= p] l_pr=ClosedPrefix(p) [(l_pr == 0) || (l_pr >= 2)] . WS "+"
-                    // WS r_pr=ClosedPrefix(2) return (r_pr == 0) ? 2 : min(r_pr, 2)
-                    SlotId(773) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(773),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(774), env)
-                            {
-                                // ClosedPrefix(p: i32) : [2 >= p] l_pr=ClosedPrefix(p) [(l_pr == 0) || (l_pr >= 2)] WS . "+"
-                                // WS r_pr=ClosedPrefix(2) return (r_pr == 0) ? 2 : min(r_pr, 2)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(774));
-                            }
-                        }
-                    }
-                    // ClosedPrefix(p: i32) : [2 >= p] l_pr=ClosedPrefix(p) [(l_pr == 0) || (l_pr >= 2)] WS . "+"
-                    // WS r_pr=ClosedPrefix(2) return (r_pr == 0) ? 2 : min(r_pr, 2)
-                    SlotId(774) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(4),
-                            input_index,
-                            SlotId(774),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(775), env)
-                            {
-                                // ClosedPrefix(p: i32) : [2 >= p] l_pr=ClosedPrefix(p) [(l_pr == 0) || (l_pr >= 2)] WS "+" .
-                                // WS r_pr=ClosedPrefix(2) return (r_pr == 0) ? 2 : min(r_pr, 2)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(775));
-                            }
-                        }
-                    }
-                    // ClosedPrefix(p: i32) : [2 >= p] l_pr=ClosedPrefix(p) [(l_pr == 0) || (l_pr >= 2)] WS "+" .
-                    // WS r_pr=ClosedPrefix(2) return (r_pr == 0) ? 2 : min(r_pr, 2)
-                    SlotId(775) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(775),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(776), env)
-                            {
-                                // ClosedPrefix(p: i32) : [2 >= p] l_pr=ClosedPrefix(p) [(l_pr == 0) || (l_pr >= 2)] WS "+"
-                                // WS . r_pr=ClosedPrefix(2) return (r_pr == 0) ? 2 : min(r_pr, 2)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(776));
-                            }
-                        }
-                    }
                     // ClosedPrefix(p: i32) : [2 >= p] l_pr=ClosedPrefix(p) [(l_pr == 0) || (l_pr >= 2)] WS "+"
                     // WS . r_pr=ClosedPrefix(2) return (r_pr == 0) ? 2 : min(r_pr, 2)
                     SlotId(776) => {
-                        self.create_closed_prefix(result, gss_node_id, SlotId(777), env, 2);
-                    }
-                    // ClosedPrefix(p: i32) : [2 >= p] l_pr=ClosedPrefix(p) [(l_pr == 0) || (l_pr >= 2)] WS "+"
-                    // WS r_pr=ClosedPrefix(2) . return (r_pr == 0) ? 2 : min(r_pr, 2)
-                    SlotId(777) => {
-                        next = Some(SlotId(778));
+                        self.create_closed_prefix(result, gss_node_id, slot_id.next(), env, 2);
                     }
                     // ClosedPrefix(p: i32) : [2 >= p] l_pr=ClosedPrefix(p) [(l_pr == 0) || (l_pr >= 2)] WS "+"
                     // WS r_pr=ClosedPrefix(2) return (r_pr == 0) ? 2 : min(r_pr, 2).
@@ -5246,57 +2830,31 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(778),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_CLOSED_PREFIX,
                         );
                     }
                     // ClosedPrefix(p: i32) : . "pre" WS r_pr=ClosedPrefixBody(1) return (r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : 1
-                    SlotId(779) => {
+                    // UNDEFINED_PRECEDENCE) ? 0 : 1, and ClosedPostfix(p: i32) : . "pre" WS ClosedPostfix(2)
+                    // return 2
+                    SlotId(779) | SlotId(793) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(37),
                             input_index,
-                            SlotId(779),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // ClosedPrefix(p: i32) : "pre" . WS r_pr=ClosedPrefixBody(1) return (r_pr ==
-                            // UNDEFINED_PRECEDENCE) ? 0 : 1
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(780));
-                        }
-                    }
-                    // ClosedPrefix(p: i32) : "pre" . WS r_pr=ClosedPrefixBody(1) return (r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : 1
-                    SlotId(780) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(780),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(781), env)
-                            {
-                                // ClosedPrefix(p: i32) : "pre" WS . r_pr=ClosedPrefixBody(1) return (r_pr ==
-                                // UNDEFINED_PRECEDENCE) ? 0 : 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(781));
-                            }
+                            next = Some(slot_id.next());
                         }
                     }
                     // ClosedPrefix(p: i32) : "pre" WS . r_pr=ClosedPrefixBody(1) return (r_pr ==
                     // UNDEFINED_PRECEDENCE) ? 0 : 1
                     SlotId(781) => {
-                        self.create_closed_prefix_body(result, gss_node_id, SlotId(782), env, 1);
-                    }
-                    // ClosedPrefix(p: i32) : "pre" WS r_pr=ClosedPrefixBody(1) . return (r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : 1
-                    SlotId(782) => {
-                        next = Some(SlotId(783));
+                        self.create_closed_prefix_body(result, gss_node_id, slot_id.next(), env, 1);
                     }
                     // ClosedPrefix(p: i32) : "pre" WS r_pr=ClosedPrefixBody(1) return (r_pr ==
                     // UNDEFINED_PRECEDENCE) ? 0 : 1.
@@ -5311,25 +2869,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(783),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_CLOSED_PREFIX,
                         );
-                    }
-                    // ClosedPrefixBody(p: i32) : . r_pr=ClosedPrefix(p) return r_pr
-                    SlotId(784) => {
-                        self.create_closed_prefix(
-                            result,
-                            gss_node_id,
-                            SlotId(785),
-                            env,
-                            self.lookup(BINDING_P, env.unwrap()),
-                        );
-                    }
-                    // ClosedPrefixBody(p: i32) : r_pr=ClosedPrefix(p) . return r_pr
-                    SlotId(785) => {
-                        next = Some(SlotId(786));
                     }
                     // ClosedPrefixBody(p: i32) : r_pr=ClosedPrefix(p) return r_pr.
                     SlotId(786) => {
@@ -5339,29 +2883,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = self.lookup(BINDING_R_PR, env.unwrap());
                         self.pop(
                             gss_node_id,
-                            SlotId(786),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_CLOSED_PREFIX_BODY,
                         );
-                    }
-                    // ClosedPrefixBody(p: i32) : . "b" return UNDEFINED_PRECEDENCE
-                    SlotId(787) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(6),
-                            input_index,
-                            SlotId(787),
-                            Some(gss_node_id),
-                        ) {
-                            // ClosedPrefixBody(p: i32) : "b" . return UNDEFINED_PRECEDENCE
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(788));
-                        }
-                    }
-                    // ClosedPrefixBody(p: i32) : "b" . return UNDEFINED_PRECEDENCE
-                    SlotId(788) => {
-                        next = Some(SlotId(789));
                     }
                     // ClosedPrefixBody(p: i32) : "b" return UNDEFINED_PRECEDENCE.
                     SlotId(789) => {
@@ -5371,83 +2897,31 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = -1;
                         self.pop(
                             gss_node_id,
-                            SlotId(789),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_CLOSED_PREFIX_BODY,
                         );
                     }
-                    // ClosedPostfix(p: i32) : . "a" return 0
-                    SlotId(790) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(2),
-                            input_index,
-                            SlotId(790),
-                            Some(gss_node_id),
-                        ) {
-                            // ClosedPostfix(p: i32) : "a" . return 0
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(791));
-                        }
-                    }
-                    // ClosedPostfix(p: i32) : "a" . return 0
-                    SlotId(791) => {
-                        next = Some(SlotId(792));
-                    }
-                    // ClosedPostfix(p: i32) : "a" return 0.
-                    SlotId(792) => {
+                    // ClosedPostfix(p: i32) : "a" return 0., and ClosedPostfix(p: i32) :
+                    // l_pr=ClosedPostfixBody(p) [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) ||
+                    // (l_pr >= 1)))] WS "!" return 0.
+                    SlotId(792) | SlotId(803) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         let return_value = 0;
                         self.pop(
                             gss_node_id,
-                            SlotId(792),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_CLOSED_POSTFIX,
                         );
                     }
-                    // ClosedPostfix(p: i32) : . "pre" WS ClosedPostfix(2) return 2
-                    SlotId(793) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(37),
-                            input_index,
-                            SlotId(793),
-                            Some(gss_node_id),
-                        ) {
-                            // ClosedPostfix(p: i32) : "pre" . WS ClosedPostfix(2) return 2
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(794));
-                        }
-                    }
-                    // ClosedPostfix(p: i32) : "pre" . WS ClosedPostfix(2) return 2
-                    SlotId(794) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(794),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(795), env)
-                            {
-                                // ClosedPostfix(p: i32) : "pre" WS . ClosedPostfix(2) return 2
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(795));
-                            }
-                        }
-                    }
                     // ClosedPostfix(p: i32) : "pre" WS . ClosedPostfix(2) return 2
                     SlotId(795) => {
-                        self.create_closed_postfix(result, gss_node_id, SlotId(796), env, 2);
-                    }
-                    // ClosedPostfix(p: i32) : "pre" WS ClosedPostfix(2) . return 2
-                    SlotId(796) => {
-                        next = Some(SlotId(797));
+                        self.create_closed_postfix(result, gss_node_id, slot_id.next(), env, 2);
                     }
                     // ClosedPostfix(p: i32) : "pre" WS ClosedPostfix(2) return 2.
                     SlotId(797) => {
@@ -5457,7 +2931,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 2;
                         self.pop(
                             gss_node_id,
-                            SlotId(797),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_CLOSED_POSTFIX,
@@ -5469,74 +2943,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_closed_postfix_body(
                             result,
                             gss_node_id,
-                            SlotId(799),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
-                        );
-                    }
-                    // ClosedPostfix(p: i32) : l_pr=ClosedPostfixBody(p) . [(l_pr == UNDEFINED_PRECEDENCE) || ((1
-                    // >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "!" return 0
-                    SlotId(799) => {
-                        next = Some(SlotId(800));
-                    }
-                    // ClosedPostfix(p: i32) : l_pr=ClosedPostfixBody(p) [(l_pr == UNDEFINED_PRECEDENCE) || ((1
-                    // >= p) && ((l_pr == 0) || (l_pr >= 1)))] . WS "!" return 0
-                    SlotId(800) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(800),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(801), env)
-                            {
-                                // ClosedPostfix(p: i32) : l_pr=ClosedPostfixBody(p) [(l_pr == UNDEFINED_PRECEDENCE) || ((1
-                                // >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS . "!" return 0
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(801));
-                            }
-                        }
-                    }
-                    // ClosedPostfix(p: i32) : l_pr=ClosedPostfixBody(p) [(l_pr == UNDEFINED_PRECEDENCE) || ((1
-                    // >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS . "!" return 0
-                    SlotId(801) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(29),
-                            input_index,
-                            SlotId(801),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(802), env)
-                            {
-                                // ClosedPostfix(p: i32) : l_pr=ClosedPostfixBody(p) [(l_pr == UNDEFINED_PRECEDENCE) || ((1
-                                // >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "!" . return 0
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(802));
-                            }
-                        }
-                    }
-                    // ClosedPostfix(p: i32) : l_pr=ClosedPostfixBody(p) [(l_pr == UNDEFINED_PRECEDENCE) || ((1
-                    // >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "!" . return 0
-                    SlotId(802) => {
-                        next = Some(SlotId(803));
-                    }
-                    // ClosedPostfix(p: i32) : l_pr=ClosedPostfixBody(p) [(l_pr == UNDEFINED_PRECEDENCE) || ((1
-                    // >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "!" return 0.
-                    SlotId(803) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        let return_value = 0;
-                        self.pop(
-                            gss_node_id,
-                            SlotId(803),
-                            result,
-                            Some(return_value),
-                            &FOLLOW_SET_CLOSED_POSTFIX,
                         );
                     }
                     // ClosedPostfixBody(p: i32) : . l_pr=ClosedPostfix(p) return l_pr
@@ -5544,14 +2953,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_closed_postfix(
                             result,
                             gss_node_id,
-                            SlotId(805),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                         );
-                    }
-                    // ClosedPostfixBody(p: i32) : l_pr=ClosedPostfix(p) . return l_pr
-                    SlotId(805) => {
-                        next = Some(SlotId(806));
                     }
                     // ClosedPostfixBody(p: i32) : l_pr=ClosedPostfix(p) return l_pr.
                     SlotId(806) => {
@@ -5561,29 +2966,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = self.lookup(BINDING_L_PR, env.unwrap());
                         self.pop(
                             gss_node_id,
-                            SlotId(806),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_CLOSED_POSTFIX_BODY,
                         );
-                    }
-                    // ClosedPostfixBody(p: i32) : . "b" return UNDEFINED_PRECEDENCE
-                    SlotId(807) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(6),
-                            input_index,
-                            SlotId(807),
-                            Some(gss_node_id),
-                        ) {
-                            // ClosedPostfixBody(p: i32) : "b" . return UNDEFINED_PRECEDENCE
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(808));
-                        }
-                    }
-                    // ClosedPostfixBody(p: i32) : "b" . return UNDEFINED_PRECEDENCE
-                    SlotId(808) => {
-                        next = Some(SlotId(809));
                     }
                     // ClosedPostfixBody(p: i32) : "b" return UNDEFINED_PRECEDENCE.
                     SlotId(809) => {
@@ -5593,50 +2980,25 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = -1;
                         self.pop(
                             gss_node_id,
-                            SlotId(809),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_CLOSED_POSTFIX_BODY,
                         );
                     }
-                    // HeadChoice(p: i32) : . "a" return 0
-                    SlotId(810) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(2),
-                            input_index,
-                            SlotId(810),
-                            Some(gss_node_id),
-                        ) {
-                            // HeadChoice(p: i32) : "a" . return 0
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(811));
-                        }
-                    }
-                    // HeadChoice(p: i32) : "a" . return 0
-                    SlotId(811) => {
-                        next = Some(SlotId(812));
-                    }
-                    // HeadChoice(p: i32) : "a" return 0.
-                    SlotId(812) => {
+                    // HeadChoice(p: i32) : "a" return 0., and HeadChoice(p: i32) : Inner(0) return 0.
+                    SlotId(812) | SlotId(824) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         let return_value = 0;
                         self.pop(
                             gss_node_id,
-                            SlotId(812),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_HEAD_CHOICE,
                         );
-                    }
-                    // HeadChoice(p: i32) : . [1 >= p] l_pr=HeadOperand(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "+"
-                    // WS HeadOperand(2, 1) return 1
-                    SlotId(813) => {
-                        if 1 >= self.lookup(BINDING_P, env.unwrap()) {
-                            next = Some(SlotId(814));
-                        }
                     }
                     // HeadChoice(p: i32) : [1 >= p] . l_pr=HeadOperand(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "+"
                     // WS HeadOperand(2, 1) return 1
@@ -5644,86 +3006,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_head_operand(
                             result,
                             gss_node_id,
-                            SlotId(815),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             0,
                         );
                     }
-                    // HeadChoice(p: i32) : [1 >= p] l_pr=HeadOperand(p, 0) . [(l_pr == 0) || (l_pr >= 1)] WS "+"
-                    // WS HeadOperand(2, 1) return 1
-                    SlotId(815) => {
-                        next = Some(SlotId(816));
-                    }
-                    // HeadChoice(p: i32) : [1 >= p] l_pr=HeadOperand(p, 0) [(l_pr == 0) || (l_pr >= 1)] . WS "+"
-                    // WS HeadOperand(2, 1) return 1
-                    SlotId(816) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(816),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(817), env)
-                            {
-                                // HeadChoice(p: i32) : [1 >= p] l_pr=HeadOperand(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS . "+"
-                                // WS HeadOperand(2, 1) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(817));
-                            }
-                        }
-                    }
-                    // HeadChoice(p: i32) : [1 >= p] l_pr=HeadOperand(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS . "+"
-                    // WS HeadOperand(2, 1) return 1
-                    SlotId(817) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(4),
-                            input_index,
-                            SlotId(817),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(818), env)
-                            {
-                                // HeadChoice(p: i32) : [1 >= p] l_pr=HeadOperand(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "+" .
-                                // WS HeadOperand(2, 1) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(818));
-                            }
-                        }
-                    }
-                    // HeadChoice(p: i32) : [1 >= p] l_pr=HeadOperand(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "+" .
-                    // WS HeadOperand(2, 1) return 1
-                    SlotId(818) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(818),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(819), env)
-                            {
-                                // HeadChoice(p: i32) : [1 >= p] l_pr=HeadOperand(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "+"
-                                // WS . HeadOperand(2, 1) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(819));
-                            }
-                        }
-                    }
                     // HeadChoice(p: i32) : [1 >= p] l_pr=HeadOperand(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "+"
                     // WS . HeadOperand(2, 1) return 1
                     SlotId(819) => {
-                        self.create_head_operand(result, gss_node_id, SlotId(820), env, 2, 1);
-                    }
-                    // HeadChoice(p: i32) : [1 >= p] l_pr=HeadOperand(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "+"
-                    // WS HeadOperand(2, 1) . return 1
-                    SlotId(820) => {
-                        next = Some(SlotId(821));
+                        self.create_head_operand(result, gss_node_id, slot_id.next(), env, 2, 1);
                     }
                     // HeadChoice(p: i32) : [1 >= p] l_pr=HeadOperand(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "+"
                     // WS HeadOperand(2, 1) return 1.
@@ -5734,47 +3026,25 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 1;
                         self.pop(
                             gss_node_id,
-                            SlotId(821),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_HEAD_CHOICE,
                         );
                     }
-                    // HeadChoice(p: i32) : . Inner(0) return 0
-                    SlotId(822) => {
-                        self.create_inner(result, gss_node_id, SlotId(823), env, 0);
-                    }
-                    // HeadChoice(p: i32) : Inner(0) . return 0
-                    SlotId(823) => {
-                        next = Some(SlotId(824));
-                    }
-                    // HeadChoice(p: i32) : Inner(0) return 0.
-                    SlotId(824) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        let return_value = 0;
-                        self.pop(
-                            gss_node_id,
-                            SlotId(824),
-                            result,
-                            Some(return_value),
-                            &FOLLOW_SET_HEAD_CHOICE,
-                        );
+                    // HeadChoice(p: i32) : . Inner(0) return 0, and StartInner : WS . start:Inner(0) WS
+                    SlotId(822) | SlotId(286) => {
+                        self.create_inner(result, gss_node_id, slot_id.next(), env, 0);
                     }
                     // HeadOperand(p: i32, end: i32) : . v_pr=HeadChoice(p) return v_pr
                     SlotId(825) => {
                         self.create_head_choice(
                             result,
                             gss_node_id,
-                            SlotId(826),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                         );
-                    }
-                    // HeadOperand(p: i32, end: i32) : v_pr=HeadChoice(p) . return v_pr
-                    SlotId(826) => {
-                        next = Some(SlotId(827));
                     }
                     // HeadOperand(p: i32, end: i32) : v_pr=HeadChoice(p) return v_pr.
                     SlotId(827) => {
@@ -5784,29 +3054,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = self.lookup(BINDING_V_PR, env.unwrap());
                         self.pop(
                             gss_node_id,
-                            SlotId(827),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_HEAD_OPERAND,
                         );
-                    }
-                    // Inner(p: i32) : . "b" return 0
-                    SlotId(828) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(6),
-                            input_index,
-                            SlotId(828),
-                            Some(gss_node_id),
-                        ) {
-                            // Inner(p: i32) : "b" . return 0
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(829));
-                        }
-                    }
-                    // Inner(p: i32) : "b" . return 0
-                    SlotId(829) => {
-                        next = Some(SlotId(830));
                     }
                     // Inner(p: i32) : "b" return 0.
                     SlotId(830) => {
@@ -5816,18 +3068,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 0;
                         self.pop(
                             gss_node_id,
-                            SlotId(830),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_INNER,
                         );
-                    }
-                    // Inner(p: i32) : . [1 >= p] l_pr=Inner(p) [(l_pr == 0) || (l_pr >= 1)] WS "*" WS Inner(2)
-                    // return 1
-                    SlotId(831) => {
-                        if 1 >= self.lookup(BINDING_P, env.unwrap()) {
-                            next = Some(SlotId(832));
-                        }
                     }
                     // Inner(p: i32) : [1 >= p] . l_pr=Inner(p) [(l_pr == 0) || (l_pr >= 1)] WS "*" WS Inner(2)
                     // return 1
@@ -5835,85 +3080,15 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_inner(
                             result,
                             gss_node_id,
-                            SlotId(833),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                         );
                     }
-                    // Inner(p: i32) : [1 >= p] l_pr=Inner(p) . [(l_pr == 0) || (l_pr >= 1)] WS "*" WS Inner(2)
-                    // return 1
-                    SlotId(833) => {
-                        next = Some(SlotId(834));
-                    }
-                    // Inner(p: i32) : [1 >= p] l_pr=Inner(p) [(l_pr == 0) || (l_pr >= 1)] . WS "*" WS Inner(2)
-                    // return 1
-                    SlotId(834) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(834),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(835), env)
-                            {
-                                // Inner(p: i32) : [1 >= p] l_pr=Inner(p) [(l_pr == 0) || (l_pr >= 1)] WS . "*" WS Inner(2)
-                                // return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(835));
-                            }
-                        }
-                    }
-                    // Inner(p: i32) : [1 >= p] l_pr=Inner(p) [(l_pr == 0) || (l_pr >= 1)] WS . "*" WS Inner(2)
-                    // return 1
-                    SlotId(835) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(3),
-                            input_index,
-                            SlotId(835),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(836), env)
-                            {
-                                // Inner(p: i32) : [1 >= p] l_pr=Inner(p) [(l_pr == 0) || (l_pr >= 1)] WS "*" . WS Inner(2)
-                                // return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(836));
-                            }
-                        }
-                    }
-                    // Inner(p: i32) : [1 >= p] l_pr=Inner(p) [(l_pr == 0) || (l_pr >= 1)] WS "*" . WS Inner(2)
-                    // return 1
-                    SlotId(836) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(836),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(837), env)
-                            {
-                                // Inner(p: i32) : [1 >= p] l_pr=Inner(p) [(l_pr == 0) || (l_pr >= 1)] WS "*" WS . Inner(2)
-                                // return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(837));
-                            }
-                        }
-                    }
                     // Inner(p: i32) : [1 >= p] l_pr=Inner(p) [(l_pr == 0) || (l_pr >= 1)] WS "*" WS . Inner(2)
                     // return 1
                     SlotId(837) => {
-                        self.create_inner(result, gss_node_id, SlotId(838), env, 2);
-                    }
-                    // Inner(p: i32) : [1 >= p] l_pr=Inner(p) [(l_pr == 0) || (l_pr >= 1)] WS "*" WS Inner(2) .
-                    // return 1
-                    SlotId(838) => {
-                        next = Some(SlotId(839));
+                        self.create_inner(result, gss_node_id, slot_id.next(), env, 2);
                     }
                     // Inner(p: i32) : [1 >= p] l_pr=Inner(p) [(l_pr == 0) || (l_pr >= 1)] WS "*" WS Inner(2)
                     // return 1.
@@ -5924,408 +3099,129 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 1;
                         self.pop(
                             gss_node_id,
-                            SlotId(839),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_INNER,
                         );
                     }
-                    // UnaryMixedLeft(p: i32, a: i32) : . [1 >= p] [a != 1] l_pr=UnaryMixedLeft(p, 0) [(l_pr ==
-                    // 0) || (l_pr >= 1)] WS "+" WS r_pr=UnaryMixedLeft(1, 1) return 1
-                    SlotId(840) => {
-                        if 1 >= self.lookup(BINDING_P, env.unwrap()) {
-                            next = Some(SlotId(841));
-                        }
-                    }
                     // UnaryMixedLeft(p: i32, a: i32) : [1 >= p] . [a != 1] l_pr=UnaryMixedLeft(p, 0) [(l_pr ==
-                    // 0) || (l_pr >= 1)] WS "+" WS r_pr=UnaryMixedLeft(1, 1) return 1
-                    SlotId(841) => {
+                    // 0) || (l_pr >= 1)] WS "+" WS r_pr=UnaryMixedLeft(1, 1) return 1, and UnaryMixedNone(p:
+                    // i32, a: i32) : [1 >= p] . [a != 1] (l_pr, l_assoc)=UnaryMixedNone(p, 0) [(l_pr == 0) ||
+                    // (l_pr >= 1)] [l_assoc != 1] WS "+" WS (r_pr, r_assoc)=UnaryMixedNone(1, 1) return (1, 1)
+                    SlotId(841) | SlotId(891) => {
                         if self.lookup(BINDING_A, env.unwrap()) != 1 {
-                            next = Some(SlotId(842));
+                            next = Some(slot_id.next());
                         }
                     }
                     // UnaryMixedLeft(p: i32, a: i32) : [1 >= p] [a != 1] . l_pr=UnaryMixedLeft(p, 0) [(l_pr ==
-                    // 0) || (l_pr >= 1)] WS "+" WS r_pr=UnaryMixedLeft(1, 1) return 1
-                    SlotId(842) => {
+                    // 0) || (l_pr >= 1)] WS "+" WS r_pr=UnaryMixedLeft(1, 1) return 1, and UnaryMixedLeft(p:
+                    // i32, a: i32) : [1 >= p] . l_pr=UnaryMixedLeft(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "!"
+                    // return 0
+                    SlotId(842) | SlotId(856) => {
                         self.create_unary_mixed_left(
                             result,
                             gss_node_id,
-                            SlotId(843),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             0,
                         );
-                    }
-                    // UnaryMixedLeft(p: i32, a: i32) : [1 >= p] [a != 1] l_pr=UnaryMixedLeft(p, 0) . [(l_pr ==
-                    // 0) || (l_pr >= 1)] WS "+" WS r_pr=UnaryMixedLeft(1, 1) return 1
-                    SlotId(843) => {
-                        next = Some(SlotId(844));
-                    }
-                    // UnaryMixedLeft(p: i32, a: i32) : [1 >= p] [a != 1] l_pr=UnaryMixedLeft(p, 0) [(l_pr == 0)
-                    // || (l_pr >= 1)] . WS "+" WS r_pr=UnaryMixedLeft(1, 1) return 1
-                    SlotId(844) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(844),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(845), env)
-                            {
-                                // UnaryMixedLeft(p: i32, a: i32) : [1 >= p] [a != 1] l_pr=UnaryMixedLeft(p, 0) [(l_pr == 0)
-                                // || (l_pr >= 1)] WS . "+" WS r_pr=UnaryMixedLeft(1, 1) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(845));
-                            }
-                        }
-                    }
-                    // UnaryMixedLeft(p: i32, a: i32) : [1 >= p] [a != 1] l_pr=UnaryMixedLeft(p, 0) [(l_pr == 0)
-                    // || (l_pr >= 1)] WS . "+" WS r_pr=UnaryMixedLeft(1, 1) return 1
-                    SlotId(845) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(4),
-                            input_index,
-                            SlotId(845),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(846), env)
-                            {
-                                // UnaryMixedLeft(p: i32, a: i32) : [1 >= p] [a != 1] l_pr=UnaryMixedLeft(p, 0) [(l_pr == 0)
-                                // || (l_pr >= 1)] WS "+" . WS r_pr=UnaryMixedLeft(1, 1) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(846));
-                            }
-                        }
-                    }
-                    // UnaryMixedLeft(p: i32, a: i32) : [1 >= p] [a != 1] l_pr=UnaryMixedLeft(p, 0) [(l_pr == 0)
-                    // || (l_pr >= 1)] WS "+" . WS r_pr=UnaryMixedLeft(1, 1) return 1
-                    SlotId(846) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(846),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(847), env)
-                            {
-                                // UnaryMixedLeft(p: i32, a: i32) : [1 >= p] [a != 1] l_pr=UnaryMixedLeft(p, 0) [(l_pr == 0)
-                                // || (l_pr >= 1)] WS "+" WS . r_pr=UnaryMixedLeft(1, 1) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(847));
-                            }
-                        }
                     }
                     // UnaryMixedLeft(p: i32, a: i32) : [1 >= p] [a != 1] l_pr=UnaryMixedLeft(p, 0) [(l_pr == 0)
                     // || (l_pr >= 1)] WS "+" WS . r_pr=UnaryMixedLeft(1, 1) return 1
                     SlotId(847) => {
-                        self.create_unary_mixed_left(result, gss_node_id, SlotId(848), env, 1, 1);
+                        self.create_unary_mixed_left(
+                            result,
+                            gss_node_id,
+                            slot_id.next(),
+                            env,
+                            1,
+                            1,
+                        );
                     }
                     // UnaryMixedLeft(p: i32, a: i32) : [1 >= p] [a != 1] l_pr=UnaryMixedLeft(p, 0) [(l_pr == 0)
-                    // || (l_pr >= 1)] WS "+" WS r_pr=UnaryMixedLeft(1, 1) . return 1
-                    SlotId(848) => {
-                        next = Some(SlotId(849));
-                    }
-                    // UnaryMixedLeft(p: i32, a: i32) : [1 >= p] [a != 1] l_pr=UnaryMixedLeft(p, 0) [(l_pr == 0)
-                    // || (l_pr >= 1)] WS "+" WS r_pr=UnaryMixedLeft(1, 1) return 1.
-                    SlotId(849) => {
+                    // || (l_pr >= 1)] WS "+" WS r_pr=UnaryMixedLeft(1, 1) return 1., and UnaryMixedLeft(p: i32,
+                    // a: i32) : "-" WS UnaryMixedLeft(1, 0) return 1.
+                    SlotId(849) | SlotId(854) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         let return_value = 1;
                         self.pop(
                             gss_node_id,
-                            SlotId(849),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_UNARY_MIXED_LEFT,
                         );
                     }
-                    // UnaryMixedLeft(p: i32, a: i32) : . "-" WS UnaryMixedLeft(1, 0) return 1
-                    SlotId(850) => {
+                    // UnaryMixedLeft(p: i32, a: i32) : . "-" WS UnaryMixedLeft(1, 0) return 1, and 5 more slots
+                    SlotId(850) | SlotId(875) | SlotId(901) | SlotId(926) | SlotId(955)
+                    | SlotId(987) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(5),
                             input_index,
-                            SlotId(850),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // UnaryMixedLeft(p: i32, a: i32) : "-" . WS UnaryMixedLeft(1, 0) return 1
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(851));
-                        }
-                    }
-                    // UnaryMixedLeft(p: i32, a: i32) : "-" . WS UnaryMixedLeft(1, 0) return 1
-                    SlotId(851) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(851),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(852), env)
-                            {
-                                // UnaryMixedLeft(p: i32, a: i32) : "-" WS . UnaryMixedLeft(1, 0) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(852));
-                            }
+                            next = Some(slot_id.next());
                         }
                     }
                     // UnaryMixedLeft(p: i32, a: i32) : "-" WS . UnaryMixedLeft(1, 0) return 1
                     SlotId(852) => {
-                        self.create_unary_mixed_left(result, gss_node_id, SlotId(853), env, 1, 0);
-                    }
-                    // UnaryMixedLeft(p: i32, a: i32) : "-" WS UnaryMixedLeft(1, 0) . return 1
-                    SlotId(853) => {
-                        next = Some(SlotId(854));
-                    }
-                    // UnaryMixedLeft(p: i32, a: i32) : "-" WS UnaryMixedLeft(1, 0) return 1.
-                    SlotId(854) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        let return_value = 1;
-                        self.pop(
-                            gss_node_id,
-                            SlotId(854),
-                            result,
-                            Some(return_value),
-                            &FOLLOW_SET_UNARY_MIXED_LEFT,
-                        );
-                    }
-                    // UnaryMixedLeft(p: i32, a: i32) : . [1 >= p] l_pr=UnaryMixedLeft(p, 0) [(l_pr == 0) ||
-                    // (l_pr >= 1)] WS "!" return 0
-                    SlotId(855) => {
-                        if 1 >= self.lookup(BINDING_P, env.unwrap()) {
-                            next = Some(SlotId(856));
-                        }
-                    }
-                    // UnaryMixedLeft(p: i32, a: i32) : [1 >= p] . l_pr=UnaryMixedLeft(p, 0) [(l_pr == 0) ||
-                    // (l_pr >= 1)] WS "!" return 0
-                    SlotId(856) => {
                         self.create_unary_mixed_left(
                             result,
                             gss_node_id,
-                            SlotId(857),
+                            slot_id.next(),
                             env,
-                            self.lookup(BINDING_P, env.unwrap()),
+                            1,
                             0,
                         );
                     }
-                    // UnaryMixedLeft(p: i32, a: i32) : [1 >= p] l_pr=UnaryMixedLeft(p, 0) . [(l_pr == 0) ||
-                    // (l_pr >= 1)] WS "!" return 0
-                    SlotId(857) => {
-                        next = Some(SlotId(858));
-                    }
                     // UnaryMixedLeft(p: i32, a: i32) : [1 >= p] l_pr=UnaryMixedLeft(p, 0) [(l_pr == 0) || (l_pr
-                    // >= 1)] . WS "!" return 0
-                    SlotId(858) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(858),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(859), env)
-                            {
-                                // UnaryMixedLeft(p: i32, a: i32) : [1 >= p] l_pr=UnaryMixedLeft(p, 0) [(l_pr == 0) || (l_pr
-                                // >= 1)] WS . "!" return 0
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(859));
-                            }
-                        }
-                    }
-                    // UnaryMixedLeft(p: i32, a: i32) : [1 >= p] l_pr=UnaryMixedLeft(p, 0) [(l_pr == 0) || (l_pr
-                    // >= 1)] WS . "!" return 0
-                    SlotId(859) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(29),
-                            input_index,
-                            SlotId(859),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(860), env)
-                            {
-                                // UnaryMixedLeft(p: i32, a: i32) : [1 >= p] l_pr=UnaryMixedLeft(p, 0) [(l_pr == 0) || (l_pr
-                                // >= 1)] WS "!" . return 0
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(860));
-                            }
-                        }
-                    }
-                    // UnaryMixedLeft(p: i32, a: i32) : [1 >= p] l_pr=UnaryMixedLeft(p, 0) [(l_pr == 0) || (l_pr
-                    // >= 1)] WS "!" . return 0
-                    SlotId(860) => {
-                        next = Some(SlotId(861));
-                    }
-                    // UnaryMixedLeft(p: i32, a: i32) : [1 >= p] l_pr=UnaryMixedLeft(p, 0) [(l_pr == 0) || (l_pr
-                    // >= 1)] WS "!" return 0.
-                    SlotId(861) => {
+                    // >= 1)] WS "!" return 0., and UnaryMixedLeft(p: i32, a: i32) : "a" return 0.
+                    SlotId(861) | SlotId(864) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         let return_value = 0;
                         self.pop(
                             gss_node_id,
-                            SlotId(861),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_UNARY_MIXED_LEFT,
                         );
-                    }
-                    // UnaryMixedLeft(p: i32, a: i32) : . "a" return 0
-                    SlotId(862) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(2),
-                            input_index,
-                            SlotId(862),
-                            Some(gss_node_id),
-                        ) {
-                            // UnaryMixedLeft(p: i32, a: i32) : "a" . return 0
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(863));
-                        }
-                    }
-                    // UnaryMixedLeft(p: i32, a: i32) : "a" . return 0
-                    SlotId(863) => {
-                        next = Some(SlotId(864));
-                    }
-                    // UnaryMixedLeft(p: i32, a: i32) : "a" return 0.
-                    SlotId(864) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        let return_value = 0;
-                        self.pop(
-                            gss_node_id,
-                            SlotId(864),
-                            result,
-                            Some(return_value),
-                            &FOLLOW_SET_UNARY_MIXED_LEFT,
-                        );
-                    }
-                    // UnaryMixedRight(p: i32, a: i32) : . [1 >= p] (l_pr, l_assoc)=UnaryMixedRight(p, 0) [(l_pr
-                    // == 0) || (l_pr >= 1)] [l_assoc != 1] WS "+" WS (r_pr, r_assoc)=UnaryMixedRight(1, 0)
-                    // return (1, 1)
-                    SlotId(865) => {
-                        if 1 >= self.lookup(BINDING_P, env.unwrap()) {
-                            next = Some(SlotId(866));
-                        }
                     }
                     // UnaryMixedRight(p: i32, a: i32) : [1 >= p] . (l_pr, l_assoc)=UnaryMixedRight(p, 0) [(l_pr
                     // == 0) || (l_pr >= 1)] [l_assoc != 1] WS "+" WS (r_pr, r_assoc)=UnaryMixedRight(1, 0)
-                    // return (1, 1)
-                    SlotId(866) => {
+                    // return (1, 1), and UnaryMixedRight(p: i32, a: i32) : [1 >= p] . (l_pr,
+                    // l_assoc)=UnaryMixedRight(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "!" return (0, 0)
+                    SlotId(866) | SlotId(881) => {
                         self.create_unary_mixed_right(
                             result,
                             gss_node_id,
-                            SlotId(867),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             0,
                         );
                     }
-                    // UnaryMixedRight(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=UnaryMixedRight(p, 0) . [(l_pr
-                    // == 0) || (l_pr >= 1)] [l_assoc != 1] WS "+" WS (r_pr, r_assoc)=UnaryMixedRight(1, 0)
-                    // return (1, 1)
-                    SlotId(867) => {
-                        next = Some(SlotId(868));
-                    }
-                    // UnaryMixedRight(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=UnaryMixedRight(p, 0) [(l_pr ==
-                    // 0) || (l_pr >= 1)] . [l_assoc != 1] WS "+" WS (r_pr, r_assoc)=UnaryMixedRight(1, 0) return
-                    // (1, 1)
-                    SlotId(868) => {
-                        next = Some(SlotId(869));
-                    }
-                    // UnaryMixedRight(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=UnaryMixedRight(p, 0) [(l_pr ==
-                    // 0) || (l_pr >= 1)] [l_assoc != 1] . WS "+" WS (r_pr, r_assoc)=UnaryMixedRight(1, 0) return
-                    // (1, 1)
-                    SlotId(869) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(869),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(870), env)
-                            {
-                                // UnaryMixedRight(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=UnaryMixedRight(p, 0) [(l_pr ==
-                                // 0) || (l_pr >= 1)] [l_assoc != 1] WS . "+" WS (r_pr, r_assoc)=UnaryMixedRight(1, 0) return
-                                // (1, 1)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(870));
-                            }
-                        }
-                    }
-                    // UnaryMixedRight(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=UnaryMixedRight(p, 0) [(l_pr ==
-                    // 0) || (l_pr >= 1)] [l_assoc != 1] WS . "+" WS (r_pr, r_assoc)=UnaryMixedRight(1, 0) return
-                    // (1, 1)
-                    SlotId(870) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(4),
-                            input_index,
-                            SlotId(870),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(871), env)
-                            {
-                                // UnaryMixedRight(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=UnaryMixedRight(p, 0) [(l_pr ==
-                                // 0) || (l_pr >= 1)] [l_assoc != 1] WS "+" . WS (r_pr, r_assoc)=UnaryMixedRight(1, 0) return
-                                // (1, 1)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(871));
-                            }
-                        }
-                    }
-                    // UnaryMixedRight(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=UnaryMixedRight(p, 0) [(l_pr ==
-                    // 0) || (l_pr >= 1)] [l_assoc != 1] WS "+" . WS (r_pr, r_assoc)=UnaryMixedRight(1, 0) return
-                    // (1, 1)
-                    SlotId(871) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(871),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(872), env)
-                            {
-                                // UnaryMixedRight(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=UnaryMixedRight(p, 0) [(l_pr ==
-                                // 0) || (l_pr >= 1)] [l_assoc != 1] WS "+" WS . (r_pr, r_assoc)=UnaryMixedRight(1, 0) return
-                                // (1, 1)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(872));
-                            }
-                        }
-                    }
                     // UnaryMixedRight(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=UnaryMixedRight(p, 0) [(l_pr ==
                     // 0) || (l_pr >= 1)] [l_assoc != 1] WS "+" WS . (r_pr, r_assoc)=UnaryMixedRight(1, 0) return
-                    // (1, 1)
-                    SlotId(872) => {
-                        self.create_unary_mixed_right(result, gss_node_id, SlotId(873), env, 1, 0);
-                    }
-                    // UnaryMixedRight(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=UnaryMixedRight(p, 0) [(l_pr ==
-                    // 0) || (l_pr >= 1)] [l_assoc != 1] WS "+" WS (r_pr, r_assoc)=UnaryMixedRight(1, 0) . return
-                    // (1, 1)
-                    SlotId(873) => {
-                        next = Some(SlotId(874));
+                    // (1, 1), and UnaryMixedRight(p: i32, a: i32) : "-" WS . UnaryMixedRight(1, 0) return (1, 0)
+                    SlotId(872) | SlotId(877) => {
+                        self.create_unary_mixed_right(
+                            result,
+                            gss_node_id,
+                            slot_id.next(),
+                            env,
+                            1,
+                            0,
+                        );
                     }
                     // UnaryMixedRight(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=UnaryMixedRight(p, 0) [(l_pr ==
                     // 0) || (l_pr >= 1)] [l_assoc != 1] WS "+" WS (r_pr, r_assoc)=UnaryMixedRight(1, 0) return
@@ -6337,51 +3233,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 65537;
                         self.pop(
                             gss_node_id,
-                            SlotId(874),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_UNARY_MIXED_RIGHT,
                         );
-                    }
-                    // UnaryMixedRight(p: i32, a: i32) : . "-" WS UnaryMixedRight(1, 0) return (1, 0)
-                    SlotId(875) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(5),
-                            input_index,
-                            SlotId(875),
-                            Some(gss_node_id),
-                        ) {
-                            // UnaryMixedRight(p: i32, a: i32) : "-" . WS UnaryMixedRight(1, 0) return (1, 0)
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(876));
-                        }
-                    }
-                    // UnaryMixedRight(p: i32, a: i32) : "-" . WS UnaryMixedRight(1, 0) return (1, 0)
-                    SlotId(876) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(876),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(877), env)
-                            {
-                                // UnaryMixedRight(p: i32, a: i32) : "-" WS . UnaryMixedRight(1, 0) return (1, 0)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(877));
-                            }
-                        }
-                    }
-                    // UnaryMixedRight(p: i32, a: i32) : "-" WS . UnaryMixedRight(1, 0) return (1, 0)
-                    SlotId(877) => {
-                        self.create_unary_mixed_right(result, gss_node_id, SlotId(878), env, 1, 0);
-                    }
-                    // UnaryMixedRight(p: i32, a: i32) : "-" WS UnaryMixedRight(1, 0) . return (1, 0)
-                    SlotId(878) => {
-                        next = Some(SlotId(879));
                     }
                     // UnaryMixedRight(p: i32, a: i32) : "-" WS UnaryMixedRight(1, 0) return (1, 0).
                     SlotId(879) => {
@@ -6391,246 +3247,54 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 65536;
                         self.pop(
                             gss_node_id,
-                            SlotId(879),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_UNARY_MIXED_RIGHT,
                         );
                     }
-                    // UnaryMixedRight(p: i32, a: i32) : . [1 >= p] (l_pr, l_assoc)=UnaryMixedRight(p, 0) [(l_pr
-                    // == 0) || (l_pr >= 1)] WS "!" return (0, 0)
-                    SlotId(880) => {
-                        if 1 >= self.lookup(BINDING_P, env.unwrap()) {
-                            next = Some(SlotId(881));
-                        }
-                    }
-                    // UnaryMixedRight(p: i32, a: i32) : [1 >= p] . (l_pr, l_assoc)=UnaryMixedRight(p, 0) [(l_pr
-                    // == 0) || (l_pr >= 1)] WS "!" return (0, 0)
-                    SlotId(881) => {
-                        self.create_unary_mixed_right(
-                            result,
-                            gss_node_id,
-                            SlotId(882),
-                            env,
-                            self.lookup(BINDING_P, env.unwrap()),
-                            0,
-                        );
-                    }
-                    // UnaryMixedRight(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=UnaryMixedRight(p, 0) . [(l_pr
-                    // == 0) || (l_pr >= 1)] WS "!" return (0, 0)
-                    SlotId(882) => {
-                        next = Some(SlotId(883));
-                    }
                     // UnaryMixedRight(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=UnaryMixedRight(p, 0) [(l_pr ==
-                    // 0) || (l_pr >= 1)] . WS "!" return (0, 0)
-                    SlotId(883) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(883),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(884), env)
-                            {
-                                // UnaryMixedRight(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=UnaryMixedRight(p, 0) [(l_pr ==
-                                // 0) || (l_pr >= 1)] WS . "!" return (0, 0)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(884));
-                            }
-                        }
-                    }
-                    // UnaryMixedRight(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=UnaryMixedRight(p, 0) [(l_pr ==
-                    // 0) || (l_pr >= 1)] WS . "!" return (0, 0)
-                    SlotId(884) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(29),
-                            input_index,
-                            SlotId(884),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(885), env)
-                            {
-                                // UnaryMixedRight(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=UnaryMixedRight(p, 0) [(l_pr ==
-                                // 0) || (l_pr >= 1)] WS "!" . return (0, 0)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(885));
-                            }
-                        }
-                    }
-                    // UnaryMixedRight(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=UnaryMixedRight(p, 0) [(l_pr ==
-                    // 0) || (l_pr >= 1)] WS "!" . return (0, 0)
-                    SlotId(885) => {
-                        next = Some(SlotId(886));
-                    }
-                    // UnaryMixedRight(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=UnaryMixedRight(p, 0) [(l_pr ==
-                    // 0) || (l_pr >= 1)] WS "!" return (0, 0).
-                    SlotId(886) => {
+                    // 0) || (l_pr >= 1)] WS "!" return (0, 0)., and UnaryMixedRight(p: i32, a: i32) : "a" return
+                    // (0, 0).
+                    SlotId(886) | SlotId(889) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         let return_value = 0;
                         self.pop(
                             gss_node_id,
-                            SlotId(886),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_UNARY_MIXED_RIGHT,
                         );
-                    }
-                    // UnaryMixedRight(p: i32, a: i32) : . "a" return (0, 0)
-                    SlotId(887) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(2),
-                            input_index,
-                            SlotId(887),
-                            Some(gss_node_id),
-                        ) {
-                            // UnaryMixedRight(p: i32, a: i32) : "a" . return (0, 0)
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(888));
-                        }
-                    }
-                    // UnaryMixedRight(p: i32, a: i32) : "a" . return (0, 0)
-                    SlotId(888) => {
-                        next = Some(SlotId(889));
-                    }
-                    // UnaryMixedRight(p: i32, a: i32) : "a" return (0, 0).
-                    SlotId(889) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        let return_value = 0;
-                        self.pop(
-                            gss_node_id,
-                            SlotId(889),
-                            result,
-                            Some(return_value),
-                            &FOLLOW_SET_UNARY_MIXED_RIGHT,
-                        );
-                    }
-                    // UnaryMixedNone(p: i32, a: i32) : . [1 >= p] [a != 1] (l_pr, l_assoc)=UnaryMixedNone(p, 0)
-                    // [(l_pr == 0) || (l_pr >= 1)] [l_assoc != 1] WS "+" WS (r_pr, r_assoc)=UnaryMixedNone(1, 1)
-                    // return (1, 1)
-                    SlotId(890) => {
-                        if 1 >= self.lookup(BINDING_P, env.unwrap()) {
-                            next = Some(SlotId(891));
-                        }
-                    }
-                    // UnaryMixedNone(p: i32, a: i32) : [1 >= p] . [a != 1] (l_pr, l_assoc)=UnaryMixedNone(p, 0)
-                    // [(l_pr == 0) || (l_pr >= 1)] [l_assoc != 1] WS "+" WS (r_pr, r_assoc)=UnaryMixedNone(1, 1)
-                    // return (1, 1)
-                    SlotId(891) => {
-                        if self.lookup(BINDING_A, env.unwrap()) != 1 {
-                            next = Some(SlotId(892));
-                        }
                     }
                     // UnaryMixedNone(p: i32, a: i32) : [1 >= p] [a != 1] . (l_pr, l_assoc)=UnaryMixedNone(p, 0)
                     // [(l_pr == 0) || (l_pr >= 1)] [l_assoc != 1] WS "+" WS (r_pr, r_assoc)=UnaryMixedNone(1, 1)
-                    // return (1, 1)
-                    SlotId(892) => {
+                    // return (1, 1), and UnaryMixedNone(p: i32, a: i32) : [1 >= p] . (l_pr,
+                    // l_assoc)=UnaryMixedNone(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "!" return (0, 0)
+                    SlotId(892) | SlotId(907) => {
                         self.create_unary_mixed_none(
                             result,
                             gss_node_id,
-                            SlotId(893),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             0,
                         );
-                    }
-                    // UnaryMixedNone(p: i32, a: i32) : [1 >= p] [a != 1] (l_pr, l_assoc)=UnaryMixedNone(p, 0) .
-                    // [(l_pr == 0) || (l_pr >= 1)] [l_assoc != 1] WS "+" WS (r_pr, r_assoc)=UnaryMixedNone(1, 1)
-                    // return (1, 1)
-                    SlotId(893) => {
-                        next = Some(SlotId(894));
-                    }
-                    // UnaryMixedNone(p: i32, a: i32) : [1 >= p] [a != 1] (l_pr, l_assoc)=UnaryMixedNone(p, 0)
-                    // [(l_pr == 0) || (l_pr >= 1)] . [l_assoc != 1] WS "+" WS (r_pr, r_assoc)=UnaryMixedNone(1,
-                    // 1) return (1, 1)
-                    SlotId(894) => {
-                        next = Some(SlotId(895));
-                    }
-                    // UnaryMixedNone(p: i32, a: i32) : [1 >= p] [a != 1] (l_pr, l_assoc)=UnaryMixedNone(p, 0)
-                    // [(l_pr == 0) || (l_pr >= 1)] [l_assoc != 1] . WS "+" WS (r_pr, r_assoc)=UnaryMixedNone(1,
-                    // 1) return (1, 1)
-                    SlotId(895) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(895),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(896), env)
-                            {
-                                // UnaryMixedNone(p: i32, a: i32) : [1 >= p] [a != 1] (l_pr, l_assoc)=UnaryMixedNone(p, 0)
-                                // [(l_pr == 0) || (l_pr >= 1)] [l_assoc != 1] WS . "+" WS (r_pr, r_assoc)=UnaryMixedNone(1,
-                                // 1) return (1, 1)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(896));
-                            }
-                        }
-                    }
-                    // UnaryMixedNone(p: i32, a: i32) : [1 >= p] [a != 1] (l_pr, l_assoc)=UnaryMixedNone(p, 0)
-                    // [(l_pr == 0) || (l_pr >= 1)] [l_assoc != 1] WS . "+" WS (r_pr, r_assoc)=UnaryMixedNone(1,
-                    // 1) return (1, 1)
-                    SlotId(896) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(4),
-                            input_index,
-                            SlotId(896),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(897), env)
-                            {
-                                // UnaryMixedNone(p: i32, a: i32) : [1 >= p] [a != 1] (l_pr, l_assoc)=UnaryMixedNone(p, 0)
-                                // [(l_pr == 0) || (l_pr >= 1)] [l_assoc != 1] WS "+" . WS (r_pr, r_assoc)=UnaryMixedNone(1,
-                                // 1) return (1, 1)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(897));
-                            }
-                        }
-                    }
-                    // UnaryMixedNone(p: i32, a: i32) : [1 >= p] [a != 1] (l_pr, l_assoc)=UnaryMixedNone(p, 0)
-                    // [(l_pr == 0) || (l_pr >= 1)] [l_assoc != 1] WS "+" . WS (r_pr, r_assoc)=UnaryMixedNone(1,
-                    // 1) return (1, 1)
-                    SlotId(897) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(897),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(898), env)
-                            {
-                                // UnaryMixedNone(p: i32, a: i32) : [1 >= p] [a != 1] (l_pr, l_assoc)=UnaryMixedNone(p, 0)
-                                // [(l_pr == 0) || (l_pr >= 1)] [l_assoc != 1] WS "+" WS . (r_pr, r_assoc)=UnaryMixedNone(1,
-                                // 1) return (1, 1)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(898));
-                            }
-                        }
                     }
                     // UnaryMixedNone(p: i32, a: i32) : [1 >= p] [a != 1] (l_pr, l_assoc)=UnaryMixedNone(p, 0)
                     // [(l_pr == 0) || (l_pr >= 1)] [l_assoc != 1] WS "+" WS . (r_pr, r_assoc)=UnaryMixedNone(1,
                     // 1) return (1, 1)
                     SlotId(898) => {
-                        self.create_unary_mixed_none(result, gss_node_id, SlotId(899), env, 1, 1);
-                    }
-                    // UnaryMixedNone(p: i32, a: i32) : [1 >= p] [a != 1] (l_pr, l_assoc)=UnaryMixedNone(p, 0)
-                    // [(l_pr == 0) || (l_pr >= 1)] [l_assoc != 1] WS "+" WS (r_pr, r_assoc)=UnaryMixedNone(1, 1)
-                    // . return (1, 1)
-                    SlotId(899) => {
-                        next = Some(SlotId(900));
+                        self.create_unary_mixed_none(
+                            result,
+                            gss_node_id,
+                            slot_id.next(),
+                            env,
+                            1,
+                            1,
+                        );
                     }
                     // UnaryMixedNone(p: i32, a: i32) : [1 >= p] [a != 1] (l_pr, l_assoc)=UnaryMixedNone(p, 0)
                     // [(l_pr == 0) || (l_pr >= 1)] [l_assoc != 1] WS "+" WS (r_pr, r_assoc)=UnaryMixedNone(1, 1)
@@ -6642,51 +3306,22 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 65537;
                         self.pop(
                             gss_node_id,
-                            SlotId(900),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_UNARY_MIXED_NONE,
                         );
                     }
-                    // UnaryMixedNone(p: i32, a: i32) : . "-" WS UnaryMixedNone(1, 0) return (1, 0)
-                    SlotId(901) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(5),
-                            input_index,
-                            SlotId(901),
-                            Some(gss_node_id),
-                        ) {
-                            // UnaryMixedNone(p: i32, a: i32) : "-" . WS UnaryMixedNone(1, 0) return (1, 0)
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(902));
-                        }
-                    }
-                    // UnaryMixedNone(p: i32, a: i32) : "-" . WS UnaryMixedNone(1, 0) return (1, 0)
-                    SlotId(902) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(902),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(903), env)
-                            {
-                                // UnaryMixedNone(p: i32, a: i32) : "-" WS . UnaryMixedNone(1, 0) return (1, 0)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(903));
-                            }
-                        }
-                    }
                     // UnaryMixedNone(p: i32, a: i32) : "-" WS . UnaryMixedNone(1, 0) return (1, 0)
                     SlotId(903) => {
-                        self.create_unary_mixed_none(result, gss_node_id, SlotId(904), env, 1, 0);
-                    }
-                    // UnaryMixedNone(p: i32, a: i32) : "-" WS UnaryMixedNone(1, 0) . return (1, 0)
-                    SlotId(904) => {
-                        next = Some(SlotId(905));
+                        self.create_unary_mixed_none(
+                            result,
+                            gss_node_id,
+                            slot_id.next(),
+                            env,
+                            1,
+                            0,
+                        );
                     }
                     // UnaryMixedNone(p: i32, a: i32) : "-" WS UnaryMixedNone(1, 0) return (1, 0).
                     SlotId(905) => {
@@ -6696,123 +3331,23 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 65536;
                         self.pop(
                             gss_node_id,
-                            SlotId(905),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_UNARY_MIXED_NONE,
                         );
                     }
-                    // UnaryMixedNone(p: i32, a: i32) : . [1 >= p] (l_pr, l_assoc)=UnaryMixedNone(p, 0) [(l_pr ==
-                    // 0) || (l_pr >= 1)] WS "!" return (0, 0)
-                    SlotId(906) => {
-                        if 1 >= self.lookup(BINDING_P, env.unwrap()) {
-                            next = Some(SlotId(907));
-                        }
-                    }
-                    // UnaryMixedNone(p: i32, a: i32) : [1 >= p] . (l_pr, l_assoc)=UnaryMixedNone(p, 0) [(l_pr ==
-                    // 0) || (l_pr >= 1)] WS "!" return (0, 0)
-                    SlotId(907) => {
-                        self.create_unary_mixed_none(
-                            result,
-                            gss_node_id,
-                            SlotId(908),
-                            env,
-                            self.lookup(BINDING_P, env.unwrap()),
-                            0,
-                        );
-                    }
-                    // UnaryMixedNone(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=UnaryMixedNone(p, 0) . [(l_pr ==
-                    // 0) || (l_pr >= 1)] WS "!" return (0, 0)
-                    SlotId(908) => {
-                        next = Some(SlotId(909));
-                    }
                     // UnaryMixedNone(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=UnaryMixedNone(p, 0) [(l_pr ==
-                    // 0) || (l_pr >= 1)] . WS "!" return (0, 0)
-                    SlotId(909) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(909),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(910), env)
-                            {
-                                // UnaryMixedNone(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=UnaryMixedNone(p, 0) [(l_pr ==
-                                // 0) || (l_pr >= 1)] WS . "!" return (0, 0)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(910));
-                            }
-                        }
-                    }
-                    // UnaryMixedNone(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=UnaryMixedNone(p, 0) [(l_pr ==
-                    // 0) || (l_pr >= 1)] WS . "!" return (0, 0)
-                    SlotId(910) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(29),
-                            input_index,
-                            SlotId(910),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(911), env)
-                            {
-                                // UnaryMixedNone(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=UnaryMixedNone(p, 0) [(l_pr ==
-                                // 0) || (l_pr >= 1)] WS "!" . return (0, 0)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(911));
-                            }
-                        }
-                    }
-                    // UnaryMixedNone(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=UnaryMixedNone(p, 0) [(l_pr ==
-                    // 0) || (l_pr >= 1)] WS "!" . return (0, 0)
-                    SlotId(911) => {
-                        next = Some(SlotId(912));
-                    }
-                    // UnaryMixedNone(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=UnaryMixedNone(p, 0) [(l_pr ==
-                    // 0) || (l_pr >= 1)] WS "!" return (0, 0).
-                    SlotId(912) => {
+                    // 0) || (l_pr >= 1)] WS "!" return (0, 0)., and UnaryMixedNone(p: i32, a: i32) : "a" return
+                    // (0, 0).
+                    SlotId(912) | SlotId(915) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         let return_value = 0;
                         self.pop(
                             gss_node_id,
-                            SlotId(912),
-                            result,
-                            Some(return_value),
-                            &FOLLOW_SET_UNARY_MIXED_NONE,
-                        );
-                    }
-                    // UnaryMixedNone(p: i32, a: i32) : . "a" return (0, 0)
-                    SlotId(913) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(2),
-                            input_index,
-                            SlotId(913),
-                            Some(gss_node_id),
-                        ) {
-                            // UnaryMixedNone(p: i32, a: i32) : "a" . return (0, 0)
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(914));
-                        }
-                    }
-                    // UnaryMixedNone(p: i32, a: i32) : "a" . return (0, 0)
-                    SlotId(914) => {
-                        next = Some(SlotId(915));
-                    }
-                    // UnaryMixedNone(p: i32, a: i32) : "a" return (0, 0).
-                    SlotId(915) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        let return_value = 0;
-                        self.pop(
-                            gss_node_id,
-                            SlotId(915),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_UNARY_MIXED_NONE,
@@ -6823,146 +3358,38 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr, r_assoc, r_label)=DynamicOperand(1, 1, 0)
                     // [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (l_assoc != 1)]
                     // return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr
-                    // == UNDEFINED_PRECEDENCE)) ? 0 : 1, 0)
-                    SlotId(916) => {
+                    // == UNDEFINED_PRECEDENCE)) ? 0 : 1, 0), and Dynamic(p: i32, a: i32) : . (l_pr, l_assoc,
+                    // l_label)=DynamicOperand(p, 0, 0) [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr ==
+                    // 0) || (l_pr >= 1)))] WS "!" return (0, 0, 2)
+                    SlotId(916) | SlotId(931) => {
                         self.create_dynamic_operand(
                             result,
                             gss_node_id,
-                            SlotId(917),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             0,
                             0,
                         );
                     }
-                    // Dynamic(p: i32, a: i32) : (l_pr, l_assoc, l_label)=DynamicOperand(p, 0, 0) . [(l_label ==
-                    // NO_LABEL) || ((2 >> l_label) & 1 == 0)] [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) &&
-                    // ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr, r_assoc, r_label)=DynamicOperand(1, 1, 0)
-                    // [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (l_assoc != 1)]
-                    // return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr
-                    // == UNDEFINED_PRECEDENCE)) ? 0 : 1, 0)
-                    SlotId(917) => {
-                        next = Some(SlotId(918));
-                    }
-                    // Dynamic(p: i32, a: i32) : (l_pr, l_assoc, l_label)=DynamicOperand(p, 0, 0) [(l_label ==
-                    // NO_LABEL) || ((2 >> l_label) & 1 == 0)] . [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) &&
-                    // ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr, r_assoc, r_label)=DynamicOperand(1, 1, 0)
-                    // [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (l_assoc != 1)]
-                    // return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr
-                    // == UNDEFINED_PRECEDENCE)) ? 0 : 1, 0)
-                    SlotId(918) => {
-                        next = Some(SlotId(919));
-                    }
-                    // Dynamic(p: i32, a: i32) : (l_pr, l_assoc, l_label)=DynamicOperand(p, 0, 0) [(l_label ==
-                    // NO_LABEL) || ((2 >> l_label) & 1 == 0)] [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) &&
-                    // ((l_pr == 0) || (l_pr >= 1)))] . WS "+" WS (r_pr, r_assoc, r_label)=DynamicOperand(1, 1,
-                    // 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (l_assoc != 1)]
-                    // return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr
-                    // == UNDEFINED_PRECEDENCE)) ? 0 : 1, 0)
-                    SlotId(919) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(919),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(920), env)
-                            {
-                                // Dynamic(p: i32, a: i32) : (l_pr, l_assoc, l_label)=DynamicOperand(p, 0, 0) [(l_label ==
-                                // NO_LABEL) || ((2 >> l_label) & 1 == 0)] [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) &&
-                                // ((l_pr == 0) || (l_pr >= 1)))] WS . "+" WS (r_pr, r_assoc, r_label)=DynamicOperand(1, 1,
-                                // 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (l_assoc != 1)]
-                                // return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr
-                                // == UNDEFINED_PRECEDENCE)) ? 0 : 1, 0)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(920));
-                            }
-                        }
-                    }
-                    // Dynamic(p: i32, a: i32) : (l_pr, l_assoc, l_label)=DynamicOperand(p, 0, 0) [(l_label ==
-                    // NO_LABEL) || ((2 >> l_label) & 1 == 0)] [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) &&
-                    // ((l_pr == 0) || (l_pr >= 1)))] WS . "+" WS (r_pr, r_assoc, r_label)=DynamicOperand(1, 1,
-                    // 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (l_assoc != 1)]
-                    // return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr
-                    // == UNDEFINED_PRECEDENCE)) ? 0 : 1, 0)
-                    SlotId(920) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(4),
-                            input_index,
-                            SlotId(920),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(921), env)
-                            {
-                                // Dynamic(p: i32, a: i32) : (l_pr, l_assoc, l_label)=DynamicOperand(p, 0, 0) [(l_label ==
-                                // NO_LABEL) || ((2 >> l_label) & 1 == 0)] [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) &&
-                                // ((l_pr == 0) || (l_pr >= 1)))] WS "+" . WS (r_pr, r_assoc, r_label)=DynamicOperand(1, 1,
-                                // 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (l_assoc != 1)]
-                                // return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr
-                                // == UNDEFINED_PRECEDENCE)) ? 0 : 1, 0)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(921));
-                            }
-                        }
-                    }
-                    // Dynamic(p: i32, a: i32) : (l_pr, l_assoc, l_label)=DynamicOperand(p, 0, 0) [(l_label ==
-                    // NO_LABEL) || ((2 >> l_label) & 1 == 0)] [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) &&
-                    // ((l_pr == 0) || (l_pr >= 1)))] WS "+" . WS (r_pr, r_assoc, r_label)=DynamicOperand(1, 1,
-                    // 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (l_assoc != 1)]
-                    // return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr
-                    // == UNDEFINED_PRECEDENCE)) ? 0 : 1, 0)
-                    SlotId(921) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(921),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(922), env)
-                            {
-                                // Dynamic(p: i32, a: i32) : (l_pr, l_assoc, l_label)=DynamicOperand(p, 0, 0) [(l_label ==
-                                // NO_LABEL) || ((2 >> l_label) & 1 == 0)] [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) &&
-                                // ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS . (r_pr, r_assoc, r_label)=DynamicOperand(1, 1,
-                                // 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (l_assoc != 1)]
-                                // return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr
-                                // == UNDEFINED_PRECEDENCE)) ? 0 : 1, 0)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(922));
-                            }
-                        }
-                    }
                     // Dynamic(p: i32, a: i32) : (l_pr, l_assoc, l_label)=DynamicOperand(p, 0, 0) [(l_label ==
                     // NO_LABEL) || ((2 >> l_label) & 1 == 0)] [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) &&
                     // ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS . (r_pr, r_assoc, r_label)=DynamicOperand(1, 1,
                     // 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (l_assoc != 1)]
                     // return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr
-                    // == UNDEFINED_PRECEDENCE)) ? 0 : 1, 0)
-                    SlotId(922) => {
-                        self.create_dynamic_operand(result, gss_node_id, SlotId(923), env, 1, 1, 0);
-                    }
-                    // Dynamic(p: i32, a: i32) : (l_pr, l_assoc, l_label)=DynamicOperand(p, 0, 0) [(l_label ==
-                    // NO_LABEL) || ((2 >> l_label) & 1 == 0)] [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) &&
-                    // ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr, r_assoc, r_label)=DynamicOperand(1, 1, 0)
-                    // . [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (l_assoc != 1)]
-                    // return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr
-                    // == UNDEFINED_PRECEDENCE)) ? 0 : 1, 0)
-                    SlotId(923) => {
-                        next = Some(SlotId(924));
-                    }
-                    // Dynamic(p: i32, a: i32) : (l_pr, l_assoc, l_label)=DynamicOperand(p, 0, 0) [(l_label ==
-                    // NO_LABEL) || ((2 >> l_label) & 1 == 0)] [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) &&
-                    // ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr, r_assoc, r_label)=DynamicOperand(1, 1, 0)
-                    // [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] .
-                    // return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr
-                    // == UNDEFINED_PRECEDENCE)) ? 0 : 1, 0)
-                    SlotId(924) => {
-                        next = Some(SlotId(925));
+                    // == UNDEFINED_PRECEDENCE)) ? 0 : 1, 0), and Dynamic(p: i32, a: i32) : "-" WS . (r_pr,
+                    // r_assoc, r_label)=DynamicOperand(1, 1, 0) return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
+                    // 0, 1)
+                    SlotId(922) | SlotId(928) => {
+                        self.create_dynamic_operand(
+                            result,
+                            gss_node_id,
+                            slot_id.next(),
+                            env,
+                            1,
+                            1,
+                            0,
+                        );
                     }
                     // Dynamic(p: i32, a: i32) : (l_pr, l_assoc, l_label)=DynamicOperand(p, 0, 0) [(l_label ==
                     // NO_LABEL) || ((2 >> l_label) & 1 == 0)] [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p) &&
@@ -6988,57 +3415,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                             }) << (5));
                         self.pop(
                             gss_node_id,
-                            SlotId(925),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_DYNAMIC,
                         );
-                    }
-                    // Dynamic(p: i32, a: i32) : . "-" WS (r_pr, r_assoc, r_label)=DynamicOperand(1, 1, 0) return
-                    // ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 0, 1)
-                    SlotId(926) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(5),
-                            input_index,
-                            SlotId(926),
-                            Some(gss_node_id),
-                        ) {
-                            // Dynamic(p: i32, a: i32) : "-" . WS (r_pr, r_assoc, r_label)=DynamicOperand(1, 1, 0) return
-                            // ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 0, 1)
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(927));
-                        }
-                    }
-                    // Dynamic(p: i32, a: i32) : "-" . WS (r_pr, r_assoc, r_label)=DynamicOperand(1, 1, 0) return
-                    // ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 0, 1)
-                    SlotId(927) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(927),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(928), env)
-                            {
-                                // Dynamic(p: i32, a: i32) : "-" WS . (r_pr, r_assoc, r_label)=DynamicOperand(1, 1, 0) return
-                                // ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 0, 1)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(928));
-                            }
-                        }
-                    }
-                    // Dynamic(p: i32, a: i32) : "-" WS . (r_pr, r_assoc, r_label)=DynamicOperand(1, 1, 0) return
-                    // ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 0, 1)
-                    SlotId(928) => {
-                        self.create_dynamic_operand(result, gss_node_id, SlotId(929), env, 1, 1, 0);
-                    }
-                    // Dynamic(p: i32, a: i32) : "-" WS (r_pr, r_assoc, r_label)=DynamicOperand(1, 1, 0) . return
-                    // ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 0, 1)
-                    SlotId(929) => {
-                        next = Some(SlotId(930));
                     }
                     // Dynamic(p: i32, a: i32) : "-" WS (r_pr, r_assoc, r_label)=DynamicOperand(1, 1, 0) return
                     // ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1, 0, 1).
@@ -7054,81 +3435,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                             | (1);
                         self.pop(
                             gss_node_id,
-                            SlotId(930),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_DYNAMIC,
                         );
-                    }
-                    // Dynamic(p: i32, a: i32) : . (l_pr, l_assoc, l_label)=DynamicOperand(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "!" return (0, 0,
-                    // 2)
-                    SlotId(931) => {
-                        self.create_dynamic_operand(
-                            result,
-                            gss_node_id,
-                            SlotId(932),
-                            env,
-                            self.lookup(BINDING_P, env.unwrap()),
-                            0,
-                            0,
-                        );
-                    }
-                    // Dynamic(p: i32, a: i32) : (l_pr, l_assoc, l_label)=DynamicOperand(p, 0, 0) . [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "!" return (0, 0,
-                    // 2)
-                    SlotId(932) => {
-                        next = Some(SlotId(933));
-                    }
-                    // Dynamic(p: i32, a: i32) : (l_pr, l_assoc, l_label)=DynamicOperand(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] . WS "!" return (0,
-                    // 0, 2)
-                    SlotId(933) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(933),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(934), env)
-                            {
-                                // Dynamic(p: i32, a: i32) : (l_pr, l_assoc, l_label)=DynamicOperand(p, 0, 0) [(l_pr ==
-                                // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS . "!" return (0,
-                                // 0, 2)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(934));
-                            }
-                        }
-                    }
-                    // Dynamic(p: i32, a: i32) : (l_pr, l_assoc, l_label)=DynamicOperand(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS . "!" return (0,
-                    // 0, 2)
-                    SlotId(934) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(29),
-                            input_index,
-                            SlotId(934),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(935), env)
-                            {
-                                // Dynamic(p: i32, a: i32) : (l_pr, l_assoc, l_label)=DynamicOperand(p, 0, 0) [(l_pr ==
-                                // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "!" . return (0,
-                                // 0, 2)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(935));
-                            }
-                        }
-                    }
-                    // Dynamic(p: i32, a: i32) : (l_pr, l_assoc, l_label)=DynamicOperand(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "!" . return (0,
-                    // 0, 2)
-                    SlotId(935) => {
-                        next = Some(SlotId(936));
                     }
                     // Dynamic(p: i32, a: i32) : (l_pr, l_assoc, l_label)=DynamicOperand(p, 0, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "!" return (0, 0,
@@ -7140,29 +3451,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 2;
                         self.pop(
                             gss_node_id,
-                            SlotId(936),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_DYNAMIC,
                         );
-                    }
-                    // Dynamic(p: i32, a: i32) : . "a" return (0, 0, 3)
-                    SlotId(937) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(2),
-                            input_index,
-                            SlotId(937),
-                            Some(gss_node_id),
-                        ) {
-                            // Dynamic(p: i32, a: i32) : "a" . return (0, 0, 3)
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(938));
-                        }
-                    }
-                    // Dynamic(p: i32, a: i32) : "a" . return (0, 0, 3)
-                    SlotId(938) => {
-                        next = Some(SlotId(939));
                     }
                     // Dynamic(p: i32, a: i32) : "a" return (0, 0, 3).
                     SlotId(939) => {
@@ -7172,7 +3465,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 3;
                         self.pop(
                             gss_node_id,
-                            SlotId(939),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_DYNAMIC,
@@ -7184,16 +3477,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_dynamic(
                             result,
                             gss_node_id,
-                            SlotId(941),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             self.lookup(BINDING_A, env.unwrap()),
                         );
-                    }
-                    // DynamicOperand(p: i32, end: i32, a: i32) : (v_pr, v_assoc, v_label)=Dynamic(p, a) . return
-                    // (v_pr, v_assoc, 0)
-                    SlotId(941) => {
-                        next = Some(SlotId(942));
                     }
                     // DynamicOperand(p: i32, end: i32, a: i32) : (v_pr, v_assoc, v_label)=Dynamic(p, a) return
                     // (v_pr, v_assoc, 0).
@@ -7205,29 +3493,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                             | ((self.lookup(BINDING_V_ASSOC, env.unwrap())) << (5));
                         self.pop(
                             gss_node_id,
-                            SlotId(942),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_DYNAMIC_OPERAND,
                         );
-                    }
-                    // DynamicOperand(p: i32, end: i32, a: i32) : . "b" return (UNDEFINED_PRECEDENCE, 0, 1)
-                    SlotId(943) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(6),
-                            input_index,
-                            SlotId(943),
-                            Some(gss_node_id),
-                        ) {
-                            // DynamicOperand(p: i32, end: i32, a: i32) : "b" . return (UNDEFINED_PRECEDENCE, 0, 1)
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(944));
-                        }
-                    }
-                    // DynamicOperand(p: i32, end: i32, a: i32) : "b" . return (UNDEFINED_PRECEDENCE, 0, 1)
-                    SlotId(944) => {
-                        next = Some(SlotId(945));
                     }
                     // DynamicOperand(p: i32, end: i32, a: i32) : "b" return (UNDEFINED_PRECEDENCE, 0, 1).
                     SlotId(945) => {
@@ -7237,21 +3507,25 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = -262143;
                         self.pop(
                             gss_node_id,
-                            SlotId(945),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_DYNAMIC_OPERAND,
                         );
                     }
                     // DynamicFiltered : . (x_pr, x_assoc, x_label)=DynamicOperand(0, 0, 0) [(x_label ==
-                    // NO_LABEL) || ((2 >> x_label) & 1 == 0)]
-                    SlotId(38) => {
-                        self.create_dynamic_operand(result, gss_node_id, SlotId(39), env, 0, 0, 0);
-                    }
-                    // DynamicFiltered : (x_pr, x_assoc, x_label)=DynamicOperand(0, 0, 0) . [(x_label ==
-                    // NO_LABEL) || ((2 >> x_label) & 1 == 0)]
-                    SlotId(39) => {
-                        next = Some(SlotId(40));
+                    // NO_LABEL) || ((2 >> x_label) & 1 == 0)], and StartDynamicOperand : WS .
+                    // start:DynamicOperand(0, 0, 0) WS
+                    SlotId(38) | SlotId(306) => {
+                        self.create_dynamic_operand(
+                            result,
+                            gss_node_id,
+                            slot_id.next(),
+                            env,
+                            0,
+                            0,
+                            0,
+                        );
                     }
                     // DynamicFiltered : (x_pr, x_assoc, x_label)=DynamicOperand(0, 0, 0) [(x_label == NO_LABEL)
                     // || ((2 >> x_label) & 1 == 0)].
@@ -7261,21 +3535,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(40),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_DYNAMIC_FILTERED,
                         );
                     }
                     // DynamicHeadFiltered : . (x_pr, x_assoc, x_label)=Dynamic(0, 0) [(x_label == NO_LABEL) ||
-                    // ((8 >> x_label) & 1 == 0)]
-                    SlotId(41) => {
-                        self.create_dynamic(result, gss_node_id, SlotId(42), env, 0, 0);
-                    }
-                    // DynamicHeadFiltered : (x_pr, x_assoc, x_label)=Dynamic(0, 0) . [(x_label == NO_LABEL) ||
-                    // ((8 >> x_label) & 1 == 0)]
-                    SlotId(42) => {
-                        next = Some(SlotId(43));
+                    // ((8 >> x_label) & 1 == 0)], and StartDynamic : WS . start:Dynamic(0, 0) WS
+                    SlotId(41) | SlotId(302) => {
+                        self.create_dynamic(result, gss_node_id, slot_id.next(), env, 0, 0);
                     }
                     // DynamicHeadFiltered : (x_pr, x_assoc, x_label)=Dynamic(0, 0) [(x_label == NO_LABEL) || ((8
                     // >> x_label) & 1 == 0)].
@@ -7285,7 +3554,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(43),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_DYNAMIC_HEAD_FILTERED,
@@ -7295,103 +3564,17 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "+" WS (r_pr,
                     // r_assoc)=DynamicMultiOperand(2, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 2) [((l_pr ==
                     // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 2)] return ((r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2)), 0)
-                    SlotId(946) => {
+                    // UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2)), 0), and 2 more slots
+                    SlotId(946) | SlotId(960) | SlotId(966) => {
                         self.create_dynamic_multi_operand(
                             result,
                             gss_node_id,
-                            SlotId(947),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             0,
                             0,
                         );
-                    }
-                    // DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) . [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "+" WS (r_pr,
-                    // r_assoc)=DynamicMultiOperand(2, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 2) [((l_pr ==
-                    // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 2)] return ((r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2)), 0)
-                    SlotId(947) => {
-                        next = Some(SlotId(948));
-                    }
-                    // DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] . WS "+" WS (r_pr,
-                    // r_assoc)=DynamicMultiOperand(2, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 2) [((l_pr ==
-                    // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 2)] return ((r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2)), 0)
-                    SlotId(948) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(948),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(949), env)
-                            {
-                                // DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
-                                // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS . "+" WS (r_pr,
-                                // r_assoc)=DynamicMultiOperand(2, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 2) [((l_pr ==
-                                // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 2)] return ((r_pr ==
-                                // UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2)), 0)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(949));
-                            }
-                        }
-                    }
-                    // DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS . "+" WS (r_pr,
-                    // r_assoc)=DynamicMultiOperand(2, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 2) [((l_pr ==
-                    // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 2)] return ((r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2)), 0)
-                    SlotId(949) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(4),
-                            input_index,
-                            SlotId(949),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(950), env)
-                            {
-                                // DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
-                                // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "+" . WS (r_pr,
-                                // r_assoc)=DynamicMultiOperand(2, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 2) [((l_pr ==
-                                // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 2)] return ((r_pr ==
-                                // UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2)), 0)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(950));
-                            }
-                        }
-                    }
-                    // DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "+" . WS (r_pr,
-                    // r_assoc)=DynamicMultiOperand(2, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 2) [((l_pr ==
-                    // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 2)] return ((r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2)), 0)
-                    SlotId(950) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(950),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(951), env)
-                            {
-                                // DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
-                                // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "+" WS . (r_pr,
-                                // r_assoc)=DynamicMultiOperand(2, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 2) [((l_pr ==
-                                // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 2)] return ((r_pr ==
-                                // UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2)), 0)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(951));
-                            }
-                        }
                     }
                     // DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "+" WS . (r_pr,
@@ -7402,7 +3585,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_dynamic_multi_operand(
                             result,
                             gss_node_id,
-                            SlotId(952),
+                            slot_id.next(),
                             env,
                             2,
                             1,
@@ -7415,26 +3598,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     }
                     // DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "+" WS (r_pr,
-                    // r_assoc)=DynamicMultiOperand(2, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 2) . [((l_pr ==
-                    // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 2)] return ((r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2)), 0)
-                    SlotId(952) => {
-                        next = Some(SlotId(953));
-                    }
-                    // DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "+" WS (r_pr,
-                    // r_assoc)=DynamicMultiOperand(2, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 2) [((l_pr ==
-                    // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 2)] . return ((r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2)), 0)
-                    SlotId(953) => {
-                        next = Some(SlotId(954));
-                    }
-                    // DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "+" WS (r_pr,
                     // r_assoc)=DynamicMultiOperand(2, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 2) [((l_pr ==
                     // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 2)] return ((r_pr ==
+                    // UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2)), 0)., and DynamicMulti(p:
+                    // i32, a: i32) : "-" WS (r_pr, r_assoc)=DynamicMultiOperand(2, 1, 0) return ((r_pr ==
                     // UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2)), 0).
-                    SlotId(954) => {
+                    SlotId(954) | SlotId(959) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
@@ -7449,47 +3618,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         }) << (16);
                         self.pop(
                             gss_node_id,
-                            SlotId(954),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_DYNAMIC_MULTI,
                         );
-                    }
-                    // DynamicMulti(p: i32, a: i32) : . "-" WS (r_pr, r_assoc)=DynamicMultiOperand(2, 1, 0)
-                    // return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2)), 0)
-                    SlotId(955) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(5),
-                            input_index,
-                            SlotId(955),
-                            Some(gss_node_id),
-                        ) {
-                            // DynamicMulti(p: i32, a: i32) : "-" . WS (r_pr, r_assoc)=DynamicMultiOperand(2, 1, 0)
-                            // return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2)), 0)
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(956));
-                        }
-                    }
-                    // DynamicMulti(p: i32, a: i32) : "-" . WS (r_pr, r_assoc)=DynamicMultiOperand(2, 1, 0)
-                    // return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2)), 0)
-                    SlotId(956) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(956),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(957), env)
-                            {
-                                // DynamicMulti(p: i32, a: i32) : "-" WS . (r_pr, r_assoc)=DynamicMultiOperand(2, 1, 0)
-                                // return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2)), 0)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(957));
-                            }
-                        }
                     }
                     // DynamicMulti(p: i32, a: i32) : "-" WS . (r_pr, r_assoc)=DynamicMultiOperand(2, 1, 0)
                     // return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2)), 0)
@@ -7497,173 +3630,28 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_dynamic_multi_operand(
                             result,
                             gss_node_id,
-                            SlotId(958),
+                            slot_id.next(),
                             env,
                             2,
                             1,
                             0,
                         );
                     }
-                    // DynamicMulti(p: i32, a: i32) : "-" WS (r_pr, r_assoc)=DynamicMultiOperand(2, 1, 0) .
-                    // return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2)), 0)
-                    SlotId(958) => {
-                        next = Some(SlotId(959));
-                    }
-                    // DynamicMulti(p: i32, a: i32) : "-" WS (r_pr, r_assoc)=DynamicMultiOperand(2, 1, 0) return
-                    // ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2)), 0).
-                    SlotId(959) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        let return_value = (if self.lookup(BINDING_R_PR, env.unwrap()) == -1 {
-                            0
-                        } else {
-                            if self.lookup(BINDING_R_PR, env.unwrap()) == 0 {
-                                2
-                            } else {
-                                std::cmp::min(self.lookup(BINDING_R_PR, env.unwrap()), 2)
-                            }
-                        }) << (16);
-                        self.pop(
-                            gss_node_id,
-                            SlotId(959),
-                            result,
-                            Some(return_value),
-                            &FOLLOW_SET_DYNAMIC_MULTI,
-                        );
-                    }
-                    // DynamicMulti(p: i32, a: i32) : . (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "!" return (0, 0)
-                    SlotId(960) => {
-                        self.create_dynamic_multi_operand(
-                            result,
-                            gss_node_id,
-                            SlotId(961),
-                            env,
-                            self.lookup(BINDING_P, env.unwrap()),
-                            0,
-                            0,
-                        );
-                    }
-                    // DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) . [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "!" return (0, 0)
-                    SlotId(961) => {
-                        next = Some(SlotId(962));
-                    }
                     // DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] . WS "!" return (0,
-                    // 0)
-                    SlotId(962) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(962),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(963), env)
-                            {
-                                // DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
-                                // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS . "!" return (0,
-                                // 0)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(963));
-                            }
-                        }
-                    }
-                    // DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS . "!" return (0,
-                    // 0)
-                    SlotId(963) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(29),
-                            input_index,
-                            SlotId(963),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(964), env)
-                            {
-                                // DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
-                                // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "!" . return (0,
-                                // 0)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(964));
-                            }
-                        }
-                    }
-                    // DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "!" . return (0,
-                    // 0)
-                    SlotId(964) => {
-                        next = Some(SlotId(965));
-                    }
-                    // DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "!" return (0, 0).
-                    SlotId(965) => {
+                    // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "!" return (0,
+                    // 0)., and DynamicMulti(p: i32, a: i32) : "a" return (0, 0).
+                    SlotId(965) | SlotId(977) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         let return_value = 0;
                         self.pop(
                             gss_node_id,
-                            SlotId(965),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_DYNAMIC_MULTI,
                         );
-                    }
-                    // DynamicMulti(p: i32, a: i32) : . (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS ";" WS (r_pr,
-                    // r_assoc)=DynamicMultiOperand(1, 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
-                    // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
-                    // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
-                    SlotId(966) => {
-                        self.create_dynamic_multi_operand(
-                            result,
-                            gss_node_id,
-                            SlotId(967),
-                            env,
-                            self.lookup(BINDING_P, env.unwrap()),
-                            0,
-                            0,
-                        );
-                    }
-                    // DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) . [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS ";" WS (r_pr,
-                    // r_assoc)=DynamicMultiOperand(1, 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
-                    // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
-                    // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
-                    SlotId(967) => {
-                        next = Some(SlotId(968));
-                    }
-                    // DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] . WS ";" WS (r_pr,
-                    // r_assoc)=DynamicMultiOperand(1, 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
-                    // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
-                    // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
-                    SlotId(968) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(968),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(969), env)
-                            {
-                                // DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
-                                // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS . ";" WS (r_pr,
-                                // r_assoc)=DynamicMultiOperand(1, 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
-                                // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
-                                // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(969));
-                            }
-                        }
                     }
                     // DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS . ";" WS (r_pr,
@@ -7674,46 +3662,18 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(38),
                             input_index,
-                            SlotId(969),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(970), env)
-                            {
-                                // DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
-                                // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS ";" . WS (r_pr,
-                                // r_assoc)=DynamicMultiOperand(1, 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
-                                // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
-                                // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(970));
-                            }
-                        }
-                    }
-                    // DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS ";" . WS (r_pr,
-                    // r_assoc)=DynamicMultiOperand(1, 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
-                    // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
-                    // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
-                    SlotId(970) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(970),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(971), env)
-                            {
-                                // DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
-                                // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS ";" WS . (r_pr,
-                                // r_assoc)=DynamicMultiOperand(1, 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
-                                // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
-                                // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(971));
+                                next = Some(slot_id.next());
                             }
                         }
                     }
@@ -7726,28 +3686,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_dynamic_multi_operand(
                             result,
                             gss_node_id,
-                            SlotId(972),
+                            slot_id.next(),
                             env,
                             1,
                             1,
                             0,
                         );
-                    }
-                    // DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS ";" WS (r_pr,
-                    // r_assoc)=DynamicMultiOperand(1, 1, 0) . [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
-                    // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
-                    // ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
-                    SlotId(972) => {
-                        next = Some(SlotId(973));
-                    }
-                    // DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS ";" WS (r_pr,
-                    // r_assoc)=DynamicMultiOperand(1, 1, 0) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
-                    // UNDEFINED_PRECEDENCE)) || (l_assoc != 1)] . return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 :
-                    // 1, ((l_pr == UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) ? 0 : 1)
-                    SlotId(973) => {
-                        next = Some(SlotId(974));
                     }
                     // DynamicMulti(p: i32, a: i32) : (l_pr, l_assoc)=DynamicMultiOperand(p, 0, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS ";" WS (r_pr,
@@ -7772,39 +3716,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                             });
                         self.pop(
                             gss_node_id,
-                            SlotId(974),
-                            result,
-                            Some(return_value),
-                            &FOLLOW_SET_DYNAMIC_MULTI,
-                        );
-                    }
-                    // DynamicMulti(p: i32, a: i32) : . "a" return (0, 0)
-                    SlotId(975) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(2),
-                            input_index,
-                            SlotId(975),
-                            Some(gss_node_id),
-                        ) {
-                            // DynamicMulti(p: i32, a: i32) : "a" . return (0, 0)
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(976));
-                        }
-                    }
-                    // DynamicMulti(p: i32, a: i32) : "a" . return (0, 0)
-                    SlotId(976) => {
-                        next = Some(SlotId(977));
-                    }
-                    // DynamicMulti(p: i32, a: i32) : "a" return (0, 0).
-                    SlotId(977) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        let return_value = 0;
-                        self.pop(
-                            gss_node_id,
-                            SlotId(977),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_DYNAMIC_MULTI,
@@ -7816,16 +3728,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_dynamic_multi(
                             result,
                             gss_node_id,
-                            SlotId(979),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             self.lookup(BINDING_A, env.unwrap()),
                         );
-                    }
-                    // DynamicMultiOperand(p: i32, end: i32, a: i32) : (v_pr, v_assoc)=DynamicMulti(p, a) .
-                    // return (v_pr, v_assoc)
-                    SlotId(979) => {
-                        next = Some(SlotId(980));
                     }
                     // DynamicMultiOperand(p: i32, end: i32, a: i32) : (v_pr, v_assoc)=DynamicMulti(p, a) return
                     // (v_pr, v_assoc).
@@ -7837,29 +3744,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                             | (self.lookup(BINDING_V_ASSOC, env.unwrap()));
                         self.pop(
                             gss_node_id,
-                            SlotId(980),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_DYNAMIC_MULTI_OPERAND,
                         );
-                    }
-                    // DynamicMultiOperand(p: i32, end: i32, a: i32) : . "b" return (UNDEFINED_PRECEDENCE, 0)
-                    SlotId(981) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(6),
-                            input_index,
-                            SlotId(981),
-                            Some(gss_node_id),
-                        ) {
-                            // DynamicMultiOperand(p: i32, end: i32, a: i32) : "b" . return (UNDEFINED_PRECEDENCE, 0)
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(982));
-                        }
-                    }
-                    // DynamicMultiOperand(p: i32, end: i32, a: i32) : "b" . return (UNDEFINED_PRECEDENCE, 0)
-                    SlotId(982) => {
-                        next = Some(SlotId(983));
                     }
                     // DynamicMultiOperand(p: i32, end: i32, a: i32) : "b" return (UNDEFINED_PRECEDENCE, 0).
                     SlotId(983) => {
@@ -7869,111 +3758,38 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = -65536;
                         self.pop(
                             gss_node_id,
-                            SlotId(983),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_DYNAMIC_MULTI_OPERAND,
                         );
                     }
-                    // NullableBoundaryPrefix(p: i32) : . "a" return 0
-                    SlotId(984) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(2),
-                            input_index,
-                            SlotId(984),
-                            Some(gss_node_id),
-                        ) {
-                            // NullableBoundaryPrefix(p: i32) : "a" . return 0
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(985));
-                        }
-                    }
-                    // NullableBoundaryPrefix(p: i32) : "a" . return 0
-                    SlotId(985) => {
-                        next = Some(SlotId(986));
-                    }
-                    // NullableBoundaryPrefix(p: i32) : "a" return 0.
-                    SlotId(986) => {
+                    // NullableBoundaryPrefix(p: i32) : "a" return 0., and NullableBoundaryPrefix(p: i32) : "-"
+                    // WS NullableBoundaryRight return 0.
+                    SlotId(986) | SlotId(991) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         let return_value = 0;
                         self.pop(
                             gss_node_id,
-                            SlotId(986),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_NULLABLE_BOUNDARY_PREFIX,
                         );
                     }
-                    // NullableBoundaryPrefix(p: i32) : . "-" WS NullableBoundaryRight return 0
-                    SlotId(987) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(5),
-                            input_index,
-                            SlotId(987),
-                            Some(gss_node_id),
-                        ) {
-                            // NullableBoundaryPrefix(p: i32) : "-" . WS NullableBoundaryRight return 0
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(988));
-                        }
-                    }
-                    // NullableBoundaryPrefix(p: i32) : "-" . WS NullableBoundaryRight return 0
-                    SlotId(988) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(988),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(989), env)
-                            {
-                                // NullableBoundaryPrefix(p: i32) : "-" WS . NullableBoundaryRight return 0
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(989));
-                            }
-                        }
-                    }
-                    // NullableBoundaryPrefix(p: i32) : "-" WS . NullableBoundaryRight return 0
-                    SlotId(989) => {
+                    // NullableBoundaryPrefix(p: i32) : "-" WS . NullableBoundaryRight return 0, and
+                    // StartNullableBoundaryRight : WS . start:NullableBoundaryRight WS
+                    SlotId(989) | SlotId(330) => {
                         self.create(
                             NonterminalId(11),
                             &PREDICTION_NULLABLE_BOUNDARY_RIGHT,
                             result,
                             gss_node_id,
-                            SlotId(990),
+                            slot_id.next(),
                             env,
                         );
-                    }
-                    // NullableBoundaryPrefix(p: i32) : "-" WS NullableBoundaryRight . return 0
-                    SlotId(990) => {
-                        next = Some(SlotId(991));
-                    }
-                    // NullableBoundaryPrefix(p: i32) : "-" WS NullableBoundaryRight return 0.
-                    SlotId(991) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        let return_value = 0;
-                        self.pop(
-                            gss_node_id,
-                            SlotId(991),
-                            result,
-                            Some(return_value),
-                            &FOLLOW_SET_NULLABLE_BOUNDARY_PREFIX,
-                        );
-                    }
-                    // NullableBoundaryPrefix(p: i32) : . [1 >= p] l_pr=NullableBoundaryPrefix(p) [(l_pr == 0) ||
-                    // (l_pr >= 1)] WS "+" WS NullableBoundaryPrefix(2) return 1
-                    SlotId(992) => {
-                        if 1 >= self.lookup(BINDING_P, env.unwrap()) {
-                            next = Some(SlotId(993));
-                        }
                     }
                     // NullableBoundaryPrefix(p: i32) : [1 >= p] . l_pr=NullableBoundaryPrefix(p) [(l_pr == 0) ||
                     // (l_pr >= 1)] WS "+" WS NullableBoundaryPrefix(2) return 1
@@ -7981,75 +3797,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_nullable_boundary_prefix(
                             result,
                             gss_node_id,
-                            SlotId(994),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                         );
-                    }
-                    // NullableBoundaryPrefix(p: i32) : [1 >= p] l_pr=NullableBoundaryPrefix(p) . [(l_pr == 0) ||
-                    // (l_pr >= 1)] WS "+" WS NullableBoundaryPrefix(2) return 1
-                    SlotId(994) => {
-                        next = Some(SlotId(995));
-                    }
-                    // NullableBoundaryPrefix(p: i32) : [1 >= p] l_pr=NullableBoundaryPrefix(p) [(l_pr == 0) ||
-                    // (l_pr >= 1)] . WS "+" WS NullableBoundaryPrefix(2) return 1
-                    SlotId(995) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(995),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(996), env)
-                            {
-                                // NullableBoundaryPrefix(p: i32) : [1 >= p] l_pr=NullableBoundaryPrefix(p) [(l_pr == 0) ||
-                                // (l_pr >= 1)] WS . "+" WS NullableBoundaryPrefix(2) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(996));
-                            }
-                        }
-                    }
-                    // NullableBoundaryPrefix(p: i32) : [1 >= p] l_pr=NullableBoundaryPrefix(p) [(l_pr == 0) ||
-                    // (l_pr >= 1)] WS . "+" WS NullableBoundaryPrefix(2) return 1
-                    SlotId(996) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(4),
-                            input_index,
-                            SlotId(996),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(997), env)
-                            {
-                                // NullableBoundaryPrefix(p: i32) : [1 >= p] l_pr=NullableBoundaryPrefix(p) [(l_pr == 0) ||
-                                // (l_pr >= 1)] WS "+" . WS NullableBoundaryPrefix(2) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(997));
-                            }
-                        }
-                    }
-                    // NullableBoundaryPrefix(p: i32) : [1 >= p] l_pr=NullableBoundaryPrefix(p) [(l_pr == 0) ||
-                    // (l_pr >= 1)] WS "+" . WS NullableBoundaryPrefix(2) return 1
-                    SlotId(997) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(997),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(998), env)
-                            {
-                                // NullableBoundaryPrefix(p: i32) : [1 >= p] l_pr=NullableBoundaryPrefix(p) [(l_pr == 0) ||
-                                // (l_pr >= 1)] WS "+" WS . NullableBoundaryPrefix(2) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(998));
-                            }
-                        }
                     }
                     // NullableBoundaryPrefix(p: i32) : [1 >= p] l_pr=NullableBoundaryPrefix(p) [(l_pr == 0) ||
                     // (l_pr >= 1)] WS "+" WS . NullableBoundaryPrefix(2) return 1
@@ -8057,15 +3808,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_nullable_boundary_prefix(
                             result,
                             gss_node_id,
-                            SlotId(999),
+                            slot_id.next(),
                             env,
                             2,
                         );
-                    }
-                    // NullableBoundaryPrefix(p: i32) : [1 >= p] l_pr=NullableBoundaryPrefix(p) [(l_pr == 0) ||
-                    // (l_pr >= 1)] WS "+" WS NullableBoundaryPrefix(2) . return 1
-                    SlotId(999) => {
-                        next = Some(SlotId(1000));
                     }
                     // NullableBoundaryPrefix(p: i32) : [1 >= p] l_pr=NullableBoundaryPrefix(p) [(l_pr == 0) ||
                     // (l_pr >= 1)] WS "+" WS NullableBoundaryPrefix(2) return 1.
@@ -8076,48 +3822,32 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 1;
                         self.pop(
                             gss_node_id,
-                            SlotId(1000),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_NULLABLE_BOUNDARY_PREFIX,
                         );
                     }
-                    // NullableBoundaryRight : . NullableBoundaryPrefix(0) WS NullableBoundaryOpt
-                    SlotId(44) => {
+                    // NullableBoundaryRight : . NullableBoundaryPrefix(0) WS NullableBoundaryOpt, and
+                    // StartNullableBoundaryPrefix : WS . start:NullableBoundaryPrefix(0) WS
+                    SlotId(44) | SlotId(326) => {
                         self.create_nullable_boundary_prefix(
                             result,
                             gss_node_id,
-                            SlotId(45),
+                            slot_id.next(),
                             env,
                             0,
                         );
                     }
-                    // NullableBoundaryRight : NullableBoundaryPrefix(0) . WS NullableBoundaryOpt
-                    SlotId(45) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(45),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(46), env)
-                            {
-                                // NullableBoundaryRight : NullableBoundaryPrefix(0) WS . NullableBoundaryOpt
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(46));
-                            }
-                        }
-                    }
-                    // NullableBoundaryRight : NullableBoundaryPrefix(0) WS . NullableBoundaryOpt
-                    SlotId(46) => {
+                    // NullableBoundaryRight : NullableBoundaryPrefix(0) WS . NullableBoundaryOpt, and 3 more
+                    // slots
+                    SlotId(46) | SlotId(51) | SlotId(57) | SlotId(334) => {
                         self.create(
                             NonterminalId(12),
                             &PREDICTION_NULLABLE_BOUNDARY_OPT,
                             result,
                             gss_node_id,
-                            SlotId(47),
+                            slot_id.next(),
                             env,
                         );
                     }
@@ -8128,24 +3858,23 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(47),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_NULLABLE_BOUNDARY_RIGHT,
                         );
                     }
-                    // NullableBoundaryOpt : . "!"
-                    SlotId(48) => {
+                    // NullableBoundaryOpt : . "!", and 2 more slots
+                    SlotId(48) | SlotId(1054) | SlotId(1073) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(29),
                             input_index,
-                            SlotId(48),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // NullableBoundaryOpt : "!".
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(49));
+                            next = Some(slot_id.next());
                         }
                     }
                     // NullableBoundaryOpt : "!".
@@ -8155,7 +3884,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(49),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_NULLABLE_BOUNDARY_OPT,
@@ -8166,121 +3895,38 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let result = self.get_or_create_epsilon_node(input_index);
                         self.pop(
                             gss_node_id,
-                            SlotId(50),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_NULLABLE_BOUNDARY_OPT,
                         );
                     }
-                    // NullableBoundaryPostfix(p: i32) : . "a" return 0
-                    SlotId(1001) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(2),
-                            input_index,
-                            SlotId(1001),
-                            Some(gss_node_id),
-                        ) {
-                            // NullableBoundaryPostfix(p: i32) : "a" . return 0
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(1002));
-                        }
-                    }
-                    // NullableBoundaryPostfix(p: i32) : "a" . return 0
-                    SlotId(1002) => {
-                        next = Some(SlotId(1003));
-                    }
-                    // NullableBoundaryPostfix(p: i32) : "a" return 0.
-                    SlotId(1003) => {
+                    // NullableBoundaryPostfix(p: i32) : "a" return 0., and NullableBoundaryPostfix(p: i32) :
+                    // NullableBoundaryLeft WS "-" return 0.
+                    SlotId(1003) | SlotId(1008) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         let return_value = 0;
                         self.pop(
                             gss_node_id,
-                            SlotId(1003),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_NULLABLE_BOUNDARY_POSTFIX,
                         );
                     }
-                    // NullableBoundaryPostfix(p: i32) : . NullableBoundaryLeft WS "-" return 0
-                    SlotId(1004) => {
+                    // NullableBoundaryPostfix(p: i32) : . NullableBoundaryLeft WS "-" return 0, and
+                    // StartNullableBoundaryLeft : WS . start:NullableBoundaryLeft WS
+                    SlotId(1004) | SlotId(342) => {
                         self.create(
                             NonterminalId(13),
                             &PREDICTION_NULLABLE_BOUNDARY_LEFT,
                             result,
                             gss_node_id,
-                            SlotId(1005),
+                            slot_id.next(),
                             env,
                         );
-                    }
-                    // NullableBoundaryPostfix(p: i32) : NullableBoundaryLeft . WS "-" return 0
-                    SlotId(1005) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(1005),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) = self.create_intermediate_node(
-                                result,
-                                right_child,
-                                SlotId(1006),
-                                env,
-                            ) {
-                                // NullableBoundaryPostfix(p: i32) : NullableBoundaryLeft WS . "-" return 0
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(1006));
-                            }
-                        }
-                    }
-                    // NullableBoundaryPostfix(p: i32) : NullableBoundaryLeft WS . "-" return 0
-                    SlotId(1006) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(5),
-                            input_index,
-                            SlotId(1006),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) = self.create_intermediate_node(
-                                result,
-                                right_child,
-                                SlotId(1007),
-                                env,
-                            ) {
-                                // NullableBoundaryPostfix(p: i32) : NullableBoundaryLeft WS "-" . return 0
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(1007));
-                            }
-                        }
-                    }
-                    // NullableBoundaryPostfix(p: i32) : NullableBoundaryLeft WS "-" . return 0
-                    SlotId(1007) => {
-                        next = Some(SlotId(1008));
-                    }
-                    // NullableBoundaryPostfix(p: i32) : NullableBoundaryLeft WS "-" return 0.
-                    SlotId(1008) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        let return_value = 0;
-                        self.pop(
-                            gss_node_id,
-                            SlotId(1008),
-                            result,
-                            Some(return_value),
-                            &FOLLOW_SET_NULLABLE_BOUNDARY_POSTFIX,
-                        );
-                    }
-                    // NullableBoundaryPostfix(p: i32) : . [1 >= p] l_pr=NullableBoundaryPostfix(p) [(l_pr == 0)
-                    // || (l_pr >= 2)] WS "+" WS NullableBoundaryPostfix(1) return 1
-                    SlotId(1009) => {
-                        if 1 >= self.lookup(BINDING_P, env.unwrap()) {
-                            next = Some(SlotId(1010));
-                        }
                     }
                     // NullableBoundaryPostfix(p: i32) : [1 >= p] . l_pr=NullableBoundaryPostfix(p) [(l_pr == 0)
                     // || (l_pr >= 2)] WS "+" WS NullableBoundaryPostfix(1) return 1
@@ -8288,84 +3934,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_nullable_boundary_postfix(
                             result,
                             gss_node_id,
-                            SlotId(1011),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                         );
-                    }
-                    // NullableBoundaryPostfix(p: i32) : [1 >= p] l_pr=NullableBoundaryPostfix(p) . [(l_pr == 0)
-                    // || (l_pr >= 2)] WS "+" WS NullableBoundaryPostfix(1) return 1
-                    SlotId(1011) => {
-                        next = Some(SlotId(1012));
-                    }
-                    // NullableBoundaryPostfix(p: i32) : [1 >= p] l_pr=NullableBoundaryPostfix(p) [(l_pr == 0) ||
-                    // (l_pr >= 2)] . WS "+" WS NullableBoundaryPostfix(1) return 1
-                    SlotId(1012) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(1012),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) = self.create_intermediate_node(
-                                result,
-                                right_child,
-                                SlotId(1013),
-                                env,
-                            ) {
-                                // NullableBoundaryPostfix(p: i32) : [1 >= p] l_pr=NullableBoundaryPostfix(p) [(l_pr == 0) ||
-                                // (l_pr >= 2)] WS . "+" WS NullableBoundaryPostfix(1) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(1013));
-                            }
-                        }
-                    }
-                    // NullableBoundaryPostfix(p: i32) : [1 >= p] l_pr=NullableBoundaryPostfix(p) [(l_pr == 0) ||
-                    // (l_pr >= 2)] WS . "+" WS NullableBoundaryPostfix(1) return 1
-                    SlotId(1013) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(4),
-                            input_index,
-                            SlotId(1013),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) = self.create_intermediate_node(
-                                result,
-                                right_child,
-                                SlotId(1014),
-                                env,
-                            ) {
-                                // NullableBoundaryPostfix(p: i32) : [1 >= p] l_pr=NullableBoundaryPostfix(p) [(l_pr == 0) ||
-                                // (l_pr >= 2)] WS "+" . WS NullableBoundaryPostfix(1) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(1014));
-                            }
-                        }
-                    }
-                    // NullableBoundaryPostfix(p: i32) : [1 >= p] l_pr=NullableBoundaryPostfix(p) [(l_pr == 0) ||
-                    // (l_pr >= 2)] WS "+" . WS NullableBoundaryPostfix(1) return 1
-                    SlotId(1014) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(1014),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) = self.create_intermediate_node(
-                                result,
-                                right_child,
-                                SlotId(1015),
-                                env,
-                            ) {
-                                // NullableBoundaryPostfix(p: i32) : [1 >= p] l_pr=NullableBoundaryPostfix(p) [(l_pr == 0) ||
-                                // (l_pr >= 2)] WS "+" WS . NullableBoundaryPostfix(1) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(1015));
-                            }
-                        }
                     }
                     // NullableBoundaryPostfix(p: i32) : [1 >= p] l_pr=NullableBoundaryPostfix(p) [(l_pr == 0) ||
                     // (l_pr >= 2)] WS "+" WS . NullableBoundaryPostfix(1) return 1
@@ -8373,15 +3945,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_nullable_boundary_postfix(
                             result,
                             gss_node_id,
-                            SlotId(1016),
+                            slot_id.next(),
                             env,
                             1,
                         );
-                    }
-                    // NullableBoundaryPostfix(p: i32) : [1 >= p] l_pr=NullableBoundaryPostfix(p) [(l_pr == 0) ||
-                    // (l_pr >= 2)] WS "+" WS NullableBoundaryPostfix(1) . return 1
-                    SlotId(1016) => {
-                        next = Some(SlotId(1017));
                     }
                     // NullableBoundaryPostfix(p: i32) : [1 >= p] l_pr=NullableBoundaryPostfix(p) [(l_pr == 0) ||
                     // (l_pr >= 2)] WS "+" WS NullableBoundaryPostfix(1) return 1.
@@ -8392,47 +3959,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 1;
                         self.pop(
                             gss_node_id,
-                            SlotId(1017),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_NULLABLE_BOUNDARY_POSTFIX,
                         );
                     }
-                    // NullableBoundaryLeft : . NullableBoundaryOpt WS NullableBoundaryPostfix(0)
-                    SlotId(51) => {
-                        self.create(
-                            NonterminalId(12),
-                            &PREDICTION_NULLABLE_BOUNDARY_OPT,
-                            result,
-                            gss_node_id,
-                            SlotId(52),
-                            env,
-                        );
-                    }
-                    // NullableBoundaryLeft : NullableBoundaryOpt . WS NullableBoundaryPostfix(0)
-                    SlotId(52) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(52),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(53), env)
-                            {
-                                // NullableBoundaryLeft : NullableBoundaryOpt WS . NullableBoundaryPostfix(0)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(53));
-                            }
-                        }
-                    }
-                    // NullableBoundaryLeft : NullableBoundaryOpt WS . NullableBoundaryPostfix(0)
-                    SlotId(53) => {
+                    // NullableBoundaryLeft : NullableBoundaryOpt WS . NullableBoundaryPostfix(0), and
+                    // StartNullableBoundaryPostfix : WS . start:NullableBoundaryPostfix(0) WS
+                    SlotId(53) | SlotId(338) => {
                         self.create_nullable_boundary_postfix(
                             result,
                             gss_node_id,
-                            SlotId(54),
+                            slot_id.next(),
                             env,
                             0,
                         );
@@ -8444,259 +3983,53 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(54),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_NULLABLE_BOUNDARY_LEFT,
                         );
                     }
-                    // NullableBoundaryBinary(p: i32) : . "a" return 0
-                    SlotId(1018) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(2),
-                            input_index,
-                            SlotId(1018),
-                            Some(gss_node_id),
-                        ) {
-                            // NullableBoundaryBinary(p: i32) : "a" . return 0
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(1019));
-                        }
-                    }
-                    // NullableBoundaryBinary(p: i32) : "a" . return 0
-                    SlotId(1019) => {
-                        next = Some(SlotId(1020));
-                    }
-                    // NullableBoundaryBinary(p: i32) : "a" return 0.
-                    SlotId(1020) => {
+                    // NullableBoundaryBinary(p: i32) : "a" return 0., and NullableBoundaryBinary(p: i32) : [2 >=
+                    // p] l_pr=NullableBoundaryBinary(p) [(l_pr == 0) || (l_pr >= 2)] WS "*" WS
+                    // NullableBoundaryOperand return 0.
+                    SlotId(1020) | SlotId(1029) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         let return_value = 0;
                         self.pop(
                             gss_node_id,
-                            SlotId(1020),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_NULLABLE_BOUNDARY_BINARY,
                         );
                     }
-                    // NullableBoundaryBinary(p: i32) : . [2 >= p] l_pr=NullableBoundaryBinary(p) [(l_pr == 0) ||
-                    // (l_pr >= 2)] WS "*" WS NullableBoundaryOperand return 0
-                    SlotId(1021) => {
-                        if 2 >= self.lookup(BINDING_P, env.unwrap()) {
-                            next = Some(SlotId(1022));
-                        }
-                    }
                     // NullableBoundaryBinary(p: i32) : [2 >= p] . l_pr=NullableBoundaryBinary(p) [(l_pr == 0) ||
-                    // (l_pr >= 2)] WS "*" WS NullableBoundaryOperand return 0
-                    SlotId(1022) => {
+                    // (l_pr >= 2)] WS "*" WS NullableBoundaryOperand return 0, and NullableBoundaryBinary(p:
+                    // i32) : [1 >= p] . l_pr=NullableBoundaryBinary(p) [(l_pr == 0) || (l_pr >= 1)] WS "+" WS
+                    // NullableBoundaryBinary(2) return 1
+                    SlotId(1022) | SlotId(1031) => {
                         self.create_nullable_boundary_binary(
                             result,
                             gss_node_id,
-                            SlotId(1023),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                         );
                     }
-                    // NullableBoundaryBinary(p: i32) : [2 >= p] l_pr=NullableBoundaryBinary(p) . [(l_pr == 0) ||
-                    // (l_pr >= 2)] WS "*" WS NullableBoundaryOperand return 0
-                    SlotId(1023) => {
-                        next = Some(SlotId(1024));
-                    }
                     // NullableBoundaryBinary(p: i32) : [2 >= p] l_pr=NullableBoundaryBinary(p) [(l_pr == 0) ||
-                    // (l_pr >= 2)] . WS "*" WS NullableBoundaryOperand return 0
-                    SlotId(1024) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(1024),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) = self.create_intermediate_node(
-                                result,
-                                right_child,
-                                SlotId(1025),
-                                env,
-                            ) {
-                                // NullableBoundaryBinary(p: i32) : [2 >= p] l_pr=NullableBoundaryBinary(p) [(l_pr == 0) ||
-                                // (l_pr >= 2)] WS . "*" WS NullableBoundaryOperand return 0
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(1025));
-                            }
-                        }
-                    }
-                    // NullableBoundaryBinary(p: i32) : [2 >= p] l_pr=NullableBoundaryBinary(p) [(l_pr == 0) ||
-                    // (l_pr >= 2)] WS . "*" WS NullableBoundaryOperand return 0
-                    SlotId(1025) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(3),
-                            input_index,
-                            SlotId(1025),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) = self.create_intermediate_node(
-                                result,
-                                right_child,
-                                SlotId(1026),
-                                env,
-                            ) {
-                                // NullableBoundaryBinary(p: i32) : [2 >= p] l_pr=NullableBoundaryBinary(p) [(l_pr == 0) ||
-                                // (l_pr >= 2)] WS "*" . WS NullableBoundaryOperand return 0
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(1026));
-                            }
-                        }
-                    }
-                    // NullableBoundaryBinary(p: i32) : [2 >= p] l_pr=NullableBoundaryBinary(p) [(l_pr == 0) ||
-                    // (l_pr >= 2)] WS "*" . WS NullableBoundaryOperand return 0
-                    SlotId(1026) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(1026),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) = self.create_intermediate_node(
-                                result,
-                                right_child,
-                                SlotId(1027),
-                                env,
-                            ) {
-                                // NullableBoundaryBinary(p: i32) : [2 >= p] l_pr=NullableBoundaryBinary(p) [(l_pr == 0) ||
-                                // (l_pr >= 2)] WS "*" WS . NullableBoundaryOperand return 0
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(1027));
-                            }
-                        }
-                    }
-                    // NullableBoundaryBinary(p: i32) : [2 >= p] l_pr=NullableBoundaryBinary(p) [(l_pr == 0) ||
-                    // (l_pr >= 2)] WS "*" WS . NullableBoundaryOperand return 0
-                    SlotId(1027) => {
+                    // (l_pr >= 2)] WS "*" WS . NullableBoundaryOperand return 0, and
+                    // StartNullableBoundaryOperand : WS . start:NullableBoundaryOperand WS
+                    SlotId(1027) | SlotId(350) => {
                         self.create(
                             NonterminalId(14),
                             &PREDICTION_NULLABLE_BOUNDARY_OPERAND,
                             result,
                             gss_node_id,
-                            SlotId(1028),
+                            slot_id.next(),
                             env,
                         );
-                    }
-                    // NullableBoundaryBinary(p: i32) : [2 >= p] l_pr=NullableBoundaryBinary(p) [(l_pr == 0) ||
-                    // (l_pr >= 2)] WS "*" WS NullableBoundaryOperand . return 0
-                    SlotId(1028) => {
-                        next = Some(SlotId(1029));
-                    }
-                    // NullableBoundaryBinary(p: i32) : [2 >= p] l_pr=NullableBoundaryBinary(p) [(l_pr == 0) ||
-                    // (l_pr >= 2)] WS "*" WS NullableBoundaryOperand return 0.
-                    SlotId(1029) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        let return_value = 0;
-                        self.pop(
-                            gss_node_id,
-                            SlotId(1029),
-                            result,
-                            Some(return_value),
-                            &FOLLOW_SET_NULLABLE_BOUNDARY_BINARY,
-                        );
-                    }
-                    // NullableBoundaryBinary(p: i32) : . [1 >= p] l_pr=NullableBoundaryBinary(p) [(l_pr == 0) ||
-                    // (l_pr >= 1)] WS "+" WS NullableBoundaryBinary(2) return 1
-                    SlotId(1030) => {
-                        if 1 >= self.lookup(BINDING_P, env.unwrap()) {
-                            next = Some(SlotId(1031));
-                        }
-                    }
-                    // NullableBoundaryBinary(p: i32) : [1 >= p] . l_pr=NullableBoundaryBinary(p) [(l_pr == 0) ||
-                    // (l_pr >= 1)] WS "+" WS NullableBoundaryBinary(2) return 1
-                    SlotId(1031) => {
-                        self.create_nullable_boundary_binary(
-                            result,
-                            gss_node_id,
-                            SlotId(1032),
-                            env,
-                            self.lookup(BINDING_P, env.unwrap()),
-                        );
-                    }
-                    // NullableBoundaryBinary(p: i32) : [1 >= p] l_pr=NullableBoundaryBinary(p) . [(l_pr == 0) ||
-                    // (l_pr >= 1)] WS "+" WS NullableBoundaryBinary(2) return 1
-                    SlotId(1032) => {
-                        next = Some(SlotId(1033));
-                    }
-                    // NullableBoundaryBinary(p: i32) : [1 >= p] l_pr=NullableBoundaryBinary(p) [(l_pr == 0) ||
-                    // (l_pr >= 1)] . WS "+" WS NullableBoundaryBinary(2) return 1
-                    SlotId(1033) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(1033),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) = self.create_intermediate_node(
-                                result,
-                                right_child,
-                                SlotId(1034),
-                                env,
-                            ) {
-                                // NullableBoundaryBinary(p: i32) : [1 >= p] l_pr=NullableBoundaryBinary(p) [(l_pr == 0) ||
-                                // (l_pr >= 1)] WS . "+" WS NullableBoundaryBinary(2) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(1034));
-                            }
-                        }
-                    }
-                    // NullableBoundaryBinary(p: i32) : [1 >= p] l_pr=NullableBoundaryBinary(p) [(l_pr == 0) ||
-                    // (l_pr >= 1)] WS . "+" WS NullableBoundaryBinary(2) return 1
-                    SlotId(1034) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(4),
-                            input_index,
-                            SlotId(1034),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) = self.create_intermediate_node(
-                                result,
-                                right_child,
-                                SlotId(1035),
-                                env,
-                            ) {
-                                // NullableBoundaryBinary(p: i32) : [1 >= p] l_pr=NullableBoundaryBinary(p) [(l_pr == 0) ||
-                                // (l_pr >= 1)] WS "+" . WS NullableBoundaryBinary(2) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(1035));
-                            }
-                        }
-                    }
-                    // NullableBoundaryBinary(p: i32) : [1 >= p] l_pr=NullableBoundaryBinary(p) [(l_pr == 0) ||
-                    // (l_pr >= 1)] WS "+" . WS NullableBoundaryBinary(2) return 1
-                    SlotId(1035) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(1035),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) = self.create_intermediate_node(
-                                result,
-                                right_child,
-                                SlotId(1036),
-                                env,
-                            ) {
-                                // NullableBoundaryBinary(p: i32) : [1 >= p] l_pr=NullableBoundaryBinary(p) [(l_pr == 0) ||
-                                // (l_pr >= 1)] WS "+" WS . NullableBoundaryBinary(2) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(1036));
-                            }
-                        }
                     }
                     // NullableBoundaryBinary(p: i32) : [1 >= p] l_pr=NullableBoundaryBinary(p) [(l_pr == 0) ||
                     // (l_pr >= 1)] WS "+" WS . NullableBoundaryBinary(2) return 1
@@ -8704,15 +4037,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_nullable_boundary_binary(
                             result,
                             gss_node_id,
-                            SlotId(1037),
+                            slot_id.next(),
                             env,
                             2,
                         );
-                    }
-                    // NullableBoundaryBinary(p: i32) : [1 >= p] l_pr=NullableBoundaryBinary(p) [(l_pr == 0) ||
-                    // (l_pr >= 1)] WS "+" WS NullableBoundaryBinary(2) . return 1
-                    SlotId(1037) => {
-                        next = Some(SlotId(1038));
                     }
                     // NullableBoundaryBinary(p: i32) : [1 >= p] l_pr=NullableBoundaryBinary(p) [(l_pr == 0) ||
                     // (l_pr >= 1)] WS "+" WS NullableBoundaryBinary(2) return 1.
@@ -8723,49 +4051,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 1;
                         self.pop(
                             gss_node_id,
-                            SlotId(1038),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_NULLABLE_BOUNDARY_BINARY,
                         );
                     }
-                    // NullableBoundaryOperand : . NullableBoundaryBinary(0) WS NullableBoundaryOpt
-                    SlotId(55) => {
+                    // NullableBoundaryOperand : . NullableBoundaryBinary(0) WS NullableBoundaryOpt, and
+                    // StartNullableBoundaryBinary : WS . start:NullableBoundaryBinary(0) WS
+                    SlotId(55) | SlotId(346) => {
                         self.create_nullable_boundary_binary(
                             result,
                             gss_node_id,
-                            SlotId(56),
+                            slot_id.next(),
                             env,
                             0,
-                        );
-                    }
-                    // NullableBoundaryOperand : NullableBoundaryBinary(0) . WS NullableBoundaryOpt
-                    SlotId(56) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(56),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(57), env)
-                            {
-                                // NullableBoundaryOperand : NullableBoundaryBinary(0) WS . NullableBoundaryOpt
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(57));
-                            }
-                        }
-                    }
-                    // NullableBoundaryOperand : NullableBoundaryBinary(0) WS . NullableBoundaryOpt
-                    SlotId(57) => {
-                        self.create(
-                            NonterminalId(12),
-                            &PREDICTION_NULLABLE_BOUNDARY_OPT,
-                            result,
-                            gss_node_id,
-                            SlotId(58),
-                            env,
                         );
                     }
                     // NullableBoundaryOperand : NullableBoundaryBinary(0) WS NullableBoundaryOpt.
@@ -8775,29 +4075,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(58),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_NULLABLE_BOUNDARY_OPERAND,
                         );
-                    }
-                    // ClosedLeftAssoc(p: i32, a: i32) : . "a" return 0
-                    SlotId(1039) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(2),
-                            input_index,
-                            SlotId(1039),
-                            Some(gss_node_id),
-                        ) {
-                            // ClosedLeftAssoc(p: i32, a: i32) : "a" . return 0
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(1040));
-                        }
-                    }
-                    // ClosedLeftAssoc(p: i32, a: i32) : "a" . return 0
-                    SlotId(1040) => {
-                        next = Some(SlotId(1041));
                     }
                     // ClosedLeftAssoc(p: i32, a: i32) : "a" return 0.
                     SlotId(1041) => {
@@ -8807,7 +4089,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 0;
                         self.pop(
                             gss_node_id,
-                            SlotId(1041),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_CLOSED_LEFT_ASSOC,
@@ -8821,99 +4103,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_closed_left_operand(
                             result,
                             gss_node_id,
-                            SlotId(1043),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             0,
                         );
-                    }
-                    // ClosedLeftAssoc(p: i32, a: i32) : l_pr=ClosedLeftOperand(p, 0) . [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS
-                    // r_pr=ClosedLeftAssoc(1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || (a != 1)] return 1
-                    SlotId(1043) => {
-                        next = Some(SlotId(1044));
-                    }
-                    // ClosedLeftAssoc(p: i32, a: i32) : l_pr=ClosedLeftOperand(p, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] . WS "+" WS
-                    // r_pr=ClosedLeftAssoc(1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || (a != 1)] return 1
-                    SlotId(1044) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(1044),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) = self.create_intermediate_node(
-                                result,
-                                right_child,
-                                SlotId(1045),
-                                env,
-                            ) {
-                                // ClosedLeftAssoc(p: i32, a: i32) : l_pr=ClosedLeftOperand(p, 0) [(l_pr ==
-                                // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS . "+" WS
-                                // r_pr=ClosedLeftAssoc(1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [(l_pr ==
-                                // UNDEFINED_PRECEDENCE) || (a != 1)] return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(1045));
-                            }
-                        }
-                    }
-                    // ClosedLeftAssoc(p: i32, a: i32) : l_pr=ClosedLeftOperand(p, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS . "+" WS
-                    // r_pr=ClosedLeftAssoc(1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || (a != 1)] return 1
-                    SlotId(1045) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(4),
-                            input_index,
-                            SlotId(1045),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) = self.create_intermediate_node(
-                                result,
-                                right_child,
-                                SlotId(1046),
-                                env,
-                            ) {
-                                // ClosedLeftAssoc(p: i32, a: i32) : l_pr=ClosedLeftOperand(p, 0) [(l_pr ==
-                                // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" . WS
-                                // r_pr=ClosedLeftAssoc(1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [(l_pr ==
-                                // UNDEFINED_PRECEDENCE) || (a != 1)] return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(1046));
-                            }
-                        }
-                    }
-                    // ClosedLeftAssoc(p: i32, a: i32) : l_pr=ClosedLeftOperand(p, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" . WS
-                    // r_pr=ClosedLeftAssoc(1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || (a != 1)] return 1
-                    SlotId(1046) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(1046),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) = self.create_intermediate_node(
-                                result,
-                                right_child,
-                                SlotId(1047),
-                                env,
-                            ) {
-                                // ClosedLeftAssoc(p: i32, a: i32) : l_pr=ClosedLeftOperand(p, 0) [(l_pr ==
-                                // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS .
-                                // r_pr=ClosedLeftAssoc(1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [(l_pr ==
-                                // UNDEFINED_PRECEDENCE) || (a != 1)] return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(1047));
-                            }
-                        }
                     }
                     // ClosedLeftAssoc(p: i32, a: i32) : l_pr=ClosedLeftOperand(p, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS .
@@ -8923,7 +4117,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_closed_left_assoc(
                             result,
                             gss_node_id,
-                            SlotId(1048),
+                            slot_id.next(),
                             env,
                             1,
                             if self.lookup(BINDING_L_PR, env.unwrap()) == -1 {
@@ -8932,20 +4126,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                                 1
                             },
                         );
-                    }
-                    // ClosedLeftAssoc(p: i32, a: i32) : l_pr=ClosedLeftOperand(p, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS
-                    // r_pr=ClosedLeftAssoc(1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) . [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || (a != 1)] return 1
-                    SlotId(1048) => {
-                        next = Some(SlotId(1049));
-                    }
-                    // ClosedLeftAssoc(p: i32, a: i32) : l_pr=ClosedLeftOperand(p, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS
-                    // r_pr=ClosedLeftAssoc(1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || (a != 1)] . return 1
-                    SlotId(1049) => {
-                        next = Some(SlotId(1050));
                     }
                     // ClosedLeftAssoc(p: i32, a: i32) : l_pr=ClosedLeftOperand(p, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS
@@ -8958,7 +4138,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 1;
                         self.pop(
                             gss_node_id,
-                            SlotId(1050),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_CLOSED_LEFT_ASSOC,
@@ -8969,15 +4149,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_closed_left_assoc(
                             result,
                             gss_node_id,
-                            SlotId(1052),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             self.lookup(BINDING_A, env.unwrap()),
                         );
-                    }
-                    // ClosedLeftOperand(p: i32, a: i32) : l_pr=ClosedLeftAssoc(p, a) . return l_pr
-                    SlotId(1052) => {
-                        next = Some(SlotId(1053));
                     }
                     // ClosedLeftOperand(p: i32, a: i32) : l_pr=ClosedLeftAssoc(p, a) return l_pr.
                     SlotId(1053) => {
@@ -8987,29 +4163,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = self.lookup(BINDING_L_PR, env.unwrap());
                         self.pop(
                             gss_node_id,
-                            SlotId(1053),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_CLOSED_LEFT_OPERAND,
                         );
-                    }
-                    // ClosedLeftOperand(p: i32, a: i32) : . "!" return UNDEFINED_PRECEDENCE
-                    SlotId(1054) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(29),
-                            input_index,
-                            SlotId(1054),
-                            Some(gss_node_id),
-                        ) {
-                            // ClosedLeftOperand(p: i32, a: i32) : "!" . return UNDEFINED_PRECEDENCE
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(1055));
-                        }
-                    }
-                    // ClosedLeftOperand(p: i32, a: i32) : "!" . return UNDEFINED_PRECEDENCE
-                    SlotId(1055) => {
-                        next = Some(SlotId(1056));
                     }
                     // ClosedLeftOperand(p: i32, a: i32) : "!" return UNDEFINED_PRECEDENCE.
                     SlotId(1056) => {
@@ -9019,29 +4177,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = -1;
                         self.pop(
                             gss_node_id,
-                            SlotId(1056),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_CLOSED_LEFT_OPERAND,
                         );
-                    }
-                    // ClosedRightAssoc(p: i32, a: i32) : . "a" return (0, 0)
-                    SlotId(1057) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(2),
-                            input_index,
-                            SlotId(1057),
-                            Some(gss_node_id),
-                        ) {
-                            // ClosedRightAssoc(p: i32, a: i32) : "a" . return (0, 0)
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(1058));
-                        }
-                    }
-                    // ClosedRightAssoc(p: i32, a: i32) : "a" . return (0, 0)
-                    SlotId(1058) => {
-                        next = Some(SlotId(1059));
                     }
                     // ClosedRightAssoc(p: i32, a: i32) : "a" return (0, 0).
                     SlotId(1059) => {
@@ -9051,20 +4191,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 0;
                         self.pop(
                             gss_node_id,
-                            SlotId(1059),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_CLOSED_RIGHT_ASSOC,
                         );
-                    }
-                    // ClosedRightAssoc(p: i32, a: i32) : . [1 >= p] (l_pr, l_assoc)=ClosedRightAssoc(p, 0)
-                    // [(l_pr == 0) || (l_pr >= 1)] WS "+" WS (r_pr, r_assoc)=ClosedRightOperand(1, 0) [(r_pr ==
-                    // UNDEFINED_PRECEDENCE) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
-                    // (r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
-                    SlotId(1060) => {
-                        if 1 >= self.lookup(BINDING_P, env.unwrap()) {
-                            next = Some(SlotId(1061));
-                        }
                     }
                     // ClosedRightAssoc(p: i32, a: i32) : [1 >= p] . (l_pr, l_assoc)=ClosedRightAssoc(p, 0)
                     // [(l_pr == 0) || (l_pr >= 1)] WS "+" WS (r_pr, r_assoc)=ClosedRightOperand(1, 0) [(r_pr ==
@@ -9074,99 +4205,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_closed_right_assoc(
                             result,
                             gss_node_id,
-                            SlotId(1062),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             0,
                         );
-                    }
-                    // ClosedRightAssoc(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=ClosedRightAssoc(p, 0) .
-                    // [(l_pr == 0) || (l_pr >= 1)] WS "+" WS (r_pr, r_assoc)=ClosedRightOperand(1, 0) [(r_pr ==
-                    // UNDEFINED_PRECEDENCE) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
-                    // (r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
-                    SlotId(1062) => {
-                        next = Some(SlotId(1063));
-                    }
-                    // ClosedRightAssoc(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=ClosedRightAssoc(p, 0) [(l_pr
-                    // == 0) || (l_pr >= 1)] . WS "+" WS (r_pr, r_assoc)=ClosedRightOperand(1, 0) [(r_pr ==
-                    // UNDEFINED_PRECEDENCE) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
-                    // (r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
-                    SlotId(1063) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(1063),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) = self.create_intermediate_node(
-                                result,
-                                right_child,
-                                SlotId(1064),
-                                env,
-                            ) {
-                                // ClosedRightAssoc(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=ClosedRightAssoc(p, 0) [(l_pr
-                                // == 0) || (l_pr >= 1)] WS . "+" WS (r_pr, r_assoc)=ClosedRightOperand(1, 0) [(r_pr ==
-                                // UNDEFINED_PRECEDENCE) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
-                                // (r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(1064));
-                            }
-                        }
-                    }
-                    // ClosedRightAssoc(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=ClosedRightAssoc(p, 0) [(l_pr
-                    // == 0) || (l_pr >= 1)] WS . "+" WS (r_pr, r_assoc)=ClosedRightOperand(1, 0) [(r_pr ==
-                    // UNDEFINED_PRECEDENCE) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
-                    // (r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
-                    SlotId(1064) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(4),
-                            input_index,
-                            SlotId(1064),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) = self.create_intermediate_node(
-                                result,
-                                right_child,
-                                SlotId(1065),
-                                env,
-                            ) {
-                                // ClosedRightAssoc(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=ClosedRightAssoc(p, 0) [(l_pr
-                                // == 0) || (l_pr >= 1)] WS "+" . WS (r_pr, r_assoc)=ClosedRightOperand(1, 0) [(r_pr ==
-                                // UNDEFINED_PRECEDENCE) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
-                                // (r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(1065));
-                            }
-                        }
-                    }
-                    // ClosedRightAssoc(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=ClosedRightAssoc(p, 0) [(l_pr
-                    // == 0) || (l_pr >= 1)] WS "+" . WS (r_pr, r_assoc)=ClosedRightOperand(1, 0) [(r_pr ==
-                    // UNDEFINED_PRECEDENCE) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
-                    // (r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
-                    SlotId(1065) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(1065),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) = self.create_intermediate_node(
-                                result,
-                                right_child,
-                                SlotId(1066),
-                                env,
-                            ) {
-                                // ClosedRightAssoc(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=ClosedRightAssoc(p, 0) [(l_pr
-                                // == 0) || (l_pr >= 1)] WS "+" WS . (r_pr, r_assoc)=ClosedRightOperand(1, 0) [(r_pr ==
-                                // UNDEFINED_PRECEDENCE) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
-                                // (r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(1066));
-                            }
-                        }
                     }
                     // ClosedRightAssoc(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=ClosedRightAssoc(p, 0) [(l_pr
                     // == 0) || (l_pr >= 1)] WS "+" WS . (r_pr, r_assoc)=ClosedRightOperand(1, 0) [(r_pr ==
@@ -9176,25 +4219,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_closed_right_operand(
                             result,
                             gss_node_id,
-                            SlotId(1067),
+                            slot_id.next(),
                             env,
                             1,
                             0,
                         );
-                    }
-                    // ClosedRightAssoc(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=ClosedRightAssoc(p, 0) [(l_pr
-                    // == 0) || (l_pr >= 1)] WS "+" WS (r_pr, r_assoc)=ClosedRightOperand(1, 0) . [(r_pr ==
-                    // UNDEFINED_PRECEDENCE) || (l_assoc != 1)] return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
-                    // (r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
-                    SlotId(1067) => {
-                        next = Some(SlotId(1068));
-                    }
-                    // ClosedRightAssoc(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=ClosedRightAssoc(p, 0) [(l_pr
-                    // == 0) || (l_pr >= 1)] WS "+" WS (r_pr, r_assoc)=ClosedRightOperand(1, 0) [(r_pr ==
-                    // UNDEFINED_PRECEDENCE) || (l_assoc != 1)] . return ((r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1,
-                    // (r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1)
-                    SlotId(1068) => {
-                        next = Some(SlotId(1069));
                     }
                     // ClosedRightAssoc(p: i32, a: i32) : [1 >= p] (l_pr, l_assoc)=ClosedRightAssoc(p, 0) [(l_pr
                     // == 0) || (l_pr >= 1)] WS "+" WS (r_pr, r_assoc)=ClosedRightOperand(1, 0) [(r_pr ==
@@ -9216,7 +4245,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                             });
                         self.pop(
                             gss_node_id,
-                            SlotId(1069),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_CLOSED_RIGHT_ASSOC,
@@ -9228,16 +4257,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_closed_right_assoc(
                             result,
                             gss_node_id,
-                            SlotId(1071),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             self.lookup(BINDING_A, env.unwrap()),
                         );
-                    }
-                    // ClosedRightOperand(p: i32, a: i32) : (r_pr, r_assoc)=ClosedRightAssoc(p, a) . return
-                    // (r_pr, r_assoc)
-                    SlotId(1071) => {
-                        next = Some(SlotId(1072));
                     }
                     // ClosedRightOperand(p: i32, a: i32) : (r_pr, r_assoc)=ClosedRightAssoc(p, a) return (r_pr,
                     // r_assoc).
@@ -9249,29 +4273,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                             | (self.lookup(BINDING_R_ASSOC, env.unwrap()));
                         self.pop(
                             gss_node_id,
-                            SlotId(1072),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_CLOSED_RIGHT_OPERAND,
                         );
-                    }
-                    // ClosedRightOperand(p: i32, a: i32) : . "!" return (UNDEFINED_PRECEDENCE, 0)
-                    SlotId(1073) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(29),
-                            input_index,
-                            SlotId(1073),
-                            Some(gss_node_id),
-                        ) {
-                            // ClosedRightOperand(p: i32, a: i32) : "!" . return (UNDEFINED_PRECEDENCE, 0)
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(1074));
-                        }
-                    }
-                    // ClosedRightOperand(p: i32, a: i32) : "!" . return (UNDEFINED_PRECEDENCE, 0)
-                    SlotId(1074) => {
-                        next = Some(SlotId(1075));
                     }
                     // ClosedRightOperand(p: i32, a: i32) : "!" return (UNDEFINED_PRECEDENCE, 0).
                     SlotId(1075) => {
@@ -9281,29 +4287,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = -65536;
                         self.pop(
                             gss_node_id,
-                            SlotId(1075),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_CLOSED_RIGHT_OPERAND,
                         );
-                    }
-                    // IndirectExclude(p: i32, a: i32) : . "a" return (0, 0)
-                    SlotId(1076) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(2),
-                            input_index,
-                            SlotId(1076),
-                            Some(gss_node_id),
-                        ) {
-                            // IndirectExclude(p: i32, a: i32) : "a" . return (0, 0)
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(1077));
-                        }
-                    }
-                    // IndirectExclude(p: i32, a: i32) : "a" . return (0, 0)
-                    SlotId(1077) => {
-                        next = Some(SlotId(1078));
                     }
                     // IndirectExclude(p: i32, a: i32) : "a" return (0, 0).
                     SlotId(1078) => {
@@ -9313,7 +4301,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 0;
                         self.pop(
                             gss_node_id,
-                            SlotId(1078),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_INDIRECT_EXCLUDE,
@@ -9328,107 +4316,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_indirect_exclude_operand(
                             result,
                             gss_node_id,
-                            SlotId(1080),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             0,
                             0,
                         );
-                    }
-                    // IndirectExclude(p: i32, a: i32) : (l_pr, l_label)=IndirectExcludeOperand(p, 0, 0) . [(l_pr
-                    // == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
-                    // r_label)=IndirectExcludeOperand(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [((l_pr ==
-                    // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return ((r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : 1, 1)
-                    SlotId(1080) => {
-                        next = Some(SlotId(1081));
-                    }
-                    // IndirectExclude(p: i32, a: i32) : (l_pr, l_label)=IndirectExcludeOperand(p, 0, 0) [(l_pr
-                    // == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] . WS "+" WS (r_pr,
-                    // r_label)=IndirectExcludeOperand(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [((l_pr ==
-                    // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return ((r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : 1, 1)
-                    SlotId(1081) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(1081),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) = self.create_intermediate_node(
-                                result,
-                                right_child,
-                                SlotId(1082),
-                                env,
-                            ) {
-                                // IndirectExclude(p: i32, a: i32) : (l_pr, l_label)=IndirectExcludeOperand(p, 0, 0) [(l_pr
-                                // == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS . "+" WS (r_pr,
-                                // r_label)=IndirectExcludeOperand(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [((l_pr ==
-                                // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return ((r_pr ==
-                                // UNDEFINED_PRECEDENCE) ? 0 : 1, 1)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(1082));
-                            }
-                        }
-                    }
-                    // IndirectExclude(p: i32, a: i32) : (l_pr, l_label)=IndirectExcludeOperand(p, 0, 0) [(l_pr
-                    // == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS . "+" WS (r_pr,
-                    // r_label)=IndirectExcludeOperand(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [((l_pr ==
-                    // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return ((r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : 1, 1)
-                    SlotId(1082) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(4),
-                            input_index,
-                            SlotId(1082),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) = self.create_intermediate_node(
-                                result,
-                                right_child,
-                                SlotId(1083),
-                                env,
-                            ) {
-                                // IndirectExclude(p: i32, a: i32) : (l_pr, l_label)=IndirectExcludeOperand(p, 0, 0) [(l_pr
-                                // == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" . WS (r_pr,
-                                // r_label)=IndirectExcludeOperand(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [((l_pr ==
-                                // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return ((r_pr ==
-                                // UNDEFINED_PRECEDENCE) ? 0 : 1, 1)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(1083));
-                            }
-                        }
-                    }
-                    // IndirectExclude(p: i32, a: i32) : (l_pr, l_label)=IndirectExcludeOperand(p, 0, 0) [(l_pr
-                    // == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" . WS (r_pr,
-                    // r_label)=IndirectExcludeOperand(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [((l_pr ==
-                    // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return ((r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : 1, 1)
-                    SlotId(1083) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(1083),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) = self.create_intermediate_node(
-                                result,
-                                right_child,
-                                SlotId(1084),
-                                env,
-                            ) {
-                                // IndirectExclude(p: i32, a: i32) : (l_pr, l_label)=IndirectExcludeOperand(p, 0, 0) [(l_pr
-                                // == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS . (r_pr,
-                                // r_label)=IndirectExcludeOperand(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [((l_pr ==
-                                // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return ((r_pr ==
-                                // UNDEFINED_PRECEDENCE) ? 0 : 1, 1)
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(1084));
-                            }
-                        }
                     }
                     // IndirectExclude(p: i32, a: i32) : (l_pr, l_label)=IndirectExcludeOperand(p, 0, 0) [(l_pr
                     // == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS . (r_pr,
@@ -9439,7 +4332,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_indirect_exclude_operand(
                             result,
                             gss_node_id,
-                            SlotId(1085),
+                            slot_id.next(),
                             env,
                             1,
                             1,
@@ -9449,22 +4342,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                                 1
                             },
                         );
-                    }
-                    // IndirectExclude(p: i32, a: i32) : (l_pr, l_label)=IndirectExcludeOperand(p, 0, 0) [(l_pr
-                    // == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
-                    // r_label)=IndirectExcludeOperand(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) . [((l_pr ==
-                    // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return ((r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : 1, 1)
-                    SlotId(1085) => {
-                        next = Some(SlotId(1086));
-                    }
-                    // IndirectExclude(p: i32, a: i32) : (l_pr, l_label)=IndirectExcludeOperand(p, 0, 0) [(l_pr
-                    // == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
-                    // r_label)=IndirectExcludeOperand(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [((l_pr ==
-                    // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] . return ((r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : 1, 1)
-                    SlotId(1086) => {
-                        next = Some(SlotId(1087));
                     }
                     // IndirectExclude(p: i32, a: i32) : (l_pr, l_label)=IndirectExcludeOperand(p, 0, 0) [(l_pr
                     // == UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS (r_pr,
@@ -9483,7 +4360,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                             | (1);
                         self.pop(
                             gss_node_id,
-                            SlotId(1087),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_INDIRECT_EXCLUDE,
@@ -9495,21 +4372,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_indirect_exclude(
                             result,
                             gss_node_id,
-                            SlotId(1089),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             self.lookup(BINDING_A, env.unwrap()),
                         );
-                    }
-                    // IndirectExcludeOperand(p: i32, end: i32, a: i32) : (v_pr, v_label)=IndirectExclude(p, a) .
-                    // [(v_label == NO_LABEL) || ((1 >> v_label) & 1 == 0)] return (v_pr, 0)
-                    SlotId(1089) => {
-                        next = Some(SlotId(1090));
-                    }
-                    // IndirectExcludeOperand(p: i32, end: i32, a: i32) : (v_pr, v_label)=IndirectExclude(p, a)
-                    // [(v_label == NO_LABEL) || ((1 >> v_label) & 1 == 0)] . return (v_pr, 0)
-                    SlotId(1090) => {
-                        next = Some(SlotId(1091));
                     }
                     // IndirectExcludeOperand(p: i32, end: i32, a: i32) : (v_pr, v_label)=IndirectExclude(p, a)
                     // [(v_label == NO_LABEL) || ((1 >> v_label) & 1 == 0)] return (v_pr, 0).
@@ -9520,29 +4387,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = (self.lookup(BINDING_V_PR, env.unwrap())) << (16);
                         self.pop(
                             gss_node_id,
-                            SlotId(1091),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_INDIRECT_EXCLUDE_OPERAND,
                         );
-                    }
-                    // IndirectExcludeOperand(p: i32, end: i32, a: i32) : . "b" return (UNDEFINED_PRECEDENCE, 1)
-                    SlotId(1092) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(6),
-                            input_index,
-                            SlotId(1092),
-                            Some(gss_node_id),
-                        ) {
-                            // IndirectExcludeOperand(p: i32, end: i32, a: i32) : "b" . return (UNDEFINED_PRECEDENCE, 1)
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(1093));
-                        }
-                    }
-                    // IndirectExcludeOperand(p: i32, end: i32, a: i32) : "b" . return (UNDEFINED_PRECEDENCE, 1)
-                    SlotId(1093) => {
-                        next = Some(SlotId(1094));
                     }
                     // IndirectExcludeOperand(p: i32, end: i32, a: i32) : "b" return (UNDEFINED_PRECEDENCE, 1).
                     SlotId(1094) => {
@@ -9552,29 +4401,25 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = -65535;
                         self.pop(
                             gss_node_id,
-                            SlotId(1094),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_INDIRECT_EXCLUDE_OPERAND,
                         );
                     }
                     // IndirectExcludeFiltered : . (x_pr, x_label)=IndirectExcludeOperand(0, 0, 0) [(x_label ==
-                    // NO_LABEL) || ((2 >> x_label) & 1 == 0)]
-                    SlotId(59) => {
+                    // NO_LABEL) || ((2 >> x_label) & 1 == 0)], and StartIndirectExcludeOperand : WS .
+                    // start:IndirectExcludeOperand(0, 0, 0) WS
+                    SlotId(59) | SlotId(374) => {
                         self.create_indirect_exclude_operand(
                             result,
                             gss_node_id,
-                            SlotId(60),
+                            slot_id.next(),
                             env,
                             0,
                             0,
                             0,
                         );
-                    }
-                    // IndirectExcludeFiltered : (x_pr, x_label)=IndirectExcludeOperand(0, 0, 0) . [(x_label ==
-                    // NO_LABEL) || ((2 >> x_label) & 1 == 0)]
-                    SlotId(60) => {
-                        next = Some(SlotId(61));
                     }
                     // IndirectExcludeFiltered : (x_pr, x_label)=IndirectExcludeOperand(0, 0, 0) [(x_label ==
                     // NO_LABEL) || ((2 >> x_label) & 1 == 0)].
@@ -9584,29 +4429,24 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(61),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_INDIRECT_EXCLUDE_FILTERED,
                         );
                     }
-                    // OperandLiteral(p: i32, a: i32) : . "x" return 0
-                    SlotId(1095) => {
+                    // OperandLiteral(p: i32, a: i32) : . "x" return 0, and 2 more slots
+                    SlotId(1095) | SlotId(1122) | SlotId(62) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(15),
                             input_index,
-                            SlotId(1095),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // OperandLiteral(p: i32, a: i32) : "x" . return 0
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(1096));
+                            next = Some(slot_id.next());
                         }
-                    }
-                    // OperandLiteral(p: i32, a: i32) : "x" . return 0
-                    SlotId(1096) => {
-                        next = Some(SlotId(1097));
                     }
                     // OperandLiteral(p: i32, a: i32) : "x" return 0.
                     SlotId(1097) => {
@@ -9616,7 +4456,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 0;
                         self.pop(
                             gss_node_id,
-                            SlotId(1097),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_OPERAND_LITERAL,
@@ -9626,112 +4466,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                     // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "*" WS
                     // r_pr=OperandLiteralEnd(2, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 2) [((l_pr ==
                     // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 2)] return (r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2))
-                    SlotId(1098) => {
+                    // UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2)), and OperandLiteral(p: i32,
+                    // a: i32) : . l_pr=OperandLiteralEnd(p, 0, 0) [(l_pr == UNDEFINED_PRECEDENCE) || ((1 >= p)
+                    // && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS r_pr=OperandLiteralEnd(1, 1, (l_pr ==
+                    // UNDEFINED_PRECEDENCE) ? 0 : 1) [((l_pr == UNDEFINED_PRECEDENCE) || (r_pr ==
+                    // UNDEFINED_PRECEDENCE)) || (a != 1)] return (r_pr == UNDEFINED_PRECEDENCE) ? 0 : 1
+                    SlotId(1098) | SlotId(1107) => {
                         self.create_operand_literal_end(
                             result,
                             gss_node_id,
-                            SlotId(1099),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             0,
                             0,
                         );
-                    }
-                    // OperandLiteral(p: i32, a: i32) : l_pr=OperandLiteralEnd(p, 0, 0) . [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "*" WS
-                    // r_pr=OperandLiteralEnd(2, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 2) [((l_pr ==
-                    // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 2)] return (r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2))
-                    SlotId(1099) => {
-                        next = Some(SlotId(1100));
-                    }
-                    // OperandLiteral(p: i32, a: i32) : l_pr=OperandLiteralEnd(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] . WS "*" WS
-                    // r_pr=OperandLiteralEnd(2, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 2) [((l_pr ==
-                    // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 2)] return (r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2))
-                    SlotId(1100) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(1100),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) = self.create_intermediate_node(
-                                result,
-                                right_child,
-                                SlotId(1101),
-                                env,
-                            ) {
-                                // OperandLiteral(p: i32, a: i32) : l_pr=OperandLiteralEnd(p, 0, 0) [(l_pr ==
-                                // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS . "*" WS
-                                // r_pr=OperandLiteralEnd(2, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 2) [((l_pr ==
-                                // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 2)] return (r_pr ==
-                                // UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2))
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(1101));
-                            }
-                        }
-                    }
-                    // OperandLiteral(p: i32, a: i32) : l_pr=OperandLiteralEnd(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS . "*" WS
-                    // r_pr=OperandLiteralEnd(2, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 2) [((l_pr ==
-                    // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 2)] return (r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2))
-                    SlotId(1101) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(3),
-                            input_index,
-                            SlotId(1101),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) = self.create_intermediate_node(
-                                result,
-                                right_child,
-                                SlotId(1102),
-                                env,
-                            ) {
-                                // OperandLiteral(p: i32, a: i32) : l_pr=OperandLiteralEnd(p, 0, 0) [(l_pr ==
-                                // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "*" . WS
-                                // r_pr=OperandLiteralEnd(2, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 2) [((l_pr ==
-                                // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 2)] return (r_pr ==
-                                // UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2))
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(1102));
-                            }
-                        }
-                    }
-                    // OperandLiteral(p: i32, a: i32) : l_pr=OperandLiteralEnd(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "*" . WS
-                    // r_pr=OperandLiteralEnd(2, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 2) [((l_pr ==
-                    // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 2)] return (r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2))
-                    SlotId(1102) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(1102),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) = self.create_intermediate_node(
-                                result,
-                                right_child,
-                                SlotId(1103),
-                                env,
-                            ) {
-                                // OperandLiteral(p: i32, a: i32) : l_pr=OperandLiteralEnd(p, 0, 0) [(l_pr ==
-                                // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "*" WS .
-                                // r_pr=OperandLiteralEnd(2, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 2) [((l_pr ==
-                                // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 2)] return (r_pr ==
-                                // UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2))
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(1103));
-                            }
-                        }
                     }
                     // OperandLiteral(p: i32, a: i32) : l_pr=OperandLiteralEnd(p, 0, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "*" WS .
@@ -9742,7 +4491,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_operand_literal_end(
                             result,
                             gss_node_id,
-                            SlotId(1104),
+                            slot_id.next(),
                             env,
                             2,
                             1,
@@ -9752,22 +4501,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                                 2
                             },
                         );
-                    }
-                    // OperandLiteral(p: i32, a: i32) : l_pr=OperandLiteralEnd(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "*" WS
-                    // r_pr=OperandLiteralEnd(2, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 2) . [((l_pr ==
-                    // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 2)] return (r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2))
-                    SlotId(1104) => {
-                        next = Some(SlotId(1105));
-                    }
-                    // OperandLiteral(p: i32, a: i32) : l_pr=OperandLiteralEnd(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "*" WS
-                    // r_pr=OperandLiteralEnd(2, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 2) [((l_pr ==
-                    // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 2)] . return (r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : ((r_pr == 0) ? 2 : min(r_pr, 2))
-                    SlotId(1105) => {
-                        next = Some(SlotId(1106));
                     }
                     // OperandLiteral(p: i32, a: i32) : l_pr=OperandLiteralEnd(p, 0, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((2 >= p) && ((l_pr == 0) || (l_pr >= 2)))] WS "*" WS
@@ -9789,122 +4522,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(1106),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_OPERAND_LITERAL,
                         );
-                    }
-                    // OperandLiteral(p: i32, a: i32) : . l_pr=OperandLiteralEnd(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS
-                    // r_pr=OperandLiteralEnd(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [((l_pr ==
-                    // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return (r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : 1
-                    SlotId(1107) => {
-                        self.create_operand_literal_end(
-                            result,
-                            gss_node_id,
-                            SlotId(1108),
-                            env,
-                            self.lookup(BINDING_P, env.unwrap()),
-                            0,
-                            0,
-                        );
-                    }
-                    // OperandLiteral(p: i32, a: i32) : l_pr=OperandLiteralEnd(p, 0, 0) . [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS
-                    // r_pr=OperandLiteralEnd(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [((l_pr ==
-                    // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return (r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : 1
-                    SlotId(1108) => {
-                        next = Some(SlotId(1109));
-                    }
-                    // OperandLiteral(p: i32, a: i32) : l_pr=OperandLiteralEnd(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] . WS "+" WS
-                    // r_pr=OperandLiteralEnd(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [((l_pr ==
-                    // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return (r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : 1
-                    SlotId(1109) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(1109),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) = self.create_intermediate_node(
-                                result,
-                                right_child,
-                                SlotId(1110),
-                                env,
-                            ) {
-                                // OperandLiteral(p: i32, a: i32) : l_pr=OperandLiteralEnd(p, 0, 0) [(l_pr ==
-                                // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS . "+" WS
-                                // r_pr=OperandLiteralEnd(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [((l_pr ==
-                                // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return (r_pr ==
-                                // UNDEFINED_PRECEDENCE) ? 0 : 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(1110));
-                            }
-                        }
-                    }
-                    // OperandLiteral(p: i32, a: i32) : l_pr=OperandLiteralEnd(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS . "+" WS
-                    // r_pr=OperandLiteralEnd(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [((l_pr ==
-                    // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return (r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : 1
-                    SlotId(1110) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(4),
-                            input_index,
-                            SlotId(1110),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) = self.create_intermediate_node(
-                                result,
-                                right_child,
-                                SlotId(1111),
-                                env,
-                            ) {
-                                // OperandLiteral(p: i32, a: i32) : l_pr=OperandLiteralEnd(p, 0, 0) [(l_pr ==
-                                // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" . WS
-                                // r_pr=OperandLiteralEnd(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [((l_pr ==
-                                // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return (r_pr ==
-                                // UNDEFINED_PRECEDENCE) ? 0 : 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(1111));
-                            }
-                        }
-                    }
-                    // OperandLiteral(p: i32, a: i32) : l_pr=OperandLiteralEnd(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" . WS
-                    // r_pr=OperandLiteralEnd(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [((l_pr ==
-                    // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return (r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : 1
-                    SlotId(1111) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(1111),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) = self.create_intermediate_node(
-                                result,
-                                right_child,
-                                SlotId(1112),
-                                env,
-                            ) {
-                                // OperandLiteral(p: i32, a: i32) : l_pr=OperandLiteralEnd(p, 0, 0) [(l_pr ==
-                                // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS .
-                                // r_pr=OperandLiteralEnd(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [((l_pr ==
-                                // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return (r_pr ==
-                                // UNDEFINED_PRECEDENCE) ? 0 : 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(1112));
-                            }
-                        }
                     }
                     // OperandLiteral(p: i32, a: i32) : l_pr=OperandLiteralEnd(p, 0, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS .
@@ -9915,7 +4537,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_operand_literal_end(
                             result,
                             gss_node_id,
-                            SlotId(1113),
+                            slot_id.next(),
                             env,
                             1,
                             1,
@@ -9925,22 +4547,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                                 1
                             },
                         );
-                    }
-                    // OperandLiteral(p: i32, a: i32) : l_pr=OperandLiteralEnd(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS
-                    // r_pr=OperandLiteralEnd(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) . [((l_pr ==
-                    // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] return (r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : 1
-                    SlotId(1113) => {
-                        next = Some(SlotId(1114));
-                    }
-                    // OperandLiteral(p: i32, a: i32) : l_pr=OperandLiteralEnd(p, 0, 0) [(l_pr ==
-                    // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS
-                    // r_pr=OperandLiteralEnd(1, 1, (l_pr == UNDEFINED_PRECEDENCE) ? 0 : 1) [((l_pr ==
-                    // UNDEFINED_PRECEDENCE) || (r_pr == UNDEFINED_PRECEDENCE)) || (a != 1)] . return (r_pr ==
-                    // UNDEFINED_PRECEDENCE) ? 0 : 1
-                    SlotId(1114) => {
-                        next = Some(SlotId(1115));
                     }
                     // OperandLiteral(p: i32, a: i32) : l_pr=OperandLiteralEnd(p, 0, 0) [(l_pr ==
                     // UNDEFINED_PRECEDENCE) || ((1 >= p) && ((l_pr == 0) || (l_pr >= 1)))] WS "+" WS
@@ -9958,7 +4564,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(1115),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_OPERAND_LITERAL,
@@ -9969,15 +4575,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_operand_literal(
                             result,
                             gss_node_id,
-                            SlotId(1117),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             self.lookup(BINDING_A, env.unwrap()),
                         );
-                    }
-                    // OperandLiteralEnd(p: i32, end: i32, a: i32) : v_pr=OperandLiteral(p, a) . return v_pr
-                    SlotId(1117) => {
-                        next = Some(SlotId(1118));
                     }
                     // OperandLiteralEnd(p: i32, end: i32, a: i32) : v_pr=OperandLiteral(p, a) return v_pr.
                     SlotId(1118) => {
@@ -9987,29 +4589,25 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = self.lookup(BINDING_V_PR, env.unwrap());
                         self.pop(
                             gss_node_id,
-                            SlotId(1118),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_OPERAND_LITERAL_END,
                         );
                     }
-                    // OperandLiteralEnd(p: i32, end: i32, a: i32) : . "1" return UNDEFINED_PRECEDENCE
-                    SlotId(1119) => {
+                    // OperandLiteralEnd(p: i32, end: i32, a: i32) : . "1" return UNDEFINED_PRECEDENCE, and
+                    // HeadLiteral(p: i32) : . "1" return 0
+                    SlotId(1119) | SlotId(1125) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(39),
                             input_index,
-                            SlotId(1119),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // OperandLiteralEnd(p: i32, end: i32, a: i32) : "1" . return UNDEFINED_PRECEDENCE
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(1120));
+                            next = Some(slot_id.next());
                         }
-                    }
-                    // OperandLiteralEnd(p: i32, end: i32, a: i32) : "1" . return UNDEFINED_PRECEDENCE
-                    SlotId(1120) => {
-                        next = Some(SlotId(1121));
                     }
                     // OperandLiteralEnd(p: i32, end: i32, a: i32) : "1" return UNDEFINED_PRECEDENCE.
                     SlotId(1121) => {
@@ -10019,178 +4617,51 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = -1;
                         self.pop(
                             gss_node_id,
-                            SlotId(1121),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_OPERAND_LITERAL_END,
                         );
                     }
-                    // HeadLiteral(p: i32) : . "x" return 0
-                    SlotId(1122) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(15),
-                            input_index,
-                            SlotId(1122),
-                            Some(gss_node_id),
-                        ) {
-                            // HeadLiteral(p: i32) : "x" . return 0
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(1123));
-                        }
-                    }
-                    // HeadLiteral(p: i32) : "x" . return 0
-                    SlotId(1123) => {
-                        next = Some(SlotId(1124));
-                    }
-                    // HeadLiteral(p: i32) : "x" return 0.
-                    SlotId(1124) => {
+                    // HeadLiteral(p: i32) : "x" return 0., and HeadLiteral(p: i32) : "1" return 0.
+                    SlotId(1124) | SlotId(1127) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         let return_value = 0;
                         self.pop(
                             gss_node_id,
-                            SlotId(1124),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_HEAD_LITERAL,
                         );
-                    }
-                    // HeadLiteral(p: i32) : . "1" return 0
-                    SlotId(1125) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(39),
-                            input_index,
-                            SlotId(1125),
-                            Some(gss_node_id),
-                        ) {
-                            // HeadLiteral(p: i32) : "1" . return 0
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(1126));
-                        }
-                    }
-                    // HeadLiteral(p: i32) : "1" . return 0
-                    SlotId(1126) => {
-                        next = Some(SlotId(1127));
-                    }
-                    // HeadLiteral(p: i32) : "1" return 0.
-                    SlotId(1127) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        let return_value = 0;
-                        self.pop(
-                            gss_node_id,
-                            SlotId(1127),
-                            result,
-                            Some(return_value),
-                            &FOLLOW_SET_HEAD_LITERAL,
-                        );
-                    }
-                    // HeadLiteral(p: i32) : . [2 >= p] l_pr=HeadLiteralEnd(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS
-                    // "*" WS HeadLiteralEnd(3, 1) return 2
-                    SlotId(1128) => {
-                        if 2 >= self.lookup(BINDING_P, env.unwrap()) {
-                            next = Some(SlotId(1129));
-                        }
                     }
                     // HeadLiteral(p: i32) : [2 >= p] . l_pr=HeadLiteralEnd(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS
-                    // "*" WS HeadLiteralEnd(3, 1) return 2
-                    SlotId(1129) => {
+                    // "*" WS HeadLiteralEnd(3, 1) return 2, and HeadLiteral(p: i32) : [1 >= p] .
+                    // l_pr=HeadLiteralEnd(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS "+" WS HeadLiteralEnd(2, 1)
+                    // return 1
+                    SlotId(1129) | SlotId(1138) => {
                         self.create_head_literal_end(
                             result,
                             gss_node_id,
-                            SlotId(1130),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             0,
                         );
                     }
-                    // HeadLiteral(p: i32) : [2 >= p] l_pr=HeadLiteralEnd(p, 0) . [(l_pr == 0) || (l_pr >= 2)] WS
-                    // "*" WS HeadLiteralEnd(3, 1) return 2
-                    SlotId(1130) => {
-                        next = Some(SlotId(1131));
-                    }
-                    // HeadLiteral(p: i32) : [2 >= p] l_pr=HeadLiteralEnd(p, 0) [(l_pr == 0) || (l_pr >= 2)] . WS
-                    // "*" WS HeadLiteralEnd(3, 1) return 2
-                    SlotId(1131) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(1131),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) = self.create_intermediate_node(
-                                result,
-                                right_child,
-                                SlotId(1132),
-                                env,
-                            ) {
-                                // HeadLiteral(p: i32) : [2 >= p] l_pr=HeadLiteralEnd(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS .
-                                // "*" WS HeadLiteralEnd(3, 1) return 2
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(1132));
-                            }
-                        }
-                    }
-                    // HeadLiteral(p: i32) : [2 >= p] l_pr=HeadLiteralEnd(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS .
-                    // "*" WS HeadLiteralEnd(3, 1) return 2
-                    SlotId(1132) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(3),
-                            input_index,
-                            SlotId(1132),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) = self.create_intermediate_node(
-                                result,
-                                right_child,
-                                SlotId(1133),
-                                env,
-                            ) {
-                                // HeadLiteral(p: i32) : [2 >= p] l_pr=HeadLiteralEnd(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS
-                                // "*" . WS HeadLiteralEnd(3, 1) return 2
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(1133));
-                            }
-                        }
-                    }
-                    // HeadLiteral(p: i32) : [2 >= p] l_pr=HeadLiteralEnd(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS
-                    // "*" . WS HeadLiteralEnd(3, 1) return 2
-                    SlotId(1133) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(1133),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) = self.create_intermediate_node(
-                                result,
-                                right_child,
-                                SlotId(1134),
-                                env,
-                            ) {
-                                // HeadLiteral(p: i32) : [2 >= p] l_pr=HeadLiteralEnd(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS
-                                // "*" WS . HeadLiteralEnd(3, 1) return 2
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(1134));
-                            }
-                        }
-                    }
                     // HeadLiteral(p: i32) : [2 >= p] l_pr=HeadLiteralEnd(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS
                     // "*" WS . HeadLiteralEnd(3, 1) return 2
                     SlotId(1134) => {
-                        self.create_head_literal_end(result, gss_node_id, SlotId(1135), env, 3, 1);
-                    }
-                    // HeadLiteral(p: i32) : [2 >= p] l_pr=HeadLiteralEnd(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS
-                    // "*" WS HeadLiteralEnd(3, 1) . return 2
-                    SlotId(1135) => {
-                        next = Some(SlotId(1136));
+                        self.create_head_literal_end(
+                            result,
+                            gss_node_id,
+                            slot_id.next(),
+                            env,
+                            3,
+                            1,
+                        );
                     }
                     // HeadLiteral(p: i32) : [2 >= p] l_pr=HeadLiteralEnd(p, 0) [(l_pr == 0) || (l_pr >= 2)] WS
                     // "*" WS HeadLiteralEnd(3, 1) return 2.
@@ -10201,114 +4672,23 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 2;
                         self.pop(
                             gss_node_id,
-                            SlotId(1136),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_HEAD_LITERAL,
                         );
                     }
-                    // HeadLiteral(p: i32) : . [1 >= p] l_pr=HeadLiteralEnd(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS
-                    // "+" WS HeadLiteralEnd(2, 1) return 1
-                    SlotId(1137) => {
-                        if 1 >= self.lookup(BINDING_P, env.unwrap()) {
-                            next = Some(SlotId(1138));
-                        }
-                    }
-                    // HeadLiteral(p: i32) : [1 >= p] . l_pr=HeadLiteralEnd(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS
-                    // "+" WS HeadLiteralEnd(2, 1) return 1
-                    SlotId(1138) => {
-                        self.create_head_literal_end(
-                            result,
-                            gss_node_id,
-                            SlotId(1139),
-                            env,
-                            self.lookup(BINDING_P, env.unwrap()),
-                            0,
-                        );
-                    }
-                    // HeadLiteral(p: i32) : [1 >= p] l_pr=HeadLiteralEnd(p, 0) . [(l_pr == 0) || (l_pr >= 1)] WS
-                    // "+" WS HeadLiteralEnd(2, 1) return 1
-                    SlotId(1139) => {
-                        next = Some(SlotId(1140));
-                    }
-                    // HeadLiteral(p: i32) : [1 >= p] l_pr=HeadLiteralEnd(p, 0) [(l_pr == 0) || (l_pr >= 1)] . WS
-                    // "+" WS HeadLiteralEnd(2, 1) return 1
-                    SlotId(1140) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(1140),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) = self.create_intermediate_node(
-                                result,
-                                right_child,
-                                SlotId(1141),
-                                env,
-                            ) {
-                                // HeadLiteral(p: i32) : [1 >= p] l_pr=HeadLiteralEnd(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS .
-                                // "+" WS HeadLiteralEnd(2, 1) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(1141));
-                            }
-                        }
-                    }
-                    // HeadLiteral(p: i32) : [1 >= p] l_pr=HeadLiteralEnd(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS .
-                    // "+" WS HeadLiteralEnd(2, 1) return 1
-                    SlotId(1141) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(4),
-                            input_index,
-                            SlotId(1141),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) = self.create_intermediate_node(
-                                result,
-                                right_child,
-                                SlotId(1142),
-                                env,
-                            ) {
-                                // HeadLiteral(p: i32) : [1 >= p] l_pr=HeadLiteralEnd(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS
-                                // "+" . WS HeadLiteralEnd(2, 1) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(1142));
-                            }
-                        }
-                    }
-                    // HeadLiteral(p: i32) : [1 >= p] l_pr=HeadLiteralEnd(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS
-                    // "+" . WS HeadLiteralEnd(2, 1) return 1
-                    SlotId(1142) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(1142),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) = self.create_intermediate_node(
-                                result,
-                                right_child,
-                                SlotId(1143),
-                                env,
-                            ) {
-                                // HeadLiteral(p: i32) : [1 >= p] l_pr=HeadLiteralEnd(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS
-                                // "+" WS . HeadLiteralEnd(2, 1) return 1
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(1143));
-                            }
-                        }
-                    }
                     // HeadLiteral(p: i32) : [1 >= p] l_pr=HeadLiteralEnd(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS
                     // "+" WS . HeadLiteralEnd(2, 1) return 1
                     SlotId(1143) => {
-                        self.create_head_literal_end(result, gss_node_id, SlotId(1144), env, 2, 1);
-                    }
-                    // HeadLiteral(p: i32) : [1 >= p] l_pr=HeadLiteralEnd(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS
-                    // "+" WS HeadLiteralEnd(2, 1) . return 1
-                    SlotId(1144) => {
-                        next = Some(SlotId(1145));
+                        self.create_head_literal_end(
+                            result,
+                            gss_node_id,
+                            slot_id.next(),
+                            env,
+                            2,
+                            1,
+                        );
                     }
                     // HeadLiteral(p: i32) : [1 >= p] l_pr=HeadLiteralEnd(p, 0) [(l_pr == 0) || (l_pr >= 1)] WS
                     // "+" WS HeadLiteralEnd(2, 1) return 1.
@@ -10319,7 +4699,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = 1;
                         self.pop(
                             gss_node_id,
-                            SlotId(1145),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_HEAD_LITERAL,
@@ -10330,14 +4710,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_head_literal(
                             result,
                             gss_node_id,
-                            SlotId(1147),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                         );
-                    }
-                    // HeadLiteralEnd(p: i32, end: i32) : v_pr=HeadLiteral(p) . return v_pr
-                    SlotId(1147) => {
-                        next = Some(SlotId(1148));
                     }
                     // HeadLiteralEnd(p: i32, end: i32) : v_pr=HeadLiteral(p) return v_pr.
                     SlotId(1148) => {
@@ -10347,52 +4723,34 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = self.lookup(BINDING_V_PR, env.unwrap());
                         self.pop(
                             gss_node_id,
-                            SlotId(1148),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_HEAD_LITERAL_END,
                         );
-                    }
-                    // Opt_0 : . "x"
-                    SlotId(62) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(15),
-                            input_index,
-                            SlotId(62),
-                            Some(gss_node_id),
-                        ) {
-                            // Opt_0 : "x".
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(63));
-                        }
                     }
                     // Opt_0 : "x".
                     SlotId(63) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(63), result, None, &FOLLOW_SET_OPT_0);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_OPT_0);
                     }
                     // Opt_0 : .
                     SlotId(64) => {
                         let result = self.get_or_create_epsilon_node(input_index);
-                        self.pop(gss_node_id, SlotId(64), result, None, &FOLLOW_SET_OPT_0);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_OPT_0);
                     }
                     // Opt_1(p: i32, a: i32) : . (l_pr, l_assoc)=NullableRecursive(p, a) return (l_pr, l_assoc)
                     SlotId(1149) => {
                         self.create_nullable_recursive(
                             result,
                             gss_node_id,
-                            SlotId(1150),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             self.lookup(BINDING_A, env.unwrap()),
                         );
-                    }
-                    // Opt_1(p: i32, a: i32) : (l_pr, l_assoc)=NullableRecursive(p, a) . return (l_pr, l_assoc)
-                    SlotId(1150) => {
-                        next = Some(SlotId(1151));
                     }
                     // Opt_1(p: i32, a: i32) : (l_pr, l_assoc)=NullableRecursive(p, a) return (l_pr, l_assoc).
                     SlotId(1151) => {
@@ -10403,15 +4761,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                             | (self.lookup(BINDING_L_ASSOC, env.unwrap()));
                         self.pop(
                             gss_node_id,
-                            SlotId(1151),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_OPT_1,
                         );
-                    }
-                    // Opt_1(p: i32, a: i32) : . return (UNDEFINED_PRECEDENCE, 0)
-                    SlotId(1152) => {
-                        next = Some(SlotId(1153));
                     }
                     // Opt_1(p: i32, a: i32) : return (UNDEFINED_PRECEDENCE, 0).
                     SlotId(1153) => {
@@ -10419,7 +4773,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = -65536;
                         self.pop(
                             gss_node_id,
-                            SlotId(1153),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_OPT_1,
@@ -10430,15 +4784,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_nullable_suffix(
                             result,
                             gss_node_id,
-                            SlotId(1155),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             self.lookup(BINDING_A, env.unwrap()),
                         );
-                    }
-                    // Opt_2(p: i32, a: i32) : r_pr=NullableSuffix(p, a) . return r_pr
-                    SlotId(1155) => {
-                        next = Some(SlotId(1156));
                     }
                     // Opt_2(p: i32, a: i32) : r_pr=NullableSuffix(p, a) return r_pr.
                     SlotId(1156) => {
@@ -10448,15 +4798,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = self.lookup(BINDING_R_PR, env.unwrap());
                         self.pop(
                             gss_node_id,
-                            SlotId(1156),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_OPT_2,
                         );
-                    }
-                    // Opt_2(p: i32, a: i32) : . return UNDEFINED_PRECEDENCE
-                    SlotId(1157) => {
-                        next = Some(SlotId(1158));
                     }
                     // Opt_2(p: i32, a: i32) : return UNDEFINED_PRECEDENCE.
                     SlotId(1158) => {
@@ -10464,7 +4810,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = -1;
                         self.pop(
                             gss_node_id,
-                            SlotId(1158),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_OPT_2,
@@ -10476,16 +4822,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         self.create_nullable_shared(
                             result,
                             gss_node_id,
-                            SlotId(1160),
+                            slot_id.next(),
                             env,
                             self.lookup(BINDING_P, env.unwrap()),
                             self.lookup(BINDING_A, env.unwrap()),
                         );
-                    }
-                    // Opt_3(p: i32, end: i32, a: i32) : (v_pr, v_assoc)=NullableShared(p, a) . return (v_pr,
-                    // v_assoc)
-                    SlotId(1160) => {
-                        next = Some(SlotId(1161));
                     }
                     // Opt_3(p: i32, end: i32, a: i32) : (v_pr, v_assoc)=NullableShared(p, a) return (v_pr,
                     // v_assoc).
@@ -10497,15 +4838,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                             | (self.lookup(BINDING_V_ASSOC, env.unwrap()));
                         self.pop(
                             gss_node_id,
-                            SlotId(1161),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_OPT_3,
                         );
-                    }
-                    // Opt_3(p: i32, end: i32, a: i32) : . return (UNDEFINED_PRECEDENCE, 0)
-                    SlotId(1162) => {
-                        next = Some(SlotId(1163));
                     }
                     // Opt_3(p: i32, end: i32, a: i32) : return (UNDEFINED_PRECEDENCE, 0).
                     SlotId(1163) => {
@@ -10513,24 +4850,39 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         let return_value = -65536;
                         self.pop(
                             gss_node_id,
-                            SlotId(1163),
+                            slot_id,
                             result,
                             Some(return_value),
                             &FOLLOW_SET_OPT_3,
                         );
                     }
-                    // StartS : . WS start:S WS
-                    SlotId(65) => {
+                    // StartS : . WS start:S WS, and 82 more slots
+                    SlotId(65) | SlotId(69) | SlotId(73) | SlotId(77) | SlotId(81) | SlotId(85)
+                    | SlotId(89) | SlotId(93) | SlotId(97) | SlotId(101) | SlotId(105)
+                    | SlotId(109) | SlotId(113) | SlotId(117) | SlotId(121) | SlotId(125)
+                    | SlotId(129) | SlotId(133) | SlotId(137) | SlotId(141) | SlotId(145)
+                    | SlotId(149) | SlotId(153) | SlotId(157) | SlotId(161) | SlotId(165)
+                    | SlotId(169) | SlotId(173) | SlotId(177) | SlotId(181) | SlotId(185)
+                    | SlotId(189) | SlotId(193) | SlotId(197) | SlotId(201) | SlotId(205)
+                    | SlotId(209) | SlotId(213) | SlotId(217) | SlotId(221) | SlotId(225)
+                    | SlotId(229) | SlotId(233) | SlotId(237) | SlotId(241) | SlotId(245)
+                    | SlotId(249) | SlotId(253) | SlotId(257) | SlotId(261) | SlotId(265)
+                    | SlotId(269) | SlotId(273) | SlotId(277) | SlotId(281) | SlotId(285)
+                    | SlotId(289) | SlotId(293) | SlotId(297) | SlotId(301) | SlotId(305)
+                    | SlotId(309) | SlotId(313) | SlotId(317) | SlotId(321) | SlotId(325)
+                    | SlotId(329) | SlotId(333) | SlotId(337) | SlotId(341) | SlotId(345)
+                    | SlotId(349) | SlotId(353) | SlotId(357) | SlotId(361) | SlotId(365)
+                    | SlotId(369) | SlotId(373) | SlotId(377) | SlotId(381) | SlotId(385)
+                    | SlotId(389) | SlotId(393) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(1),
                             input_index,
-                            SlotId(65),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // StartS : WS . start:S WS
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(66));
+                            next = Some(slot_id.next());
                         }
                     }
                     // StartS : WS . start:S WS
@@ -10540,205 +4892,49 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                             &PREDICTION_S,
                             result,
                             gss_node_id,
-                            SlotId(67),
+                            slot_id.next(),
                             env,
                         );
-                    }
-                    // StartS : WS start:S . WS
-                    SlotId(67) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(67),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(68), env)
-                            {
-                                // StartS : WS start:S WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(68));
-                            }
-                        }
                     }
                     // StartS : WS start:S WS.
                     SlotId(68) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(68), result, None, &FOLLOW_SET_START_S);
-                    }
-                    // StartE : . WS start:E(0) WS
-                    SlotId(69) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(69),
-                            Some(gss_node_id),
-                        ) {
-                            // StartE : WS . start:E(0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(70));
-                        }
-                    }
-                    // StartE : WS . start:E(0) WS
-                    SlotId(70) => {
-                        self.create_e(result, gss_node_id, SlotId(71), env, 0);
-                    }
-                    // StartE : WS start:E(0) . WS
-                    SlotId(71) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(71),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(72), env)
-                            {
-                                // StartE : WS start:E(0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(72));
-                            }
-                        }
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_S);
                     }
                     // StartE : WS start:E(0) WS.
                     SlotId(72) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(72), result, None, &FOLLOW_SET_START_E);
-                    }
-                    // StartL : . WS start:L(0, 0) WS
-                    SlotId(73) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(73),
-                            Some(gss_node_id),
-                        ) {
-                            // StartL : WS . start:L(0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(74));
-                        }
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_E);
                     }
                     // StartL : WS . start:L(0, 0) WS
                     SlotId(74) => {
-                        self.create_l(result, gss_node_id, SlotId(75), env, 0, 0);
-                    }
-                    // StartL : WS start:L(0, 0) . WS
-                    SlotId(75) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(75),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(76), env)
-                            {
-                                // StartL : WS start:L(0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(76));
-                            }
-                        }
+                        self.create_l(result, gss_node_id, slot_id.next(), env, 0, 0);
                     }
                     // StartL : WS start:L(0, 0) WS.
                     SlotId(76) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(76), result, None, &FOLLOW_SET_START_L);
-                    }
-                    // StartOnly : . WS start:Only(0) WS
-                    SlotId(77) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(77),
-                            Some(gss_node_id),
-                        ) {
-                            // StartOnly : WS . start:Only(0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(78));
-                        }
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_L);
                     }
                     // StartOnly : WS . start:Only(0) WS
                     SlotId(78) => {
-                        self.create_only(result, gss_node_id, SlotId(79), env, 0);
-                    }
-                    // StartOnly : WS start:Only(0) . WS
-                    SlotId(79) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(79),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(80), env)
-                            {
-                                // StartOnly : WS start:Only(0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(80));
-                            }
-                        }
+                        self.create_only(result, gss_node_id, slot_id.next(), env, 0);
                     }
                     // StartOnly : WS start:Only(0) WS.
                     SlotId(80) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(
-                            gss_node_id,
-                            SlotId(80),
-                            result,
-                            None,
-                            &FOLLOW_SET_START_ONLY,
-                        );
-                    }
-                    // StartOnlyOperand : . WS start:OnlyOperand(0, 0) WS
-                    SlotId(81) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(81),
-                            Some(gss_node_id),
-                        ) {
-                            // StartOnlyOperand : WS . start:OnlyOperand(0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(82));
-                        }
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_ONLY);
                     }
                     // StartOnlyOperand : WS . start:OnlyOperand(0, 0) WS
                     SlotId(82) => {
-                        self.create_only_operand(result, gss_node_id, SlotId(83), env, 0, 0);
-                    }
-                    // StartOnlyOperand : WS start:OnlyOperand(0, 0) . WS
-                    SlotId(83) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(83),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(84), env)
-                            {
-                                // StartOnlyOperand : WS start:OnlyOperand(0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(84));
-                            }
-                        }
+                        self.create_only_operand(result, gss_node_id, slot_id.next(), env, 0, 0);
                     }
                     // StartOnlyOperand : WS start:OnlyOperand(0, 0) WS.
                     SlotId(84) => {
@@ -10747,96 +4943,18 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(84),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_ONLY_OPERAND,
                         );
-                    }
-                    // StartCross : . WS start:Cross(0) WS
-                    SlotId(85) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(85),
-                            Some(gss_node_id),
-                        ) {
-                            // StartCross : WS . start:Cross(0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(86));
-                        }
-                    }
-                    // StartCross : WS . start:Cross(0) WS
-                    SlotId(86) => {
-                        self.create_cross(result, gss_node_id, SlotId(87), env, 0);
-                    }
-                    // StartCross : WS start:Cross(0) . WS
-                    SlotId(87) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(87),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(88), env)
-                            {
-                                // StartCross : WS start:Cross(0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(88));
-                            }
-                        }
                     }
                     // StartCross : WS start:Cross(0) WS.
                     SlotId(88) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(
-                            gss_node_id,
-                            SlotId(88),
-                            result,
-                            None,
-                            &FOLLOW_SET_START_CROSS,
-                        );
-                    }
-                    // StartForeign : . WS start:Foreign(0) WS
-                    SlotId(89) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(89),
-                            Some(gss_node_id),
-                        ) {
-                            // StartForeign : WS . start:Foreign(0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(90));
-                        }
-                    }
-                    // StartForeign : WS . start:Foreign(0) WS
-                    SlotId(90) => {
-                        self.create_foreign(result, gss_node_id, SlotId(91), env, 0);
-                    }
-                    // StartForeign : WS start:Foreign(0) . WS
-                    SlotId(91) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(91),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(92), env)
-                            {
-                                // StartForeign : WS start:Foreign(0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(92));
-                            }
-                        }
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_CROSS);
                     }
                     // StartForeign : WS start:Foreign(0) WS.
                     SlotId(92) => {
@@ -10845,47 +4963,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(92),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_FOREIGN,
                         );
-                    }
-                    // StartCascade : . WS start:Cascade(0) WS
-                    SlotId(93) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(93),
-                            Some(gss_node_id),
-                        ) {
-                            // StartCascade : WS . start:Cascade(0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(94));
-                        }
-                    }
-                    // StartCascade : WS . start:Cascade(0) WS
-                    SlotId(94) => {
-                        self.create_cascade(result, gss_node_id, SlotId(95), env, 0);
-                    }
-                    // StartCascade : WS start:Cascade(0) . WS
-                    SlotId(95) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(95),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(96), env)
-                            {
-                                // StartCascade : WS start:Cascade(0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(96));
-                            }
-                        }
                     }
                     // StartCascade : WS start:Cascade(0) WS.
                     SlotId(96) => {
@@ -10894,54 +4976,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(96),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_CASCADE,
                         );
-                    }
-                    // StartTernary : . WS start:Ternary WS
-                    SlotId(97) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(97),
-                            Some(gss_node_id),
-                        ) {
-                            // StartTernary : WS . start:Ternary WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(98));
-                        }
-                    }
-                    // StartTernary : WS . start:Ternary WS
-                    SlotId(98) => {
-                        self.create(
-                            NonterminalId(1),
-                            &PREDICTION_TERNARY,
-                            result,
-                            gss_node_id,
-                            SlotId(99),
-                            env,
-                        );
-                    }
-                    // StartTernary : WS start:Ternary . WS
-                    SlotId(99) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(99),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(100), env)
-                            {
-                                // StartTernary : WS start:Ternary WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(100));
-                            }
-                        }
                     }
                     // StartTernary : WS start:Ternary WS.
                     SlotId(100) => {
@@ -10950,47 +4989,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(100),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_TERNARY,
                         );
-                    }
-                    // StartNullable : . WS start:Nullable(0) WS
-                    SlotId(101) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(101),
-                            Some(gss_node_id),
-                        ) {
-                            // StartNullable : WS . start:Nullable(0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(102));
-                        }
-                    }
-                    // StartNullable : WS . start:Nullable(0) WS
-                    SlotId(102) => {
-                        self.create_nullable(result, gss_node_id, SlotId(103), env, 0);
-                    }
-                    // StartNullable : WS start:Nullable(0) . WS
-                    SlotId(103) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(103),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(104), env)
-                            {
-                                // StartNullable : WS start:Nullable(0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(104));
-                            }
-                        }
                     }
                     // StartNullable : WS start:Nullable(0) WS.
                     SlotId(104) => {
@@ -10999,54 +5002,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(104),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_NULLABLE,
                         );
-                    }
-                    // StartNullableLeft : . WS start:NullableLeft WS
-                    SlotId(105) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(105),
-                            Some(gss_node_id),
-                        ) {
-                            // StartNullableLeft : WS . start:NullableLeft WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(106));
-                        }
-                    }
-                    // StartNullableLeft : WS . start:NullableLeft WS
-                    SlotId(106) => {
-                        self.create(
-                            NonterminalId(2),
-                            &PREDICTION_NULLABLE_LEFT,
-                            result,
-                            gss_node_id,
-                            SlotId(107),
-                            env,
-                        );
-                    }
-                    // StartNullableLeft : WS start:NullableLeft . WS
-                    SlotId(107) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(107),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(108), env)
-                            {
-                                // StartNullableLeft : WS start:NullableLeft WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(108));
-                            }
-                        }
                     }
                     // StartNullableLeft : WS start:NullableLeft WS.
                     SlotId(108) => {
@@ -11055,47 +5015,15 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(108),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_NULLABLE_LEFT,
                         );
                     }
-                    // StartNullableRight : . WS start:NullableRight(0) WS
-                    SlotId(109) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(109),
-                            Some(gss_node_id),
-                        ) {
-                            // StartNullableRight : WS . start:NullableRight(0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(110));
-                        }
-                    }
                     // StartNullableRight : WS . start:NullableRight(0) WS
                     SlotId(110) => {
-                        self.create_nullable_right(result, gss_node_id, SlotId(111), env, 0);
-                    }
-                    // StartNullableRight : WS start:NullableRight(0) . WS
-                    SlotId(111) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(111),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(112), env)
-                            {
-                                // StartNullableRight : WS start:NullableRight(0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(112));
-                            }
-                        }
+                        self.create_nullable_right(result, gss_node_id, slot_id.next(), env, 0);
                     }
                     // StartNullableRight : WS start:NullableRight(0) WS.
                     SlotId(112) => {
@@ -11104,47 +5032,15 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(112),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_NULLABLE_RIGHT,
                         );
                     }
-                    // StartRightExpr : . WS start:RightExpr(0) WS
-                    SlotId(113) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(113),
-                            Some(gss_node_id),
-                        ) {
-                            // StartRightExpr : WS . start:RightExpr(0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(114));
-                        }
-                    }
                     // StartRightExpr : WS . start:RightExpr(0) WS
                     SlotId(114) => {
-                        self.create_right_expr(result, gss_node_id, SlotId(115), env, 0);
-                    }
-                    // StartRightExpr : WS start:RightExpr(0) . WS
-                    SlotId(115) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(115),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(116), env)
-                            {
-                                // StartRightExpr : WS start:RightExpr(0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(116));
-                            }
-                        }
+                        self.create_right_expr(result, gss_node_id, slot_id.next(), env, 0);
                     }
                     // StartRightExpr : WS start:RightExpr(0) WS.
                     SlotId(116) => {
@@ -11153,47 +5049,15 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(116),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_RIGHT_EXPR,
                         );
                     }
-                    // StartRightOperand : . WS start:RightOperand(0, 0) WS
-                    SlotId(117) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(117),
-                            Some(gss_node_id),
-                        ) {
-                            // StartRightOperand : WS . start:RightOperand(0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(118));
-                        }
-                    }
                     // StartRightOperand : WS . start:RightOperand(0, 0) WS
                     SlotId(118) => {
-                        self.create_right_operand(result, gss_node_id, SlotId(119), env, 0, 0);
-                    }
-                    // StartRightOperand : WS start:RightOperand(0, 0) . WS
-                    SlotId(119) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(119),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(120), env)
-                            {
-                                // StartRightOperand : WS start:RightOperand(0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(120));
-                            }
-                        }
+                        self.create_right_operand(result, gss_node_id, slot_id.next(), env, 0, 0);
                     }
                     // StartRightOperand : WS start:RightOperand(0, 0) WS.
                     SlotId(120) => {
@@ -11202,47 +5066,15 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(120),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_RIGHT_OPERAND,
                         );
                     }
-                    // StartNoneExpr : . WS start:NoneExpr(0) WS
-                    SlotId(121) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(121),
-                            Some(gss_node_id),
-                        ) {
-                            // StartNoneExpr : WS . start:NoneExpr(0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(122));
-                        }
-                    }
                     // StartNoneExpr : WS . start:NoneExpr(0) WS
                     SlotId(122) => {
-                        self.create_none_expr(result, gss_node_id, SlotId(123), env, 0);
-                    }
-                    // StartNoneExpr : WS start:NoneExpr(0) . WS
-                    SlotId(123) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(123),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(124), env)
-                            {
-                                // StartNoneExpr : WS start:NoneExpr(0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(124));
-                            }
-                        }
+                        self.create_none_expr(result, gss_node_id, slot_id.next(), env, 0);
                     }
                     // StartNoneExpr : WS start:NoneExpr(0) WS.
                     SlotId(124) => {
@@ -11251,47 +5083,15 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(124),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_NONE_EXPR,
                         );
                     }
-                    // StartNoneOperand : . WS start:NoneOperand(0, 0) WS
-                    SlotId(125) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(125),
-                            Some(gss_node_id),
-                        ) {
-                            // StartNoneOperand : WS . start:NoneOperand(0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(126));
-                        }
-                    }
                     // StartNoneOperand : WS . start:NoneOperand(0, 0) WS
                     SlotId(126) => {
-                        self.create_none_operand(result, gss_node_id, SlotId(127), env, 0, 0);
-                    }
-                    // StartNoneOperand : WS start:NoneOperand(0, 0) . WS
-                    SlotId(127) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(127),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(128), env)
-                            {
-                                // StartNoneOperand : WS start:NoneOperand(0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(128));
-                            }
-                        }
+                        self.create_none_operand(result, gss_node_id, slot_id.next(), env, 0, 0);
                     }
                     // StartNoneOperand : WS start:NoneOperand(0, 0) WS.
                     SlotId(128) => {
@@ -11300,47 +5100,15 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(128),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_NONE_OPERAND,
                         );
                     }
-                    // StartExcluded : . WS start:Excluded(0, 0) WS
-                    SlotId(129) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(129),
-                            Some(gss_node_id),
-                        ) {
-                            // StartExcluded : WS . start:Excluded(0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(130));
-                        }
-                    }
                     // StartExcluded : WS . start:Excluded(0, 0) WS
                     SlotId(130) => {
-                        self.create_excluded(result, gss_node_id, SlotId(131), env, 0, 0);
-                    }
-                    // StartExcluded : WS start:Excluded(0, 0) . WS
-                    SlotId(131) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(131),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(132), env)
-                            {
-                                // StartExcluded : WS start:Excluded(0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(132));
-                            }
-                        }
+                        self.create_excluded(result, gss_node_id, slot_id.next(), env, 0, 0);
                     }
                     // StartExcluded : WS start:Excluded(0, 0) WS.
                     SlotId(132) => {
@@ -11349,55 +5117,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(132),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_EXCLUDED,
                         );
-                    }
-                    // StartExcludedOperand : . WS start:ExcludedOperand(0, 0, 0) WS
-                    SlotId(133) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(133),
-                            Some(gss_node_id),
-                        ) {
-                            // StartExcludedOperand : WS . start:ExcludedOperand(0, 0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(134));
-                        }
-                    }
-                    // StartExcludedOperand : WS . start:ExcludedOperand(0, 0, 0) WS
-                    SlotId(134) => {
-                        self.create_excluded_operand(
-                            result,
-                            gss_node_id,
-                            SlotId(135),
-                            env,
-                            0,
-                            0,
-                            0,
-                        );
-                    }
-                    // StartExcludedOperand : WS start:ExcludedOperand(0, 0, 0) . WS
-                    SlotId(135) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(135),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(136), env)
-                            {
-                                // StartExcludedOperand : WS start:ExcludedOperand(0, 0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(136));
-                            }
-                        }
                     }
                     // StartExcludedOperand : WS start:ExcludedOperand(0, 0, 0) WS.
                     SlotId(136) => {
@@ -11406,25 +5130,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(136),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_EXCLUDED_OPERAND,
                         );
-                    }
-                    // StartFiltered : . WS start:Filtered WS
-                    SlotId(137) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(137),
-                            Some(gss_node_id),
-                        ) {
-                            // StartFiltered : WS . start:Filtered WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(138));
-                        }
                     }
                     // StartFiltered : WS . start:Filtered WS
                     SlotId(138) => {
@@ -11433,27 +5143,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                             &PREDICTION_FILTERED,
                             result,
                             gss_node_id,
-                            SlotId(139),
+                            slot_id.next(),
                             env,
                         );
-                    }
-                    // StartFiltered : WS start:Filtered . WS
-                    SlotId(139) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(139),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(140), env)
-                            {
-                                // StartFiltered : WS start:Filtered WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(140));
-                            }
-                        }
                     }
                     // StartFiltered : WS start:Filtered WS.
                     SlotId(140) => {
@@ -11462,47 +5154,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(140),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_FILTERED,
                         );
-                    }
-                    // StartLexNullable : . WS start:LexNullable(0) WS
-                    SlotId(141) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(141),
-                            Some(gss_node_id),
-                        ) {
-                            // StartLexNullable : WS . start:LexNullable(0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(142));
-                        }
-                    }
-                    // StartLexNullable : WS . start:LexNullable(0) WS
-                    SlotId(142) => {
-                        self.create_lex_nullable(result, gss_node_id, SlotId(143), env, 0);
-                    }
-                    // StartLexNullable : WS start:LexNullable(0) . WS
-                    SlotId(143) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(143),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(144), env)
-                            {
-                                // StartLexNullable : WS start:LexNullable(0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(144));
-                            }
-                        }
                     }
                     // StartLexNullable : WS start:LexNullable(0) WS.
                     SlotId(144) => {
@@ -11511,54 +5167,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(144),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_LEX_NULLABLE,
                         );
-                    }
-                    // StartLexNullableLeft : . WS start:LexNullableLeft WS
-                    SlotId(145) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(145),
-                            Some(gss_node_id),
-                        ) {
-                            // StartLexNullableLeft : WS . start:LexNullableLeft WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(146));
-                        }
-                    }
-                    // StartLexNullableLeft : WS . start:LexNullableLeft WS
-                    SlotId(146) => {
-                        self.create(
-                            NonterminalId(4),
-                            &PREDICTION_LEX_NULLABLE_LEFT,
-                            result,
-                            gss_node_id,
-                            SlotId(147),
-                            env,
-                        );
-                    }
-                    // StartLexNullableLeft : WS start:LexNullableLeft . WS
-                    SlotId(147) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(147),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(148), env)
-                            {
-                                // StartLexNullableLeft : WS start:LexNullableLeft WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(148));
-                            }
-                        }
                     }
                     // StartLexNullableLeft : WS start:LexNullableLeft WS.
                     SlotId(148) => {
@@ -11567,47 +5180,15 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(148),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_LEX_NULLABLE_LEFT,
                         );
                     }
-                    // StartLexNullableRight : . WS start:LexNullableRight(0) WS
-                    SlotId(149) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(149),
-                            Some(gss_node_id),
-                        ) {
-                            // StartLexNullableRight : WS . start:LexNullableRight(0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(150));
-                        }
-                    }
                     // StartLexNullableRight : WS . start:LexNullableRight(0) WS
                     SlotId(150) => {
-                        self.create_lex_nullable_right(result, gss_node_id, SlotId(151), env, 0);
-                    }
-                    // StartLexNullableRight : WS start:LexNullableRight(0) . WS
-                    SlotId(151) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(151),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(152), env)
-                            {
-                                // StartLexNullableRight : WS start:LexNullableRight(0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(152));
-                            }
-                        }
+                        self.create_lex_nullable_right(result, gss_node_id, slot_id.next(), env, 0);
                     }
                     // StartLexNullableRight : WS start:LexNullableRight(0) WS.
                     SlotId(152) => {
@@ -11616,47 +5197,15 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(152),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_LEX_NULLABLE_RIGHT,
                         );
                     }
-                    // StartMixedScale : . WS start:MixedScale(0, 0) WS
-                    SlotId(153) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(153),
-                            Some(gss_node_id),
-                        ) {
-                            // StartMixedScale : WS . start:MixedScale(0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(154));
-                        }
-                    }
                     // StartMixedScale : WS . start:MixedScale(0, 0) WS
                     SlotId(154) => {
-                        self.create_mixed_scale(result, gss_node_id, SlotId(155), env, 0, 0);
-                    }
-                    // StartMixedScale : WS start:MixedScale(0, 0) . WS
-                    SlotId(155) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(155),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(156), env)
-                            {
-                                // StartMixedScale : WS start:MixedScale(0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(156));
-                            }
-                        }
+                        self.create_mixed_scale(result, gss_node_id, slot_id.next(), env, 0, 0);
                     }
                     // StartMixedScale : WS start:MixedScale(0, 0) WS.
                     SlotId(156) => {
@@ -11665,47 +5214,15 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(156),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_MIXED_SCALE,
                         );
                     }
-                    // StartMixedOperand : . WS start:MixedOperand(0, 0) WS
-                    SlotId(157) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(157),
-                            Some(gss_node_id),
-                        ) {
-                            // StartMixedOperand : WS . start:MixedOperand(0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(158));
-                        }
-                    }
                     // StartMixedOperand : WS . start:MixedOperand(0, 0) WS
                     SlotId(158) => {
-                        self.create_mixed_operand(result, gss_node_id, SlotId(159), env, 0, 0);
-                    }
-                    // StartMixedOperand : WS start:MixedOperand(0, 0) . WS
-                    SlotId(159) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(159),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(160), env)
-                            {
-                                // StartMixedOperand : WS start:MixedOperand(0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(160));
-                            }
-                        }
+                        self.create_mixed_operand(result, gss_node_id, slot_id.next(), env, 0, 0);
                     }
                     // StartMixedOperand : WS start:MixedOperand(0, 0) WS.
                     SlotId(160) => {
@@ -11714,47 +5231,15 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(160),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_MIXED_OPERAND,
                         );
                     }
-                    // StartMixedRight : . WS start:MixedRight(0, 0) WS
-                    SlotId(161) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(161),
-                            Some(gss_node_id),
-                        ) {
-                            // StartMixedRight : WS . start:MixedRight(0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(162));
-                        }
-                    }
                     // StartMixedRight : WS . start:MixedRight(0, 0) WS
                     SlotId(162) => {
-                        self.create_mixed_right(result, gss_node_id, SlotId(163), env, 0, 0);
-                    }
-                    // StartMixedRight : WS start:MixedRight(0, 0) . WS
-                    SlotId(163) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(163),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(164), env)
-                            {
-                                // StartMixedRight : WS start:MixedRight(0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(164));
-                            }
-                        }
+                        self.create_mixed_right(result, gss_node_id, slot_id.next(), env, 0, 0);
                     }
                     // StartMixedRight : WS start:MixedRight(0, 0) WS.
                     SlotId(164) => {
@@ -11763,47 +5248,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(164),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_MIXED_RIGHT,
                         );
-                    }
-                    // StartMixedForeign : . WS start:MixedForeign(0) WS
-                    SlotId(165) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(165),
-                            Some(gss_node_id),
-                        ) {
-                            // StartMixedForeign : WS . start:MixedForeign(0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(166));
-                        }
-                    }
-                    // StartMixedForeign : WS . start:MixedForeign(0) WS
-                    SlotId(166) => {
-                        self.create_mixed_foreign(result, gss_node_id, SlotId(167), env, 0);
-                    }
-                    // StartMixedForeign : WS start:MixedForeign(0) . WS
-                    SlotId(167) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(167),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(168), env)
-                            {
-                                // StartMixedForeign : WS start:MixedForeign(0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(168));
-                            }
-                        }
                     }
                     // StartMixedForeign : WS start:MixedForeign(0) WS.
                     SlotId(168) => {
@@ -11812,96 +5261,30 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(168),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_MIXED_FOREIGN,
                         );
-                    }
-                    // StartPacked : . WS start:Packed(0, 0) WS
-                    SlotId(169) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(169),
-                            Some(gss_node_id),
-                        ) {
-                            // StartPacked : WS . start:Packed(0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(170));
-                        }
-                    }
-                    // StartPacked : WS . start:Packed(0, 0) WS
-                    SlotId(170) => {
-                        self.create_packed(result, gss_node_id, SlotId(171), env, 0, 0);
-                    }
-                    // StartPacked : WS start:Packed(0, 0) . WS
-                    SlotId(171) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(171),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(172), env)
-                            {
-                                // StartPacked : WS start:Packed(0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(172));
-                            }
-                        }
                     }
                     // StartPacked : WS start:Packed(0, 0) WS.
                     SlotId(172) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(
-                            gss_node_id,
-                            SlotId(172),
-                            result,
-                            None,
-                            &FOLLOW_SET_START_PACKED,
-                        );
-                    }
-                    // StartPackedOperand : . WS start:PackedOperand(0, 0, 0) WS
-                    SlotId(173) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(173),
-                            Some(gss_node_id),
-                        ) {
-                            // StartPackedOperand : WS . start:PackedOperand(0, 0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(174));
-                        }
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_PACKED);
                     }
                     // StartPackedOperand : WS . start:PackedOperand(0, 0, 0) WS
                     SlotId(174) => {
-                        self.create_packed_operand(result, gss_node_id, SlotId(175), env, 0, 0, 0);
-                    }
-                    // StartPackedOperand : WS start:PackedOperand(0, 0, 0) . WS
-                    SlotId(175) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(175),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(176), env)
-                            {
-                                // StartPackedOperand : WS start:PackedOperand(0, 0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(176));
-                            }
-                        }
+                        self.create_packed_operand(
+                            result,
+                            gss_node_id,
+                            slot_id.next(),
+                            env,
+                            0,
+                            0,
+                            0,
+                        );
                     }
                     // StartPackedOperand : WS start:PackedOperand(0, 0, 0) WS.
                     SlotId(176) => {
@@ -11910,47 +5293,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(176),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_PACKED_OPERAND,
                         );
-                    }
-                    // StartPackedMiddle : . WS start:PackedMiddle(0, 0, 0) WS
-                    SlotId(177) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(177),
-                            Some(gss_node_id),
-                        ) {
-                            // StartPackedMiddle : WS . start:PackedMiddle(0, 0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(178));
-                        }
-                    }
-                    // StartPackedMiddle : WS . start:PackedMiddle(0, 0, 0) WS
-                    SlotId(178) => {
-                        self.create_packed_middle(result, gss_node_id, SlotId(179), env, 0, 0, 0);
-                    }
-                    // StartPackedMiddle : WS start:PackedMiddle(0, 0, 0) . WS
-                    SlotId(179) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(179),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(180), env)
-                            {
-                                // StartPackedMiddle : WS start:PackedMiddle(0, 0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(180));
-                            }
-                        }
                     }
                     // StartPackedMiddle : WS start:PackedMiddle(0, 0, 0) WS.
                     SlotId(180) => {
@@ -11959,25 +5306,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(180),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_PACKED_MIDDLE,
                         );
-                    }
-                    // StartPackedFiltered : . WS start:PackedFiltered WS
-                    SlotId(181) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(181),
-                            Some(gss_node_id),
-                        ) {
-                            // StartPackedFiltered : WS . start:PackedFiltered WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(182));
-                        }
                     }
                     // StartPackedFiltered : WS . start:PackedFiltered WS
                     SlotId(182) => {
@@ -11986,27 +5319,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                             &PREDICTION_PACKED_FILTERED,
                             result,
                             gss_node_id,
-                            SlotId(183),
+                            slot_id.next(),
                             env,
                         );
-                    }
-                    // StartPackedFiltered : WS start:PackedFiltered . WS
-                    SlotId(183) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(183),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(184), env)
-                            {
-                                // StartPackedFiltered : WS start:PackedFiltered WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(184));
-                            }
-                        }
                     }
                     // StartPackedFiltered : WS start:PackedFiltered WS.
                     SlotId(184) => {
@@ -12015,47 +5330,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(184),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_PACKED_FILTERED,
                         );
-                    }
-                    // StartNullableRecursive : . WS start:NullableRecursive(0, 0) WS
-                    SlotId(185) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(185),
-                            Some(gss_node_id),
-                        ) {
-                            // StartNullableRecursive : WS . start:NullableRecursive(0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(186));
-                        }
-                    }
-                    // StartNullableRecursive : WS . start:NullableRecursive(0, 0) WS
-                    SlotId(186) => {
-                        self.create_nullable_recursive(result, gss_node_id, SlotId(187), env, 0, 0);
-                    }
-                    // StartNullableRecursive : WS start:NullableRecursive(0, 0) . WS
-                    SlotId(187) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(187),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(188), env)
-                            {
-                                // StartNullableRecursive : WS start:NullableRecursive(0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(188));
-                            }
-                        }
                     }
                     // StartNullableRecursive : WS start:NullableRecursive(0, 0) WS.
                     SlotId(188) => {
@@ -12064,47 +5343,22 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(188),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_NULLABLE_RECURSIVE,
                         );
                     }
-                    // StartNullableOperand : . WS start:NullableOperand(0, 0) WS
-                    SlotId(189) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(189),
-                            Some(gss_node_id),
-                        ) {
-                            // StartNullableOperand : WS . start:NullableOperand(0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(190));
-                        }
-                    }
                     // StartNullableOperand : WS . start:NullableOperand(0, 0) WS
                     SlotId(190) => {
-                        self.create_nullable_operand(result, gss_node_id, SlotId(191), env, 0, 0);
-                    }
-                    // StartNullableOperand : WS start:NullableOperand(0, 0) . WS
-                    SlotId(191) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(191),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(192), env)
-                            {
-                                // StartNullableOperand : WS start:NullableOperand(0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(192));
-                            }
-                        }
+                        self.create_nullable_operand(
+                            result,
+                            gss_node_id,
+                            slot_id.next(),
+                            env,
+                            0,
+                            0,
+                        );
                     }
                     // StartNullableOperand : WS start:NullableOperand(0, 0) WS.
                     SlotId(192) => {
@@ -12113,47 +5367,15 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(192),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_NULLABLE_OPERAND,
                         );
                     }
-                    // StartNullableMaybe : . WS start:NullableMaybe(0, 0) WS
-                    SlotId(193) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(193),
-                            Some(gss_node_id),
-                        ) {
-                            // StartNullableMaybe : WS . start:NullableMaybe(0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(194));
-                        }
-                    }
                     // StartNullableMaybe : WS . start:NullableMaybe(0, 0) WS
                     SlotId(194) => {
-                        self.create_nullable_maybe(result, gss_node_id, SlotId(195), env, 0, 0);
-                    }
-                    // StartNullableMaybe : WS start:NullableMaybe(0, 0) . WS
-                    SlotId(195) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(195),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(196), env)
-                            {
-                                // StartNullableMaybe : WS start:NullableMaybe(0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(196));
-                            }
-                        }
+                        self.create_nullable_maybe(result, gss_node_id, slot_id.next(), env, 0, 0);
                     }
                     // StartNullableMaybe : WS start:NullableMaybe(0, 0) WS.
                     SlotId(196) => {
@@ -12162,54 +5384,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(196),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_NULLABLE_MAYBE,
                         );
-                    }
-                    // StartNullableLexRecursive : . WS start:NullableLexRecursive(0, 0) WS
-                    SlotId(197) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(197),
-                            Some(gss_node_id),
-                        ) {
-                            // StartNullableLexRecursive : WS . start:NullableLexRecursive(0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(198));
-                        }
-                    }
-                    // StartNullableLexRecursive : WS . start:NullableLexRecursive(0, 0) WS
-                    SlotId(198) => {
-                        self.create_nullable_lex_recursive(
-                            result,
-                            gss_node_id,
-                            SlotId(199),
-                            env,
-                            0,
-                            0,
-                        );
-                    }
-                    // StartNullableLexRecursive : WS start:NullableLexRecursive(0, 0) . WS
-                    SlotId(199) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(199),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(200), env)
-                            {
-                                // StartNullableLexRecursive : WS start:NullableLexRecursive(0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(200));
-                            }
-                        }
                     }
                     // StartNullableLexRecursive : WS start:NullableLexRecursive(0, 0) WS.
                     SlotId(200) => {
@@ -12218,54 +5397,22 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(200),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_NULLABLE_LEX_RECURSIVE,
                         );
-                    }
-                    // StartNullableLexOperand : . WS start:NullableLexOperand(0, 0) WS
-                    SlotId(201) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(201),
-                            Some(gss_node_id),
-                        ) {
-                            // StartNullableLexOperand : WS . start:NullableLexOperand(0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(202));
-                        }
                     }
                     // StartNullableLexOperand : WS . start:NullableLexOperand(0, 0) WS
                     SlotId(202) => {
                         self.create_nullable_lex_operand(
                             result,
                             gss_node_id,
-                            SlotId(203),
+                            slot_id.next(),
                             env,
                             0,
                             0,
                         );
-                    }
-                    // StartNullableLexOperand : WS start:NullableLexOperand(0, 0) . WS
-                    SlotId(203) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(203),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(204), env)
-                            {
-                                // StartNullableLexOperand : WS start:NullableLexOperand(0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(204));
-                            }
-                        }
                     }
                     // StartNullableLexOperand : WS start:NullableLexOperand(0, 0) WS.
                     SlotId(204) => {
@@ -12274,47 +5421,22 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(204),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_NULLABLE_LEX_OPERAND,
                         );
                     }
-                    // StartNullableLexMaybe : . WS start:NullableLexMaybe(0, 0) WS
-                    SlotId(205) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(205),
-                            Some(gss_node_id),
-                        ) {
-                            // StartNullableLexMaybe : WS . start:NullableLexMaybe(0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(206));
-                        }
-                    }
                     // StartNullableLexMaybe : WS . start:NullableLexMaybe(0, 0) WS
                     SlotId(206) => {
-                        self.create_nullable_lex_maybe(result, gss_node_id, SlotId(207), env, 0, 0);
-                    }
-                    // StartNullableLexMaybe : WS start:NullableLexMaybe(0, 0) . WS
-                    SlotId(207) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(207),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(208), env)
-                            {
-                                // StartNullableLexMaybe : WS start:NullableLexMaybe(0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(208));
-                            }
-                        }
+                        self.create_nullable_lex_maybe(
+                            result,
+                            gss_node_id,
+                            slot_id.next(),
+                            env,
+                            0,
+                            0,
+                        );
                     }
                     // StartNullableLexMaybe : WS start:NullableLexMaybe(0, 0) WS.
                     SlotId(208) => {
@@ -12323,47 +5445,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(208),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_NULLABLE_LEX_MAYBE,
                         );
-                    }
-                    // StartNullableSuffix : . WS start:NullableSuffix(0, 0) WS
-                    SlotId(209) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(209),
-                            Some(gss_node_id),
-                        ) {
-                            // StartNullableSuffix : WS . start:NullableSuffix(0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(210));
-                        }
-                    }
-                    // StartNullableSuffix : WS . start:NullableSuffix(0, 0) WS
-                    SlotId(210) => {
-                        self.create_nullable_suffix(result, gss_node_id, SlotId(211), env, 0, 0);
-                    }
-                    // StartNullableSuffix : WS start:NullableSuffix(0, 0) . WS
-                    SlotId(211) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(211),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(212), env)
-                            {
-                                // StartNullableSuffix : WS start:NullableSuffix(0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(212));
-                            }
-                        }
                     }
                     // StartNullableSuffix : WS start:NullableSuffix(0, 0) WS.
                     SlotId(212) => {
@@ -12372,54 +5458,22 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(212),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_NULLABLE_SUFFIX,
                         );
-                    }
-                    // StartNullableSuffixOperand : . WS start:NullableSuffixOperand(0, 0) WS
-                    SlotId(213) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(213),
-                            Some(gss_node_id),
-                        ) {
-                            // StartNullableSuffixOperand : WS . start:NullableSuffixOperand(0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(214));
-                        }
                     }
                     // StartNullableSuffixOperand : WS . start:NullableSuffixOperand(0, 0) WS
                     SlotId(214) => {
                         self.create_nullable_suffix_operand(
                             result,
                             gss_node_id,
-                            SlotId(215),
+                            slot_id.next(),
                             env,
                             0,
                             0,
                         );
-                    }
-                    // StartNullableSuffixOperand : WS start:NullableSuffixOperand(0, 0) . WS
-                    SlotId(215) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(215),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(216), env)
-                            {
-                                // StartNullableSuffixOperand : WS start:NullableSuffixOperand(0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(216));
-                            }
-                        }
                     }
                     // StartNullableSuffixOperand : WS start:NullableSuffixOperand(0, 0) WS.
                     SlotId(216) => {
@@ -12428,54 +5482,22 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(216),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_NULLABLE_SUFFIX_OPERAND,
                         );
-                    }
-                    // StartNullableSuffixMaybe : . WS start:NullableSuffixMaybe(0, 0) WS
-                    SlotId(217) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(217),
-                            Some(gss_node_id),
-                        ) {
-                            // StartNullableSuffixMaybe : WS . start:NullableSuffixMaybe(0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(218));
-                        }
                     }
                     // StartNullableSuffixMaybe : WS . start:NullableSuffixMaybe(0, 0) WS
                     SlotId(218) => {
                         self.create_nullable_suffix_maybe(
                             result,
                             gss_node_id,
-                            SlotId(219),
+                            slot_id.next(),
                             env,
                             0,
                             0,
                         );
-                    }
-                    // StartNullableSuffixMaybe : WS start:NullableSuffixMaybe(0, 0) . WS
-                    SlotId(219) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(219),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(220), env)
-                            {
-                                // StartNullableSuffixMaybe : WS start:NullableSuffixMaybe(0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(220));
-                            }
-                        }
                     }
                     // StartNullableSuffixMaybe : WS start:NullableSuffixMaybe(0, 0) WS.
                     SlotId(220) => {
@@ -12484,47 +5506,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(220),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_NULLABLE_SUFFIX_MAYBE,
                         );
-                    }
-                    // StartNullableShared : . WS start:NullableShared(0, 0) WS
-                    SlotId(221) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(221),
-                            Some(gss_node_id),
-                        ) {
-                            // StartNullableShared : WS . start:NullableShared(0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(222));
-                        }
-                    }
-                    // StartNullableShared : WS . start:NullableShared(0, 0) WS
-                    SlotId(222) => {
-                        self.create_nullable_shared(result, gss_node_id, SlotId(223), env, 0, 0);
-                    }
-                    // StartNullableShared : WS start:NullableShared(0, 0) . WS
-                    SlotId(223) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(223),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(224), env)
-                            {
-                                // StartNullableShared : WS start:NullableShared(0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(224));
-                            }
-                        }
                     }
                     // StartNullableShared : WS start:NullableShared(0, 0) WS.
                     SlotId(224) => {
@@ -12533,55 +5519,23 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(224),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_NULLABLE_SHARED,
                         );
-                    }
-                    // StartNullableSharedOperand : . WS start:NullableSharedOperand(0, 0, 0) WS
-                    SlotId(225) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(225),
-                            Some(gss_node_id),
-                        ) {
-                            // StartNullableSharedOperand : WS . start:NullableSharedOperand(0, 0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(226));
-                        }
                     }
                     // StartNullableSharedOperand : WS . start:NullableSharedOperand(0, 0, 0) WS
                     SlotId(226) => {
                         self.create_nullable_shared_operand(
                             result,
                             gss_node_id,
-                            SlotId(227),
+                            slot_id.next(),
                             env,
                             0,
                             0,
                             0,
                         );
-                    }
-                    // StartNullableSharedOperand : WS start:NullableSharedOperand(0, 0, 0) . WS
-                    SlotId(227) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(227),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(228), env)
-                            {
-                                // StartNullableSharedOperand : WS start:NullableSharedOperand(0, 0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(228));
-                            }
-                        }
                     }
                     // StartNullableSharedOperand : WS start:NullableSharedOperand(0, 0, 0) WS.
                     SlotId(228) => {
@@ -12590,55 +5544,23 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(228),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_NULLABLE_SHARED_OPERAND,
                         );
-                    }
-                    // StartNullableSharedMaybe : . WS start:NullableSharedMaybe(0, 0, 0) WS
-                    SlotId(229) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(229),
-                            Some(gss_node_id),
-                        ) {
-                            // StartNullableSharedMaybe : WS . start:NullableSharedMaybe(0, 0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(230));
-                        }
                     }
                     // StartNullableSharedMaybe : WS . start:NullableSharedMaybe(0, 0, 0) WS
                     SlotId(230) => {
                         self.create_nullable_shared_maybe(
                             result,
                             gss_node_id,
-                            SlotId(231),
+                            slot_id.next(),
                             env,
                             0,
                             0,
                             0,
                         );
-                    }
-                    // StartNullableSharedMaybe : WS start:NullableSharedMaybe(0, 0, 0) . WS
-                    SlotId(231) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(231),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(232), env)
-                            {
-                                // StartNullableSharedMaybe : WS start:NullableSharedMaybe(0, 0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(232));
-                            }
-                        }
                     }
                     // StartNullableSharedMaybe : WS start:NullableSharedMaybe(0, 0, 0) WS.
                     SlotId(232) => {
@@ -12647,47 +5569,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(232),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_NULLABLE_SHARED_MAYBE,
                         );
-                    }
-                    // StartOwnLabel : . WS start:OwnLabel(0, 0) WS
-                    SlotId(233) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(233),
-                            Some(gss_node_id),
-                        ) {
-                            // StartOwnLabel : WS . start:OwnLabel(0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(234));
-                        }
-                    }
-                    // StartOwnLabel : WS . start:OwnLabel(0, 0) WS
-                    SlotId(234) => {
-                        self.create_own_label(result, gss_node_id, SlotId(235), env, 0, 0);
-                    }
-                    // StartOwnLabel : WS start:OwnLabel(0, 0) . WS
-                    SlotId(235) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(235),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(236), env)
-                            {
-                                // StartOwnLabel : WS start:OwnLabel(0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(236));
-                            }
-                        }
                     }
                     // StartOwnLabel : WS start:OwnLabel(0, 0) WS.
                     SlotId(236) => {
@@ -12696,47 +5582,15 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(236),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_OWN_LABEL,
                         );
                     }
-                    // StartOwnOperand : . WS start:OwnOperand(0, 0, 0) WS
-                    SlotId(237) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(237),
-                            Some(gss_node_id),
-                        ) {
-                            // StartOwnOperand : WS . start:OwnOperand(0, 0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(238));
-                        }
-                    }
                     // StartOwnOperand : WS . start:OwnOperand(0, 0, 0) WS
                     SlotId(238) => {
-                        self.create_own_operand(result, gss_node_id, SlotId(239), env, 0, 0, 0);
-                    }
-                    // StartOwnOperand : WS start:OwnOperand(0, 0, 0) . WS
-                    SlotId(239) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(239),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(240), env)
-                            {
-                                // StartOwnOperand : WS start:OwnOperand(0, 0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(240));
-                            }
-                        }
+                        self.create_own_operand(result, gss_node_id, slot_id.next(), env, 0, 0, 0);
                     }
                     // StartOwnOperand : WS start:OwnOperand(0, 0, 0) WS.
                     SlotId(240) => {
@@ -12745,25 +5599,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(240),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_OWN_OPERAND,
                         );
-                    }
-                    // StartOwnHeadFiltered : . WS start:OwnHeadFiltered WS
-                    SlotId(241) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(241),
-                            Some(gss_node_id),
-                        ) {
-                            // StartOwnHeadFiltered : WS . start:OwnHeadFiltered WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(242));
-                        }
                     }
                     // StartOwnHeadFiltered : WS . start:OwnHeadFiltered WS
                     SlotId(242) => {
@@ -12772,27 +5612,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                             &PREDICTION_OWN_HEAD_FILTERED,
                             result,
                             gss_node_id,
-                            SlotId(243),
+                            slot_id.next(),
                             env,
                         );
-                    }
-                    // StartOwnHeadFiltered : WS start:OwnHeadFiltered . WS
-                    SlotId(243) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(243),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(244), env)
-                            {
-                                // StartOwnHeadFiltered : WS start:OwnHeadFiltered WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(244));
-                            }
-                        }
                     }
                     // StartOwnHeadFiltered : WS start:OwnHeadFiltered WS.
                     SlotId(244) => {
@@ -12801,54 +5623,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(244),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_OWN_HEAD_FILTERED,
                         );
-                    }
-                    // StartExcludeOnly : . WS start:ExcludeOnly WS
-                    SlotId(245) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(245),
-                            Some(gss_node_id),
-                        ) {
-                            // StartExcludeOnly : WS . start:ExcludeOnly WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(246));
-                        }
-                    }
-                    // StartExcludeOnly : WS . start:ExcludeOnly WS
-                    SlotId(246) => {
-                        self.create(
-                            NonterminalId(7),
-                            &PREDICTION_EXCLUDE_ONLY,
-                            result,
-                            gss_node_id,
-                            SlotId(247),
-                            env,
-                        );
-                    }
-                    // StartExcludeOnly : WS start:ExcludeOnly . WS
-                    SlotId(247) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(247),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(248), env)
-                            {
-                                // StartExcludeOnly : WS start:ExcludeOnly WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(248));
-                            }
-                        }
                     }
                     // StartExcludeOnly : WS start:ExcludeOnly WS.
                     SlotId(248) => {
@@ -12857,25 +5636,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(248),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_EXCLUDE_ONLY,
                         );
-                    }
-                    // StartExcludeOnlyFiltered : . WS start:ExcludeOnlyFiltered WS
-                    SlotId(249) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(249),
-                            Some(gss_node_id),
-                        ) {
-                            // StartExcludeOnlyFiltered : WS . start:ExcludeOnlyFiltered WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(250));
-                        }
                     }
                     // StartExcludeOnlyFiltered : WS . start:ExcludeOnlyFiltered WS
                     SlotId(250) => {
@@ -12884,27 +5649,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                             &PREDICTION_EXCLUDE_ONLY_FILTERED,
                             result,
                             gss_node_id,
-                            SlotId(251),
+                            slot_id.next(),
                             env,
                         );
-                    }
-                    // StartExcludeOnlyFiltered : WS start:ExcludeOnlyFiltered . WS
-                    SlotId(251) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(251),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(252), env)
-                            {
-                                // StartExcludeOnlyFiltered : WS start:ExcludeOnlyFiltered WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(252));
-                            }
-                        }
                     }
                     // StartExcludeOnlyFiltered : WS start:ExcludeOnlyFiltered WS.
                     SlotId(252) => {
@@ -12913,96 +5660,26 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(252),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_EXCLUDE_ONLY_FILTERED,
                         );
                     }
-                    // StartAbsent : . WS start:Absent(0) WS
-                    SlotId(253) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(253),
-                            Some(gss_node_id),
-                        ) {
-                            // StartAbsent : WS . start:Absent(0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(254));
-                        }
-                    }
                     // StartAbsent : WS . start:Absent(0) WS
                     SlotId(254) => {
-                        self.create_absent(result, gss_node_id, SlotId(255), env, 0);
-                    }
-                    // StartAbsent : WS start:Absent(0) . WS
-                    SlotId(255) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(255),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(256), env)
-                            {
-                                // StartAbsent : WS start:Absent(0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(256));
-                            }
-                        }
+                        self.create_absent(result, gss_node_id, slot_id.next(), env, 0);
                     }
                     // StartAbsent : WS start:Absent(0) WS.
                     SlotId(256) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(
-                            gss_node_id,
-                            SlotId(256),
-                            result,
-                            None,
-                            &FOLLOW_SET_START_ABSENT,
-                        );
-                    }
-                    // StartAbsentOperand : . WS start:AbsentOperand(0, 0) WS
-                    SlotId(257) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(257),
-                            Some(gss_node_id),
-                        ) {
-                            // StartAbsentOperand : WS . start:AbsentOperand(0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(258));
-                        }
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_ABSENT);
                     }
                     // StartAbsentOperand : WS . start:AbsentOperand(0, 0) WS
                     SlotId(258) => {
-                        self.create_absent_operand(result, gss_node_id, SlotId(259), env, 0, 0);
-                    }
-                    // StartAbsentOperand : WS start:AbsentOperand(0, 0) . WS
-                    SlotId(259) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(259),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(260), env)
-                            {
-                                // StartAbsentOperand : WS start:AbsentOperand(0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(260));
-                            }
-                        }
+                        self.create_absent_operand(result, gss_node_id, slot_id.next(), env, 0, 0);
                     }
                     // StartAbsentOperand : WS start:AbsentOperand(0, 0) WS.
                     SlotId(260) => {
@@ -13011,47 +5688,15 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(260),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_ABSENT_OPERAND,
                         );
                     }
-                    // StartClosedPrefix : . WS start:ClosedPrefix(0) WS
-                    SlotId(261) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(261),
-                            Some(gss_node_id),
-                        ) {
-                            // StartClosedPrefix : WS . start:ClosedPrefix(0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(262));
-                        }
-                    }
                     // StartClosedPrefix : WS . start:ClosedPrefix(0) WS
                     SlotId(262) => {
-                        self.create_closed_prefix(result, gss_node_id, SlotId(263), env, 0);
-                    }
-                    // StartClosedPrefix : WS start:ClosedPrefix(0) . WS
-                    SlotId(263) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(263),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(264), env)
-                            {
-                                // StartClosedPrefix : WS start:ClosedPrefix(0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(264));
-                            }
-                        }
+                        self.create_closed_prefix(result, gss_node_id, slot_id.next(), env, 0);
                     }
                     // StartClosedPrefix : WS start:ClosedPrefix(0) WS.
                     SlotId(264) => {
@@ -13060,47 +5705,15 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(264),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_CLOSED_PREFIX,
                         );
                     }
-                    // StartClosedPrefixBody : . WS start:ClosedPrefixBody(0) WS
-                    SlotId(265) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(265),
-                            Some(gss_node_id),
-                        ) {
-                            // StartClosedPrefixBody : WS . start:ClosedPrefixBody(0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(266));
-                        }
-                    }
                     // StartClosedPrefixBody : WS . start:ClosedPrefixBody(0) WS
                     SlotId(266) => {
-                        self.create_closed_prefix_body(result, gss_node_id, SlotId(267), env, 0);
-                    }
-                    // StartClosedPrefixBody : WS start:ClosedPrefixBody(0) . WS
-                    SlotId(267) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(267),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(268), env)
-                            {
-                                // StartClosedPrefixBody : WS start:ClosedPrefixBody(0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(268));
-                            }
-                        }
+                        self.create_closed_prefix_body(result, gss_node_id, slot_id.next(), env, 0);
                     }
                     // StartClosedPrefixBody : WS start:ClosedPrefixBody(0) WS.
                     SlotId(268) => {
@@ -13109,47 +5722,15 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(268),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_CLOSED_PREFIX_BODY,
                         );
                     }
-                    // StartClosedPostfix : . WS start:ClosedPostfix(0) WS
-                    SlotId(269) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(269),
-                            Some(gss_node_id),
-                        ) {
-                            // StartClosedPostfix : WS . start:ClosedPostfix(0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(270));
-                        }
-                    }
                     // StartClosedPostfix : WS . start:ClosedPostfix(0) WS
                     SlotId(270) => {
-                        self.create_closed_postfix(result, gss_node_id, SlotId(271), env, 0);
-                    }
-                    // StartClosedPostfix : WS start:ClosedPostfix(0) . WS
-                    SlotId(271) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(271),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(272), env)
-                            {
-                                // StartClosedPostfix : WS start:ClosedPostfix(0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(272));
-                            }
-                        }
+                        self.create_closed_postfix(result, gss_node_id, slot_id.next(), env, 0);
                     }
                     // StartClosedPostfix : WS start:ClosedPostfix(0) WS.
                     SlotId(272) => {
@@ -13158,47 +5739,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(272),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_CLOSED_POSTFIX,
                         );
                     }
-                    // StartClosedPostfixBody : . WS start:ClosedPostfixBody(0) WS
-                    SlotId(273) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(273),
-                            Some(gss_node_id),
-                        ) {
-                            // StartClosedPostfixBody : WS . start:ClosedPostfixBody(0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(274));
-                        }
-                    }
                     // StartClosedPostfixBody : WS . start:ClosedPostfixBody(0) WS
                     SlotId(274) => {
-                        self.create_closed_postfix_body(result, gss_node_id, SlotId(275), env, 0);
-                    }
-                    // StartClosedPostfixBody : WS start:ClosedPostfixBody(0) . WS
-                    SlotId(275) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(275),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(276), env)
-                            {
-                                // StartClosedPostfixBody : WS start:ClosedPostfixBody(0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(276));
-                            }
-                        }
+                        self.create_closed_postfix_body(
+                            result,
+                            gss_node_id,
+                            slot_id.next(),
+                            env,
+                            0,
+                        );
                     }
                     // StartClosedPostfixBody : WS start:ClosedPostfixBody(0) WS.
                     SlotId(276) => {
@@ -13207,47 +5762,15 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(276),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_CLOSED_POSTFIX_BODY,
                         );
                     }
-                    // StartHeadChoice : . WS start:HeadChoice(0) WS
-                    SlotId(277) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(277),
-                            Some(gss_node_id),
-                        ) {
-                            // StartHeadChoice : WS . start:HeadChoice(0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(278));
-                        }
-                    }
                     // StartHeadChoice : WS . start:HeadChoice(0) WS
                     SlotId(278) => {
-                        self.create_head_choice(result, gss_node_id, SlotId(279), env, 0);
-                    }
-                    // StartHeadChoice : WS start:HeadChoice(0) . WS
-                    SlotId(279) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(279),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(280), env)
-                            {
-                                // StartHeadChoice : WS start:HeadChoice(0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(280));
-                            }
-                        }
+                        self.create_head_choice(result, gss_node_id, slot_id.next(), env, 0);
                     }
                     // StartHeadChoice : WS start:HeadChoice(0) WS.
                     SlotId(280) => {
@@ -13256,47 +5779,15 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(280),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_HEAD_CHOICE,
                         );
                     }
-                    // StartHeadOperand : . WS start:HeadOperand(0, 0) WS
-                    SlotId(281) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(281),
-                            Some(gss_node_id),
-                        ) {
-                            // StartHeadOperand : WS . start:HeadOperand(0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(282));
-                        }
-                    }
                     // StartHeadOperand : WS . start:HeadOperand(0, 0) WS
                     SlotId(282) => {
-                        self.create_head_operand(result, gss_node_id, SlotId(283), env, 0, 0);
-                    }
-                    // StartHeadOperand : WS start:HeadOperand(0, 0) . WS
-                    SlotId(283) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(283),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(284), env)
-                            {
-                                // StartHeadOperand : WS start:HeadOperand(0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(284));
-                            }
-                        }
+                        self.create_head_operand(result, gss_node_id, slot_id.next(), env, 0, 0);
                     }
                     // StartHeadOperand : WS start:HeadOperand(0, 0) WS.
                     SlotId(284) => {
@@ -13305,96 +5796,29 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(284),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_HEAD_OPERAND,
                         );
-                    }
-                    // StartInner : . WS start:Inner(0) WS
-                    SlotId(285) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(285),
-                            Some(gss_node_id),
-                        ) {
-                            // StartInner : WS . start:Inner(0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(286));
-                        }
-                    }
-                    // StartInner : WS . start:Inner(0) WS
-                    SlotId(286) => {
-                        self.create_inner(result, gss_node_id, SlotId(287), env, 0);
-                    }
-                    // StartInner : WS start:Inner(0) . WS
-                    SlotId(287) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(287),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(288), env)
-                            {
-                                // StartInner : WS start:Inner(0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(288));
-                            }
-                        }
                     }
                     // StartInner : WS start:Inner(0) WS.
                     SlotId(288) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(
-                            gss_node_id,
-                            SlotId(288),
-                            result,
-                            None,
-                            &FOLLOW_SET_START_INNER,
-                        );
-                    }
-                    // StartUnaryMixedLeft : . WS start:UnaryMixedLeft(0, 0) WS
-                    SlotId(289) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(289),
-                            Some(gss_node_id),
-                        ) {
-                            // StartUnaryMixedLeft : WS . start:UnaryMixedLeft(0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(290));
-                        }
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_INNER);
                     }
                     // StartUnaryMixedLeft : WS . start:UnaryMixedLeft(0, 0) WS
                     SlotId(290) => {
-                        self.create_unary_mixed_left(result, gss_node_id, SlotId(291), env, 0, 0);
-                    }
-                    // StartUnaryMixedLeft : WS start:UnaryMixedLeft(0, 0) . WS
-                    SlotId(291) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(291),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(292), env)
-                            {
-                                // StartUnaryMixedLeft : WS start:UnaryMixedLeft(0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(292));
-                            }
-                        }
+                        self.create_unary_mixed_left(
+                            result,
+                            gss_node_id,
+                            slot_id.next(),
+                            env,
+                            0,
+                            0,
+                        );
                     }
                     // StartUnaryMixedLeft : WS start:UnaryMixedLeft(0, 0) WS.
                     SlotId(292) => {
@@ -13403,47 +5827,22 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(292),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_UNARY_MIXED_LEFT,
                         );
                     }
-                    // StartUnaryMixedRight : . WS start:UnaryMixedRight(0, 0) WS
-                    SlotId(293) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(293),
-                            Some(gss_node_id),
-                        ) {
-                            // StartUnaryMixedRight : WS . start:UnaryMixedRight(0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(294));
-                        }
-                    }
                     // StartUnaryMixedRight : WS . start:UnaryMixedRight(0, 0) WS
                     SlotId(294) => {
-                        self.create_unary_mixed_right(result, gss_node_id, SlotId(295), env, 0, 0);
-                    }
-                    // StartUnaryMixedRight : WS start:UnaryMixedRight(0, 0) . WS
-                    SlotId(295) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(295),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(296), env)
-                            {
-                                // StartUnaryMixedRight : WS start:UnaryMixedRight(0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(296));
-                            }
-                        }
+                        self.create_unary_mixed_right(
+                            result,
+                            gss_node_id,
+                            slot_id.next(),
+                            env,
+                            0,
+                            0,
+                        );
                     }
                     // StartUnaryMixedRight : WS start:UnaryMixedRight(0, 0) WS.
                     SlotId(296) => {
@@ -13452,47 +5851,22 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(296),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_UNARY_MIXED_RIGHT,
                         );
                     }
-                    // StartUnaryMixedNone : . WS start:UnaryMixedNone(0, 0) WS
-                    SlotId(297) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(297),
-                            Some(gss_node_id),
-                        ) {
-                            // StartUnaryMixedNone : WS . start:UnaryMixedNone(0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(298));
-                        }
-                    }
                     // StartUnaryMixedNone : WS . start:UnaryMixedNone(0, 0) WS
                     SlotId(298) => {
-                        self.create_unary_mixed_none(result, gss_node_id, SlotId(299), env, 0, 0);
-                    }
-                    // StartUnaryMixedNone : WS start:UnaryMixedNone(0, 0) . WS
-                    SlotId(299) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(299),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(300), env)
-                            {
-                                // StartUnaryMixedNone : WS start:UnaryMixedNone(0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(300));
-                            }
-                        }
+                        self.create_unary_mixed_none(
+                            result,
+                            gss_node_id,
+                            slot_id.next(),
+                            env,
+                            0,
+                            0,
+                        );
                     }
                     // StartUnaryMixedNone : WS start:UnaryMixedNone(0, 0) WS.
                     SlotId(300) => {
@@ -13501,47 +5875,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(300),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_UNARY_MIXED_NONE,
                         );
-                    }
-                    // StartDynamic : . WS start:Dynamic(0, 0) WS
-                    SlotId(301) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(301),
-                            Some(gss_node_id),
-                        ) {
-                            // StartDynamic : WS . start:Dynamic(0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(302));
-                        }
-                    }
-                    // StartDynamic : WS . start:Dynamic(0, 0) WS
-                    SlotId(302) => {
-                        self.create_dynamic(result, gss_node_id, SlotId(303), env, 0, 0);
-                    }
-                    // StartDynamic : WS start:Dynamic(0, 0) . WS
-                    SlotId(303) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(303),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(304), env)
-                            {
-                                // StartDynamic : WS start:Dynamic(0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(304));
-                            }
-                        }
                     }
                     // StartDynamic : WS start:Dynamic(0, 0) WS.
                     SlotId(304) => {
@@ -13550,47 +5888,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(304),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_DYNAMIC,
                         );
-                    }
-                    // StartDynamicOperand : . WS start:DynamicOperand(0, 0, 0) WS
-                    SlotId(305) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(305),
-                            Some(gss_node_id),
-                        ) {
-                            // StartDynamicOperand : WS . start:DynamicOperand(0, 0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(306));
-                        }
-                    }
-                    // StartDynamicOperand : WS . start:DynamicOperand(0, 0, 0) WS
-                    SlotId(306) => {
-                        self.create_dynamic_operand(result, gss_node_id, SlotId(307), env, 0, 0, 0);
-                    }
-                    // StartDynamicOperand : WS start:DynamicOperand(0, 0, 0) . WS
-                    SlotId(307) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(307),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(308), env)
-                            {
-                                // StartDynamicOperand : WS start:DynamicOperand(0, 0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(308));
-                            }
-                        }
                     }
                     // StartDynamicOperand : WS start:DynamicOperand(0, 0, 0) WS.
                     SlotId(308) => {
@@ -13599,25 +5901,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(308),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_DYNAMIC_OPERAND,
                         );
-                    }
-                    // StartDynamicFiltered : . WS start:DynamicFiltered WS
-                    SlotId(309) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(309),
-                            Some(gss_node_id),
-                        ) {
-                            // StartDynamicFiltered : WS . start:DynamicFiltered WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(310));
-                        }
                     }
                     // StartDynamicFiltered : WS . start:DynamicFiltered WS
                     SlotId(310) => {
@@ -13626,27 +5914,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                             &PREDICTION_DYNAMIC_FILTERED,
                             result,
                             gss_node_id,
-                            SlotId(311),
+                            slot_id.next(),
                             env,
                         );
-                    }
-                    // StartDynamicFiltered : WS start:DynamicFiltered . WS
-                    SlotId(311) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(311),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(312), env)
-                            {
-                                // StartDynamicFiltered : WS start:DynamicFiltered WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(312));
-                            }
-                        }
                     }
                     // StartDynamicFiltered : WS start:DynamicFiltered WS.
                     SlotId(312) => {
@@ -13655,25 +5925,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(312),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_DYNAMIC_FILTERED,
                         );
-                    }
-                    // StartDynamicHeadFiltered : . WS start:DynamicHeadFiltered WS
-                    SlotId(313) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(313),
-                            Some(gss_node_id),
-                        ) {
-                            // StartDynamicHeadFiltered : WS . start:DynamicHeadFiltered WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(314));
-                        }
                     }
                     // StartDynamicHeadFiltered : WS . start:DynamicHeadFiltered WS
                     SlotId(314) => {
@@ -13682,27 +5938,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                             &PREDICTION_DYNAMIC_HEAD_FILTERED,
                             result,
                             gss_node_id,
-                            SlotId(315),
+                            slot_id.next(),
                             env,
                         );
-                    }
-                    // StartDynamicHeadFiltered : WS start:DynamicHeadFiltered . WS
-                    SlotId(315) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(315),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(316), env)
-                            {
-                                // StartDynamicHeadFiltered : WS start:DynamicHeadFiltered WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(316));
-                            }
-                        }
                     }
                     // StartDynamicHeadFiltered : WS start:DynamicHeadFiltered WS.
                     SlotId(316) => {
@@ -13711,47 +5949,15 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(316),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_DYNAMIC_HEAD_FILTERED,
                         );
                     }
-                    // StartDynamicMulti : . WS start:DynamicMulti(0, 0) WS
-                    SlotId(317) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(317),
-                            Some(gss_node_id),
-                        ) {
-                            // StartDynamicMulti : WS . start:DynamicMulti(0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(318));
-                        }
-                    }
                     // StartDynamicMulti : WS . start:DynamicMulti(0, 0) WS
                     SlotId(318) => {
-                        self.create_dynamic_multi(result, gss_node_id, SlotId(319), env, 0, 0);
-                    }
-                    // StartDynamicMulti : WS start:DynamicMulti(0, 0) . WS
-                    SlotId(319) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(319),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(320), env)
-                            {
-                                // StartDynamicMulti : WS start:DynamicMulti(0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(320));
-                            }
-                        }
+                        self.create_dynamic_multi(result, gss_node_id, slot_id.next(), env, 0, 0);
                     }
                     // StartDynamicMulti : WS start:DynamicMulti(0, 0) WS.
                     SlotId(320) => {
@@ -13760,55 +5966,23 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(320),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_DYNAMIC_MULTI,
                         );
-                    }
-                    // StartDynamicMultiOperand : . WS start:DynamicMultiOperand(0, 0, 0) WS
-                    SlotId(321) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(321),
-                            Some(gss_node_id),
-                        ) {
-                            // StartDynamicMultiOperand : WS . start:DynamicMultiOperand(0, 0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(322));
-                        }
                     }
                     // StartDynamicMultiOperand : WS . start:DynamicMultiOperand(0, 0, 0) WS
                     SlotId(322) => {
                         self.create_dynamic_multi_operand(
                             result,
                             gss_node_id,
-                            SlotId(323),
+                            slot_id.next(),
                             env,
                             0,
                             0,
                             0,
                         );
-                    }
-                    // StartDynamicMultiOperand : WS start:DynamicMultiOperand(0, 0, 0) . WS
-                    SlotId(323) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(323),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(324), env)
-                            {
-                                // StartDynamicMultiOperand : WS start:DynamicMultiOperand(0, 0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(324));
-                            }
-                        }
                     }
                     // StartDynamicMultiOperand : WS start:DynamicMultiOperand(0, 0, 0) WS.
                     SlotId(324) => {
@@ -13817,53 +5991,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(324),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_DYNAMIC_MULTI_OPERAND,
                         );
-                    }
-                    // StartNullableBoundaryPrefix : . WS start:NullableBoundaryPrefix(0) WS
-                    SlotId(325) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(325),
-                            Some(gss_node_id),
-                        ) {
-                            // StartNullableBoundaryPrefix : WS . start:NullableBoundaryPrefix(0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(326));
-                        }
-                    }
-                    // StartNullableBoundaryPrefix : WS . start:NullableBoundaryPrefix(0) WS
-                    SlotId(326) => {
-                        self.create_nullable_boundary_prefix(
-                            result,
-                            gss_node_id,
-                            SlotId(327),
-                            env,
-                            0,
-                        );
-                    }
-                    // StartNullableBoundaryPrefix : WS start:NullableBoundaryPrefix(0) . WS
-                    SlotId(327) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(327),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(328), env)
-                            {
-                                // StartNullableBoundaryPrefix : WS start:NullableBoundaryPrefix(0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(328));
-                            }
-                        }
                     }
                     // StartNullableBoundaryPrefix : WS start:NullableBoundaryPrefix(0) WS.
                     SlotId(328) => {
@@ -13872,54 +6004,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(328),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_NULLABLE_BOUNDARY_PREFIX,
                         );
-                    }
-                    // StartNullableBoundaryRight : . WS start:NullableBoundaryRight WS
-                    SlotId(329) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(329),
-                            Some(gss_node_id),
-                        ) {
-                            // StartNullableBoundaryRight : WS . start:NullableBoundaryRight WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(330));
-                        }
-                    }
-                    // StartNullableBoundaryRight : WS . start:NullableBoundaryRight WS
-                    SlotId(330) => {
-                        self.create(
-                            NonterminalId(11),
-                            &PREDICTION_NULLABLE_BOUNDARY_RIGHT,
-                            result,
-                            gss_node_id,
-                            SlotId(331),
-                            env,
-                        );
-                    }
-                    // StartNullableBoundaryRight : WS start:NullableBoundaryRight . WS
-                    SlotId(331) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(331),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(332), env)
-                            {
-                                // StartNullableBoundaryRight : WS start:NullableBoundaryRight WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(332));
-                            }
-                        }
                     }
                     // StartNullableBoundaryRight : WS start:NullableBoundaryRight WS.
                     SlotId(332) => {
@@ -13928,54 +6017,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(332),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_NULLABLE_BOUNDARY_RIGHT,
                         );
-                    }
-                    // StartNullableBoundaryOpt : . WS start:NullableBoundaryOpt WS
-                    SlotId(333) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(333),
-                            Some(gss_node_id),
-                        ) {
-                            // StartNullableBoundaryOpt : WS . start:NullableBoundaryOpt WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(334));
-                        }
-                    }
-                    // StartNullableBoundaryOpt : WS . start:NullableBoundaryOpt WS
-                    SlotId(334) => {
-                        self.create(
-                            NonterminalId(12),
-                            &PREDICTION_NULLABLE_BOUNDARY_OPT,
-                            result,
-                            gss_node_id,
-                            SlotId(335),
-                            env,
-                        );
-                    }
-                    // StartNullableBoundaryOpt : WS start:NullableBoundaryOpt . WS
-                    SlotId(335) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(335),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(336), env)
-                            {
-                                // StartNullableBoundaryOpt : WS start:NullableBoundaryOpt WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(336));
-                            }
-                        }
                     }
                     // StartNullableBoundaryOpt : WS start:NullableBoundaryOpt WS.
                     SlotId(336) => {
@@ -13984,53 +6030,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(336),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_NULLABLE_BOUNDARY_OPT,
                         );
-                    }
-                    // StartNullableBoundaryPostfix : . WS start:NullableBoundaryPostfix(0) WS
-                    SlotId(337) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(337),
-                            Some(gss_node_id),
-                        ) {
-                            // StartNullableBoundaryPostfix : WS . start:NullableBoundaryPostfix(0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(338));
-                        }
-                    }
-                    // StartNullableBoundaryPostfix : WS . start:NullableBoundaryPostfix(0) WS
-                    SlotId(338) => {
-                        self.create_nullable_boundary_postfix(
-                            result,
-                            gss_node_id,
-                            SlotId(339),
-                            env,
-                            0,
-                        );
-                    }
-                    // StartNullableBoundaryPostfix : WS start:NullableBoundaryPostfix(0) . WS
-                    SlotId(339) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(339),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(340), env)
-                            {
-                                // StartNullableBoundaryPostfix : WS start:NullableBoundaryPostfix(0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(340));
-                            }
-                        }
                     }
                     // StartNullableBoundaryPostfix : WS start:NullableBoundaryPostfix(0) WS.
                     SlotId(340) => {
@@ -14039,54 +6043,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(340),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_NULLABLE_BOUNDARY_POSTFIX,
                         );
-                    }
-                    // StartNullableBoundaryLeft : . WS start:NullableBoundaryLeft WS
-                    SlotId(341) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(341),
-                            Some(gss_node_id),
-                        ) {
-                            // StartNullableBoundaryLeft : WS . start:NullableBoundaryLeft WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(342));
-                        }
-                    }
-                    // StartNullableBoundaryLeft : WS . start:NullableBoundaryLeft WS
-                    SlotId(342) => {
-                        self.create(
-                            NonterminalId(13),
-                            &PREDICTION_NULLABLE_BOUNDARY_LEFT,
-                            result,
-                            gss_node_id,
-                            SlotId(343),
-                            env,
-                        );
-                    }
-                    // StartNullableBoundaryLeft : WS start:NullableBoundaryLeft . WS
-                    SlotId(343) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(343),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(344), env)
-                            {
-                                // StartNullableBoundaryLeft : WS start:NullableBoundaryLeft WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(344));
-                            }
-                        }
                     }
                     // StartNullableBoundaryLeft : WS start:NullableBoundaryLeft WS.
                     SlotId(344) => {
@@ -14095,53 +6056,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(344),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_NULLABLE_BOUNDARY_LEFT,
                         );
-                    }
-                    // StartNullableBoundaryBinary : . WS start:NullableBoundaryBinary(0) WS
-                    SlotId(345) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(345),
-                            Some(gss_node_id),
-                        ) {
-                            // StartNullableBoundaryBinary : WS . start:NullableBoundaryBinary(0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(346));
-                        }
-                    }
-                    // StartNullableBoundaryBinary : WS . start:NullableBoundaryBinary(0) WS
-                    SlotId(346) => {
-                        self.create_nullable_boundary_binary(
-                            result,
-                            gss_node_id,
-                            SlotId(347),
-                            env,
-                            0,
-                        );
-                    }
-                    // StartNullableBoundaryBinary : WS start:NullableBoundaryBinary(0) . WS
-                    SlotId(347) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(347),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(348), env)
-                            {
-                                // StartNullableBoundaryBinary : WS start:NullableBoundaryBinary(0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(348));
-                            }
-                        }
                     }
                     // StartNullableBoundaryBinary : WS start:NullableBoundaryBinary(0) WS.
                     SlotId(348) => {
@@ -14150,54 +6069,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(348),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_NULLABLE_BOUNDARY_BINARY,
                         );
-                    }
-                    // StartNullableBoundaryOperand : . WS start:NullableBoundaryOperand WS
-                    SlotId(349) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(349),
-                            Some(gss_node_id),
-                        ) {
-                            // StartNullableBoundaryOperand : WS . start:NullableBoundaryOperand WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(350));
-                        }
-                    }
-                    // StartNullableBoundaryOperand : WS . start:NullableBoundaryOperand WS
-                    SlotId(350) => {
-                        self.create(
-                            NonterminalId(14),
-                            &PREDICTION_NULLABLE_BOUNDARY_OPERAND,
-                            result,
-                            gss_node_id,
-                            SlotId(351),
-                            env,
-                        );
-                    }
-                    // StartNullableBoundaryOperand : WS start:NullableBoundaryOperand . WS
-                    SlotId(351) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(351),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(352), env)
-                            {
-                                // StartNullableBoundaryOperand : WS start:NullableBoundaryOperand WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(352));
-                            }
-                        }
                     }
                     // StartNullableBoundaryOperand : WS start:NullableBoundaryOperand WS.
                     SlotId(352) => {
@@ -14206,47 +6082,22 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(352),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_NULLABLE_BOUNDARY_OPERAND,
                         );
                     }
-                    // StartClosedLeftAssoc : . WS start:ClosedLeftAssoc(0, 0) WS
-                    SlotId(353) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(353),
-                            Some(gss_node_id),
-                        ) {
-                            // StartClosedLeftAssoc : WS . start:ClosedLeftAssoc(0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(354));
-                        }
-                    }
                     // StartClosedLeftAssoc : WS . start:ClosedLeftAssoc(0, 0) WS
                     SlotId(354) => {
-                        self.create_closed_left_assoc(result, gss_node_id, SlotId(355), env, 0, 0);
-                    }
-                    // StartClosedLeftAssoc : WS start:ClosedLeftAssoc(0, 0) . WS
-                    SlotId(355) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(355),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(356), env)
-                            {
-                                // StartClosedLeftAssoc : WS start:ClosedLeftAssoc(0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(356));
-                            }
-                        }
+                        self.create_closed_left_assoc(
+                            result,
+                            gss_node_id,
+                            slot_id.next(),
+                            env,
+                            0,
+                            0,
+                        );
                     }
                     // StartClosedLeftAssoc : WS start:ClosedLeftAssoc(0, 0) WS.
                     SlotId(356) => {
@@ -14255,54 +6106,22 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(356),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_CLOSED_LEFT_ASSOC,
                         );
-                    }
-                    // StartClosedLeftOperand : . WS start:ClosedLeftOperand(0, 0) WS
-                    SlotId(357) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(357),
-                            Some(gss_node_id),
-                        ) {
-                            // StartClosedLeftOperand : WS . start:ClosedLeftOperand(0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(358));
-                        }
                     }
                     // StartClosedLeftOperand : WS . start:ClosedLeftOperand(0, 0) WS
                     SlotId(358) => {
                         self.create_closed_left_operand(
                             result,
                             gss_node_id,
-                            SlotId(359),
+                            slot_id.next(),
                             env,
                             0,
                             0,
                         );
-                    }
-                    // StartClosedLeftOperand : WS start:ClosedLeftOperand(0, 0) . WS
-                    SlotId(359) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(359),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(360), env)
-                            {
-                                // StartClosedLeftOperand : WS start:ClosedLeftOperand(0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(360));
-                            }
-                        }
                     }
                     // StartClosedLeftOperand : WS start:ClosedLeftOperand(0, 0) WS.
                     SlotId(360) => {
@@ -14311,47 +6130,22 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(360),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_CLOSED_LEFT_OPERAND,
                         );
                     }
-                    // StartClosedRightAssoc : . WS start:ClosedRightAssoc(0, 0) WS
-                    SlotId(361) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(361),
-                            Some(gss_node_id),
-                        ) {
-                            // StartClosedRightAssoc : WS . start:ClosedRightAssoc(0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(362));
-                        }
-                    }
                     // StartClosedRightAssoc : WS . start:ClosedRightAssoc(0, 0) WS
                     SlotId(362) => {
-                        self.create_closed_right_assoc(result, gss_node_id, SlotId(363), env, 0, 0);
-                    }
-                    // StartClosedRightAssoc : WS start:ClosedRightAssoc(0, 0) . WS
-                    SlotId(363) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(363),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(364), env)
-                            {
-                                // StartClosedRightAssoc : WS start:ClosedRightAssoc(0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(364));
-                            }
-                        }
+                        self.create_closed_right_assoc(
+                            result,
+                            gss_node_id,
+                            slot_id.next(),
+                            env,
+                            0,
+                            0,
+                        );
                     }
                     // StartClosedRightAssoc : WS start:ClosedRightAssoc(0, 0) WS.
                     SlotId(364) => {
@@ -14360,54 +6154,22 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(364),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_CLOSED_RIGHT_ASSOC,
                         );
-                    }
-                    // StartClosedRightOperand : . WS start:ClosedRightOperand(0, 0) WS
-                    SlotId(365) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(365),
-                            Some(gss_node_id),
-                        ) {
-                            // StartClosedRightOperand : WS . start:ClosedRightOperand(0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(366));
-                        }
                     }
                     // StartClosedRightOperand : WS . start:ClosedRightOperand(0, 0) WS
                     SlotId(366) => {
                         self.create_closed_right_operand(
                             result,
                             gss_node_id,
-                            SlotId(367),
+                            slot_id.next(),
                             env,
                             0,
                             0,
                         );
-                    }
-                    // StartClosedRightOperand : WS start:ClosedRightOperand(0, 0) . WS
-                    SlotId(367) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(367),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(368), env)
-                            {
-                                // StartClosedRightOperand : WS start:ClosedRightOperand(0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(368));
-                            }
-                        }
                     }
                     // StartClosedRightOperand : WS start:ClosedRightOperand(0, 0) WS.
                     SlotId(368) => {
@@ -14416,47 +6178,22 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(368),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_CLOSED_RIGHT_OPERAND,
                         );
                     }
-                    // StartIndirectExclude : . WS start:IndirectExclude(0, 0) WS
-                    SlotId(369) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(369),
-                            Some(gss_node_id),
-                        ) {
-                            // StartIndirectExclude : WS . start:IndirectExclude(0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(370));
-                        }
-                    }
                     // StartIndirectExclude : WS . start:IndirectExclude(0, 0) WS
                     SlotId(370) => {
-                        self.create_indirect_exclude(result, gss_node_id, SlotId(371), env, 0, 0);
-                    }
-                    // StartIndirectExclude : WS start:IndirectExclude(0, 0) . WS
-                    SlotId(371) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(371),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(372), env)
-                            {
-                                // StartIndirectExclude : WS start:IndirectExclude(0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(372));
-                            }
-                        }
+                        self.create_indirect_exclude(
+                            result,
+                            gss_node_id,
+                            slot_id.next(),
+                            env,
+                            0,
+                            0,
+                        );
                     }
                     // StartIndirectExclude : WS start:IndirectExclude(0, 0) WS.
                     SlotId(372) => {
@@ -14465,55 +6202,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(372),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_INDIRECT_EXCLUDE,
                         );
-                    }
-                    // StartIndirectExcludeOperand : . WS start:IndirectExcludeOperand(0, 0, 0) WS
-                    SlotId(373) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(373),
-                            Some(gss_node_id),
-                        ) {
-                            // StartIndirectExcludeOperand : WS . start:IndirectExcludeOperand(0, 0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(374));
-                        }
-                    }
-                    // StartIndirectExcludeOperand : WS . start:IndirectExcludeOperand(0, 0, 0) WS
-                    SlotId(374) => {
-                        self.create_indirect_exclude_operand(
-                            result,
-                            gss_node_id,
-                            SlotId(375),
-                            env,
-                            0,
-                            0,
-                            0,
-                        );
-                    }
-                    // StartIndirectExcludeOperand : WS start:IndirectExcludeOperand(0, 0, 0) . WS
-                    SlotId(375) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(375),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(376), env)
-                            {
-                                // StartIndirectExcludeOperand : WS start:IndirectExcludeOperand(0, 0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(376));
-                            }
-                        }
                     }
                     // StartIndirectExcludeOperand : WS start:IndirectExcludeOperand(0, 0, 0) WS.
                     SlotId(376) => {
@@ -14522,25 +6215,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(376),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_INDIRECT_EXCLUDE_OPERAND,
                         );
-                    }
-                    // StartIndirectExcludeFiltered : . WS start:IndirectExcludeFiltered WS
-                    SlotId(377) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(377),
-                            Some(gss_node_id),
-                        ) {
-                            // StartIndirectExcludeFiltered : WS . start:IndirectExcludeFiltered WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(378));
-                        }
                     }
                     // StartIndirectExcludeFiltered : WS . start:IndirectExcludeFiltered WS
                     SlotId(378) => {
@@ -14549,27 +6228,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                             &PREDICTION_INDIRECT_EXCLUDE_FILTERED,
                             result,
                             gss_node_id,
-                            SlotId(379),
+                            slot_id.next(),
                             env,
                         );
-                    }
-                    // StartIndirectExcludeFiltered : WS start:IndirectExcludeFiltered . WS
-                    SlotId(379) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(379),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(380), env)
-                            {
-                                // StartIndirectExcludeFiltered : WS start:IndirectExcludeFiltered WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(380));
-                            }
-                        }
                     }
                     // StartIndirectExcludeFiltered : WS start:IndirectExcludeFiltered WS.
                     SlotId(380) => {
@@ -14578,47 +6239,15 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(380),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_INDIRECT_EXCLUDE_FILTERED,
                         );
                     }
-                    // StartOperandLiteral : . WS start:OperandLiteral(0, 0) WS
-                    SlotId(381) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(381),
-                            Some(gss_node_id),
-                        ) {
-                            // StartOperandLiteral : WS . start:OperandLiteral(0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(382));
-                        }
-                    }
                     // StartOperandLiteral : WS . start:OperandLiteral(0, 0) WS
                     SlotId(382) => {
-                        self.create_operand_literal(result, gss_node_id, SlotId(383), env, 0, 0);
-                    }
-                    // StartOperandLiteral : WS start:OperandLiteral(0, 0) . WS
-                    SlotId(383) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(383),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(384), env)
-                            {
-                                // StartOperandLiteral : WS start:OperandLiteral(0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(384));
-                            }
-                        }
+                        self.create_operand_literal(result, gss_node_id, slot_id.next(), env, 0, 0);
                     }
                     // StartOperandLiteral : WS start:OperandLiteral(0, 0) WS.
                     SlotId(384) => {
@@ -14627,55 +6256,23 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(384),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_OPERAND_LITERAL,
                         );
-                    }
-                    // StartOperandLiteralEnd : . WS start:OperandLiteralEnd(0, 0, 0) WS
-                    SlotId(385) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(385),
-                            Some(gss_node_id),
-                        ) {
-                            // StartOperandLiteralEnd : WS . start:OperandLiteralEnd(0, 0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(386));
-                        }
                     }
                     // StartOperandLiteralEnd : WS . start:OperandLiteralEnd(0, 0, 0) WS
                     SlotId(386) => {
                         self.create_operand_literal_end(
                             result,
                             gss_node_id,
-                            SlotId(387),
+                            slot_id.next(),
                             env,
                             0,
                             0,
                             0,
                         );
-                    }
-                    // StartOperandLiteralEnd : WS start:OperandLiteralEnd(0, 0, 0) . WS
-                    SlotId(387) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(387),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(388), env)
-                            {
-                                // StartOperandLiteralEnd : WS start:OperandLiteralEnd(0, 0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(388));
-                            }
-                        }
                     }
                     // StartOperandLiteralEnd : WS start:OperandLiteralEnd(0, 0, 0) WS.
                     SlotId(388) => {
@@ -14684,47 +6281,15 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(388),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_OPERAND_LITERAL_END,
                         );
                     }
-                    // StartHeadLiteral : . WS start:HeadLiteral(0) WS
-                    SlotId(389) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(389),
-                            Some(gss_node_id),
-                        ) {
-                            // StartHeadLiteral : WS . start:HeadLiteral(0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(390));
-                        }
-                    }
                     // StartHeadLiteral : WS . start:HeadLiteral(0) WS
                     SlotId(390) => {
-                        self.create_head_literal(result, gss_node_id, SlotId(391), env, 0);
-                    }
-                    // StartHeadLiteral : WS start:HeadLiteral(0) . WS
-                    SlotId(391) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(391),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(392), env)
-                            {
-                                // StartHeadLiteral : WS start:HeadLiteral(0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(392));
-                            }
-                        }
+                        self.create_head_literal(result, gss_node_id, slot_id.next(), env, 0);
                     }
                     // StartHeadLiteral : WS start:HeadLiteral(0) WS.
                     SlotId(392) => {
@@ -14733,47 +6298,22 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(392),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_HEAD_LITERAL,
                         );
                     }
-                    // StartHeadLiteralEnd : . WS start:HeadLiteralEnd(0, 0) WS
-                    SlotId(393) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(393),
-                            Some(gss_node_id),
-                        ) {
-                            // StartHeadLiteralEnd : WS . start:HeadLiteralEnd(0, 0) WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(394));
-                        }
-                    }
                     // StartHeadLiteralEnd : WS . start:HeadLiteralEnd(0, 0) WS
                     SlotId(394) => {
-                        self.create_head_literal_end(result, gss_node_id, SlotId(395), env, 0, 0);
-                    }
-                    // StartHeadLiteralEnd : WS start:HeadLiteralEnd(0, 0) . WS
-                    SlotId(395) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(395),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(396), env)
-                            {
-                                // StartHeadLiteralEnd : WS start:HeadLiteralEnd(0, 0) WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(396));
-                            }
-                        }
+                        self.create_head_literal_end(
+                            result,
+                            gss_node_id,
+                            slot_id.next(),
+                            env,
+                            0,
+                            0,
+                        );
                     }
                     // StartHeadLiteralEnd : WS start:HeadLiteralEnd(0, 0) WS.
                     SlotId(396) => {
@@ -14782,7 +6322,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IndirectBinaryParser<'i, 'arena> {
                         };
                         self.pop(
                             gss_node_id,
-                            SlotId(396),
+                            slot_id,
                             result,
                             None,
                             &FOLLOW_SET_START_HEAD_LITERAL_END,

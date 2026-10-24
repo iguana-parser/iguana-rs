@@ -64,30 +64,31 @@ impl<'i, 'arena> Parser<'i, 'arena> for LayoutNonterminalParser<'i, 'arena> {
                     gss_node_id
                 );
                 match slot_id {
-                    // StartS : . Layout start:S Layout
-                    SlotId(16) => {
+                    // StartS : . Layout start:S Layout, and StartLayout : . start:Layout
+                    SlotId(16) | SlotId(20) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
-                            // StartS : Layout . start:S Layout
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(17));
+                            next = Some(slot_id.next());
                         }
                     }
                     // StartS : Layout . start:S Layout
                     SlotId(17) => {
                         if let Some((j, right_child)) = self.parse_s_ll1(input_index, None) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(18), env)
-                            {
-                                // StartS : Layout start:S . Layout
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(18));
+                                next = Some(slot_id.next());
                             }
                         } else {
                             self.add_failure(
                                 input_index,
-                                SlotId(17),
+                                slot_id,
                                 Some(gss_node_id),
                                 GLLFailureKind::UnexpectedToken(&FIRST_SET_S),
                             );
@@ -96,13 +97,15 @@ impl<'i, 'arena> Parser<'i, 'arena> for LayoutNonterminalParser<'i, 'arena> {
                     // StartS : Layout start:S . Layout
                     SlotId(18) => {
                         if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(19), env)
-                            {
-                                // StartS : Layout start:S Layout.
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(19));
+                                next = Some(slot_id.next());
                             }
                         }
                     }
@@ -111,29 +114,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for LayoutNonterminalParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(19), result, None, &FOLLOW_SET_START_S);
-                    }
-                    // StartLayout : . start:Layout
-                    SlotId(20) => {
-                        if let Some((j, right_child)) = self.parse_layout_ll1(input_index, None) {
-                            // StartLayout : start:Layout.
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(21));
-                        }
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_S);
                     }
                     // StartLayout : start:Layout.
                     SlotId(21) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(
-                            gss_node_id,
-                            SlotId(21),
-                            result,
-                            None,
-                            &FOLLOW_SET_START_LAYOUT,
-                        );
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_LAYOUT);
                     }
                     _ => {
                         panic!("Unknown grammar slot id: {slot_id}");

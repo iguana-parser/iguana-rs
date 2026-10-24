@@ -66,10 +66,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for StarWithSepParser<'i, 'arena> {
                     // StartS : . start:S
                     SlotId(13) => {
                         if let Some((j, right_child)) = self.parse_s_ll1(input_index, None) {
-                            // StartS : start:S.
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(14));
+                            next = Some(slot_id.next());
                         }
                     }
                     // StartS : start:S.
@@ -77,19 +76,18 @@ impl<'i, 'arena> Parser<'i, 'arena> for StarWithSepParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(14), result, None, &FOLLOW_SET_START_S);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_S);
                     }
                     // StartA : . start:A
                     SlotId(15) => {
                         if let Some((j, right_child)) = self.parse_a_ll1(input_index, None) {
-                            // StartA : start:A.
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(16));
+                            next = Some(slot_id.next());
                         } else {
                             self.add_failure(
                                 input_index,
-                                SlotId(15),
+                                slot_id,
                                 Some(gss_node_id),
                                 GLLFailureKind::UnexpectedToken(&FIRST_SET_A),
                             );
@@ -100,7 +98,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for StarWithSepParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(16), result, None, &FOLLOW_SET_START_A);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_A);
                     }
                     _ => {
                         panic!("Unknown grammar slot id: {slot_id}");

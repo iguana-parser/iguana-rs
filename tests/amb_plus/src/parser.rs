@@ -71,7 +71,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbPlusParser<'i, 'arena> {
                             &PREDICTION_STAR_0,
                             result,
                             gss_node_id,
-                            SlotId(1),
+                            slot_id.next(),
                             env,
                         );
                     }
@@ -80,123 +80,85 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbPlusParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(1), result, None, &FOLLOW_SET_S);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_S);
                     }
-                    // A : . X
-                    SlotId(2) => {
+                    // A : . X, and StartX : . start:X
+                    SlotId(2) | SlotId(23) => {
                         if let Some((j, right_child)) = self.parse_x_ll1(input_index, None) {
-                            // A : X.
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(3));
+                            next = Some(slot_id.next());
                         } else {
                             self.add_failure(
                                 input_index,
-                                SlotId(2),
+                                slot_id,
                                 Some(gss_node_id),
                                 GLLFailureKind::UnexpectedToken(&FIRST_SET_X),
                             );
                         }
                     }
-                    // A : X.
-                    SlotId(3) => {
+                    // A : X., and A : Y.
+                    SlotId(3) | SlotId(5) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(3), result, None, &FOLLOW_SET_A);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_A);
                     }
-                    // A : . Y
-                    SlotId(4) => {
+                    // A : . Y, and StartY : . start:Y
+                    SlotId(4) | SlotId(25) => {
                         if let Some((j, right_child)) = self.parse_y_ll1(input_index, None) {
-                            // A : Y.
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(5));
+                            next = Some(slot_id.next());
                         } else {
                             self.add_failure(
                                 input_index,
-                                SlotId(4),
+                                slot_id,
                                 Some(gss_node_id),
                                 GLLFailureKind::UnexpectedToken(&FIRST_SET_Y),
                             );
                         }
                     }
-                    // A : Y.
-                    SlotId(5) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(5), result, None, &FOLLOW_SET_A);
-                    }
-                    // Plus_0 : . Plus_0 A
-                    SlotId(11) => {
+                    // Plus_0 : . Plus_0 A, and Star_0 : . Plus_0
+                    SlotId(11) | SlotId(16) => {
                         self.create(
                             NonterminalId(4),
                             &PREDICTION_PLUS_0,
                             result,
                             gss_node_id,
-                            SlotId(12),
+                            slot_id.next(),
                             env,
                         );
                     }
-                    // Plus_0 : Plus_0 . A
-                    SlotId(12) => {
+                    // Plus_0 : Plus_0 . A, and 2 more slots
+                    SlotId(12) | SlotId(14) | SlotId(21) => {
                         self.create(
                             NonterminalId(1),
                             &PREDICTION_A,
                             result,
                             gss_node_id,
-                            SlotId(13),
+                            slot_id.next(),
                             env,
                         );
                     }
-                    // Plus_0 : Plus_0 A.
-                    SlotId(13) => {
+                    // Plus_0 : Plus_0 A., and Plus_0 : A.
+                    SlotId(13) | SlotId(15) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(13), result, None, &FOLLOW_SET_PLUS_0);
-                    }
-                    // Plus_0 : . A
-                    SlotId(14) => {
-                        self.create(
-                            NonterminalId(1),
-                            &PREDICTION_A,
-                            result,
-                            gss_node_id,
-                            SlotId(15),
-                            env,
-                        );
-                    }
-                    // Plus_0 : A.
-                    SlotId(15) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(15), result, None, &FOLLOW_SET_PLUS_0);
-                    }
-                    // Star_0 : . Plus_0
-                    SlotId(16) => {
-                        self.create(
-                            NonterminalId(4),
-                            &PREDICTION_PLUS_0,
-                            result,
-                            gss_node_id,
-                            SlotId(17),
-                            env,
-                        );
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_PLUS_0);
                     }
                     // Star_0 : Plus_0.
                     SlotId(17) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(17), result, None, &FOLLOW_SET_STAR_0);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_STAR_0);
                     }
                     // Star_0 : .
                     SlotId(18) => {
                         let result = self.get_or_create_epsilon_node(input_index);
-                        self.pop(gss_node_id, SlotId(18), result, None, &FOLLOW_SET_STAR_0);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_STAR_0);
                     }
                     // StartS : . start:S
                     SlotId(19) => {
@@ -205,7 +167,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbPlusParser<'i, 'arena> {
                             &PREDICTION_S,
                             result,
                             gss_node_id,
-                            SlotId(20),
+                            slot_id.next(),
                             env,
                         );
                     }
@@ -214,71 +176,28 @@ impl<'i, 'arena> Parser<'i, 'arena> for AmbPlusParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(20), result, None, &FOLLOW_SET_START_S);
-                    }
-                    // StartA : . start:A
-                    SlotId(21) => {
-                        self.create(
-                            NonterminalId(1),
-                            &PREDICTION_A,
-                            result,
-                            gss_node_id,
-                            SlotId(22),
-                            env,
-                        );
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_S);
                     }
                     // StartA : start:A.
                     SlotId(22) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(22), result, None, &FOLLOW_SET_START_A);
-                    }
-                    // StartX : . start:X
-                    SlotId(23) => {
-                        if let Some((j, right_child)) = self.parse_x_ll1(input_index, None) {
-                            // StartX : start:X.
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(24));
-                        } else {
-                            self.add_failure(
-                                input_index,
-                                SlotId(23),
-                                Some(gss_node_id),
-                                GLLFailureKind::UnexpectedToken(&FIRST_SET_X),
-                            );
-                        }
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_A);
                     }
                     // StartX : start:X.
                     SlotId(24) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(24), result, None, &FOLLOW_SET_START_X);
-                    }
-                    // StartY : . start:Y
-                    SlotId(25) => {
-                        if let Some((j, right_child)) = self.parse_y_ll1(input_index, None) {
-                            // StartY : start:Y.
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(26));
-                        } else {
-                            self.add_failure(
-                                input_index,
-                                SlotId(25),
-                                Some(gss_node_id),
-                                GLLFailureKind::UnexpectedToken(&FIRST_SET_Y),
-                            );
-                        }
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_X);
                     }
                     // StartY : start:Y.
                     SlotId(26) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(26), result, None, &FOLLOW_SET_START_Y);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_Y);
                     }
                     _ => {
                         panic!("Unknown grammar slot id: {slot_id}");

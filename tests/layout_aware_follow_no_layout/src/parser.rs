@@ -65,14 +65,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for LayoutAwareFollowNoLayoutParser<'i, 'are
                     gss_node_id
                 );
                 match slot_id {
-                    // S : . Plus_0
-                    SlotId(0) => {
+                    // S : . Plus_0, and Plus_0 : . Plus_0 WS Word
+                    SlotId(0) | SlotId(4) => {
                         self.create(
                             NonterminalId(2),
                             &PREDICTION_PLUS_0,
                             result,
                             gss_node_id,
-                            SlotId(1),
+                            slot_id.next(),
                             env,
                         );
                     }
@@ -81,99 +81,83 @@ impl<'i, 'arena> Parser<'i, 'arena> for LayoutAwareFollowNoLayoutParser<'i, 'are
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(1), result, None, &FOLLOW_SET_S);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_S);
                     }
-                    // Plus_0 : . Plus_0 WS Word
-                    SlotId(4) => {
-                        self.create(
-                            NonterminalId(2),
-                            &PREDICTION_PLUS_0,
-                            result,
-                            gss_node_id,
-                            SlotId(5),
-                            env,
-                        );
-                    }
-                    // Plus_0 : Plus_0 . WS Word
-                    SlotId(5) => {
+                    // Plus_0 : Plus_0 . WS Word, and 2 more slots
+                    SlotId(5) | SlotId(17) | SlotId(21) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(1),
                             input_index,
-                            SlotId(5),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(6), env)
-                            {
-                                // Plus_0 : Plus_0 WS . Word
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(6));
+                                next = Some(slot_id.next());
                             }
                         }
                     }
-                    // Plus_0 : Plus_0 WS . Word
-                    SlotId(6) => {
+                    // Plus_0 : Plus_0 WS . Word, and StartWord : WS . start:Word WS
+                    SlotId(6) | SlotId(20) => {
                         if let Some((j, right_child)) = self.parse_word_ll1(input_index, None) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(7), env)
-                            {
-                                // Plus_0 : Plus_0 WS Word.
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(7));
+                                next = Some(slot_id.next());
                             }
                         } else {
                             self.add_failure(
                                 input_index,
-                                SlotId(6),
+                                slot_id,
                                 Some(gss_node_id),
                                 GLLFailureKind::UnexpectedToken(&FIRST_SET_WORD),
                             );
                         }
                     }
-                    // Plus_0 : Plus_0 WS Word.
-                    SlotId(7) => {
+                    // Plus_0 : Plus_0 WS Word., and Plus_0 : Word.
+                    SlotId(7) | SlotId(9) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(7), result, None, &FOLLOW_SET_PLUS_0);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_PLUS_0);
                     }
                     // Plus_0 : . Word
                     SlotId(8) => {
                         if let Some((j, right_child)) = self.parse_word_ll1(input_index, None) {
-                            // Plus_0 : Word.
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(9));
+                            next = Some(slot_id.next());
                         } else {
                             self.add_failure(
                                 input_index,
-                                SlotId(8),
+                                slot_id,
                                 Some(gss_node_id),
                                 GLLFailureKind::UnexpectedToken(&FIRST_SET_WORD),
                             );
                         }
                     }
-                    // Plus_0 : Word.
-                    SlotId(9) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(9), result, None, &FOLLOW_SET_PLUS_0);
-                    }
-                    // StartS : . WS start:S WS
-                    SlotId(15) => {
+                    // StartS : . WS start:S WS, and StartWord : . WS start:Word WS
+                    SlotId(15) | SlotId(19) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(1),
                             input_index,
-                            SlotId(15),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // StartS : WS . start:S WS
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(16));
+                            next = Some(slot_id.next());
                         }
                     }
                     // StartS : WS . start:S WS
@@ -183,99 +167,23 @@ impl<'i, 'arena> Parser<'i, 'arena> for LayoutAwareFollowNoLayoutParser<'i, 'are
                             &PREDICTION_S,
                             result,
                             gss_node_id,
-                            SlotId(17),
+                            slot_id.next(),
                             env,
                         );
-                    }
-                    // StartS : WS start:S . WS
-                    SlotId(17) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(17),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(18), env)
-                            {
-                                // StartS : WS start:S WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(18));
-                            }
-                        }
                     }
                     // StartS : WS start:S WS.
                     SlotId(18) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(18), result, None, &FOLLOW_SET_START_S);
-                    }
-                    // StartWord : . WS start:Word WS
-                    SlotId(19) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(19),
-                            Some(gss_node_id),
-                        ) {
-                            // StartWord : WS . start:Word WS
-                            input_index = j;
-                            result = Some(right_child);
-                            next = Some(SlotId(20));
-                        }
-                    }
-                    // StartWord : WS . start:Word WS
-                    SlotId(20) => {
-                        if let Some((j, right_child)) = self.parse_word_ll1(input_index, None) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(21), env)
-                            {
-                                // StartWord : WS start:Word . WS
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(21));
-                            }
-                        } else {
-                            self.add_failure(
-                                input_index,
-                                SlotId(20),
-                                Some(gss_node_id),
-                                GLLFailureKind::UnexpectedToken(&FIRST_SET_WORD),
-                            );
-                        }
-                    }
-                    // StartWord : WS start:Word . WS
-                    SlotId(21) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(21),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(22), env)
-                            {
-                                // StartWord : WS start:Word WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(22));
-                            }
-                        }
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_S);
                     }
                     // StartWord : WS start:Word WS.
                     SlotId(22) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(
-                            gss_node_id,
-                            SlotId(22),
-                            result,
-                            None,
-                            &FOLLOW_SET_START_WORD,
-                        );
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_WORD);
                     }
                     _ => {
                         panic!("Unknown grammar slot id: {slot_id}");

@@ -66,14 +66,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for SimpleAltParser<'i, 'arena> {
                     // StartA : . start:A
                     SlotId(13) => {
                         if let Some((j, right_child)) = self.parse_a_ll1(input_index, None) {
-                            // StartA : start:A.
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(14));
+                            next = Some(slot_id.next());
                         } else {
                             self.add_failure(
                                 input_index,
-                                SlotId(13),
+                                slot_id,
                                 Some(gss_node_id),
                                 GLLFailureKind::UnexpectedToken(&FIRST_SET_A),
                             );
@@ -84,19 +83,18 @@ impl<'i, 'arena> Parser<'i, 'arena> for SimpleAltParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(14), result, None, &FOLLOW_SET_START_A);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_A);
                     }
                     // StartB : . start:B
                     SlotId(15) => {
                         if let Some((j, right_child)) = self.parse_b_ll1(input_index, None) {
-                            // StartB : start:B.
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(16));
+                            next = Some(slot_id.next());
                         } else {
                             self.add_failure(
                                 input_index,
-                                SlotId(15),
+                                slot_id,
                                 Some(gss_node_id),
                                 GLLFailureKind::UnexpectedToken(&FIRST_SET_B),
                             );
@@ -107,19 +105,18 @@ impl<'i, 'arena> Parser<'i, 'arena> for SimpleAltParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(16), result, None, &FOLLOW_SET_START_B);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_B);
                     }
                     // StartC : . start:C
                     SlotId(17) => {
                         if let Some((j, right_child)) = self.parse_c_ll1(input_index, None) {
-                            // StartC : start:C.
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(18));
+                            next = Some(slot_id.next());
                         } else {
                             self.add_failure(
                                 input_index,
-                                SlotId(17),
+                                slot_id,
                                 Some(gss_node_id),
                                 GLLFailureKind::UnexpectedToken(&FIRST_SET_C),
                             );
@@ -130,19 +127,18 @@ impl<'i, 'arena> Parser<'i, 'arena> for SimpleAltParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(18), result, None, &FOLLOW_SET_START_C);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_C);
                     }
                     // StartD : . start:D
                     SlotId(19) => {
                         if let Some((j, right_child)) = self.parse_d_ll1(input_index, None) {
-                            // StartD : start:D.
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(20));
+                            next = Some(slot_id.next());
                         } else {
                             self.add_failure(
                                 input_index,
-                                SlotId(19),
+                                slot_id,
                                 Some(gss_node_id),
                                 GLLFailureKind::UnexpectedToken(&FIRST_SET_D),
                             );
@@ -153,7 +149,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for SimpleAltParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(20), result, None, &FOLLOW_SET_START_D);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_D);
                     }
                     _ => {
                         panic!("Unknown grammar slot id: {slot_id}");

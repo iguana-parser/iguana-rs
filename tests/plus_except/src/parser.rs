@@ -64,14 +64,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for PlusExceptParser<'i, 'arena> {
                     gss_node_id
                 );
                 match slot_id {
-                    // Sep : . Plus_0
-                    SlotId(0) => {
+                    // Sep : . Plus_0, and Plus_0 : . Plus_0 Identifier \ Keyword Number
+                    SlotId(0) | SlotId(4) => {
                         self.create(
                             NonterminalId(2),
                             &PREDICTION_PLUS_0,
                             result,
                             gss_node_id,
-                            SlotId(1),
+                            slot_id.next(),
                             env,
                         );
                     }
@@ -80,16 +80,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for PlusExceptParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(1), result, None, &FOLLOW_SET_SEP);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_SEP);
                     }
-                    // Base : . Plus_1
-                    SlotId(2) => {
+                    // Base : . Plus_1, and Plus_1 : . Plus_1 "," Identifier \ Keyword
+                    SlotId(2) | SlotId(10) => {
                         self.create(
                             NonterminalId(3),
                             &PREDICTION_PLUS_1,
                             result,
                             gss_node_id,
-                            SlotId(3),
+                            slot_id.next(),
                             env,
                         );
                     }
@@ -98,40 +98,31 @@ impl<'i, 'arena> Parser<'i, 'arena> for PlusExceptParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(3), result, None, &FOLLOW_SET_BASE);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_BASE);
                     }
-                    // Plus_0 : . Plus_0 Identifier \ Keyword Number
-                    SlotId(4) => {
-                        self.create(
-                            NonterminalId(2),
-                            &PREDICTION_PLUS_0,
-                            result,
-                            gss_node_id,
-                            SlotId(5),
-                            env,
-                        );
-                    }
-                    // Plus_0 : Plus_0 . Identifier \ Keyword Number
-                    SlotId(5) => {
+                    // Plus_0 : Plus_0 . Identifier \ Keyword Number, and Plus_1 : Plus_1 "," . Identifier \
+                    // Keyword
+                    SlotId(5) | SlotId(12) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(1),
                             input_index,
-                            SlotId(5),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(failure) = self.post_conditions(SlotId(6), input_index, j) {
-                                self.add_failure(j, SlotId(6), Some(gss_node_id), failure);
+                            if let Some(failure) =
+                                self.post_conditions(slot_id.next(), input_index, j)
+                            {
+                                self.add_failure(j, slot_id.next(), Some(gss_node_id), failure);
                             } else {
                                 if let Some(new_node) = self.create_intermediate_node(
                                     result,
                                     right_child,
-                                    SlotId(6),
+                                    slot_id.next(),
                                     env,
                                 ) {
-                                    // Plus_0 : Plus_0 Identifier \ Keyword . Number
                                     input_index = j;
                                     result = Some(new_node);
-                                    next = Some(SlotId(6));
+                                    next = Some(slot_id.next());
                                 }
                             }
                         }
@@ -141,134 +132,86 @@ impl<'i, 'arena> Parser<'i, 'arena> for PlusExceptParser<'i, 'arena> {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(0),
                             input_index,
-                            SlotId(6),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(7), env)
-                            {
-                                // Plus_0 : Plus_0 Identifier \ Keyword Number.
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(7));
+                                next = Some(slot_id.next());
                             }
                         }
                     }
-                    // Plus_0 : Plus_0 Identifier \ Keyword Number.
-                    SlotId(7) => {
+                    // Plus_0 : Plus_0 Identifier \ Keyword Number., and Plus_0 : Number.
+                    SlotId(7) | SlotId(9) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(7), result, None, &FOLLOW_SET_PLUS_0);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_PLUS_0);
                     }
                     // Plus_0 : . Number
                     SlotId(8) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(0),
                             input_index,
-                            SlotId(8),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // Plus_0 : Number.
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(9));
+                            next = Some(slot_id.next());
                         }
-                    }
-                    // Plus_0 : Number.
-                    SlotId(9) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(9), result, None, &FOLLOW_SET_PLUS_0);
-                    }
-                    // Plus_1 : . Plus_1 "," Identifier \ Keyword
-                    SlotId(10) => {
-                        self.create(
-                            NonterminalId(3),
-                            &PREDICTION_PLUS_1,
-                            result,
-                            gss_node_id,
-                            SlotId(11),
-                            env,
-                        );
                     }
                     // Plus_1 : Plus_1 . "," Identifier \ Keyword
                     SlotId(11) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(3),
                             input_index,
-                            SlotId(11),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(12), env)
-                            {
-                                // Plus_1 : Plus_1 "," . Identifier \ Keyword
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(12));
+                                next = Some(slot_id.next());
                             }
                         }
                     }
-                    // Plus_1 : Plus_1 "," . Identifier \ Keyword
-                    SlotId(12) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
-                            input_index,
-                            SlotId(12),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(failure) = self.post_conditions(SlotId(13), input_index, j)
-                            {
-                                self.add_failure(j, SlotId(13), Some(gss_node_id), failure);
-                            } else {
-                                if let Some(new_node) = self.create_intermediate_node(
-                                    result,
-                                    right_child,
-                                    SlotId(13),
-                                    env,
-                                ) {
-                                    // Plus_1 : Plus_1 "," Identifier \ Keyword.
-                                    input_index = j;
-                                    result = Some(new_node);
-                                    next = Some(SlotId(13));
-                                }
-                            }
-                        }
-                    }
-                    // Plus_1 : Plus_1 "," Identifier \ Keyword.
-                    SlotId(13) => {
+                    // Plus_1 : Plus_1 "," Identifier \ Keyword., and Plus_1 : Identifier \ Keyword.
+                    SlotId(13) | SlotId(15) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(13), result, None, &FOLLOW_SET_PLUS_1);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_PLUS_1);
                     }
                     // Plus_1 : . Identifier \ Keyword
                     SlotId(14) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(1),
                             input_index,
-                            SlotId(14),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(failure) = self.post_conditions(SlotId(15), input_index, j)
+                            if let Some(failure) =
+                                self.post_conditions(slot_id.next(), input_index, j)
                             {
-                                self.add_failure(j, SlotId(15), Some(gss_node_id), failure);
+                                self.add_failure(j, slot_id.next(), Some(gss_node_id), failure);
                             } else {
-                                // Plus_1 : Identifier \ Keyword.
                                 input_index = j;
                                 result = Some(right_child);
-                                next = Some(SlotId(15));
+                                next = Some(slot_id.next());
                             }
                         }
-                    }
-                    // Plus_1 : Identifier \ Keyword.
-                    SlotId(15) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(15), result, None, &FOLLOW_SET_PLUS_1);
                     }
                     // StartSep : . start:Sep
                     SlotId(16) => {
@@ -277,7 +220,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for PlusExceptParser<'i, 'arena> {
                             &PREDICTION_SEP,
                             result,
                             gss_node_id,
-                            SlotId(17),
+                            slot_id.next(),
                             env,
                         );
                     }
@@ -286,7 +229,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for PlusExceptParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(17), result, None, &FOLLOW_SET_START_SEP);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_SEP);
                     }
                     // StartBase : . start:Base
                     SlotId(18) => {
@@ -295,7 +238,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for PlusExceptParser<'i, 'arena> {
                             &PREDICTION_BASE,
                             result,
                             gss_node_id,
-                            SlotId(19),
+                            slot_id.next(),
                             env,
                         );
                     }
@@ -304,13 +247,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for PlusExceptParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(
-                            gss_node_id,
-                            SlotId(19),
-                            result,
-                            None,
-                            &FOLLOW_SET_START_BASE,
-                        );
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_BASE);
                     }
                     _ => {
                         panic!("Unknown grammar slot id: {slot_id}");

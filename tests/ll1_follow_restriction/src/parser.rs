@@ -64,14 +64,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for Ll1FollowRestrictionParser<'i, 'arena> {
                     gss_node_id
                 );
                 match slot_id {
-                    // S : . A
-                    SlotId(0) => {
+                    // S : . A, and StartA : . start:A
+                    SlotId(0) | SlotId(8) => {
                         self.create(
                             NonterminalId(1),
                             &PREDICTION_A,
                             result,
                             gss_node_id,
-                            SlotId(1),
+                            slot_id.next(),
                             env,
                         );
                     }
@@ -80,53 +80,46 @@ impl<'i, 'arena> Parser<'i, 'arena> for Ll1FollowRestrictionParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(1), result, None, &FOLLOW_SET_S);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_S);
                     }
                     // A : . A_ !>> A_
                     SlotId(2) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(0),
                             input_index,
-                            SlotId(2),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(failure) = self.post_conditions(SlotId(3), input_index, j) {
-                                self.add_failure(j, SlotId(3), Some(gss_node_id), failure);
+                            if let Some(failure) =
+                                self.post_conditions(slot_id.next(), input_index, j)
+                            {
+                                self.add_failure(j, slot_id.next(), Some(gss_node_id), failure);
                             } else {
-                                // A : A_ !>> A_.
                                 input_index = j;
                                 result = Some(right_child);
-                                next = Some(SlotId(3));
+                                next = Some(slot_id.next());
                             }
                         }
                     }
-                    // A : A_ !>> A_.
-                    SlotId(3) => {
+                    // A : A_ !>> A_., and A : AA.
+                    SlotId(3) | SlotId(5) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(3), result, None, &FOLLOW_SET_A);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_A);
                     }
                     // A : . AA
                     SlotId(4) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(1),
                             input_index,
-                            SlotId(4),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // A : AA.
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(5));
+                            next = Some(slot_id.next());
                         }
-                    }
-                    // A : AA.
-                    SlotId(5) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(5), result, None, &FOLLOW_SET_A);
                     }
                     // StartS : . start:S
                     SlotId(6) => {
@@ -135,7 +128,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for Ll1FollowRestrictionParser<'i, 'arena> {
                             &PREDICTION_S,
                             result,
                             gss_node_id,
-                            SlotId(7),
+                            slot_id.next(),
                             env,
                         );
                     }
@@ -144,25 +137,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for Ll1FollowRestrictionParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(7), result, None, &FOLLOW_SET_START_S);
-                    }
-                    // StartA : . start:A
-                    SlotId(8) => {
-                        self.create(
-                            NonterminalId(1),
-                            &PREDICTION_A,
-                            result,
-                            gss_node_id,
-                            SlotId(9),
-                            env,
-                        );
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_S);
                     }
                     // StartA : start:A.
                     SlotId(9) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(9), result, None, &FOLLOW_SET_START_A);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_A);
                     }
                     _ => {
                         panic!("Unknown grammar slot id: {slot_id}");

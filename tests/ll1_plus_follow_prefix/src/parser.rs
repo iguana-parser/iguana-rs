@@ -64,14 +64,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for Ll1PlusFollowPrefixParser<'i, 'arena> {
                     gss_node_id
                 );
                 match slot_id {
-                    // S : . Plus_0 "a" "b"
-                    SlotId(0) => {
+                    // S : . Plus_0 "a" "b", and Plus_0 : . Plus_0 "ab"
+                    SlotId(0) | SlotId(4) => {
                         self.create(
                             NonterminalId(1),
                             &PREDICTION_PLUS_0,
                             result,
                             gss_node_id,
-                            SlotId(1),
+                            slot_id.next(),
                             env,
                         );
                     }
@@ -80,16 +80,18 @@ impl<'i, 'arena> Parser<'i, 'arena> for Ll1PlusFollowPrefixParser<'i, 'arena> {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(1),
                             input_index,
-                            SlotId(1),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(2), env)
-                            {
-                                // S : Plus_0 "a" . "b"
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(2));
+                                next = Some(slot_id.next());
                             }
                         }
                     }
@@ -98,16 +100,18 @@ impl<'i, 'arena> Parser<'i, 'arena> for Ll1PlusFollowPrefixParser<'i, 'arena> {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(2),
                             input_index,
-                            SlotId(2),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(3), env)
-                            {
-                                // S : Plus_0 "a" "b".
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(3));
+                                next = Some(slot_id.next());
                             }
                         }
                     }
@@ -116,64 +120,47 @@ impl<'i, 'arena> Parser<'i, 'arena> for Ll1PlusFollowPrefixParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(3), result, None, &FOLLOW_SET_S);
-                    }
-                    // Plus_0 : . Plus_0 "ab"
-                    SlotId(4) => {
-                        self.create(
-                            NonterminalId(1),
-                            &PREDICTION_PLUS_0,
-                            result,
-                            gss_node_id,
-                            SlotId(5),
-                            env,
-                        );
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_S);
                     }
                     // Plus_0 : Plus_0 . "ab"
                     SlotId(5) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(0),
                             input_index,
-                            SlotId(5),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(6), env)
-                            {
-                                // Plus_0 : Plus_0 "ab".
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(6));
+                                next = Some(slot_id.next());
                             }
                         }
                     }
-                    // Plus_0 : Plus_0 "ab".
-                    SlotId(6) => {
+                    // Plus_0 : Plus_0 "ab"., and Plus_0 : "ab".
+                    SlotId(6) | SlotId(8) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(6), result, None, &FOLLOW_SET_PLUS_0);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_PLUS_0);
                     }
                     // Plus_0 : . "ab"
                     SlotId(7) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(0),
                             input_index,
-                            SlotId(7),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // Plus_0 : "ab".
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(8));
+                            next = Some(slot_id.next());
                         }
-                    }
-                    // Plus_0 : "ab".
-                    SlotId(8) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(8), result, None, &FOLLOW_SET_PLUS_0);
                     }
                     // StartS : . start:S
                     SlotId(9) => {
@@ -182,7 +169,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for Ll1PlusFollowPrefixParser<'i, 'arena> {
                             &PREDICTION_S,
                             result,
                             gss_node_id,
-                            SlotId(10),
+                            slot_id.next(),
                             env,
                         );
                     }
@@ -191,7 +178,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for Ll1PlusFollowPrefixParser<'i, 'arena> {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(10), result, None, &FOLLOW_SET_START_S);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_S);
                     }
                     _ => {
                         panic!("Unknown grammar slot id: {slot_id}");

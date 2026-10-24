@@ -76,37 +76,38 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordMultipleIdsParser<'i, 'arena
                             if let Some((j, right_child)) = self.match_terminal(
                                 TerminalId(3),
                                 input_index,
-                                SlotId(0),
+                                slot_id,
                                 Some(gss_node_id),
                             ) {
                                 if let Some(failure) =
-                                    self.post_conditions(SlotId(1), input_index, j)
+                                    self.post_conditions(slot_id.next(), input_index, j)
                                 {
-                                    self.add_failure(j, SlotId(1), Some(gss_node_id), failure);
+                                    self.add_failure(j, slot_id.next(), Some(gss_node_id), failure);
                                 } else {
-                                    // S : [a-z] !<< "else" !>> [0-9 a-z] . WS VarId WS ";"
                                     input_index = j;
                                     result = Some(right_child);
-                                    next = Some(SlotId(1));
+                                    next = Some(slot_id.next());
                                 }
                             }
                         }
                     }
-                    // S : [a-z] !<< "else" !>> [0-9 a-z] . WS VarId WS ";"
-                    SlotId(1) => {
+                    // S : [a-z] !<< "else" !>> [0-9 a-z] . WS VarId WS ";", and 4 more slots
+                    SlotId(1) | SlotId(3) | SlotId(7) | SlotId(11) | SlotId(16) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(2),
                             input_index,
-                            SlotId(1),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(2), env)
-                            {
-                                // S : [a-z] !<< "else" !>> [0-9 a-z] WS . VarId WS ";"
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(2));
+                                next = Some(slot_id.next());
                             }
                         }
                     }
@@ -115,188 +116,85 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordMultipleIdsParser<'i, 'arena
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(0),
                             input_index,
-                            SlotId(2),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(3), env)
-                            {
-                                // S : [a-z] !<< "else" !>> [0-9 a-z] WS VarId . WS ";"
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(3));
+                                next = Some(slot_id.next());
                             }
                         }
                     }
-                    // S : [a-z] !<< "else" !>> [0-9 a-z] WS VarId . WS ";"
-                    SlotId(3) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(2),
-                            input_index,
-                            SlotId(3),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(4), env)
-                            {
-                                // S : [a-z] !<< "else" !>> [0-9 a-z] WS VarId WS . ";"
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(4));
-                            }
-                        }
-                    }
-                    // S : [a-z] !<< "else" !>> [0-9 a-z] WS VarId WS . ";"
-                    SlotId(4) => {
+                    // S : [a-z] !<< "else" !>> [0-9 a-z] WS VarId WS . ";", and 2 more slots
+                    SlotId(4) | SlotId(8) | SlotId(12) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(4),
                             input_index,
-                            SlotId(4),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(5), env)
-                            {
-                                // S : [a-z] !<< "else" !>> [0-9 a-z] WS VarId WS ";".
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
                                 input_index = j;
                                 result = Some(new_node);
-                                next = Some(SlotId(5));
+                                next = Some(slot_id.next());
                             }
                         }
                     }
-                    // S : [a-z] !<< "else" !>> [0-9 a-z] WS VarId WS ";".
-                    SlotId(5) => {
+                    // S : [a-z] !<< "else" !>> [0-9 a-z] WS VarId WS ";"., and 2 more slots
+                    SlotId(5) | SlotId(9) | SlotId(13) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(5), result, None, &FOLLOW_SET_S);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_S);
                     }
                     // S : . NumId WS ";"
                     SlotId(6) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(1),
                             input_index,
-                            SlotId(6),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // S : NumId . WS ";"
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(7));
+                            next = Some(slot_id.next());
                         }
-                    }
-                    // S : NumId . WS ";"
-                    SlotId(7) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(2),
-                            input_index,
-                            SlotId(7),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(8), env)
-                            {
-                                // S : NumId WS . ";"
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(8));
-                            }
-                        }
-                    }
-                    // S : NumId WS . ";"
-                    SlotId(8) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(4),
-                            input_index,
-                            SlotId(8),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(9), env)
-                            {
-                                // S : NumId WS ";".
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(9));
-                            }
-                        }
-                    }
-                    // S : NumId WS ";".
-                    SlotId(9) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(9), result, None, &FOLLOW_SET_S);
                     }
                     // S : . VarId WS ";"
                     SlotId(10) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(0),
                             input_index,
-                            SlotId(10),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // S : VarId . WS ";"
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(11));
+                            next = Some(slot_id.next());
                         }
-                    }
-                    // S : VarId . WS ";"
-                    SlotId(11) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(2),
-                            input_index,
-                            SlotId(11),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(12), env)
-                            {
-                                // S : VarId WS . ";"
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(12));
-                            }
-                        }
-                    }
-                    // S : VarId WS . ";"
-                    SlotId(12) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(4),
-                            input_index,
-                            SlotId(12),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(13), env)
-                            {
-                                // S : VarId WS ";".
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(13));
-                            }
-                        }
-                    }
-                    // S : VarId WS ";".
-                    SlotId(13) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, SlotId(13), result, None, &FOLLOW_SET_S);
                     }
                     // StartS : . WS start:S WS
                     SlotId(14) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(2),
                             input_index,
-                            SlotId(14),
+                            slot_id,
                             Some(gss_node_id),
                         ) {
-                            // StartS : WS . start:S WS
                             input_index = j;
                             result = Some(right_child);
-                            next = Some(SlotId(15));
+                            next = Some(slot_id.next());
                         }
                     }
                     // StartS : WS . start:S WS
@@ -306,34 +204,16 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordMultipleIdsParser<'i, 'arena
                             &PREDICTION_S,
                             result,
                             gss_node_id,
-                            SlotId(16),
+                            slot_id.next(),
                             env,
                         );
-                    }
-                    // StartS : WS start:S . WS
-                    SlotId(16) => {
-                        if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(2),
-                            input_index,
-                            SlotId(16),
-                            Some(gss_node_id),
-                        ) {
-                            if let Some(new_node) =
-                                self.create_intermediate_node(result, right_child, SlotId(17), env)
-                            {
-                                // StartS : WS start:S WS.
-                                input_index = j;
-                                result = Some(new_node);
-                                next = Some(SlotId(17));
-                            }
-                        }
                     }
                     // StartS : WS start:S WS.
                     SlotId(17) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
-                        self.pop(gss_node_id, SlotId(17), result, None, &FOLLOW_SET_START_S);
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_S);
                     }
                     _ => {
                         panic!("Unknown grammar slot id: {slot_id}");
