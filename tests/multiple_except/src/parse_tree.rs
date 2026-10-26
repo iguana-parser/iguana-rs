@@ -39,6 +39,17 @@ pub struct Start<T, L> {
     pub after: L,
     pub span: Span,
 }
+impl<T, L> Start<T, L> {
+    pub fn span(&self) -> Span {
+        self.span
+    }
+    pub fn display_name(&self) -> &'static str {
+        "Start"
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        Some(Origin::Start)
+    }
+}
 pub type StartSyntaxIdentifier<'a> = Start<&'a SyntaxIdentifier<'a>, ()>;
 pub type StartLexicalIdentifier<'a> = Start<&'a LexicalIdentifier<'a>, ()>;
 #[derive(Debug, Clone, Copy)]
@@ -69,12 +80,14 @@ impl<'a> ParseTree<'a> {
         match self {
             ParseTree::SyntaxIdentifier(syntax_identifier) => syntax_identifier.child(index),
             ParseTree::LexicalIdentifier(lexical_identifier) => lexical_identifier.child(index),
-            ParseTree::StartSyntaxIdentifier(start_syntax_identifier) => {
-                start_syntax_identifier.child(index)
-            }
-            ParseTree::StartLexicalIdentifier(start_lexical_identifier) => {
-                start_lexical_identifier.child(index)
-            }
+            ParseTree::StartSyntaxIdentifier(start_syntax_identifier) => match index {
+                0 => Some(ParseTree::SyntaxIdentifier(start_syntax_identifier.node)),
+                _ => None,
+            },
+            ParseTree::StartLexicalIdentifier(start_lexical_identifier) => match index {
+                0 => Some(ParseTree::LexicalIdentifier(start_lexical_identifier.node)),
+                _ => None,
+            },
             ParseTree::Token(_) => None,
         }
     }
@@ -82,12 +95,8 @@ impl<'a> ParseTree<'a> {
         match self {
             ParseTree::SyntaxIdentifier(syntax_identifier) => syntax_identifier.child_count(),
             ParseTree::LexicalIdentifier(lexical_identifier) => lexical_identifier.child_count(),
-            ParseTree::StartSyntaxIdentifier(start_syntax_identifier) => {
-                start_syntax_identifier.child_count()
-            }
-            ParseTree::StartLexicalIdentifier(start_lexical_identifier) => {
-                start_lexical_identifier.child_count()
-            }
+            ParseTree::StartSyntaxIdentifier(_) => 1usize,
+            ParseTree::StartLexicalIdentifier(_) => 1usize,
             ParseTree::Token(_) => 0,
         }
     }
@@ -200,13 +209,13 @@ pub trait OptNode {
 #[derive(Debug)]
 pub enum SyntaxIdentifier<'a> {
     Alt0 { identifier_chars: Token, span: Span },
-    Amb(&'a [&'a SyntaxIdentifier<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // LexicalIdentifier = Identifier
 #[derive(Debug)]
 pub enum LexicalIdentifier<'a> {
     Alt0 { identifier: Token, span: Span },
-    Amb(&'a [&'a LexicalIdentifier<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 impl<'a> SyntaxIdentifier<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -220,9 +229,7 @@ impl<'a> SyntaxIdentifier<'a> {
                 0 => Some(ParseTree::Token(*identifier_chars)),
                 _ => None,
             },
-            SyntaxIdentifier::Amb(alts) => {
-                alts.get(index).copied().map(ParseTree::SyntaxIdentifier)
-            }
+            SyntaxIdentifier::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -265,9 +272,7 @@ impl<'a> LexicalIdentifier<'a> {
                 0 => Some(ParseTree::Token(*identifier)),
                 _ => None,
             },
-            LexicalIdentifier::Amb(alts) => {
-                alts.get(index).copied().map(ParseTree::LexicalIdentifier)
-            }
+            LexicalIdentifier::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -302,46 +307,10 @@ impl<'a> Start<&'a SyntaxIdentifier<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartSyntaxIdentifier(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::SyntaxIdentifier(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a LexicalIdentifier<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartLexicalIdentifier(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::LexicalIdentifier(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 #[derive(Debug, Clone, Copy)]
@@ -378,6 +347,15 @@ pub struct MultipleExceptParseTreeBuilder<'a> {
 impl<'a> MultipleExceptParseTreeBuilder<'a> {
     pub fn new(tree_arena: &'a Arena) -> Self {
         Self { arena: tree_arena }
+    }
+    ///The child at `index` of each start wrapper in `alternatives`.
+    fn start_inner_alternatives(
+        &self,
+        alternatives: &[ParseTree<'a>],
+        index: usize,
+    ) -> &'a [ParseTree<'a>] {
+        self.arena
+            .alloc_slice(alternatives.iter().map(|a| a.child(index).unwrap()))
     }
 }
 impl<'a> ParseTreeBuilder<ParseTree<'a>> for MultipleExceptParseTreeBuilder<'a> {
@@ -445,30 +423,17 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for MultipleExceptParseTreeBuilder<'a> 
         parent: NonterminalId,
         alternatives: Vec<ParseTree<'a>>,
     ) -> ParseTree<'a> {
+        let slice = &*self.arena.alloc_slice(alternatives);
         match parent {
             grammar::SYNTAX_IDENTIFIER => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_syntax_identifier()),
-                );
                 ParseTree::SyntaxIdentifier(self.arena.alloc(SyntaxIdentifier::Amb(slice)))
             }
             grammar::LEXICAL_IDENTIFIER => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_lexical_identifier()),
-                );
                 ParseTree::LexicalIdentifier(self.arena.alloc(LexicalIdentifier::Amb(slice)))
             }
             grammar::START_SYNTAX_IDENTIFIER => {
-                let first = alternatives[0].unwrap_start_syntax_identifier();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_syntax_identifier().node),
-                );
+                let first = slice[0].unwrap_start_syntax_identifier();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(SyntaxIdentifier::Amb(inner));
                 ParseTree::StartSyntaxIdentifier(self.arena.alloc(Start {
                     before: first.before,
@@ -478,12 +443,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for MultipleExceptParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_LEXICAL_IDENTIFIER => {
-                let first = alternatives[0].unwrap_start_lexical_identifier();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_lexical_identifier().node),
-                );
+                let first = slice[0].unwrap_start_lexical_identifier();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(LexicalIdentifier::Amb(inner));
                 ParseTree::StartLexicalIdentifier(self.arena.alloc(Start {
                     before: first.before,

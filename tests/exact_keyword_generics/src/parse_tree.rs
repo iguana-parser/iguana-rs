@@ -45,6 +45,17 @@ pub struct Start<T, L> {
     pub after: L,
     pub span: Span,
 }
+impl<T, L> Start<T, L> {
+    pub fn span(&self) -> Span {
+        self.span
+    }
+    pub fn display_name(&self) -> &'static str {
+        "Start"
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        Some(Origin::Start)
+    }
+}
 pub type StartS<'a> = Start<&'a S<'a>, Token>;
 pub type StartType<'a> = Start<&'a Type<'a>, Token>;
 #[derive(Debug, Clone, Copy)]
@@ -71,8 +82,18 @@ impl<'a> ParseTree<'a> {
         match self {
             ParseTree::S(s) => s.child(index),
             ParseTree::Type(r#type) => r#type.child(index),
-            ParseTree::StartS(start_s) => start_s.child(index),
-            ParseTree::StartType(start_type) => start_type.child(index),
+            ParseTree::StartS(start_s) => match index {
+                0 => Some(ParseTree::Token(start_s.before)),
+                1 => Some(ParseTree::S(start_s.node)),
+                2 => Some(ParseTree::Token(start_s.after)),
+                _ => None,
+            },
+            ParseTree::StartType(start_type) => match index {
+                0 => Some(ParseTree::Token(start_type.before)),
+                1 => Some(ParseTree::Type(start_type.node)),
+                2 => Some(ParseTree::Token(start_type.after)),
+                _ => None,
+            },
             ParseTree::Token(_) => None,
         }
     }
@@ -80,8 +101,8 @@ impl<'a> ParseTree<'a> {
         match self {
             ParseTree::S(s) => s.child_count(),
             ParseTree::Type(r#type) => r#type.child_count(),
-            ParseTree::StartS(start_s) => start_s.child_count(),
-            ParseTree::StartType(start_type) => start_type.child_count(),
+            ParseTree::StartS(_) => 3usize,
+            ParseTree::StartType(_) => 3usize,
             ParseTree::Token(_) => 0,
         }
     }
@@ -186,7 +207,7 @@ pub enum S<'a> {
         lit_4: Token,
         span: Span,
     },
-    Amb(&'a [&'a S<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum Type<'a> {
@@ -206,7 +227,7 @@ pub enum Type<'a> {
         lit_6: Token,
         span: Span,
     },
-    Amb(&'a [&'a Type<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 impl<'a> S<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -237,7 +258,7 @@ impl<'a> S<'a> {
                 4 => Some(ParseTree::Token(*lit_4)),
                 _ => None,
             },
-            S::Amb(alts) => alts.get(index).copied().map(ParseTree::S),
+            S::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -293,7 +314,7 @@ impl<'a> Type<'a> {
                 6 => Some(ParseTree::Token(*lit_6)),
                 _ => None,
             },
-            Type::Amb(alts) => alts.get(index).copied().map(ParseTree::Type),
+            Type::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -324,50 +345,10 @@ impl<'a> Start<&'a S<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartS(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::S(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a Type<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartType(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::Type(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 #[derive(Debug, Clone, Copy)]
@@ -408,6 +389,15 @@ pub struct ExactKeywordGenericsParseTreeBuilder<'a> {
 impl<'a> ExactKeywordGenericsParseTreeBuilder<'a> {
     pub fn new(tree_arena: &'a Arena) -> Self {
         Self { arena: tree_arena }
+    }
+    ///The child at `index` of each start wrapper in `alternatives`.
+    fn start_inner_alternatives(
+        &self,
+        alternatives: &[ParseTree<'a>],
+        index: usize,
+    ) -> &'a [ParseTree<'a>] {
+        self.arena
+            .alloc_slice(alternatives.iter().map(|a| a.child(index).unwrap()))
     }
 }
 impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordGenericsParseTreeBuilder<'a> {
@@ -507,24 +497,13 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordGenericsParseTreeBuilde
         parent: NonterminalId,
         alternatives: Vec<ParseTree<'a>>,
     ) -> ParseTree<'a> {
+        let slice = &*self.arena.alloc_slice(alternatives);
         match parent {
-            grammar::S => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_s()));
-                ParseTree::S(self.arena.alloc(S::Amb(slice)))
-            }
-            grammar::TYPE => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_type()));
-                ParseTree::Type(self.arena.alloc(Type::Amb(slice)))
-            }
+            grammar::S => ParseTree::S(self.arena.alloc(S::Amb(slice))),
+            grammar::TYPE => ParseTree::Type(self.arena.alloc(Type::Amb(slice))),
             grammar::START_S => {
-                let first = alternatives[0].unwrap_start_s();
-                let inner = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_start_s().node));
+                let first = slice[0].unwrap_start_s();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(S::Amb(inner));
                 ParseTree::StartS(self.arena.alloc(Start {
                     before: first.before,
@@ -534,10 +513,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordGenericsParseTreeBuilde
                 }))
             }
             grammar::START_TYPE => {
-                let first = alternatives[0].unwrap_start_type();
-                let inner = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_start_type().node));
+                let first = slice[0].unwrap_start_type();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(Type::Amb(inner));
                 ParseTree::StartType(self.arena.alloc(Start {
                     before: first.before,

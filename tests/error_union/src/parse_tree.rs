@@ -75,6 +75,17 @@ pub struct Start<T, L> {
     pub after: L,
     pub span: Span,
 }
+impl<T, L> Start<T, L> {
+    pub fn span(&self) -> Span {
+        self.span
+    }
+    pub fn display_name(&self) -> &'static str {
+        "Start"
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        Some(Origin::Start)
+    }
+}
 pub type StartT<'a> = Start<&'a T<'a>, &'a Layout<'a>>;
 pub type StartU<'a> = Start<&'a U<'a>, &'a Layout<'a>>;
 pub type StartP<'a> = Start<&'a P<'a>, &'a Layout<'a>>;
@@ -266,43 +277,126 @@ impl<'a> ParseTree<'a> {
             ParseTree::Alt0(alt_0) => alt_0.child(index),
             ParseTree::Plus0(plus_0) => plus_0.child(index),
             ParseTree::Star0(star_0) => star_0.child(index),
-            ParseTree::StartT(start_t) => start_t.child(index),
-            ParseTree::StartU(start_u) => start_u.child(index),
-            ParseTree::StartP(start_p) => start_p.child(index),
-            ParseTree::StartQ(start_q) => start_q.child(index),
-            ParseTree::StartBeforeP(start_before_p) => start_before_p.child(index),
-            ParseTree::StartBeforeQ(start_before_q) => start_before_q.child(index),
-            ParseTree::StartUnexpectedFirst(start_unexpected_first) => {
-                start_unexpected_first.child(index)
-            }
-            ParseTree::StartExcludedFirst(start_excluded_first) => {
-                start_excluded_first.child(index)
-            }
-            ParseTree::StartPredictionBeforeExcept(start_prediction_before_except) => {
-                start_prediction_before_except.child(index)
-            }
-            ParseTree::StartExceptBeforePrediction(start_except_before_prediction) => {
-                start_except_before_prediction.child(index)
-            }
-            ParseTree::StartPredictionBeforeFollow(start_prediction_before_follow) => {
-                start_prediction_before_follow.child(index)
-            }
-            ParseTree::StartFollowBeforePrediction(start_follow_before_prediction) => {
-                start_follow_before_prediction.child(index)
-            }
-            ParseTree::StartMissingSuffix(start_missing_suffix) => {
-                start_missing_suffix.child(index)
-            }
-            ParseTree::StartSuffixChoice(start_suffix_choice) => start_suffix_choice.child(index),
-            ParseTree::StartCallPrediction(start_call_prediction) => {
-                start_call_prediction.child(index)
-            }
-            ParseTree::StartPrefixX(start_prefix_x) => start_prefix_x.child(index),
-            ParseTree::StartPrefixW(start_prefix_w) => start_prefix_w.child(index),
-            ParseTree::StartNullablePrefix(start_nullable_prefix) => {
-                start_nullable_prefix.child(index)
-            }
-            ParseTree::StartLayout(start_layout) => start_layout.child(index),
+            ParseTree::StartT(start_t) => match index {
+                0 => Some(ParseTree::Layout(start_t.before)),
+                1 => Some(ParseTree::T(start_t.node)),
+                2 => Some(ParseTree::Layout(start_t.after)),
+                _ => None,
+            },
+            ParseTree::StartU(start_u) => match index {
+                0 => Some(ParseTree::Layout(start_u.before)),
+                1 => Some(ParseTree::U(start_u.node)),
+                2 => Some(ParseTree::Layout(start_u.after)),
+                _ => None,
+            },
+            ParseTree::StartP(start_p) => match index {
+                0 => Some(ParseTree::Layout(start_p.before)),
+                1 => Some(ParseTree::P(start_p.node)),
+                2 => Some(ParseTree::Layout(start_p.after)),
+                _ => None,
+            },
+            ParseTree::StartQ(start_q) => match index {
+                0 => Some(ParseTree::Layout(start_q.before)),
+                1 => Some(ParseTree::Q(start_q.node)),
+                2 => Some(ParseTree::Layout(start_q.after)),
+                _ => None,
+            },
+            ParseTree::StartBeforeP(start_before_p) => match index {
+                0 => Some(ParseTree::Layout(start_before_p.before)),
+                1 => Some(ParseTree::BeforeP(start_before_p.node)),
+                2 => Some(ParseTree::Layout(start_before_p.after)),
+                _ => None,
+            },
+            ParseTree::StartBeforeQ(start_before_q) => match index {
+                0 => Some(ParseTree::Layout(start_before_q.before)),
+                1 => Some(ParseTree::BeforeQ(start_before_q.node)),
+                2 => Some(ParseTree::Layout(start_before_q.after)),
+                _ => None,
+            },
+            ParseTree::StartUnexpectedFirst(start_unexpected_first) => match index {
+                0 => Some(ParseTree::Layout(start_unexpected_first.before)),
+                1 => Some(ParseTree::UnexpectedFirst(start_unexpected_first.node)),
+                2 => Some(ParseTree::Layout(start_unexpected_first.after)),
+                _ => None,
+            },
+            ParseTree::StartExcludedFirst(start_excluded_first) => match index {
+                0 => Some(ParseTree::Layout(start_excluded_first.before)),
+                1 => Some(ParseTree::ExcludedFirst(start_excluded_first.node)),
+                2 => Some(ParseTree::Layout(start_excluded_first.after)),
+                _ => None,
+            },
+            ParseTree::StartPredictionBeforeExcept(start_prediction_before_except) => match index {
+                0 => Some(ParseTree::Layout(start_prediction_before_except.before)),
+                1 => Some(ParseTree::PredictionBeforeExcept(
+                    start_prediction_before_except.node,
+                )),
+                2 => Some(ParseTree::Layout(start_prediction_before_except.after)),
+                _ => None,
+            },
+            ParseTree::StartExceptBeforePrediction(start_except_before_prediction) => match index {
+                0 => Some(ParseTree::Layout(start_except_before_prediction.before)),
+                1 => Some(ParseTree::ExceptBeforePrediction(
+                    start_except_before_prediction.node,
+                )),
+                2 => Some(ParseTree::Layout(start_except_before_prediction.after)),
+                _ => None,
+            },
+            ParseTree::StartPredictionBeforeFollow(start_prediction_before_follow) => match index {
+                0 => Some(ParseTree::Layout(start_prediction_before_follow.before)),
+                1 => Some(ParseTree::PredictionBeforeFollow(
+                    start_prediction_before_follow.node,
+                )),
+                2 => Some(ParseTree::Layout(start_prediction_before_follow.after)),
+                _ => None,
+            },
+            ParseTree::StartFollowBeforePrediction(start_follow_before_prediction) => match index {
+                0 => Some(ParseTree::Layout(start_follow_before_prediction.before)),
+                1 => Some(ParseTree::FollowBeforePrediction(
+                    start_follow_before_prediction.node,
+                )),
+                2 => Some(ParseTree::Layout(start_follow_before_prediction.after)),
+                _ => None,
+            },
+            ParseTree::StartMissingSuffix(start_missing_suffix) => match index {
+                0 => Some(ParseTree::Layout(start_missing_suffix.before)),
+                1 => Some(ParseTree::MissingSuffix(start_missing_suffix.node)),
+                2 => Some(ParseTree::Layout(start_missing_suffix.after)),
+                _ => None,
+            },
+            ParseTree::StartSuffixChoice(start_suffix_choice) => match index {
+                0 => Some(ParseTree::Layout(start_suffix_choice.before)),
+                1 => Some(ParseTree::SuffixChoice(start_suffix_choice.node)),
+                2 => Some(ParseTree::Layout(start_suffix_choice.after)),
+                _ => None,
+            },
+            ParseTree::StartCallPrediction(start_call_prediction) => match index {
+                0 => Some(ParseTree::Layout(start_call_prediction.before)),
+                1 => Some(ParseTree::CallPrediction(start_call_prediction.node)),
+                2 => Some(ParseTree::Layout(start_call_prediction.after)),
+                _ => None,
+            },
+            ParseTree::StartPrefixX(start_prefix_x) => match index {
+                0 => Some(ParseTree::Layout(start_prefix_x.before)),
+                1 => Some(ParseTree::PrefixX(start_prefix_x.node)),
+                2 => Some(ParseTree::Layout(start_prefix_x.after)),
+                _ => None,
+            },
+            ParseTree::StartPrefixW(start_prefix_w) => match index {
+                0 => Some(ParseTree::Layout(start_prefix_w.before)),
+                1 => Some(ParseTree::PrefixW(start_prefix_w.node)),
+                2 => Some(ParseTree::Layout(start_prefix_w.after)),
+                _ => None,
+            },
+            ParseTree::StartNullablePrefix(start_nullable_prefix) => match index {
+                0 => Some(ParseTree::Layout(start_nullable_prefix.before)),
+                1 => Some(ParseTree::NullablePrefix(start_nullable_prefix.node)),
+                2 => Some(ParseTree::Layout(start_nullable_prefix.after)),
+                _ => None,
+            },
+            ParseTree::StartLayout(start_layout) => match index {
+                0 => Some(ParseTree::Layout(start_layout.node)),
+                _ => None,
+            },
             ParseTree::Token(_) => None,
         }
     }
@@ -338,43 +432,25 @@ impl<'a> ParseTree<'a> {
             ParseTree::Alt0(alt_0) => alt_0.child_count(),
             ParseTree::Plus0(plus_0) => plus_0.child_count(),
             ParseTree::Star0(star_0) => star_0.child_count(),
-            ParseTree::StartT(start_t) => start_t.child_count(),
-            ParseTree::StartU(start_u) => start_u.child_count(),
-            ParseTree::StartP(start_p) => start_p.child_count(),
-            ParseTree::StartQ(start_q) => start_q.child_count(),
-            ParseTree::StartBeforeP(start_before_p) => start_before_p.child_count(),
-            ParseTree::StartBeforeQ(start_before_q) => start_before_q.child_count(),
-            ParseTree::StartUnexpectedFirst(start_unexpected_first) => {
-                start_unexpected_first.child_count()
-            }
-            ParseTree::StartExcludedFirst(start_excluded_first) => {
-                start_excluded_first.child_count()
-            }
-            ParseTree::StartPredictionBeforeExcept(start_prediction_before_except) => {
-                start_prediction_before_except.child_count()
-            }
-            ParseTree::StartExceptBeforePrediction(start_except_before_prediction) => {
-                start_except_before_prediction.child_count()
-            }
-            ParseTree::StartPredictionBeforeFollow(start_prediction_before_follow) => {
-                start_prediction_before_follow.child_count()
-            }
-            ParseTree::StartFollowBeforePrediction(start_follow_before_prediction) => {
-                start_follow_before_prediction.child_count()
-            }
-            ParseTree::StartMissingSuffix(start_missing_suffix) => {
-                start_missing_suffix.child_count()
-            }
-            ParseTree::StartSuffixChoice(start_suffix_choice) => start_suffix_choice.child_count(),
-            ParseTree::StartCallPrediction(start_call_prediction) => {
-                start_call_prediction.child_count()
-            }
-            ParseTree::StartPrefixX(start_prefix_x) => start_prefix_x.child_count(),
-            ParseTree::StartPrefixW(start_prefix_w) => start_prefix_w.child_count(),
-            ParseTree::StartNullablePrefix(start_nullable_prefix) => {
-                start_nullable_prefix.child_count()
-            }
-            ParseTree::StartLayout(start_layout) => start_layout.child_count(),
+            ParseTree::StartT(_) => 3usize,
+            ParseTree::StartU(_) => 3usize,
+            ParseTree::StartP(_) => 3usize,
+            ParseTree::StartQ(_) => 3usize,
+            ParseTree::StartBeforeP(_) => 3usize,
+            ParseTree::StartBeforeQ(_) => 3usize,
+            ParseTree::StartUnexpectedFirst(_) => 3usize,
+            ParseTree::StartExcludedFirst(_) => 3usize,
+            ParseTree::StartPredictionBeforeExcept(_) => 3usize,
+            ParseTree::StartExceptBeforePrediction(_) => 3usize,
+            ParseTree::StartPredictionBeforeFollow(_) => 3usize,
+            ParseTree::StartFollowBeforePrediction(_) => 3usize,
+            ParseTree::StartMissingSuffix(_) => 3usize,
+            ParseTree::StartSuffixChoice(_) => 3usize,
+            ParseTree::StartCallPrediction(_) => 3usize,
+            ParseTree::StartPrefixX(_) => 3usize,
+            ParseTree::StartPrefixW(_) => 3usize,
+            ParseTree::StartNullablePrefix(_) => 3usize,
+            ParseTree::StartLayout(_) => 1usize,
             ParseTree::Token(_) => 0,
         }
     }
@@ -969,7 +1045,7 @@ pub enum T<'a> {
         lit_5: Token,
         span: Span,
     },
-    Amb(&'a [&'a T<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum U<'a> {
@@ -993,7 +1069,7 @@ pub enum U<'a> {
         lit_5: Token,
         span: Span,
     },
-    Amb(&'a [&'a U<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum P<'a> {
@@ -1001,13 +1077,13 @@ pub enum P<'a> {
     Alt0 { lit_0: Token, span: Span },
     // P = Word
     Alt1 { word: Token, span: Span },
-    Amb(&'a [&'a P<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // Q = "q"
 #[derive(Debug)]
 pub enum Q<'a> {
     Alt0 { lit_0: Token, span: Span },
-    Amb(&'a [&'a Q<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum BeforeP<'a> {
@@ -1023,7 +1099,7 @@ pub enum BeforeP<'a> {
         lit_2: Token,
         span: Span,
     },
-    Amb(&'a [&'a BeforeP<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum BeforeQ<'a> {
@@ -1039,7 +1115,7 @@ pub enum BeforeQ<'a> {
         lit_2: Token,
         span: Span,
     },
-    Amb(&'a [&'a BeforeQ<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum UnexpectedFirst<'a> {
@@ -1054,7 +1130,7 @@ pub enum UnexpectedFirst<'a> {
         identifier: Token,
         span: Span,
     },
-    Amb(&'a [&'a UnexpectedFirst<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum ExcludedFirst<'a> {
@@ -1069,7 +1145,7 @@ pub enum ExcludedFirst<'a> {
         lit_1: Token,
         span: Span,
     },
-    Amb(&'a [&'a ExcludedFirst<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum PredictionBeforeExcept<'a> {
@@ -1084,7 +1160,7 @@ pub enum PredictionBeforeExcept<'a> {
         identifier: Token,
         span: Span,
     },
-    Amb(&'a [&'a PredictionBeforeExcept<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum ExceptBeforePrediction<'a> {
@@ -1099,7 +1175,7 @@ pub enum ExceptBeforePrediction<'a> {
         missing_suffix: &'a MissingSuffix<'a>,
         span: Span,
     },
-    Amb(&'a [&'a ExceptBeforePrediction<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum PredictionBeforeFollow<'a> {
@@ -1115,7 +1191,7 @@ pub enum PredictionBeforeFollow<'a> {
         question: Token,
         span: Span,
     },
-    Amb(&'a [&'a PredictionBeforeFollow<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum FollowBeforePrediction<'a> {
@@ -1131,7 +1207,7 @@ pub enum FollowBeforePrediction<'a> {
         missing_suffix: &'a MissingSuffix<'a>,
         span: Span,
     },
-    Amb(&'a [&'a FollowBeforePrediction<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // MissingSuffix = SuffixChoice
 #[derive(Debug)]
@@ -1140,7 +1216,7 @@ pub enum MissingSuffix<'a> {
         suffix_choice: &'a SuffixChoice<'a>,
         span: Span,
     },
-    Amb(&'a [&'a MissingSuffix<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum SuffixChoice<'a> {
@@ -1155,7 +1231,7 @@ pub enum SuffixChoice<'a> {
         lit_1: Token,
         span: Span,
     },
-    Amb(&'a [&'a SuffixChoice<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum CallPrediction<'a> {
@@ -1171,7 +1247,7 @@ pub enum CallPrediction<'a> {
         prefix_w: &'a PrefixW<'a>,
         span: Span,
     },
-    Amb(&'a [&'a CallPrediction<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // PrefixX = NullablePrefix "x"
 #[derive(Debug)]
@@ -1181,7 +1257,7 @@ pub enum PrefixX<'a> {
         lit_1: Token,
         span: Span,
     },
-    Amb(&'a [&'a PrefixX<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // PrefixW = NullablePrefix "w"
 #[derive(Debug)]
@@ -1191,7 +1267,7 @@ pub enum PrefixW<'a> {
         lit_1: Token,
         span: Span,
     },
-    Amb(&'a [&'a PrefixW<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum NullablePrefix<'a> {
@@ -1210,13 +1286,13 @@ pub enum NullablePrefix<'a> {
     Alt2 {
         span: Span,
     },
-    Amb(&'a [&'a NullablePrefix<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // Layout = (WS | Newline)*
 #[derive(Debug)]
 pub enum Layout<'a> {
     Alt0 { star_0: &'a Star0<'a>, span: Span },
-    Amb(&'a [&'a Layout<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // (WS | Newline)
 #[derive(Debug)]
@@ -1225,7 +1301,7 @@ pub enum Alt0<'a> {
     Alt0 { ws: Token, span: Span },
     // Alt_0 = Newline
     Alt1 { newline: Token, span: Span },
-    Amb(&'a [&'a Alt0<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // (WS | Newline)+
 #[derive(Debug)]
@@ -1241,7 +1317,7 @@ pub enum Plus0<'a> {
         alt_0: &'a Alt0<'a>,
         span: Span,
     },
-    Amb(&'a [&'a Plus0<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // (WS | Newline)*
 #[derive(Debug)]
@@ -1250,7 +1326,7 @@ pub enum Star0<'a> {
     Alt0 { plus_0: &'a Plus0<'a>, span: Span },
     // Star_0 =
     Alt1 { span: Span },
-    Amb(&'a [&'a Star0<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 impl<'a> T<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -1292,7 +1368,7 @@ impl<'a> T<'a> {
                 5 => Some(ParseTree::Token(*lit_5)),
                 _ => None,
             },
-            T::Amb(alts) => alts.get(index).copied().map(ParseTree::T),
+            T::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -1359,7 +1435,7 @@ impl<'a> U<'a> {
                 5 => Some(ParseTree::Token(*lit_5)),
                 _ => None,
             },
-            U::Amb(alts) => alts.get(index).copied().map(ParseTree::U),
+            U::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -1400,7 +1476,7 @@ impl<'a> P<'a> {
                 0 => Some(ParseTree::Token(*word)),
                 _ => None,
             },
-            P::Amb(alts) => alts.get(index).copied().map(ParseTree::P),
+            P::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -1437,7 +1513,7 @@ impl<'a> Q<'a> {
                 0 => Some(ParseTree::Token(*lit_0)),
                 _ => None,
             },
-            Q::Amb(alts) => alts.get(index).copied().map(ParseTree::Q),
+            Q::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -1489,7 +1565,7 @@ impl<'a> BeforeP<'a> {
                 2 => Some(ParseTree::Token(*lit_2)),
                 _ => None,
             },
-            BeforeP::Amb(alts) => alts.get(index).copied().map(ParseTree::BeforeP),
+            BeforeP::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -1537,7 +1613,7 @@ impl<'a> BeforeQ<'a> {
                 2 => Some(ParseTree::Token(*lit_2)),
                 _ => None,
             },
-            BeforeQ::Amb(alts) => alts.get(index).copied().map(ParseTree::BeforeQ),
+            BeforeQ::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -1581,7 +1657,7 @@ impl<'a> UnexpectedFirst<'a> {
                 0 => Some(ParseTree::Token(*identifier)),
                 _ => None,
             },
-            UnexpectedFirst::Amb(alts) => alts.get(index).copied().map(ParseTree::UnexpectedFirst),
+            UnexpectedFirst::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -1625,7 +1701,7 @@ impl<'a> ExcludedFirst<'a> {
                 1 => Some(ParseTree::Token(*lit_1)),
                 _ => None,
             },
-            ExcludedFirst::Amb(alts) => alts.get(index).copied().map(ParseTree::ExcludedFirst),
+            ExcludedFirst::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -1671,10 +1747,7 @@ impl<'a> PredictionBeforeExcept<'a> {
                 0 => Some(ParseTree::Token(*identifier)),
                 _ => None,
             },
-            PredictionBeforeExcept::Amb(alts) => alts
-                .get(index)
-                .copied()
-                .map(ParseTree::PredictionBeforeExcept),
+            PredictionBeforeExcept::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -1720,10 +1793,7 @@ impl<'a> ExceptBeforePrediction<'a> {
                 1 => Some(ParseTree::MissingSuffix(missing_suffix)),
                 _ => None,
             },
-            ExceptBeforePrediction::Amb(alts) => alts
-                .get(index)
-                .copied()
-                .map(ParseTree::ExceptBeforePrediction),
+            ExceptBeforePrediction::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -1774,10 +1844,7 @@ impl<'a> PredictionBeforeFollow<'a> {
                 1 => Some(ParseTree::Token(*question)),
                 _ => None,
             },
-            PredictionBeforeFollow::Amb(alts) => alts
-                .get(index)
-                .copied()
-                .map(ParseTree::PredictionBeforeFollow),
+            PredictionBeforeFollow::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -1828,10 +1895,7 @@ impl<'a> FollowBeforePrediction<'a> {
                 1 => Some(ParseTree::MissingSuffix(missing_suffix)),
                 _ => None,
             },
-            FollowBeforePrediction::Amb(alts) => alts
-                .get(index)
-                .copied()
-                .map(ParseTree::FollowBeforePrediction),
+            FollowBeforePrediction::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -1868,7 +1932,7 @@ impl<'a> MissingSuffix<'a> {
                 0 => Some(ParseTree::SuffixChoice(suffix_choice)),
                 _ => None,
             },
-            MissingSuffix::Amb(alts) => alts.get(index).copied().map(ParseTree::MissingSuffix),
+            MissingSuffix::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -1914,7 +1978,7 @@ impl<'a> SuffixChoice<'a> {
                 1 => Some(ParseTree::Token(*lit_1)),
                 _ => None,
             },
-            SuffixChoice::Amb(alts) => alts.get(index).copied().map(ParseTree::SuffixChoice),
+            SuffixChoice::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -1961,7 +2025,7 @@ impl<'a> CallPrediction<'a> {
                 1 => Some(ParseTree::PrefixW(prefix_w)),
                 _ => None,
             },
-            CallPrediction::Amb(alts) => alts.get(index).copied().map(ParseTree::CallPrediction),
+            CallPrediction::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -2003,7 +2067,7 @@ impl<'a> PrefixX<'a> {
                 1 => Some(ParseTree::Token(*lit_1)),
                 _ => None,
             },
-            PrefixX::Amb(alts) => alts.get(index).copied().map(ParseTree::PrefixX),
+            PrefixX::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -2057,7 +2121,7 @@ impl<'a> PrefixW<'a> {
                 1 => Some(ParseTree::Token(*lit_1)),
                 _ => None,
             },
-            PrefixW::Amb(alts) => alts.get(index).copied().map(ParseTree::PrefixW),
+            PrefixW::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -2112,7 +2176,7 @@ impl<'a> NullablePrefix<'a> {
                 _ => None,
             },
             NullablePrefix::Alt2 { .. } => None,
-            NullablePrefix::Amb(alts) => alts.get(index).copied().map(ParseTree::NullablePrefix),
+            NullablePrefix::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -2151,7 +2215,7 @@ impl<'a> Layout<'a> {
                 0 => Some(ParseTree::Star0(star_0)),
                 _ => None,
             },
-            Layout::Amb(alts) => alts.get(index).copied().map(ParseTree::Layout),
+            Layout::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -2208,7 +2272,7 @@ impl<'a> Alt0<'a> {
                 0 => Some(ParseTree::Token(*newline)),
                 _ => None,
             },
-            Alt0::Amb(alts) => alts.get(index).copied().map(ParseTree::Alt0),
+            Alt0::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -2253,7 +2317,7 @@ impl<'a> Plus0<'a> {
                 0 => Some(ParseTree::Alt0(alt_0)),
                 _ => None,
             },
-            Plus0::Amb(alts) => alts.get(index).copied().map(ParseTree::Plus0),
+            Plus0::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -2312,7 +2376,7 @@ impl<'a> Star0<'a> {
                 _ => None,
             },
             Star0::Alt1 { .. } => None,
-            Star0::Amb(alts) => alts.get(index).copied().map(ParseTree::Star0),
+            Star0::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -2362,473 +2426,95 @@ impl<'a> Start<&'a T<'a>, &'a Layout<'a>> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartT(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Layout(self.before)),
-            1 => Some(ParseTree::T(self.node)),
-            2 => Some(ParseTree::Layout(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a U<'a>, &'a Layout<'a>> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartU(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Layout(self.before)),
-            1 => Some(ParseTree::U(self.node)),
-            2 => Some(ParseTree::Layout(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a P<'a>, &'a Layout<'a>> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartP(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Layout(self.before)),
-            1 => Some(ParseTree::P(self.node)),
-            2 => Some(ParseTree::Layout(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a Q<'a>, &'a Layout<'a>> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartQ(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Layout(self.before)),
-            1 => Some(ParseTree::Q(self.node)),
-            2 => Some(ParseTree::Layout(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a BeforeP<'a>, &'a Layout<'a>> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartBeforeP(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Layout(self.before)),
-            1 => Some(ParseTree::BeforeP(self.node)),
-            2 => Some(ParseTree::Layout(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a BeforeQ<'a>, &'a Layout<'a>> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartBeforeQ(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Layout(self.before)),
-            1 => Some(ParseTree::BeforeQ(self.node)),
-            2 => Some(ParseTree::Layout(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a UnexpectedFirst<'a>, &'a Layout<'a>> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartUnexpectedFirst(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Layout(self.before)),
-            1 => Some(ParseTree::UnexpectedFirst(self.node)),
-            2 => Some(ParseTree::Layout(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a ExcludedFirst<'a>, &'a Layout<'a>> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartExcludedFirst(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Layout(self.before)),
-            1 => Some(ParseTree::ExcludedFirst(self.node)),
-            2 => Some(ParseTree::Layout(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a PredictionBeforeExcept<'a>, &'a Layout<'a>> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartPredictionBeforeExcept(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Layout(self.before)),
-            1 => Some(ParseTree::PredictionBeforeExcept(self.node)),
-            2 => Some(ParseTree::Layout(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a ExceptBeforePrediction<'a>, &'a Layout<'a>> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartExceptBeforePrediction(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Layout(self.before)),
-            1 => Some(ParseTree::ExceptBeforePrediction(self.node)),
-            2 => Some(ParseTree::Layout(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a PredictionBeforeFollow<'a>, &'a Layout<'a>> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartPredictionBeforeFollow(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Layout(self.before)),
-            1 => Some(ParseTree::PredictionBeforeFollow(self.node)),
-            2 => Some(ParseTree::Layout(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a FollowBeforePrediction<'a>, &'a Layout<'a>> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartFollowBeforePrediction(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Layout(self.before)),
-            1 => Some(ParseTree::FollowBeforePrediction(self.node)),
-            2 => Some(ParseTree::Layout(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a MissingSuffix<'a>, &'a Layout<'a>> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartMissingSuffix(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Layout(self.before)),
-            1 => Some(ParseTree::MissingSuffix(self.node)),
-            2 => Some(ParseTree::Layout(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a SuffixChoice<'a>, &'a Layout<'a>> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartSuffixChoice(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Layout(self.before)),
-            1 => Some(ParseTree::SuffixChoice(self.node)),
-            2 => Some(ParseTree::Layout(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a CallPrediction<'a>, &'a Layout<'a>> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartCallPrediction(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Layout(self.before)),
-            1 => Some(ParseTree::CallPrediction(self.node)),
-            2 => Some(ParseTree::Layout(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a PrefixX<'a>, &'a Layout<'a>> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartPrefixX(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Layout(self.before)),
-            1 => Some(ParseTree::PrefixX(self.node)),
-            2 => Some(ParseTree::Layout(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a PrefixW<'a>, &'a Layout<'a>> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartPrefixW(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Layout(self.before)),
-            1 => Some(ParseTree::PrefixW(self.node)),
-            2 => Some(ParseTree::Layout(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a NullablePrefix<'a>, &'a Layout<'a>> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullablePrefix(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Layout(self.before)),
-            1 => Some(ParseTree::NullablePrefix(self.node)),
-            2 => Some(ParseTree::Layout(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a Layout<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartLayout(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Layout(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Alt0<'a> {
@@ -2903,6 +2589,15 @@ pub struct ErrorUnionParseTreeBuilder<'a> {
 impl<'a> ErrorUnionParseTreeBuilder<'a> {
     pub fn new(tree_arena: &'a Arena) -> Self {
         Self { arena: tree_arena }
+    }
+    ///The child at `index` of each start wrapper in `alternatives`.
+    fn start_inner_alternatives(
+        &self,
+        alternatives: &[ParseTree<'a>],
+        index: usize,
+    ) -> &'a [ParseTree<'a>] {
+        self.arena
+            .alloc_slice(alternatives.iter().map(|a| a.child(index).unwrap()))
     }
 }
 impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
@@ -3591,162 +3286,53 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
         parent: NonterminalId,
         alternatives: Vec<ParseTree<'a>>,
     ) -> ParseTree<'a> {
+        let slice = &*self.arena.alloc_slice(alternatives);
         match parent {
-            grammar::T => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_t()));
-                ParseTree::T(self.arena.alloc(T::Amb(slice)))
-            }
-            grammar::U => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_u()));
-                ParseTree::U(self.arena.alloc(U::Amb(slice)))
-            }
-            grammar::P => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_p()));
-                ParseTree::P(self.arena.alloc(P::Amb(slice)))
-            }
-            grammar::Q => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_q()));
-                ParseTree::Q(self.arena.alloc(Q::Amb(slice)))
-            }
-            grammar::BEFORE_P => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_before_p()));
-                ParseTree::BeforeP(self.arena.alloc(BeforeP::Amb(slice)))
-            }
-            grammar::BEFORE_Q => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_before_q()));
-                ParseTree::BeforeQ(self.arena.alloc(BeforeQ::Amb(slice)))
-            }
+            grammar::T => ParseTree::T(self.arena.alloc(T::Amb(slice))),
+            grammar::U => ParseTree::U(self.arena.alloc(U::Amb(slice))),
+            grammar::P => ParseTree::P(self.arena.alloc(P::Amb(slice))),
+            grammar::Q => ParseTree::Q(self.arena.alloc(Q::Amb(slice))),
+            grammar::BEFORE_P => ParseTree::BeforeP(self.arena.alloc(BeforeP::Amb(slice))),
+            grammar::BEFORE_Q => ParseTree::BeforeQ(self.arena.alloc(BeforeQ::Amb(slice))),
             grammar::UNEXPECTED_FIRST => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_unexpected_first()),
-                );
                 ParseTree::UnexpectedFirst(self.arena.alloc(UnexpectedFirst::Amb(slice)))
             }
             grammar::EXCLUDED_FIRST => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_excluded_first()));
                 ParseTree::ExcludedFirst(self.arena.alloc(ExcludedFirst::Amb(slice)))
             }
-            grammar::PREDICTION_BEFORE_EXCEPT => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_prediction_before_except()),
-                );
-                ParseTree::PredictionBeforeExcept(
-                    self.arena.alloc(PredictionBeforeExcept::Amb(slice)),
-                )
-            }
-            grammar::EXCEPT_BEFORE_PREDICTION => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_except_before_prediction()),
-                );
-                ParseTree::ExceptBeforePrediction(
-                    self.arena.alloc(ExceptBeforePrediction::Amb(slice)),
-                )
-            }
-            grammar::PREDICTION_BEFORE_FOLLOW => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_prediction_before_follow()),
-                );
-                ParseTree::PredictionBeforeFollow(
-                    self.arena.alloc(PredictionBeforeFollow::Amb(slice)),
-                )
-            }
-            grammar::FOLLOW_BEFORE_PREDICTION => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_follow_before_prediction()),
-                );
-                ParseTree::FollowBeforePrediction(
-                    self.arena.alloc(FollowBeforePrediction::Amb(slice)),
-                )
-            }
+            grammar::PREDICTION_BEFORE_EXCEPT => ParseTree::PredictionBeforeExcept(
+                self.arena.alloc(PredictionBeforeExcept::Amb(slice)),
+            ),
+            grammar::EXCEPT_BEFORE_PREDICTION => ParseTree::ExceptBeforePrediction(
+                self.arena.alloc(ExceptBeforePrediction::Amb(slice)),
+            ),
+            grammar::PREDICTION_BEFORE_FOLLOW => ParseTree::PredictionBeforeFollow(
+                self.arena.alloc(PredictionBeforeFollow::Amb(slice)),
+            ),
+            grammar::FOLLOW_BEFORE_PREDICTION => ParseTree::FollowBeforePrediction(
+                self.arena.alloc(FollowBeforePrediction::Amb(slice)),
+            ),
             grammar::MISSING_SUFFIX => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_missing_suffix()));
                 ParseTree::MissingSuffix(self.arena.alloc(MissingSuffix::Amb(slice)))
             }
             grammar::SUFFIX_CHOICE => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_suffix_choice()));
                 ParseTree::SuffixChoice(self.arena.alloc(SuffixChoice::Amb(slice)))
             }
             grammar::CALL_PREDICTION => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_call_prediction()));
                 ParseTree::CallPrediction(self.arena.alloc(CallPrediction::Amb(slice)))
             }
-            grammar::PREFIX_X => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_prefix_x()));
-                ParseTree::PrefixX(self.arena.alloc(PrefixX::Amb(slice)))
-            }
-            grammar::PREFIX_W => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_prefix_w()));
-                ParseTree::PrefixW(self.arena.alloc(PrefixW::Amb(slice)))
-            }
+            grammar::PREFIX_X => ParseTree::PrefixX(self.arena.alloc(PrefixX::Amb(slice))),
+            grammar::PREFIX_W => ParseTree::PrefixW(self.arena.alloc(PrefixW::Amb(slice))),
             grammar::NULLABLE_PREFIX => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_nullable_prefix()));
                 ParseTree::NullablePrefix(self.arena.alloc(NullablePrefix::Amb(slice)))
             }
-            grammar::LAYOUT => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_layout()));
-                ParseTree::Layout(self.arena.alloc(Layout::Amb(slice)))
-            }
-            grammar::ALT_0 => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_alt_0()));
-                ParseTree::Alt0(self.arena.alloc(Alt0::Amb(slice)))
-            }
-            grammar::PLUS_0 => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_plus_0()));
-                ParseTree::Plus0(self.arena.alloc(Plus0::Amb(slice)))
-            }
-            grammar::STAR_0 => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_star_0()));
-                ParseTree::Star0(self.arena.alloc(Star0::Amb(slice)))
-            }
+            grammar::LAYOUT => ParseTree::Layout(self.arena.alloc(Layout::Amb(slice))),
+            grammar::ALT_0 => ParseTree::Alt0(self.arena.alloc(Alt0::Amb(slice))),
+            grammar::PLUS_0 => ParseTree::Plus0(self.arena.alloc(Plus0::Amb(slice))),
+            grammar::STAR_0 => ParseTree::Star0(self.arena.alloc(Star0::Amb(slice))),
             grammar::START_T => {
-                let first = alternatives[0].unwrap_start_t();
-                let inner = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_start_t().node));
+                let first = slice[0].unwrap_start_t();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(T::Amb(inner));
                 ParseTree::StartT(self.arena.alloc(Start {
                     before: first.before,
@@ -3756,10 +3342,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_U => {
-                let first = alternatives[0].unwrap_start_u();
-                let inner = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_start_u().node));
+                let first = slice[0].unwrap_start_u();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(U::Amb(inner));
                 ParseTree::StartU(self.arena.alloc(Start {
                     before: first.before,
@@ -3769,10 +3353,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_P => {
-                let first = alternatives[0].unwrap_start_p();
-                let inner = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_start_p().node));
+                let first = slice[0].unwrap_start_p();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(P::Amb(inner));
                 ParseTree::StartP(self.arena.alloc(Start {
                     before: first.before,
@@ -3782,10 +3364,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_Q => {
-                let first = alternatives[0].unwrap_start_q();
-                let inner = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_start_q().node));
+                let first = slice[0].unwrap_start_q();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(Q::Amb(inner));
                 ParseTree::StartQ(self.arena.alloc(Start {
                     before: first.before,
@@ -3795,12 +3375,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_BEFORE_P => {
-                let first = alternatives[0].unwrap_start_before_p();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_before_p().node),
-                );
+                let first = slice[0].unwrap_start_before_p();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(BeforeP::Amb(inner));
                 ParseTree::StartBeforeP(self.arena.alloc(Start {
                     before: first.before,
@@ -3810,12 +3386,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_BEFORE_Q => {
-                let first = alternatives[0].unwrap_start_before_q();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_before_q().node),
-                );
+                let first = slice[0].unwrap_start_before_q();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(BeforeQ::Amb(inner));
                 ParseTree::StartBeforeQ(self.arena.alloc(Start {
                     before: first.before,
@@ -3825,12 +3397,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_UNEXPECTED_FIRST => {
-                let first = alternatives[0].unwrap_start_unexpected_first();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_unexpected_first().node),
-                );
+                let first = slice[0].unwrap_start_unexpected_first();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(UnexpectedFirst::Amb(inner));
                 ParseTree::StartUnexpectedFirst(self.arena.alloc(Start {
                     before: first.before,
@@ -3840,12 +3408,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_EXCLUDED_FIRST => {
-                let first = alternatives[0].unwrap_start_excluded_first();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_excluded_first().node),
-                );
+                let first = slice[0].unwrap_start_excluded_first();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(ExcludedFirst::Amb(inner));
                 ParseTree::StartExcludedFirst(self.arena.alloc(Start {
                     before: first.before,
@@ -3855,12 +3419,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_PREDICTION_BEFORE_EXCEPT => {
-                let first = alternatives[0].unwrap_start_prediction_before_except();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_prediction_before_except().node),
-                );
+                let first = slice[0].unwrap_start_prediction_before_except();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(PredictionBeforeExcept::Amb(inner));
                 ParseTree::StartPredictionBeforeExcept(self.arena.alloc(Start {
                     before: first.before,
@@ -3870,12 +3430,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_EXCEPT_BEFORE_PREDICTION => {
-                let first = alternatives[0].unwrap_start_except_before_prediction();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_except_before_prediction().node),
-                );
+                let first = slice[0].unwrap_start_except_before_prediction();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(ExceptBeforePrediction::Amb(inner));
                 ParseTree::StartExceptBeforePrediction(self.arena.alloc(Start {
                     before: first.before,
@@ -3885,12 +3441,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_PREDICTION_BEFORE_FOLLOW => {
-                let first = alternatives[0].unwrap_start_prediction_before_follow();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_prediction_before_follow().node),
-                );
+                let first = slice[0].unwrap_start_prediction_before_follow();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(PredictionBeforeFollow::Amb(inner));
                 ParseTree::StartPredictionBeforeFollow(self.arena.alloc(Start {
                     before: first.before,
@@ -3900,12 +3452,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_FOLLOW_BEFORE_PREDICTION => {
-                let first = alternatives[0].unwrap_start_follow_before_prediction();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_follow_before_prediction().node),
-                );
+                let first = slice[0].unwrap_start_follow_before_prediction();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(FollowBeforePrediction::Amb(inner));
                 ParseTree::StartFollowBeforePrediction(self.arena.alloc(Start {
                     before: first.before,
@@ -3915,12 +3463,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_MISSING_SUFFIX => {
-                let first = alternatives[0].unwrap_start_missing_suffix();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_missing_suffix().node),
-                );
+                let first = slice[0].unwrap_start_missing_suffix();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(MissingSuffix::Amb(inner));
                 ParseTree::StartMissingSuffix(self.arena.alloc(Start {
                     before: first.before,
@@ -3930,12 +3474,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_SUFFIX_CHOICE => {
-                let first = alternatives[0].unwrap_start_suffix_choice();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_suffix_choice().node),
-                );
+                let first = slice[0].unwrap_start_suffix_choice();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(SuffixChoice::Amb(inner));
                 ParseTree::StartSuffixChoice(self.arena.alloc(Start {
                     before: first.before,
@@ -3945,12 +3485,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_CALL_PREDICTION => {
-                let first = alternatives[0].unwrap_start_call_prediction();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_call_prediction().node),
-                );
+                let first = slice[0].unwrap_start_call_prediction();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(CallPrediction::Amb(inner));
                 ParseTree::StartCallPrediction(self.arena.alloc(Start {
                     before: first.before,
@@ -3960,12 +3496,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_PREFIX_X => {
-                let first = alternatives[0].unwrap_start_prefix_x();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_prefix_x().node),
-                );
+                let first = slice[0].unwrap_start_prefix_x();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(PrefixX::Amb(inner));
                 ParseTree::StartPrefixX(self.arena.alloc(Start {
                     before: first.before,
@@ -3975,12 +3507,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_PREFIX_W => {
-                let first = alternatives[0].unwrap_start_prefix_w();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_prefix_w().node),
-                );
+                let first = slice[0].unwrap_start_prefix_w();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(PrefixW::Amb(inner));
                 ParseTree::StartPrefixW(self.arena.alloc(Start {
                     before: first.before,
@@ -3990,12 +3518,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_NULLABLE_PREFIX => {
-                let first = alternatives[0].unwrap_start_nullable_prefix();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_nullable_prefix().node),
-                );
+                let first = slice[0].unwrap_start_nullable_prefix();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(NullablePrefix::Amb(inner));
                 ParseTree::StartNullablePrefix(self.arena.alloc(Start {
                     before: first.before,
@@ -4005,12 +3529,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_LAYOUT => {
-                let first = alternatives[0].unwrap_start_layout();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_layout().node),
-                );
+                let first = slice[0].unwrap_start_layout();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(Layout::Amb(inner));
                 ParseTree::StartLayout(self.arena.alloc(Start {
                     before: first.before,

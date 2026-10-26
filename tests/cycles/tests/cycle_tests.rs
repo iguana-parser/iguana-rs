@@ -435,14 +435,18 @@ fn direct_cycle_targets_the_complete_ambiguity() {
         panic!("expected Amb")
     };
     assert_eq!(alternatives.len(), 2);
-    assert!(alternatives.iter().any(|n| matches!(n, Direct::C2 { .. })));
+    assert!(
+        alternatives
+            .iter()
+            .any(|n| matches!(n, ParseTree::Direct(Direct::C2 { .. })))
+    );
     let reference = alternatives
         .iter()
         .find_map(|node| match node {
-            Direct::C1 {
+            ParseTree::Direct(Direct::C1 {
                 direct: Direct::Cycle { target: cycle },
                 ..
-            } => Some(cycle),
+            }) => Some(cycle),
             _ => None,
         })
         .unwrap();
@@ -475,10 +479,10 @@ fn mutual_cycle_can_target_an_unambiguous_nonterminal() {
     let cycle = alternatives
         .iter()
         .find_map(|node| match node {
-            MutualC::C1 {
+            ParseTree::MutualC(MutualC::C1 {
                 mutual_b: MutualB::Cycle { target: cycle },
                 ..
-            } => Some(cycle),
+            }) => Some(cycle),
             _ => None,
         })
         .unwrap();
@@ -525,7 +529,7 @@ fn memoized_cycle_keeps_its_target_outside_the_original_ancestor_path() {
     let via_b = alternatives
         .iter()
         .find_map(|node| match node {
-            SharedA::A1 { shared_b, .. } => Some(*shared_b),
+            ParseTree::SharedA(SharedA::A1 { shared_b, .. }) => Some(*shared_b),
             _ => None,
         })
         .unwrap();

@@ -32,6 +32,17 @@ pub struct Start<T, L> {
     pub after: L,
     pub span: Span,
 }
+impl<T, L> Start<T, L> {
+    pub fn span(&self) -> Span {
+        self.span
+    }
+    pub fn display_name(&self) -> &'static str {
+        "Start"
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        Some(Origin::Start)
+    }
+}
 pub type StartDirect<'a> = Start<&'a Direct<'a>, ()>;
 pub type StartMutualC<'a> = Start<&'a MutualC<'a>, ()>;
 pub type StartMutualB<'a> = Start<&'a MutualB<'a>, ()>;
@@ -310,48 +321,142 @@ impl<'a> ParseTree<'a> {
             ParseTree::Plus1(plus_1) => plus_1.child(index),
             ParseTree::Opt0(opt_0) => opt_0.child(index),
             ParseTree::Group0(group_0) => group_0.child(index),
-            ParseTree::StartDirect(start_direct) => start_direct.child(index),
-            ParseTree::StartMutualC(start_mutual_c) => start_mutual_c.child(index),
-            ParseTree::StartMutualB(start_mutual_b) => start_mutual_b.child(index),
-            ParseTree::StartChainC(start_chain_c) => start_chain_c.child(index),
-            ParseTree::StartChainA(start_chain_a) => start_chain_a.child(index),
-            ParseTree::StartChainB(start_chain_b) => start_chain_b.child(index),
-            ParseTree::StartSharedS(start_shared_s) => start_shared_s.child(index),
-            ParseTree::StartSharedA(start_shared_a) => start_shared_a.child(index),
-            ParseTree::StartSharedB(start_shared_b) => start_shared_b.child(index),
-            ParseTree::StartTwoExitsC(start_two_exits_c) => start_two_exits_c.child(index),
-            ParseTree::StartTwoExitsB(start_two_exits_b) => start_two_exits_b.child(index),
-            ParseTree::StartTwoRoutesC(start_two_routes_c) => start_two_routes_c.child(index),
-            ParseTree::StartTwoRoutesA(start_two_routes_a) => start_two_routes_a.child(index),
-            ParseTree::StartTwoRoutesB(start_two_routes_b) => start_two_routes_b.child(index),
-            ParseTree::StartNullable(start_nullable) => start_nullable.child(index),
-            ParseTree::StartSiblingC(start_sibling_c) => start_sibling_c.child(index),
-            ParseTree::StartSiblingD(start_sibling_d) => start_sibling_d.child(index),
-            ParseTree::StartEmptyE(start_empty_e) => start_empty_e.child(index),
-            ParseTree::StartEmptyF(start_empty_f) => start_empty_f.child(index),
-            ParseTree::StartParentC(start_parent_c) => start_parent_c.child(index),
-            ParseTree::StartParentD(start_parent_d) => start_parent_d.child(index),
-            ParseTree::StartOverlapC(start_overlap_c) => start_overlap_c.child(index),
-            ParseTree::StartOverlapB(start_overlap_b) => start_overlap_b.child(index),
-            ParseTree::StartIntermediateY(start_intermediate_y) => {
-                start_intermediate_y.child(index)
-            }
-            ParseTree::StartIntermediateA(start_intermediate_a) => {
-                start_intermediate_a.child(index)
-            }
-            ParseTree::StartIntermediateB(start_intermediate_b) => {
-                start_intermediate_b.child(index)
-            }
-            ParseTree::StartMidInput(start_mid_input) => start_mid_input.child(index),
-            ParseTree::StartConsuming(start_consuming) => start_consuming.child(index),
-            ParseTree::StartOrdinary(start_ordinary) => start_ordinary.child(index),
-            ParseTree::StartNullablePlus(start_nullable_plus) => start_nullable_plus.child(index),
-            ParseTree::StartNullableStar(start_nullable_star) => start_nullable_star.child(index),
-            ParseTree::StartNullableSeparated(start_nullable_separated) => {
-                start_nullable_separated.child(index)
-            }
-            ParseTree::StartOptional(start_optional) => start_optional.child(index),
-            ParseTree::StartGrouped(start_grouped) => start_grouped.child(index),
+            ParseTree::StartDirect(start_direct) => match index {
+                0 => Some(ParseTree::Direct(start_direct.node)),
+                _ => None,
+            },
+            ParseTree::StartMutualC(start_mutual_c) => match index {
+                0 => Some(ParseTree::MutualC(start_mutual_c.node)),
+                _ => None,
+            },
+            ParseTree::StartMutualB(start_mutual_b) => match index {
+                0 => Some(ParseTree::MutualB(start_mutual_b.node)),
+                _ => None,
+            },
+            ParseTree::StartChainC(start_chain_c) => match index {
+                0 => Some(ParseTree::ChainC(start_chain_c.node)),
+                _ => None,
+            },
+            ParseTree::StartChainA(start_chain_a) => match index {
+                0 => Some(ParseTree::ChainA(start_chain_a.node)),
+                _ => None,
+            },
+            ParseTree::StartChainB(start_chain_b) => match index {
+                0 => Some(ParseTree::ChainB(start_chain_b.node)),
+                _ => None,
+            },
+            ParseTree::StartSharedS(start_shared_s) => match index {
+                0 => Some(ParseTree::SharedS(start_shared_s.node)),
+                _ => None,
+            },
+            ParseTree::StartSharedA(start_shared_a) => match index {
+                0 => Some(ParseTree::SharedA(start_shared_a.node)),
+                _ => None,
+            },
+            ParseTree::StartSharedB(start_shared_b) => match index {
+                0 => Some(ParseTree::SharedB(start_shared_b.node)),
+                _ => None,
+            },
+            ParseTree::StartTwoExitsC(start_two_exits_c) => match index {
+                0 => Some(ParseTree::TwoExitsC(start_two_exits_c.node)),
+                _ => None,
+            },
+            ParseTree::StartTwoExitsB(start_two_exits_b) => match index {
+                0 => Some(ParseTree::TwoExitsB(start_two_exits_b.node)),
+                _ => None,
+            },
+            ParseTree::StartTwoRoutesC(start_two_routes_c) => match index {
+                0 => Some(ParseTree::TwoRoutesC(start_two_routes_c.node)),
+                _ => None,
+            },
+            ParseTree::StartTwoRoutesA(start_two_routes_a) => match index {
+                0 => Some(ParseTree::TwoRoutesA(start_two_routes_a.node)),
+                _ => None,
+            },
+            ParseTree::StartTwoRoutesB(start_two_routes_b) => match index {
+                0 => Some(ParseTree::TwoRoutesB(start_two_routes_b.node)),
+                _ => None,
+            },
+            ParseTree::StartNullable(start_nullable) => match index {
+                0 => Some(ParseTree::Nullable(start_nullable.node)),
+                _ => None,
+            },
+            ParseTree::StartSiblingC(start_sibling_c) => match index {
+                0 => Some(ParseTree::SiblingC(start_sibling_c.node)),
+                _ => None,
+            },
+            ParseTree::StartSiblingD(start_sibling_d) => match index {
+                0 => Some(ParseTree::SiblingD(start_sibling_d.node)),
+                _ => None,
+            },
+            ParseTree::StartEmptyE(start_empty_e) => match index {
+                0 => Some(ParseTree::EmptyE(start_empty_e.node)),
+                _ => None,
+            },
+            ParseTree::StartEmptyF(start_empty_f) => match index {
+                0 => Some(ParseTree::EmptyF(start_empty_f.node)),
+                _ => None,
+            },
+            ParseTree::StartParentC(start_parent_c) => match index {
+                0 => Some(ParseTree::ParentC(start_parent_c.node)),
+                _ => None,
+            },
+            ParseTree::StartParentD(start_parent_d) => match index {
+                0 => Some(ParseTree::ParentD(start_parent_d.node)),
+                _ => None,
+            },
+            ParseTree::StartOverlapC(start_overlap_c) => match index {
+                0 => Some(ParseTree::OverlapC(start_overlap_c.node)),
+                _ => None,
+            },
+            ParseTree::StartOverlapB(start_overlap_b) => match index {
+                0 => Some(ParseTree::OverlapB(start_overlap_b.node)),
+                _ => None,
+            },
+            ParseTree::StartIntermediateY(start_intermediate_y) => match index {
+                0 => Some(ParseTree::IntermediateY(start_intermediate_y.node)),
+                _ => None,
+            },
+            ParseTree::StartIntermediateA(start_intermediate_a) => match index {
+                0 => Some(ParseTree::IntermediateA(start_intermediate_a.node)),
+                _ => None,
+            },
+            ParseTree::StartIntermediateB(start_intermediate_b) => match index {
+                0 => Some(ParseTree::IntermediateB(start_intermediate_b.node)),
+                _ => None,
+            },
+            ParseTree::StartMidInput(start_mid_input) => match index {
+                0 => Some(ParseTree::MidInput(start_mid_input.node)),
+                _ => None,
+            },
+            ParseTree::StartConsuming(start_consuming) => match index {
+                0 => Some(ParseTree::Consuming(start_consuming.node)),
+                _ => None,
+            },
+            ParseTree::StartOrdinary(start_ordinary) => match index {
+                0 => Some(ParseTree::Ordinary(start_ordinary.node)),
+                _ => None,
+            },
+            ParseTree::StartNullablePlus(start_nullable_plus) => match index {
+                0 => Some(ParseTree::NullablePlus(start_nullable_plus.node)),
+                _ => None,
+            },
+            ParseTree::StartNullableStar(start_nullable_star) => match index {
+                0 => Some(ParseTree::NullableStar(start_nullable_star.node)),
+                _ => None,
+            },
+            ParseTree::StartNullableSeparated(start_nullable_separated) => match index {
+                0 => Some(ParseTree::NullableSeparated(start_nullable_separated.node)),
+                _ => None,
+            },
+            ParseTree::StartOptional(start_optional) => match index {
+                0 => Some(ParseTree::Optional(start_optional.node)),
+                _ => None,
+            },
+            ParseTree::StartGrouped(start_grouped) => match index {
+                0 => Some(ParseTree::Grouped(start_grouped.node)),
+                _ => None,
+            },
             ParseTree::Token(_) => None,
         }
     }
@@ -396,48 +501,40 @@ impl<'a> ParseTree<'a> {
             ParseTree::Plus1(plus_1) => plus_1.child_count(),
             ParseTree::Opt0(opt_0) => opt_0.child_count(),
             ParseTree::Group0(group_0) => group_0.child_count(),
-            ParseTree::StartDirect(start_direct) => start_direct.child_count(),
-            ParseTree::StartMutualC(start_mutual_c) => start_mutual_c.child_count(),
-            ParseTree::StartMutualB(start_mutual_b) => start_mutual_b.child_count(),
-            ParseTree::StartChainC(start_chain_c) => start_chain_c.child_count(),
-            ParseTree::StartChainA(start_chain_a) => start_chain_a.child_count(),
-            ParseTree::StartChainB(start_chain_b) => start_chain_b.child_count(),
-            ParseTree::StartSharedS(start_shared_s) => start_shared_s.child_count(),
-            ParseTree::StartSharedA(start_shared_a) => start_shared_a.child_count(),
-            ParseTree::StartSharedB(start_shared_b) => start_shared_b.child_count(),
-            ParseTree::StartTwoExitsC(start_two_exits_c) => start_two_exits_c.child_count(),
-            ParseTree::StartTwoExitsB(start_two_exits_b) => start_two_exits_b.child_count(),
-            ParseTree::StartTwoRoutesC(start_two_routes_c) => start_two_routes_c.child_count(),
-            ParseTree::StartTwoRoutesA(start_two_routes_a) => start_two_routes_a.child_count(),
-            ParseTree::StartTwoRoutesB(start_two_routes_b) => start_two_routes_b.child_count(),
-            ParseTree::StartNullable(start_nullable) => start_nullable.child_count(),
-            ParseTree::StartSiblingC(start_sibling_c) => start_sibling_c.child_count(),
-            ParseTree::StartSiblingD(start_sibling_d) => start_sibling_d.child_count(),
-            ParseTree::StartEmptyE(start_empty_e) => start_empty_e.child_count(),
-            ParseTree::StartEmptyF(start_empty_f) => start_empty_f.child_count(),
-            ParseTree::StartParentC(start_parent_c) => start_parent_c.child_count(),
-            ParseTree::StartParentD(start_parent_d) => start_parent_d.child_count(),
-            ParseTree::StartOverlapC(start_overlap_c) => start_overlap_c.child_count(),
-            ParseTree::StartOverlapB(start_overlap_b) => start_overlap_b.child_count(),
-            ParseTree::StartIntermediateY(start_intermediate_y) => {
-                start_intermediate_y.child_count()
-            }
-            ParseTree::StartIntermediateA(start_intermediate_a) => {
-                start_intermediate_a.child_count()
-            }
-            ParseTree::StartIntermediateB(start_intermediate_b) => {
-                start_intermediate_b.child_count()
-            }
-            ParseTree::StartMidInput(start_mid_input) => start_mid_input.child_count(),
-            ParseTree::StartConsuming(start_consuming) => start_consuming.child_count(),
-            ParseTree::StartOrdinary(start_ordinary) => start_ordinary.child_count(),
-            ParseTree::StartNullablePlus(start_nullable_plus) => start_nullable_plus.child_count(),
-            ParseTree::StartNullableStar(start_nullable_star) => start_nullable_star.child_count(),
-            ParseTree::StartNullableSeparated(start_nullable_separated) => {
-                start_nullable_separated.child_count()
-            }
-            ParseTree::StartOptional(start_optional) => start_optional.child_count(),
-            ParseTree::StartGrouped(start_grouped) => start_grouped.child_count(),
+            ParseTree::StartDirect(_) => 1usize,
+            ParseTree::StartMutualC(_) => 1usize,
+            ParseTree::StartMutualB(_) => 1usize,
+            ParseTree::StartChainC(_) => 1usize,
+            ParseTree::StartChainA(_) => 1usize,
+            ParseTree::StartChainB(_) => 1usize,
+            ParseTree::StartSharedS(_) => 1usize,
+            ParseTree::StartSharedA(_) => 1usize,
+            ParseTree::StartSharedB(_) => 1usize,
+            ParseTree::StartTwoExitsC(_) => 1usize,
+            ParseTree::StartTwoExitsB(_) => 1usize,
+            ParseTree::StartTwoRoutesC(_) => 1usize,
+            ParseTree::StartTwoRoutesA(_) => 1usize,
+            ParseTree::StartTwoRoutesB(_) => 1usize,
+            ParseTree::StartNullable(_) => 1usize,
+            ParseTree::StartSiblingC(_) => 1usize,
+            ParseTree::StartSiblingD(_) => 1usize,
+            ParseTree::StartEmptyE(_) => 1usize,
+            ParseTree::StartEmptyF(_) => 1usize,
+            ParseTree::StartParentC(_) => 1usize,
+            ParseTree::StartParentD(_) => 1usize,
+            ParseTree::StartOverlapC(_) => 1usize,
+            ParseTree::StartOverlapB(_) => 1usize,
+            ParseTree::StartIntermediateY(_) => 1usize,
+            ParseTree::StartIntermediateA(_) => 1usize,
+            ParseTree::StartIntermediateB(_) => 1usize,
+            ParseTree::StartMidInput(_) => 1usize,
+            ParseTree::StartConsuming(_) => 1usize,
+            ParseTree::StartOrdinary(_) => 1usize,
+            ParseTree::StartNullablePlus(_) => 1usize,
+            ParseTree::StartNullableStar(_) => 1usize,
+            ParseTree::StartNullableSeparated(_) => 1usize,
+            ParseTree::StartOptional(_) => 1usize,
+            ParseTree::StartGrouped(_) => 1usize,
             ParseTree::Token(_) => 0,
         }
     }
@@ -1355,7 +1452,7 @@ pub enum Direct<'a> {
     C1 { direct: &'a Direct<'a>, span: Span },
     // Direct = "b" #C2
     C2 { lit_0: Token, span: Span },
-    Amb(&'a [&'a Direct<'a>]),
+    Amb(&'a [ParseTree<'a>]),
     Cycle { target: CycleTarget<'a, Self> },
 }
 #[derive(Debug)]
@@ -1370,7 +1467,7 @@ pub enum MutualC<'a> {
         lit_0: Token,
         span: Span,
     },
-    Amb(&'a [&'a MutualC<'a>]),
+    Amb(&'a [ParseTree<'a>]),
     Cycle {
         target: CycleTarget<'a, Self>,
     },
@@ -1382,7 +1479,7 @@ pub enum MutualB<'a> {
         mutual_c: &'a MutualC<'a>,
         span: Span,
     },
-    Amb(&'a [&'a MutualB<'a>]),
+    Amb(&'a [ParseTree<'a>]),
     Cycle {
         target: CycleTarget<'a, Self>,
     },
@@ -1393,21 +1490,21 @@ pub enum ChainC<'a> {
     C1 { chain_a: &'a ChainA<'a>, span: Span },
     // ChainC = "b" #C2
     C2 { lit_0: Token, span: Span },
-    Amb(&'a [&'a ChainC<'a>]),
+    Amb(&'a [ParseTree<'a>]),
     Cycle { target: CycleTarget<'a, Self> },
 }
 // ChainA = ChainB #A1
 #[derive(Debug)]
 pub enum ChainA<'a> {
     A1 { chain_b: &'a ChainB<'a>, span: Span },
-    Amb(&'a [&'a ChainA<'a>]),
+    Amb(&'a [ParseTree<'a>]),
     Cycle { target: CycleTarget<'a, Self> },
 }
 // ChainB = ChainC #B1
 #[derive(Debug)]
 pub enum ChainB<'a> {
     B1 { chain_c: &'a ChainC<'a>, span: Span },
-    Amb(&'a [&'a ChainB<'a>]),
+    Amb(&'a [ParseTree<'a>]),
     Cycle { target: CycleTarget<'a, Self> },
 }
 // SharedS = SharedA SharedB
@@ -1418,7 +1515,7 @@ pub enum SharedS<'a> {
         shared_b: &'a SharedB<'a>,
         span: Span,
     },
-    Amb(&'a [&'a SharedS<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum SharedA<'a> {
@@ -1431,7 +1528,7 @@ pub enum SharedA<'a> {
     A2 {
         span: Span,
     },
-    Amb(&'a [&'a SharedA<'a>]),
+    Amb(&'a [ParseTree<'a>]),
     Cycle {
         target: CycleTarget<'a, Self>,
     },
@@ -1443,7 +1540,7 @@ pub enum SharedB<'a> {
         shared_a: &'a SharedA<'a>,
         span: Span,
     },
-    Amb(&'a [&'a SharedB<'a>]),
+    Amb(&'a [ParseTree<'a>]),
     Cycle {
         target: CycleTarget<'a, Self>,
     },
@@ -1460,7 +1557,7 @@ pub enum TwoExitsC<'a> {
         lit_0: Token,
         span: Span,
     },
-    Amb(&'a [&'a TwoExitsC<'a>]),
+    Amb(&'a [ParseTree<'a>]),
     Cycle {
         target: CycleTarget<'a, Self>,
     },
@@ -1477,7 +1574,7 @@ pub enum TwoExitsB<'a> {
         lit_0: Token,
         span: Span,
     },
-    Amb(&'a [&'a TwoExitsB<'a>]),
+    Amb(&'a [ParseTree<'a>]),
     Cycle {
         target: CycleTarget<'a, Self>,
     },
@@ -1499,7 +1596,7 @@ pub enum TwoRoutesC<'a> {
         lit_0: Token,
         span: Span,
     },
-    Amb(&'a [&'a TwoRoutesC<'a>]),
+    Amb(&'a [ParseTree<'a>]),
     Cycle {
         target: CycleTarget<'a, Self>,
     },
@@ -1511,7 +1608,7 @@ pub enum TwoRoutesA<'a> {
         two_routes_c: &'a TwoRoutesC<'a>,
         span: Span,
     },
-    Amb(&'a [&'a TwoRoutesA<'a>]),
+    Amb(&'a [ParseTree<'a>]),
     Cycle {
         target: CycleTarget<'a, Self>,
     },
@@ -1523,7 +1620,7 @@ pub enum TwoRoutesB<'a> {
         two_routes_c: &'a TwoRoutesC<'a>,
         span: Span,
     },
-    Amb(&'a [&'a TwoRoutesB<'a>]),
+    Amb(&'a [ParseTree<'a>]),
     Cycle {
         target: CycleTarget<'a, Self>,
     },
@@ -1545,7 +1642,7 @@ pub enum Nullable<'a> {
     C3 {
         span: Span,
     },
-    Amb(&'a [&'a Nullable<'a>]),
+    Amb(&'a [ParseTree<'a>]),
     Cycle {
         target: CycleTarget<'a, Self>,
     },
@@ -1563,7 +1660,7 @@ pub enum SiblingC<'a> {
         lit_0: Token,
         span: Span,
     },
-    Amb(&'a [&'a SiblingC<'a>]),
+    Amb(&'a [ParseTree<'a>]),
     Cycle {
         target: CycleTarget<'a, Self>,
     },
@@ -1574,19 +1671,19 @@ pub enum SiblingD<'a> {
     D1 { empty_e: &'a EmptyE<'a>, span: Span },
     // SiblingD = EmptyF #D2
     D2 { empty_f: &'a EmptyF<'a>, span: Span },
-    Amb(&'a [&'a SiblingD<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // EmptyE = #E1
 #[derive(Debug)]
 pub enum EmptyE<'a> {
     E1 { span: Span },
-    Amb(&'a [&'a EmptyE<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // EmptyF = #F1
 #[derive(Debug)]
 pub enum EmptyF<'a> {
     F1 { span: Span },
-    Amb(&'a [&'a EmptyF<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // ParentC = ParentD "b" #C1
 #[derive(Debug)]
@@ -1596,7 +1693,7 @@ pub enum ParentC<'a> {
         lit_1: Token,
         span: Span,
     },
-    Amb(&'a [&'a ParentC<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum ParentD<'a> {
@@ -1610,7 +1707,7 @@ pub enum ParentD<'a> {
         lit_0: Token,
         span: Span,
     },
-    Amb(&'a [&'a ParentD<'a>]),
+    Amb(&'a [ParseTree<'a>]),
     Cycle {
         target: CycleTarget<'a, Self>,
     },
@@ -1627,7 +1724,7 @@ pub enum OverlapC<'a> {
         lit_0: Token,
         span: Span,
     },
-    Amb(&'a [&'a OverlapC<'a>]),
+    Amb(&'a [ParseTree<'a>]),
     Cycle {
         target: CycleTarget<'a, Self>,
     },
@@ -1644,7 +1741,7 @@ pub enum OverlapB<'a> {
         overlap_c: &'a OverlapC<'a>,
         span: Span,
     },
-    Amb(&'a [&'a OverlapB<'a>]),
+    Amb(&'a [ParseTree<'a>]),
     Cycle {
         target: CycleTarget<'a, Self>,
     },
@@ -1663,7 +1760,7 @@ pub enum IntermediateY<'a> {
         lit_0: Token,
         span: Span,
     },
-    Amb(&'a [&'a IntermediateY<'a>]),
+    Amb(&'a [ParseTree<'a>]),
     Cycle {
         target: CycleTarget<'a, Self>,
     },
@@ -1672,7 +1769,7 @@ pub enum IntermediateY<'a> {
 #[derive(Debug)]
 pub enum IntermediateA<'a> {
     A1 { span: Span },
-    Amb(&'a [&'a IntermediateA<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum IntermediateB<'a> {
@@ -1680,7 +1777,7 @@ pub enum IntermediateB<'a> {
     B1 { span: Span },
     // IntermediateB = "b" #B2
     B2 { lit_0: Token, span: Span },
-    Amb(&'a [&'a IntermediateB<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // MidInput = Direct "b" #S1
 #[derive(Debug)]
@@ -1690,7 +1787,7 @@ pub enum MidInput<'a> {
         lit_1: Token,
         span: Span,
     },
-    Amb(&'a [&'a MidInput<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum Consuming<'a> {
@@ -1705,31 +1802,31 @@ pub enum Consuming<'a> {
         lit_0: Token,
         span: Span,
     },
-    Amb(&'a [&'a Consuming<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // Ordinary = "b" #C1
 #[derive(Debug)]
 pub enum Ordinary<'a> {
     C1 { lit_0: Token, span: Span },
-    Amb(&'a [&'a Ordinary<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // NullablePlus = EmptyE+
 #[derive(Debug)]
 pub enum NullablePlus<'a> {
     Alt0 { empty_es: &'a Plus0<'a>, span: Span },
-    Amb(&'a [&'a NullablePlus<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // NullableStar = EmptyE*
 #[derive(Debug)]
 pub enum NullableStar<'a> {
     Alt0 { empty_es: &'a Star0<'a>, span: Span },
-    Amb(&'a [&'a NullableStar<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // NullableSeparated = {EmptyE EmptyF}+
 #[derive(Debug)]
 pub enum NullableSeparated<'a> {
     Alt0 { empty_es: &'a Plus1<'a>, span: Span },
-    Amb(&'a [&'a NullableSeparated<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum Optional<'a> {
@@ -1737,7 +1834,7 @@ pub enum Optional<'a> {
     C1 { optional: &'a Opt0<'a>, span: Span },
     // Optional = "b" #C2
     C2 { lit_0: Token, span: Span },
-    Amb(&'a [&'a Optional<'a>]),
+    Amb(&'a [ParseTree<'a>]),
     Cycle { target: CycleTarget<'a, Self> },
 }
 #[derive(Debug)]
@@ -1746,7 +1843,7 @@ pub enum Grouped<'a> {
     C1 { group_0: &'a Group0<'a>, span: Span },
     // Grouped = "b" #C2
     C2 { lit_0: Token, span: Span },
-    Amb(&'a [&'a Grouped<'a>]),
+    Amb(&'a [ParseTree<'a>]),
     Cycle { target: CycleTarget<'a, Self> },
 }
 // EmptyE+
@@ -1763,7 +1860,7 @@ pub enum Plus0<'a> {
         empty_e: &'a EmptyE<'a>,
         span: Span,
     },
-    Amb(&'a [&'a Plus0<'a>]),
+    Amb(&'a [ParseTree<'a>]),
     Cycle {
         target: CycleTarget<'a, Self>,
     },
@@ -1775,7 +1872,7 @@ pub enum Star0<'a> {
     Alt0 { empty_es: &'a Plus0<'a>, span: Span },
     // Star_0 =
     Alt1 { span: Span },
-    Amb(&'a [&'a Star0<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // {EmptyE EmptyF}+
 #[derive(Debug)]
@@ -1792,7 +1889,7 @@ pub enum Plus1<'a> {
         empty_e: &'a EmptyE<'a>,
         span: Span,
     },
-    Amb(&'a [&'a Plus1<'a>]),
+    Amb(&'a [ParseTree<'a>]),
     Cycle {
         target: CycleTarget<'a, Self>,
     },
@@ -1809,7 +1906,7 @@ pub enum Opt0<'a> {
     Alt1 {
         span: Span,
     },
-    Amb(&'a [&'a Opt0<'a>]),
+    Amb(&'a [ParseTree<'a>]),
     Cycle {
         target: CycleTarget<'a, Self>,
     },
@@ -1821,7 +1918,7 @@ pub enum Group0<'a> {
         grouped: &'a Grouped<'a>,
         span: Span,
     },
-    Amb(&'a [&'a Group0<'a>]),
+    Amb(&'a [ParseTree<'a>]),
     Cycle {
         target: CycleTarget<'a, Self>,
     },
@@ -1840,7 +1937,7 @@ impl<'a> Direct<'a> {
                 0 => Some(ParseTree::Token(*lit_0)),
                 _ => None,
             },
-            Direct::Amb(alts) => alts.get(index).copied().map(ParseTree::Direct),
+            Direct::Amb(alts) => alts.get(index).copied(),
             Direct::Cycle { .. } => None,
         }
     }
@@ -1885,7 +1982,7 @@ impl<'a> MutualC<'a> {
                 0 => Some(ParseTree::Token(*lit_0)),
                 _ => None,
             },
-            MutualC::Amb(alts) => alts.get(index).copied().map(ParseTree::MutualC),
+            MutualC::Amb(alts) => alts.get(index).copied(),
             MutualC::Cycle { .. } => None,
         }
     }
@@ -1926,7 +2023,7 @@ impl<'a> MutualB<'a> {
                 0 => Some(ParseTree::MutualC(mutual_c)),
                 _ => None,
             },
-            MutualB::Amb(alts) => alts.get(index).copied().map(ParseTree::MutualB),
+            MutualB::Amb(alts) => alts.get(index).copied(),
             MutualB::Cycle { .. } => None,
         }
     }
@@ -1976,7 +2073,7 @@ impl<'a> ChainC<'a> {
                 0 => Some(ParseTree::Token(*lit_0)),
                 _ => None,
             },
-            ChainC::Amb(alts) => alts.get(index).copied().map(ParseTree::ChainC),
+            ChainC::Amb(alts) => alts.get(index).copied(),
             ChainC::Cycle { .. } => None,
         }
     }
@@ -2017,7 +2114,7 @@ impl<'a> ChainA<'a> {
                 0 => Some(ParseTree::ChainB(chain_b)),
                 _ => None,
             },
-            ChainA::Amb(alts) => alts.get(index).copied().map(ParseTree::ChainA),
+            ChainA::Amb(alts) => alts.get(index).copied(),
             ChainA::Cycle { .. } => None,
         }
     }
@@ -2063,7 +2160,7 @@ impl<'a> ChainB<'a> {
                 0 => Some(ParseTree::ChainC(chain_c)),
                 _ => None,
             },
-            ChainB::Amb(alts) => alts.get(index).copied().map(ParseTree::ChainB),
+            ChainB::Amb(alts) => alts.get(index).copied(),
             ChainB::Cycle { .. } => None,
         }
     }
@@ -2112,7 +2209,7 @@ impl<'a> SharedS<'a> {
                 1 => Some(ParseTree::SharedB(shared_b)),
                 _ => None,
             },
-            SharedS::Amb(alts) => alts.get(index).copied().map(ParseTree::SharedS),
+            SharedS::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -2160,7 +2257,7 @@ impl<'a> SharedA<'a> {
                 _ => None,
             },
             SharedA::A2 { .. } => None,
-            SharedA::Amb(alts) => alts.get(index).copied().map(ParseTree::SharedA),
+            SharedA::Amb(alts) => alts.get(index).copied(),
             SharedA::Cycle { .. } => None,
         }
     }
@@ -2201,7 +2298,7 @@ impl<'a> SharedB<'a> {
                 0 => Some(ParseTree::SharedA(shared_a)),
                 _ => None,
             },
-            SharedB::Amb(alts) => alts.get(index).copied().map(ParseTree::SharedB),
+            SharedB::Amb(alts) => alts.get(index).copied(),
             SharedB::Cycle { .. } => None,
         }
     }
@@ -2251,7 +2348,7 @@ impl<'a> TwoExitsC<'a> {
                 0 => Some(ParseTree::Token(*lit_0)),
                 _ => None,
             },
-            TwoExitsC::Amb(alts) => alts.get(index).copied().map(ParseTree::TwoExitsC),
+            TwoExitsC::Amb(alts) => alts.get(index).copied(),
             TwoExitsC::Cycle { .. } => None,
         }
     }
@@ -2296,7 +2393,7 @@ impl<'a> TwoExitsB<'a> {
                 0 => Some(ParseTree::Token(*lit_0)),
                 _ => None,
             },
-            TwoExitsB::Amb(alts) => alts.get(index).copied().map(ParseTree::TwoExitsB),
+            TwoExitsB::Amb(alts) => alts.get(index).copied(),
             TwoExitsB::Cycle { .. } => None,
         }
     }
@@ -2345,7 +2442,7 @@ impl<'a> TwoRoutesC<'a> {
                 0 => Some(ParseTree::Token(*lit_0)),
                 _ => None,
             },
-            TwoRoutesC::Amb(alts) => alts.get(index).copied().map(ParseTree::TwoRoutesC),
+            TwoRoutesC::Amb(alts) => alts.get(index).copied(),
             TwoRoutesC::Cycle { .. } => None,
         }
     }
@@ -2388,7 +2485,7 @@ impl<'a> TwoRoutesA<'a> {
                 0 => Some(ParseTree::TwoRoutesC(two_routes_c)),
                 _ => None,
             },
-            TwoRoutesA::Amb(alts) => alts.get(index).copied().map(ParseTree::TwoRoutesA),
+            TwoRoutesA::Amb(alts) => alts.get(index).copied(),
             TwoRoutesA::Cycle { .. } => None,
         }
     }
@@ -2434,7 +2531,7 @@ impl<'a> TwoRoutesB<'a> {
                 0 => Some(ParseTree::TwoRoutesC(two_routes_c)),
                 _ => None,
             },
-            TwoRoutesB::Amb(alts) => alts.get(index).copied().map(ParseTree::TwoRoutesB),
+            TwoRoutesB::Amb(alts) => alts.get(index).copied(),
             TwoRoutesB::Cycle { .. } => None,
         }
     }
@@ -2490,7 +2587,7 @@ impl<'a> Nullable<'a> {
                 _ => None,
             },
             Nullable::C3 { .. } => None,
-            Nullable::Amb(alts) => alts.get(index).copied().map(ParseTree::Nullable),
+            Nullable::Amb(alts) => alts.get(index).copied(),
             Nullable::Cycle { .. } => None,
         }
     }
@@ -2542,7 +2639,7 @@ impl<'a> SiblingC<'a> {
                 0 => Some(ParseTree::Token(*lit_0)),
                 _ => None,
             },
-            SiblingC::Amb(alts) => alts.get(index).copied().map(ParseTree::SiblingC),
+            SiblingC::Amb(alts) => alts.get(index).copied(),
             SiblingC::Cycle { .. } => None,
         }
     }
@@ -2587,7 +2684,7 @@ impl<'a> SiblingD<'a> {
                 0 => Some(ParseTree::EmptyF(empty_f)),
                 _ => None,
             },
-            SiblingD::Amb(alts) => alts.get(index).copied().map(ParseTree::SiblingD),
+            SiblingD::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -2621,7 +2718,7 @@ impl<'a> EmptyE<'a> {
     pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             EmptyE::E1 { .. } => None,
-            EmptyE::Amb(alts) => alts.get(index).copied().map(ParseTree::EmptyE),
+            EmptyE::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -2653,7 +2750,7 @@ impl<'a> EmptyF<'a> {
     pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             EmptyF::F1 { .. } => None,
-            EmptyF::Amb(alts) => alts.get(index).copied().map(ParseTree::EmptyF),
+            EmptyF::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -2691,7 +2788,7 @@ impl<'a> ParentC<'a> {
                 1 => Some(ParseTree::Token(*lit_1)),
                 _ => None,
             },
-            ParentC::Amb(alts) => alts.get(index).copied().map(ParseTree::ParentC),
+            ParentC::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -2742,7 +2839,7 @@ impl<'a> ParentD<'a> {
                 0 => Some(ParseTree::Token(*lit_0)),
                 _ => None,
             },
-            ParentD::Amb(alts) => alts.get(index).copied().map(ParseTree::ParentD),
+            ParentD::Amb(alts) => alts.get(index).copied(),
             ParentD::Cycle { .. } => None,
         }
     }
@@ -2787,7 +2884,7 @@ impl<'a> OverlapC<'a> {
                 0 => Some(ParseTree::Token(*lit_0)),
                 _ => None,
             },
-            OverlapC::Amb(alts) => alts.get(index).copied().map(ParseTree::OverlapC),
+            OverlapC::Amb(alts) => alts.get(index).copied(),
             OverlapC::Cycle { .. } => None,
         }
     }
@@ -2832,7 +2929,7 @@ impl<'a> OverlapB<'a> {
                 0 => Some(ParseTree::OverlapC(overlap_c)),
                 _ => None,
             },
-            OverlapB::Amb(alts) => alts.get(index).copied().map(ParseTree::OverlapB),
+            OverlapB::Amb(alts) => alts.get(index).copied(),
             OverlapB::Cycle { .. } => None,
         }
     }
@@ -2884,7 +2981,7 @@ impl<'a> IntermediateY<'a> {
                 0 => Some(ParseTree::Token(*lit_0)),
                 _ => None,
             },
-            IntermediateY::Amb(alts) => alts.get(index).copied().map(ParseTree::IntermediateY),
+            IntermediateY::Amb(alts) => alts.get(index).copied(),
             IntermediateY::Cycle { .. } => None,
         }
     }
@@ -2922,7 +3019,7 @@ impl<'a> IntermediateA<'a> {
     pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             IntermediateA::A1 { .. } => None,
-            IntermediateA::Amb(alts) => alts.get(index).copied().map(ParseTree::IntermediateA),
+            IntermediateA::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -2958,7 +3055,7 @@ impl<'a> IntermediateB<'a> {
                 0 => Some(ParseTree::Token(*lit_0)),
                 _ => None,
             },
-            IntermediateB::Amb(alts) => alts.get(index).copied().map(ParseTree::IntermediateB),
+            IntermediateB::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -2996,7 +3093,7 @@ impl<'a> MidInput<'a> {
                 1 => Some(ParseTree::Token(*lit_1)),
                 _ => None,
             },
-            MidInput::Amb(alts) => alts.get(index).copied().map(ParseTree::MidInput),
+            MidInput::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -3050,7 +3147,7 @@ impl<'a> Consuming<'a> {
                 0 => Some(ParseTree::Token(*lit_0)),
                 _ => None,
             },
-            Consuming::Amb(alts) => alts.get(index).copied().map(ParseTree::Consuming),
+            Consuming::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -3087,7 +3184,7 @@ impl<'a> Ordinary<'a> {
                 0 => Some(ParseTree::Token(*lit_0)),
                 _ => None,
             },
-            Ordinary::Amb(alts) => alts.get(index).copied().map(ParseTree::Ordinary),
+            Ordinary::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -3128,7 +3225,7 @@ impl<'a> NullablePlus<'a> {
                 0 => Some(ParseTree::Plus0(empty_es)),
                 _ => None,
             },
-            NullablePlus::Amb(alts) => alts.get(index).copied().map(ParseTree::NullablePlus),
+            NullablePlus::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -3169,7 +3266,7 @@ impl<'a> NullableStar<'a> {
                 0 => Some(ParseTree::Star0(empty_es)),
                 _ => None,
             },
-            NullableStar::Amb(alts) => alts.get(index).copied().map(ParseTree::NullableStar),
+            NullableStar::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -3210,9 +3307,7 @@ impl<'a> NullableSeparated<'a> {
                 0 => Some(ParseTree::Plus1(empty_es)),
                 _ => None,
             },
-            NullableSeparated::Amb(alts) => {
-                alts.get(index).copied().map(ParseTree::NullableSeparated)
-            }
+            NullableSeparated::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -3257,7 +3352,7 @@ impl<'a> Optional<'a> {
                 0 => Some(ParseTree::Token(*lit_0)),
                 _ => None,
             },
-            Optional::Amb(alts) => alts.get(index).copied().map(ParseTree::Optional),
+            Optional::Amb(alts) => alts.get(index).copied(),
             Optional::Cycle { .. } => None,
         }
     }
@@ -3302,7 +3397,7 @@ impl<'a> Grouped<'a> {
                 0 => Some(ParseTree::Token(*lit_0)),
                 _ => None,
             },
-            Grouped::Amb(alts) => alts.get(index).copied().map(ParseTree::Grouped),
+            Grouped::Amb(alts) => alts.get(index).copied(),
             Grouped::Cycle { .. } => None,
         }
     }
@@ -3352,7 +3447,7 @@ impl<'a> Plus0<'a> {
                 0 => Some(ParseTree::EmptyE(empty_e)),
                 _ => None,
             },
-            Plus0::Amb(alts) => alts.get(index).copied().map(ParseTree::Plus0),
+            Plus0::Amb(alts) => alts.get(index).copied(),
             Plus0::Cycle { .. } => None,
         }
     }
@@ -3408,7 +3503,7 @@ impl<'a> Star0<'a> {
                 _ => None,
             },
             Star0::Alt1 { .. } => None,
-            Star0::Amb(alts) => alts.get(index).copied().map(ParseTree::Star0),
+            Star0::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -3467,7 +3562,7 @@ impl<'a> Plus1<'a> {
                 0 => Some(ParseTree::EmptyE(empty_e)),
                 _ => None,
             },
-            Plus1::Amb(alts) => alts.get(index).copied().map(ParseTree::Plus1),
+            Plus1::Amb(alts) => alts.get(index).copied(),
             Plus1::Cycle { .. } => None,
         }
     }
@@ -3523,7 +3618,7 @@ impl<'a> Opt0<'a> {
                 _ => None,
             },
             Opt0::Alt1 { .. } => None,
-            Opt0::Amb(alts) => alts.get(index).copied().map(ParseTree::Opt0),
+            Opt0::Amb(alts) => alts.get(index).copied(),
             Opt0::Cycle { .. } => None,
         }
     }
@@ -3568,7 +3663,7 @@ impl<'a> Group0<'a> {
                 0 => Some(ParseTree::Grouped(grouped)),
                 _ => None,
             },
-            Group0::Amb(alts) => alts.get(index).copied().map(ParseTree::Group0),
+            Group0::Amb(alts) => alts.get(index).copied(),
             Group0::Cycle { .. } => None,
         }
     }
@@ -3612,782 +3707,170 @@ impl<'a> Start<&'a Direct<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartDirect(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Direct(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a MutualC<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartMutualC(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::MutualC(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a MutualB<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartMutualB(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::MutualB(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a ChainC<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartChainC(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::ChainC(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a ChainA<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartChainA(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::ChainA(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a ChainB<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartChainB(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::ChainB(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a SharedS<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartSharedS(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::SharedS(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a SharedA<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartSharedA(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::SharedA(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a SharedB<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartSharedB(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::SharedB(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a TwoExitsC<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartTwoExitsC(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::TwoExitsC(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a TwoExitsB<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartTwoExitsB(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::TwoExitsB(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a TwoRoutesC<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartTwoRoutesC(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::TwoRoutesC(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a TwoRoutesA<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartTwoRoutesA(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::TwoRoutesA(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a TwoRoutesB<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartTwoRoutesB(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::TwoRoutesB(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a Nullable<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullable(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Nullable(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a SiblingC<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartSiblingC(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::SiblingC(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a SiblingD<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartSiblingD(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::SiblingD(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a EmptyE<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartEmptyE(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::EmptyE(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a EmptyF<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartEmptyF(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::EmptyF(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a ParentC<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartParentC(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::ParentC(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a ParentD<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartParentD(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::ParentD(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a OverlapC<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartOverlapC(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::OverlapC(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a OverlapB<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartOverlapB(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::OverlapB(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a IntermediateY<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartIntermediateY(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::IntermediateY(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a IntermediateA<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartIntermediateA(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::IntermediateA(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a IntermediateB<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartIntermediateB(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::IntermediateB(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a MidInput<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartMidInput(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::MidInput(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a Consuming<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartConsuming(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Consuming(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a Ordinary<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartOrdinary(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Ordinary(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a NullablePlus<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullablePlus(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::NullablePlus(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a NullableStar<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableStar(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::NullableStar(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a NullableSeparated<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableSeparated(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::NullableSeparated(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a Optional<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartOptional(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Optional(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a Grouped<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartGrouped(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Grouped(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> OptNode for Opt0<'a> {
@@ -4457,6 +3940,15 @@ pub struct CyclesParseTreeBuilder<'a> {
 impl<'a> CyclesParseTreeBuilder<'a> {
     pub fn new(tree_arena: &'a Arena) -> Self {
         Self { arena: tree_arena }
+    }
+    ///The child at `index` of each start wrapper in `alternatives`.
+    fn start_inner_alternatives(
+        &self,
+        alternatives: &[ParseTree<'a>],
+        index: usize,
+    ) -> &'a [ParseTree<'a>] {
+        self.arena
+            .alloc_slice(alternatives.iter().map(|a| a.child(index).unwrap()))
     }
 }
 impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
@@ -5521,250 +5013,68 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
         parent: NonterminalId,
         alternatives: Vec<ParseTree<'a>>,
     ) -> ParseTree<'a> {
+        let slice = &*self.arena.alloc_slice(alternatives);
         match parent {
-            grammar::DIRECT => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_direct()));
-                ParseTree::Direct(self.arena.alloc(Direct::Amb(slice)))
-            }
-            grammar::MUTUAL_C => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_mutual_c()));
-                ParseTree::MutualC(self.arena.alloc(MutualC::Amb(slice)))
-            }
-            grammar::MUTUAL_B => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_mutual_b()));
-                ParseTree::MutualB(self.arena.alloc(MutualB::Amb(slice)))
-            }
-            grammar::CHAIN_C => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_chain_c()));
-                ParseTree::ChainC(self.arena.alloc(ChainC::Amb(slice)))
-            }
-            grammar::CHAIN_A => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_chain_a()));
-                ParseTree::ChainA(self.arena.alloc(ChainA::Amb(slice)))
-            }
-            grammar::CHAIN_B => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_chain_b()));
-                ParseTree::ChainB(self.arena.alloc(ChainB::Amb(slice)))
-            }
-            grammar::SHARED_S => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_shared_s()));
-                ParseTree::SharedS(self.arena.alloc(SharedS::Amb(slice)))
-            }
-            grammar::SHARED_A => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_shared_a()));
-                ParseTree::SharedA(self.arena.alloc(SharedA::Amb(slice)))
-            }
-            grammar::SHARED_B => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_shared_b()));
-                ParseTree::SharedB(self.arena.alloc(SharedB::Amb(slice)))
-            }
-            grammar::TWO_EXITS_C => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_two_exits_c()));
-                ParseTree::TwoExitsC(self.arena.alloc(TwoExitsC::Amb(slice)))
-            }
-            grammar::TWO_EXITS_B => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_two_exits_b()));
-                ParseTree::TwoExitsB(self.arena.alloc(TwoExitsB::Amb(slice)))
-            }
+            grammar::DIRECT => ParseTree::Direct(self.arena.alloc(Direct::Amb(slice))),
+            grammar::MUTUAL_C => ParseTree::MutualC(self.arena.alloc(MutualC::Amb(slice))),
+            grammar::MUTUAL_B => ParseTree::MutualB(self.arena.alloc(MutualB::Amb(slice))),
+            grammar::CHAIN_C => ParseTree::ChainC(self.arena.alloc(ChainC::Amb(slice))),
+            grammar::CHAIN_A => ParseTree::ChainA(self.arena.alloc(ChainA::Amb(slice))),
+            grammar::CHAIN_B => ParseTree::ChainB(self.arena.alloc(ChainB::Amb(slice))),
+            grammar::SHARED_S => ParseTree::SharedS(self.arena.alloc(SharedS::Amb(slice))),
+            grammar::SHARED_A => ParseTree::SharedA(self.arena.alloc(SharedA::Amb(slice))),
+            grammar::SHARED_B => ParseTree::SharedB(self.arena.alloc(SharedB::Amb(slice))),
+            grammar::TWO_EXITS_C => ParseTree::TwoExitsC(self.arena.alloc(TwoExitsC::Amb(slice))),
+            grammar::TWO_EXITS_B => ParseTree::TwoExitsB(self.arena.alloc(TwoExitsB::Amb(slice))),
             grammar::TWO_ROUTES_C => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_two_routes_c()));
                 ParseTree::TwoRoutesC(self.arena.alloc(TwoRoutesC::Amb(slice)))
             }
             grammar::TWO_ROUTES_A => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_two_routes_a()));
                 ParseTree::TwoRoutesA(self.arena.alloc(TwoRoutesA::Amb(slice)))
             }
             grammar::TWO_ROUTES_B => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_two_routes_b()));
                 ParseTree::TwoRoutesB(self.arena.alloc(TwoRoutesB::Amb(slice)))
             }
-            grammar::NULLABLE => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_nullable()));
-                ParseTree::Nullable(self.arena.alloc(Nullable::Amb(slice)))
-            }
-            grammar::SIBLING_C => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_sibling_c()));
-                ParseTree::SiblingC(self.arena.alloc(SiblingC::Amb(slice)))
-            }
-            grammar::SIBLING_D => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_sibling_d()));
-                ParseTree::SiblingD(self.arena.alloc(SiblingD::Amb(slice)))
-            }
-            grammar::EMPTY_E => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_empty_e()));
-                ParseTree::EmptyE(self.arena.alloc(EmptyE::Amb(slice)))
-            }
-            grammar::EMPTY_F => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_empty_f()));
-                ParseTree::EmptyF(self.arena.alloc(EmptyF::Amb(slice)))
-            }
-            grammar::PARENT_C => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_parent_c()));
-                ParseTree::ParentC(self.arena.alloc(ParentC::Amb(slice)))
-            }
-            grammar::PARENT_D => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_parent_d()));
-                ParseTree::ParentD(self.arena.alloc(ParentD::Amb(slice)))
-            }
-            grammar::OVERLAP_C => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_overlap_c()));
-                ParseTree::OverlapC(self.arena.alloc(OverlapC::Amb(slice)))
-            }
-            grammar::OVERLAP_B => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_overlap_b()));
-                ParseTree::OverlapB(self.arena.alloc(OverlapB::Amb(slice)))
-            }
+            grammar::NULLABLE => ParseTree::Nullable(self.arena.alloc(Nullable::Amb(slice))),
+            grammar::SIBLING_C => ParseTree::SiblingC(self.arena.alloc(SiblingC::Amb(slice))),
+            grammar::SIBLING_D => ParseTree::SiblingD(self.arena.alloc(SiblingD::Amb(slice))),
+            grammar::EMPTY_E => ParseTree::EmptyE(self.arena.alloc(EmptyE::Amb(slice))),
+            grammar::EMPTY_F => ParseTree::EmptyF(self.arena.alloc(EmptyF::Amb(slice))),
+            grammar::PARENT_C => ParseTree::ParentC(self.arena.alloc(ParentC::Amb(slice))),
+            grammar::PARENT_D => ParseTree::ParentD(self.arena.alloc(ParentD::Amb(slice))),
+            grammar::OVERLAP_C => ParseTree::OverlapC(self.arena.alloc(OverlapC::Amb(slice))),
+            grammar::OVERLAP_B => ParseTree::OverlapB(self.arena.alloc(OverlapB::Amb(slice))),
             grammar::INTERMEDIATE_Y => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_intermediate_y()));
                 ParseTree::IntermediateY(self.arena.alloc(IntermediateY::Amb(slice)))
             }
             grammar::INTERMEDIATE_A => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_intermediate_a()));
                 ParseTree::IntermediateA(self.arena.alloc(IntermediateA::Amb(slice)))
             }
             grammar::INTERMEDIATE_B => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_intermediate_b()));
                 ParseTree::IntermediateB(self.arena.alloc(IntermediateB::Amb(slice)))
             }
-            grammar::MID_INPUT => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_mid_input()));
-                ParseTree::MidInput(self.arena.alloc(MidInput::Amb(slice)))
-            }
-            grammar::CONSUMING => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_consuming()));
-                ParseTree::Consuming(self.arena.alloc(Consuming::Amb(slice)))
-            }
-            grammar::ORDINARY => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_ordinary()));
-                ParseTree::Ordinary(self.arena.alloc(Ordinary::Amb(slice)))
-            }
+            grammar::MID_INPUT => ParseTree::MidInput(self.arena.alloc(MidInput::Amb(slice))),
+            grammar::CONSUMING => ParseTree::Consuming(self.arena.alloc(Consuming::Amb(slice))),
+            grammar::ORDINARY => ParseTree::Ordinary(self.arena.alloc(Ordinary::Amb(slice))),
             grammar::NULLABLE_PLUS => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_nullable_plus()));
                 ParseTree::NullablePlus(self.arena.alloc(NullablePlus::Amb(slice)))
             }
             grammar::NULLABLE_STAR => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_nullable_star()));
                 ParseTree::NullableStar(self.arena.alloc(NullableStar::Amb(slice)))
             }
             grammar::NULLABLE_SEPARATED => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_nullable_separated()),
-                );
                 ParseTree::NullableSeparated(self.arena.alloc(NullableSeparated::Amb(slice)))
             }
-            grammar::OPTIONAL => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_optional()));
-                ParseTree::Optional(self.arena.alloc(Optional::Amb(slice)))
-            }
-            grammar::GROUPED => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_grouped()));
-                ParseTree::Grouped(self.arena.alloc(Grouped::Amb(slice)))
-            }
-            grammar::PLUS_0 => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_plus_0()));
-                ParseTree::Plus0(self.arena.alloc(Plus0::Amb(slice)))
-            }
-            grammar::STAR_0 => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_star_0()));
-                ParseTree::Star0(self.arena.alloc(Star0::Amb(slice)))
-            }
-            grammar::PLUS_1 => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_plus_1()));
-                ParseTree::Plus1(self.arena.alloc(Plus1::Amb(slice)))
-            }
-            grammar::OPT_0 => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_opt_0()));
-                ParseTree::Opt0(self.arena.alloc(Opt0::Amb(slice)))
-            }
-            grammar::GROUP_0 => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_group_0()));
-                ParseTree::Group0(self.arena.alloc(Group0::Amb(slice)))
-            }
+            grammar::OPTIONAL => ParseTree::Optional(self.arena.alloc(Optional::Amb(slice))),
+            grammar::GROUPED => ParseTree::Grouped(self.arena.alloc(Grouped::Amb(slice))),
+            grammar::PLUS_0 => ParseTree::Plus0(self.arena.alloc(Plus0::Amb(slice))),
+            grammar::STAR_0 => ParseTree::Star0(self.arena.alloc(Star0::Amb(slice))),
+            grammar::PLUS_1 => ParseTree::Plus1(self.arena.alloc(Plus1::Amb(slice))),
+            grammar::OPT_0 => ParseTree::Opt0(self.arena.alloc(Opt0::Amb(slice))),
+            grammar::GROUP_0 => ParseTree::Group0(self.arena.alloc(Group0::Amb(slice))),
             grammar::START_DIRECT => {
-                let first = alternatives[0].unwrap_start_direct();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_direct().node),
-                );
+                let first = slice[0].unwrap_start_direct();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(Direct::Amb(inner));
                 ParseTree::StartDirect(self.arena.alloc(Start {
                     before: first.before,
@@ -5774,12 +5084,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_MUTUAL_C => {
-                let first = alternatives[0].unwrap_start_mutual_c();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_mutual_c().node),
-                );
+                let first = slice[0].unwrap_start_mutual_c();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(MutualC::Amb(inner));
                 ParseTree::StartMutualC(self.arena.alloc(Start {
                     before: first.before,
@@ -5789,12 +5095,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_MUTUAL_B => {
-                let first = alternatives[0].unwrap_start_mutual_b();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_mutual_b().node),
-                );
+                let first = slice[0].unwrap_start_mutual_b();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(MutualB::Amb(inner));
                 ParseTree::StartMutualB(self.arena.alloc(Start {
                     before: first.before,
@@ -5804,12 +5106,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_CHAIN_C => {
-                let first = alternatives[0].unwrap_start_chain_c();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_chain_c().node),
-                );
+                let first = slice[0].unwrap_start_chain_c();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(ChainC::Amb(inner));
                 ParseTree::StartChainC(self.arena.alloc(Start {
                     before: first.before,
@@ -5819,12 +5117,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_CHAIN_A => {
-                let first = alternatives[0].unwrap_start_chain_a();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_chain_a().node),
-                );
+                let first = slice[0].unwrap_start_chain_a();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(ChainA::Amb(inner));
                 ParseTree::StartChainA(self.arena.alloc(Start {
                     before: first.before,
@@ -5834,12 +5128,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_CHAIN_B => {
-                let first = alternatives[0].unwrap_start_chain_b();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_chain_b().node),
-                );
+                let first = slice[0].unwrap_start_chain_b();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(ChainB::Amb(inner));
                 ParseTree::StartChainB(self.arena.alloc(Start {
                     before: first.before,
@@ -5849,12 +5139,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_SHARED_S => {
-                let first = alternatives[0].unwrap_start_shared_s();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_shared_s().node),
-                );
+                let first = slice[0].unwrap_start_shared_s();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(SharedS::Amb(inner));
                 ParseTree::StartSharedS(self.arena.alloc(Start {
                     before: first.before,
@@ -5864,12 +5150,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_SHARED_A => {
-                let first = alternatives[0].unwrap_start_shared_a();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_shared_a().node),
-                );
+                let first = slice[0].unwrap_start_shared_a();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(SharedA::Amb(inner));
                 ParseTree::StartSharedA(self.arena.alloc(Start {
                     before: first.before,
@@ -5879,12 +5161,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_SHARED_B => {
-                let first = alternatives[0].unwrap_start_shared_b();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_shared_b().node),
-                );
+                let first = slice[0].unwrap_start_shared_b();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(SharedB::Amb(inner));
                 ParseTree::StartSharedB(self.arena.alloc(Start {
                     before: first.before,
@@ -5894,12 +5172,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_TWO_EXITS_C => {
-                let first = alternatives[0].unwrap_start_two_exits_c();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_two_exits_c().node),
-                );
+                let first = slice[0].unwrap_start_two_exits_c();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(TwoExitsC::Amb(inner));
                 ParseTree::StartTwoExitsC(self.arena.alloc(Start {
                     before: first.before,
@@ -5909,12 +5183,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_TWO_EXITS_B => {
-                let first = alternatives[0].unwrap_start_two_exits_b();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_two_exits_b().node),
-                );
+                let first = slice[0].unwrap_start_two_exits_b();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(TwoExitsB::Amb(inner));
                 ParseTree::StartTwoExitsB(self.arena.alloc(Start {
                     before: first.before,
@@ -5924,12 +5194,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_TWO_ROUTES_C => {
-                let first = alternatives[0].unwrap_start_two_routes_c();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_two_routes_c().node),
-                );
+                let first = slice[0].unwrap_start_two_routes_c();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(TwoRoutesC::Amb(inner));
                 ParseTree::StartTwoRoutesC(self.arena.alloc(Start {
                     before: first.before,
@@ -5939,12 +5205,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_TWO_ROUTES_A => {
-                let first = alternatives[0].unwrap_start_two_routes_a();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_two_routes_a().node),
-                );
+                let first = slice[0].unwrap_start_two_routes_a();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(TwoRoutesA::Amb(inner));
                 ParseTree::StartTwoRoutesA(self.arena.alloc(Start {
                     before: first.before,
@@ -5954,12 +5216,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_TWO_ROUTES_B => {
-                let first = alternatives[0].unwrap_start_two_routes_b();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_two_routes_b().node),
-                );
+                let first = slice[0].unwrap_start_two_routes_b();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(TwoRoutesB::Amb(inner));
                 ParseTree::StartTwoRoutesB(self.arena.alloc(Start {
                     before: first.before,
@@ -5969,12 +5227,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_NULLABLE => {
-                let first = alternatives[0].unwrap_start_nullable();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_nullable().node),
-                );
+                let first = slice[0].unwrap_start_nullable();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(Nullable::Amb(inner));
                 ParseTree::StartNullable(self.arena.alloc(Start {
                     before: first.before,
@@ -5984,12 +5238,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_SIBLING_C => {
-                let first = alternatives[0].unwrap_start_sibling_c();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_sibling_c().node),
-                );
+                let first = slice[0].unwrap_start_sibling_c();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(SiblingC::Amb(inner));
                 ParseTree::StartSiblingC(self.arena.alloc(Start {
                     before: first.before,
@@ -5999,12 +5249,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_SIBLING_D => {
-                let first = alternatives[0].unwrap_start_sibling_d();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_sibling_d().node),
-                );
+                let first = slice[0].unwrap_start_sibling_d();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(SiblingD::Amb(inner));
                 ParseTree::StartSiblingD(self.arena.alloc(Start {
                     before: first.before,
@@ -6014,12 +5260,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_EMPTY_E => {
-                let first = alternatives[0].unwrap_start_empty_e();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_empty_e().node),
-                );
+                let first = slice[0].unwrap_start_empty_e();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(EmptyE::Amb(inner));
                 ParseTree::StartEmptyE(self.arena.alloc(Start {
                     before: first.before,
@@ -6029,12 +5271,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_EMPTY_F => {
-                let first = alternatives[0].unwrap_start_empty_f();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_empty_f().node),
-                );
+                let first = slice[0].unwrap_start_empty_f();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(EmptyF::Amb(inner));
                 ParseTree::StartEmptyF(self.arena.alloc(Start {
                     before: first.before,
@@ -6044,12 +5282,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_PARENT_C => {
-                let first = alternatives[0].unwrap_start_parent_c();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_parent_c().node),
-                );
+                let first = slice[0].unwrap_start_parent_c();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(ParentC::Amb(inner));
                 ParseTree::StartParentC(self.arena.alloc(Start {
                     before: first.before,
@@ -6059,12 +5293,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_PARENT_D => {
-                let first = alternatives[0].unwrap_start_parent_d();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_parent_d().node),
-                );
+                let first = slice[0].unwrap_start_parent_d();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(ParentD::Amb(inner));
                 ParseTree::StartParentD(self.arena.alloc(Start {
                     before: first.before,
@@ -6074,12 +5304,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_OVERLAP_C => {
-                let first = alternatives[0].unwrap_start_overlap_c();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_overlap_c().node),
-                );
+                let first = slice[0].unwrap_start_overlap_c();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(OverlapC::Amb(inner));
                 ParseTree::StartOverlapC(self.arena.alloc(Start {
                     before: first.before,
@@ -6089,12 +5315,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_OVERLAP_B => {
-                let first = alternatives[0].unwrap_start_overlap_b();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_overlap_b().node),
-                );
+                let first = slice[0].unwrap_start_overlap_b();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(OverlapB::Amb(inner));
                 ParseTree::StartOverlapB(self.arena.alloc(Start {
                     before: first.before,
@@ -6104,12 +5326,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_INTERMEDIATE_Y => {
-                let first = alternatives[0].unwrap_start_intermediate_y();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_intermediate_y().node),
-                );
+                let first = slice[0].unwrap_start_intermediate_y();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(IntermediateY::Amb(inner));
                 ParseTree::StartIntermediateY(self.arena.alloc(Start {
                     before: first.before,
@@ -6119,12 +5337,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_INTERMEDIATE_A => {
-                let first = alternatives[0].unwrap_start_intermediate_a();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_intermediate_a().node),
-                );
+                let first = slice[0].unwrap_start_intermediate_a();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(IntermediateA::Amb(inner));
                 ParseTree::StartIntermediateA(self.arena.alloc(Start {
                     before: first.before,
@@ -6134,12 +5348,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_INTERMEDIATE_B => {
-                let first = alternatives[0].unwrap_start_intermediate_b();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_intermediate_b().node),
-                );
+                let first = slice[0].unwrap_start_intermediate_b();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(IntermediateB::Amb(inner));
                 ParseTree::StartIntermediateB(self.arena.alloc(Start {
                     before: first.before,
@@ -6149,12 +5359,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_MID_INPUT => {
-                let first = alternatives[0].unwrap_start_mid_input();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_mid_input().node),
-                );
+                let first = slice[0].unwrap_start_mid_input();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(MidInput::Amb(inner));
                 ParseTree::StartMidInput(self.arena.alloc(Start {
                     before: first.before,
@@ -6164,12 +5370,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_CONSUMING => {
-                let first = alternatives[0].unwrap_start_consuming();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_consuming().node),
-                );
+                let first = slice[0].unwrap_start_consuming();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(Consuming::Amb(inner));
                 ParseTree::StartConsuming(self.arena.alloc(Start {
                     before: first.before,
@@ -6179,12 +5381,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_ORDINARY => {
-                let first = alternatives[0].unwrap_start_ordinary();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_ordinary().node),
-                );
+                let first = slice[0].unwrap_start_ordinary();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(Ordinary::Amb(inner));
                 ParseTree::StartOrdinary(self.arena.alloc(Start {
                     before: first.before,
@@ -6194,12 +5392,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_NULLABLE_PLUS => {
-                let first = alternatives[0].unwrap_start_nullable_plus();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_nullable_plus().node),
-                );
+                let first = slice[0].unwrap_start_nullable_plus();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(NullablePlus::Amb(inner));
                 ParseTree::StartNullablePlus(self.arena.alloc(Start {
                     before: first.before,
@@ -6209,12 +5403,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_NULLABLE_STAR => {
-                let first = alternatives[0].unwrap_start_nullable_star();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_nullable_star().node),
-                );
+                let first = slice[0].unwrap_start_nullable_star();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(NullableStar::Amb(inner));
                 ParseTree::StartNullableStar(self.arena.alloc(Start {
                     before: first.before,
@@ -6224,12 +5414,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_NULLABLE_SEPARATED => {
-                let first = alternatives[0].unwrap_start_nullable_separated();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_nullable_separated().node),
-                );
+                let first = slice[0].unwrap_start_nullable_separated();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(NullableSeparated::Amb(inner));
                 ParseTree::StartNullableSeparated(self.arena.alloc(Start {
                     before: first.before,
@@ -6239,12 +5425,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_OPTIONAL => {
-                let first = alternatives[0].unwrap_start_optional();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_optional().node),
-                );
+                let first = slice[0].unwrap_start_optional();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(Optional::Amb(inner));
                 ParseTree::StartOptional(self.arena.alloc(Start {
                     before: first.before,
@@ -6254,12 +5436,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_GROUPED => {
-                let first = alternatives[0].unwrap_start_grouped();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_grouped().node),
-                );
+                let first = slice[0].unwrap_start_grouped();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(Grouped::Amb(inner));
                 ParseTree::StartGrouped(self.arena.alloc(Start {
                     before: first.before,

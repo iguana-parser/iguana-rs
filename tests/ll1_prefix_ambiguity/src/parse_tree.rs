@@ -36,6 +36,17 @@ pub struct Start<T, L> {
     pub after: L,
     pub span: Span,
 }
+impl<T, L> Start<T, L> {
+    pub fn span(&self) -> Span {
+        self.span
+    }
+    pub fn display_name(&self) -> &'static str {
+        "Start"
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        Some(Origin::Start)
+    }
+}
 pub type StartE<'a> = Start<&'a E<'a>, ()>;
 pub type StartExpr<'a> = Start<&'a Expr<'a>, ()>;
 #[derive(Debug, Clone, Copy)]
@@ -62,8 +73,14 @@ impl<'a> ParseTree<'a> {
         match self {
             ParseTree::E(e) => e.child(index),
             ParseTree::Expr(expr) => expr.child(index),
-            ParseTree::StartE(start_e) => start_e.child(index),
-            ParseTree::StartExpr(start_expr) => start_expr.child(index),
+            ParseTree::StartE(start_e) => match index {
+                0 => Some(ParseTree::E(start_e.node)),
+                _ => None,
+            },
+            ParseTree::StartExpr(start_expr) => match index {
+                0 => Some(ParseTree::Expr(start_expr.node)),
+                _ => None,
+            },
             ParseTree::Token(_) => None,
         }
     }
@@ -71,8 +88,8 @@ impl<'a> ParseTree<'a> {
         match self {
             ParseTree::E(e) => e.child_count(),
             ParseTree::Expr(expr) => expr.child_count(),
-            ParseTree::StartE(start_e) => start_e.child_count(),
-            ParseTree::StartExpr(start_expr) => start_expr.child_count(),
+            ParseTree::StartE(_) => 1usize,
+            ParseTree::StartExpr(_) => 1usize,
             ParseTree::Token(_) => 0,
         }
     }
@@ -163,7 +180,7 @@ pub trait OptNode {
 #[derive(Debug)]
 pub enum E<'a> {
     Alt0 { expr: &'a Expr<'a>, span: Span },
-    Amb(&'a [&'a E<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum Expr<'a> {
@@ -179,7 +196,7 @@ pub enum Expr<'a> {
         float: Token,
         span: Span,
     },
-    Amb(&'a [&'a Expr<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 impl<'a> E<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -191,7 +208,7 @@ impl<'a> E<'a> {
                 0 => Some(ParseTree::Expr(expr)),
                 _ => None,
             },
-            E::Amb(alts) => alts.get(index).copied().map(ParseTree::E),
+            E::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -238,7 +255,7 @@ impl<'a> Expr<'a> {
                 0 => Some(ParseTree::Token(*float)),
                 _ => None,
             },
-            Expr::Amb(alts) => alts.get(index).copied().map(ParseTree::Expr),
+            Expr::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -269,46 +286,10 @@ impl<'a> Start<&'a E<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartE(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::E(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a Expr<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartExpr(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Expr(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 #[derive(Debug, Clone, Copy)]
@@ -343,6 +324,15 @@ pub struct Ll1PrefixAmbiguityParseTreeBuilder<'a> {
 impl<'a> Ll1PrefixAmbiguityParseTreeBuilder<'a> {
     pub fn new(tree_arena: &'a Arena) -> Self {
         Self { arena: tree_arena }
+    }
+    ///The child at `index` of each start wrapper in `alternatives`.
+    fn start_inner_alternatives(
+        &self,
+        alternatives: &[ParseTree<'a>],
+        index: usize,
+    ) -> &'a [ParseTree<'a>] {
+        self.arena
+            .alloc_slice(alternatives.iter().map(|a| a.child(index).unwrap()))
     }
 }
 impl<'a> ParseTreeBuilder<ParseTree<'a>> for Ll1PrefixAmbiguityParseTreeBuilder<'a> {
@@ -422,24 +412,13 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for Ll1PrefixAmbiguityParseTreeBuilder<
         parent: NonterminalId,
         alternatives: Vec<ParseTree<'a>>,
     ) -> ParseTree<'a> {
+        let slice = &*self.arena.alloc_slice(alternatives);
         match parent {
-            grammar::E => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_e()));
-                ParseTree::E(self.arena.alloc(E::Amb(slice)))
-            }
-            grammar::EXPR => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_expr()));
-                ParseTree::Expr(self.arena.alloc(Expr::Amb(slice)))
-            }
+            grammar::E => ParseTree::E(self.arena.alloc(E::Amb(slice))),
+            grammar::EXPR => ParseTree::Expr(self.arena.alloc(Expr::Amb(slice))),
             grammar::START_E => {
-                let first = alternatives[0].unwrap_start_e();
-                let inner = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_start_e().node));
+                let first = slice[0].unwrap_start_e();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(E::Amb(inner));
                 ParseTree::StartE(self.arena.alloc(Start {
                     before: first.before,
@@ -449,10 +428,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for Ll1PrefixAmbiguityParseTreeBuilder<
                 }))
             }
             grammar::START_EXPR => {
-                let first = alternatives[0].unwrap_start_expr();
-                let inner = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_start_expr().node));
+                let first = slice[0].unwrap_start_expr();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(Expr::Amb(inner));
                 ParseTree::StartExpr(self.arena.alloc(Start {
                     before: first.before,

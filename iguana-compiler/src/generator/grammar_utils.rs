@@ -18,7 +18,7 @@ use crate::utils::{to_pascal_case, to_snake_case};
 /// the layout type is `()` when the grammar declares no layout and for the
 /// wrapper of the layout nonterminal.
 /// Regular nonterminals: `Ident<'a>`. Every generated nonterminal enum
-/// has `'a` for its `Amb(&'a [&'a Ident<'a>])` variant.
+/// has `'a` for its `Amb(&'a [ParseTree<'a>])` variant.
 pub fn nonterminal_type(grammar: &Grammar, nonterminal: &Nonterminal) -> TokenStream {
     if grammar.is_start(nonterminal) {
         let inner_ident = nonterminal

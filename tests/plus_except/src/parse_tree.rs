@@ -36,6 +36,17 @@ pub struct Start<T, L> {
     pub after: L,
     pub span: Span,
 }
+impl<T, L> Start<T, L> {
+    pub fn span(&self) -> Span {
+        self.span
+    }
+    pub fn display_name(&self) -> &'static str {
+        "Start"
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        Some(Origin::Start)
+    }
+}
 pub type StartSep<'a> = Start<&'a Sep<'a>, ()>;
 pub type StartBase<'a> = Start<&'a Base<'a>, ()>;
 #[derive(Debug, Clone, Copy)]
@@ -70,8 +81,14 @@ impl<'a> ParseTree<'a> {
             ParseTree::Base(base) => base.child(index),
             ParseTree::Plus0(plus_0) => plus_0.child(index),
             ParseTree::Plus1(plus_1) => plus_1.child(index),
-            ParseTree::StartSep(start_sep) => start_sep.child(index),
-            ParseTree::StartBase(start_base) => start_base.child(index),
+            ParseTree::StartSep(start_sep) => match index {
+                0 => Some(ParseTree::Sep(start_sep.node)),
+                _ => None,
+            },
+            ParseTree::StartBase(start_base) => match index {
+                0 => Some(ParseTree::Base(start_base.node)),
+                _ => None,
+            },
             ParseTree::Token(_) => None,
         }
     }
@@ -81,8 +98,8 @@ impl<'a> ParseTree<'a> {
             ParseTree::Base(base) => base.child_count(),
             ParseTree::Plus0(plus_0) => plus_0.child_count(),
             ParseTree::Plus1(plus_1) => plus_1.child_count(),
-            ParseTree::StartSep(start_sep) => start_sep.child_count(),
-            ParseTree::StartBase(start_base) => start_base.child_count(),
+            ParseTree::StartSep(_) => 1usize,
+            ParseTree::StartBase(_) => 1usize,
             ParseTree::Token(_) => 0,
         }
     }
@@ -193,13 +210,13 @@ pub trait OptNode {
 #[derive(Debug)]
 pub enum Sep<'a> {
     Alt0 { numbers: &'a Plus0<'a>, span: Span },
-    Amb(&'a [&'a Sep<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // Base = {Identifier ","}+
 #[derive(Debug)]
 pub enum Base<'a> {
     Alt0 { plus_1: &'a Plus1<'a>, span: Span },
-    Amb(&'a [&'a Base<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // {Number Identifier}+
 #[derive(Debug)]
@@ -216,7 +233,7 @@ pub enum Plus0<'a> {
         number: Token,
         span: Span,
     },
-    Amb(&'a [&'a Plus0<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // {Identifier ","}+
 #[derive(Debug)]
@@ -233,7 +250,7 @@ pub enum Plus1<'a> {
         identifier: Token,
         span: Span,
     },
-    Amb(&'a [&'a Plus1<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 impl<'a> Sep<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -245,7 +262,7 @@ impl<'a> Sep<'a> {
                 0 => Some(ParseTree::Plus0(numbers)),
                 _ => None,
             },
-            Sep::Amb(alts) => alts.get(index).copied().map(ParseTree::Sep),
+            Sep::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -286,7 +303,7 @@ impl<'a> Base<'a> {
                 0 => Some(ParseTree::Plus1(plus_1)),
                 _ => None,
             },
-            Base::Amb(alts) => alts.get(index).copied().map(ParseTree::Base),
+            Base::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -338,7 +355,7 @@ impl<'a> Plus0<'a> {
                 0 => Some(ParseTree::Token(*number)),
                 _ => None,
             },
-            Plus0::Amb(alts) => alts.get(index).copied().map(ParseTree::Plus0),
+            Plus0::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -398,7 +415,7 @@ impl<'a> Plus1<'a> {
                 0 => Some(ParseTree::Token(*identifier)),
                 _ => None,
             },
-            Plus1::Amb(alts) => alts.get(index).copied().map(ParseTree::Plus1),
+            Plus1::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -432,46 +449,10 @@ impl<'a> Start<&'a Sep<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartSep(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Sep(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a Base<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartBase(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Base(self.node)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        1usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 #[derive(Debug, Clone, Copy)]
@@ -506,6 +487,15 @@ pub struct PlusExceptParseTreeBuilder<'a> {
 impl<'a> PlusExceptParseTreeBuilder<'a> {
     pub fn new(tree_arena: &'a Arena) -> Self {
         Self { arena: tree_arena }
+    }
+    ///The child at `index` of each start wrapper in `alternatives`.
+    fn start_inner_alternatives(
+        &self,
+        alternatives: &[ParseTree<'a>],
+        index: usize,
+    ) -> &'a [ParseTree<'a>] {
+        self.arena
+            .alloc_slice(alternatives.iter().map(|a| a.child(index).unwrap()))
     }
 }
 impl<'a> ParseTreeBuilder<ParseTree<'a>> for PlusExceptParseTreeBuilder<'a> {
@@ -617,36 +607,15 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for PlusExceptParseTreeBuilder<'a> {
         parent: NonterminalId,
         alternatives: Vec<ParseTree<'a>>,
     ) -> ParseTree<'a> {
+        let slice = &*self.arena.alloc_slice(alternatives);
         match parent {
-            grammar::SEP => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_sep()));
-                ParseTree::Sep(self.arena.alloc(Sep::Amb(slice)))
-            }
-            grammar::BASE => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_base()));
-                ParseTree::Base(self.arena.alloc(Base::Amb(slice)))
-            }
-            grammar::PLUS_0 => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_plus_0()));
-                ParseTree::Plus0(self.arena.alloc(Plus0::Amb(slice)))
-            }
-            grammar::PLUS_1 => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_plus_1()));
-                ParseTree::Plus1(self.arena.alloc(Plus1::Amb(slice)))
-            }
+            grammar::SEP => ParseTree::Sep(self.arena.alloc(Sep::Amb(slice))),
+            grammar::BASE => ParseTree::Base(self.arena.alloc(Base::Amb(slice))),
+            grammar::PLUS_0 => ParseTree::Plus0(self.arena.alloc(Plus0::Amb(slice))),
+            grammar::PLUS_1 => ParseTree::Plus1(self.arena.alloc(Plus1::Amb(slice))),
             grammar::START_SEP => {
-                let first = alternatives[0].unwrap_start_sep();
-                let inner = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_start_sep().node));
+                let first = slice[0].unwrap_start_sep();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(Sep::Amb(inner));
                 ParseTree::StartSep(self.arena.alloc(Start {
                     before: first.before,
@@ -656,10 +625,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for PlusExceptParseTreeBuilder<'a> {
                 }))
             }
             grammar::START_BASE => {
-                let first = alternatives[0].unwrap_start_base();
-                let inner = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_start_base().node));
+                let first = slice[0].unwrap_start_base();
+                let inner = self.start_inner_alternatives(slice, 0);
                 let node = &*self.arena.alloc(Base::Amb(inner));
                 ParseTree::StartBase(self.arena.alloc(Start {
                     before: first.before,

@@ -144,6 +144,17 @@ pub struct Start<T, L> {
     pub after: L,
     pub span: Span,
 }
+impl<T, L> Start<T, L> {
+    pub fn span(&self) -> Span {
+        self.span
+    }
+    pub fn display_name(&self) -> &'static str {
+        "Start"
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        Some(Origin::Start)
+    }
+}
 pub type StartS<'a> = Start<&'a S<'a>, Token>;
 pub type StartE<'a> = Start<&'a E<'a>, Token>;
 pub type StartL<'a> = Start<&'a L<'a>, Token>;
@@ -925,185 +936,545 @@ impl<'a> ParseTree<'a> {
             ParseTree::Opt1(opt_1) => opt_1.child(index),
             ParseTree::Opt2(opt_2) => opt_2.child(index),
             ParseTree::Opt3(opt_3) => opt_3.child(index),
-            ParseTree::StartS(start_s) => start_s.child(index),
-            ParseTree::StartE(start_e) => start_e.child(index),
-            ParseTree::StartL(start_l) => start_l.child(index),
-            ParseTree::StartOnly(start_only) => start_only.child(index),
-            ParseTree::StartOnlyOperand(start_only_operand) => start_only_operand.child(index),
-            ParseTree::StartCross(start_cross) => start_cross.child(index),
-            ParseTree::StartForeign(start_foreign) => start_foreign.child(index),
-            ParseTree::StartCascade(start_cascade) => start_cascade.child(index),
-            ParseTree::StartTernary(start_ternary) => start_ternary.child(index),
-            ParseTree::StartNullable(start_nullable) => start_nullable.child(index),
-            ParseTree::StartNullableLeft(start_nullable_left) => start_nullable_left.child(index),
-            ParseTree::StartNullableRight(start_nullable_right) => {
-                start_nullable_right.child(index)
-            }
-            ParseTree::StartRightExpr(start_right_expr) => start_right_expr.child(index),
-            ParseTree::StartRightOperand(start_right_operand) => start_right_operand.child(index),
-            ParseTree::StartNoneExpr(start_none_expr) => start_none_expr.child(index),
-            ParseTree::StartNoneOperand(start_none_operand) => start_none_operand.child(index),
-            ParseTree::StartExcluded(start_excluded) => start_excluded.child(index),
-            ParseTree::StartExcludedOperand(start_excluded_operand) => {
-                start_excluded_operand.child(index)
-            }
-            ParseTree::StartFiltered(start_filtered) => start_filtered.child(index),
-            ParseTree::StartLexNullable(start_lex_nullable) => start_lex_nullable.child(index),
-            ParseTree::StartLexNullableLeft(start_lex_nullable_left) => {
-                start_lex_nullable_left.child(index)
-            }
-            ParseTree::StartLexNullableRight(start_lex_nullable_right) => {
-                start_lex_nullable_right.child(index)
-            }
-            ParseTree::StartMixedScale(start_mixed_scale) => start_mixed_scale.child(index),
-            ParseTree::StartMixedOperand(start_mixed_operand) => start_mixed_operand.child(index),
-            ParseTree::StartMixedRight(start_mixed_right) => start_mixed_right.child(index),
-            ParseTree::StartMixedForeign(start_mixed_foreign) => start_mixed_foreign.child(index),
-            ParseTree::StartPacked(start_packed) => start_packed.child(index),
-            ParseTree::StartPackedOperand(start_packed_operand) => {
-                start_packed_operand.child(index)
-            }
-            ParseTree::StartPackedMiddle(start_packed_middle) => start_packed_middle.child(index),
-            ParseTree::StartPackedFiltered(start_packed_filtered) => {
-                start_packed_filtered.child(index)
-            }
-            ParseTree::StartNullableRecursive(start_nullable_recursive) => {
-                start_nullable_recursive.child(index)
-            }
-            ParseTree::StartNullableOperand(start_nullable_operand) => {
-                start_nullable_operand.child(index)
-            }
-            ParseTree::StartNullableMaybe(start_nullable_maybe) => {
-                start_nullable_maybe.child(index)
-            }
-            ParseTree::StartNullableLexRecursive(start_nullable_lex_recursive) => {
-                start_nullable_lex_recursive.child(index)
-            }
-            ParseTree::StartNullableLexOperand(start_nullable_lex_operand) => {
-                start_nullable_lex_operand.child(index)
-            }
-            ParseTree::StartNullableLexMaybe(start_nullable_lex_maybe) => {
-                start_nullable_lex_maybe.child(index)
-            }
-            ParseTree::StartNullableSuffix(start_nullable_suffix) => {
-                start_nullable_suffix.child(index)
-            }
-            ParseTree::StartNullableSuffixOperand(start_nullable_suffix_operand) => {
-                start_nullable_suffix_operand.child(index)
-            }
-            ParseTree::StartNullableSuffixMaybe(start_nullable_suffix_maybe) => {
-                start_nullable_suffix_maybe.child(index)
-            }
-            ParseTree::StartNullableShared(start_nullable_shared) => {
-                start_nullable_shared.child(index)
-            }
-            ParseTree::StartNullableSharedOperand(start_nullable_shared_operand) => {
-                start_nullable_shared_operand.child(index)
-            }
-            ParseTree::StartNullableSharedMaybe(start_nullable_shared_maybe) => {
-                start_nullable_shared_maybe.child(index)
-            }
-            ParseTree::StartOwnLabel(start_own_label) => start_own_label.child(index),
-            ParseTree::StartOwnOperand(start_own_operand) => start_own_operand.child(index),
-            ParseTree::StartOwnHeadFiltered(start_own_head_filtered) => {
-                start_own_head_filtered.child(index)
-            }
-            ParseTree::StartExcludeOnly(start_exclude_only) => start_exclude_only.child(index),
-            ParseTree::StartExcludeOnlyFiltered(start_exclude_only_filtered) => {
-                start_exclude_only_filtered.child(index)
-            }
-            ParseTree::StartAbsent(start_absent) => start_absent.child(index),
-            ParseTree::StartAbsentOperand(start_absent_operand) => {
-                start_absent_operand.child(index)
-            }
-            ParseTree::StartClosedPrefix(start_closed_prefix) => start_closed_prefix.child(index),
-            ParseTree::StartClosedPrefixBody(start_closed_prefix_body) => {
-                start_closed_prefix_body.child(index)
-            }
-            ParseTree::StartClosedPostfix(start_closed_postfix) => {
-                start_closed_postfix.child(index)
-            }
-            ParseTree::StartClosedPostfixBody(start_closed_postfix_body) => {
-                start_closed_postfix_body.child(index)
-            }
-            ParseTree::StartHeadChoice(start_head_choice) => start_head_choice.child(index),
-            ParseTree::StartHeadOperand(start_head_operand) => start_head_operand.child(index),
-            ParseTree::StartInner(start_inner) => start_inner.child(index),
-            ParseTree::StartUnaryMixedLeft(start_unary_mixed_left) => {
-                start_unary_mixed_left.child(index)
-            }
-            ParseTree::StartUnaryMixedRight(start_unary_mixed_right) => {
-                start_unary_mixed_right.child(index)
-            }
-            ParseTree::StartUnaryMixedNone(start_unary_mixed_none) => {
-                start_unary_mixed_none.child(index)
-            }
-            ParseTree::StartDynamic(start_dynamic) => start_dynamic.child(index),
-            ParseTree::StartDynamicOperand(start_dynamic_operand) => {
-                start_dynamic_operand.child(index)
-            }
-            ParseTree::StartDynamicFiltered(start_dynamic_filtered) => {
-                start_dynamic_filtered.child(index)
-            }
-            ParseTree::StartDynamicHeadFiltered(start_dynamic_head_filtered) => {
-                start_dynamic_head_filtered.child(index)
-            }
-            ParseTree::StartDynamicMulti(start_dynamic_multi) => start_dynamic_multi.child(index),
-            ParseTree::StartDynamicMultiOperand(start_dynamic_multi_operand) => {
-                start_dynamic_multi_operand.child(index)
-            }
-            ParseTree::StartNullableBoundaryPrefix(start_nullable_boundary_prefix) => {
-                start_nullable_boundary_prefix.child(index)
-            }
-            ParseTree::StartNullableBoundaryRight(start_nullable_boundary_right) => {
-                start_nullable_boundary_right.child(index)
-            }
-            ParseTree::StartNullableBoundaryOpt(start_nullable_boundary_opt) => {
-                start_nullable_boundary_opt.child(index)
-            }
-            ParseTree::StartNullableBoundaryPostfix(start_nullable_boundary_postfix) => {
-                start_nullable_boundary_postfix.child(index)
-            }
-            ParseTree::StartNullableBoundaryLeft(start_nullable_boundary_left) => {
-                start_nullable_boundary_left.child(index)
-            }
-            ParseTree::StartNullableBoundaryBinary(start_nullable_boundary_binary) => {
-                start_nullable_boundary_binary.child(index)
-            }
-            ParseTree::StartNullableBoundaryOperand(start_nullable_boundary_operand) => {
-                start_nullable_boundary_operand.child(index)
-            }
-            ParseTree::StartClosedLeftAssoc(start_closed_left_assoc) => {
-                start_closed_left_assoc.child(index)
-            }
-            ParseTree::StartClosedLeftOperand(start_closed_left_operand) => {
-                start_closed_left_operand.child(index)
-            }
-            ParseTree::StartClosedRightAssoc(start_closed_right_assoc) => {
-                start_closed_right_assoc.child(index)
-            }
-            ParseTree::StartClosedRightOperand(start_closed_right_operand) => {
-                start_closed_right_operand.child(index)
-            }
-            ParseTree::StartIndirectExclude(start_indirect_exclude) => {
-                start_indirect_exclude.child(index)
-            }
-            ParseTree::StartIndirectExcludeOperand(start_indirect_exclude_operand) => {
-                start_indirect_exclude_operand.child(index)
-            }
-            ParseTree::StartIndirectExcludeFiltered(start_indirect_exclude_filtered) => {
-                start_indirect_exclude_filtered.child(index)
-            }
-            ParseTree::StartOperandLiteral(start_operand_literal) => {
-                start_operand_literal.child(index)
-            }
-            ParseTree::StartOperandLiteralEnd(start_operand_literal_end) => {
-                start_operand_literal_end.child(index)
-            }
-            ParseTree::StartHeadLiteral(start_head_literal) => start_head_literal.child(index),
-            ParseTree::StartHeadLiteralEnd(start_head_literal_end) => {
-                start_head_literal_end.child(index)
-            }
+            ParseTree::StartS(start_s) => match index {
+                0 => Some(ParseTree::Token(start_s.before)),
+                1 => Some(ParseTree::S(start_s.node)),
+                2 => Some(ParseTree::Token(start_s.after)),
+                _ => None,
+            },
+            ParseTree::StartE(start_e) => match index {
+                0 => Some(ParseTree::Token(start_e.before)),
+                1 => Some(ParseTree::E(start_e.node)),
+                2 => Some(ParseTree::Token(start_e.after)),
+                _ => None,
+            },
+            ParseTree::StartL(start_l) => match index {
+                0 => Some(ParseTree::Token(start_l.before)),
+                1 => Some(ParseTree::L(start_l.node)),
+                2 => Some(ParseTree::Token(start_l.after)),
+                _ => None,
+            },
+            ParseTree::StartOnly(start_only) => match index {
+                0 => Some(ParseTree::Token(start_only.before)),
+                1 => Some(ParseTree::Only(start_only.node)),
+                2 => Some(ParseTree::Token(start_only.after)),
+                _ => None,
+            },
+            ParseTree::StartOnlyOperand(start_only_operand) => match index {
+                0 => Some(ParseTree::Token(start_only_operand.before)),
+                1 => Some(ParseTree::OnlyOperand(start_only_operand.node)),
+                2 => Some(ParseTree::Token(start_only_operand.after)),
+                _ => None,
+            },
+            ParseTree::StartCross(start_cross) => match index {
+                0 => Some(ParseTree::Token(start_cross.before)),
+                1 => Some(ParseTree::Cross(start_cross.node)),
+                2 => Some(ParseTree::Token(start_cross.after)),
+                _ => None,
+            },
+            ParseTree::StartForeign(start_foreign) => match index {
+                0 => Some(ParseTree::Token(start_foreign.before)),
+                1 => Some(ParseTree::Foreign(start_foreign.node)),
+                2 => Some(ParseTree::Token(start_foreign.after)),
+                _ => None,
+            },
+            ParseTree::StartCascade(start_cascade) => match index {
+                0 => Some(ParseTree::Token(start_cascade.before)),
+                1 => Some(ParseTree::Cascade(start_cascade.node)),
+                2 => Some(ParseTree::Token(start_cascade.after)),
+                _ => None,
+            },
+            ParseTree::StartTernary(start_ternary) => match index {
+                0 => Some(ParseTree::Token(start_ternary.before)),
+                1 => Some(ParseTree::Ternary(start_ternary.node)),
+                2 => Some(ParseTree::Token(start_ternary.after)),
+                _ => None,
+            },
+            ParseTree::StartNullable(start_nullable) => match index {
+                0 => Some(ParseTree::Token(start_nullable.before)),
+                1 => Some(ParseTree::Nullable(start_nullable.node)),
+                2 => Some(ParseTree::Token(start_nullable.after)),
+                _ => None,
+            },
+            ParseTree::StartNullableLeft(start_nullable_left) => match index {
+                0 => Some(ParseTree::Token(start_nullable_left.before)),
+                1 => Some(ParseTree::NullableLeft(start_nullable_left.node)),
+                2 => Some(ParseTree::Token(start_nullable_left.after)),
+                _ => None,
+            },
+            ParseTree::StartNullableRight(start_nullable_right) => match index {
+                0 => Some(ParseTree::Token(start_nullable_right.before)),
+                1 => Some(ParseTree::NullableRight(start_nullable_right.node)),
+                2 => Some(ParseTree::Token(start_nullable_right.after)),
+                _ => None,
+            },
+            ParseTree::StartRightExpr(start_right_expr) => match index {
+                0 => Some(ParseTree::Token(start_right_expr.before)),
+                1 => Some(ParseTree::RightExpr(start_right_expr.node)),
+                2 => Some(ParseTree::Token(start_right_expr.after)),
+                _ => None,
+            },
+            ParseTree::StartRightOperand(start_right_operand) => match index {
+                0 => Some(ParseTree::Token(start_right_operand.before)),
+                1 => Some(ParseTree::RightOperand(start_right_operand.node)),
+                2 => Some(ParseTree::Token(start_right_operand.after)),
+                _ => None,
+            },
+            ParseTree::StartNoneExpr(start_none_expr) => match index {
+                0 => Some(ParseTree::Token(start_none_expr.before)),
+                1 => Some(ParseTree::NoneExpr(start_none_expr.node)),
+                2 => Some(ParseTree::Token(start_none_expr.after)),
+                _ => None,
+            },
+            ParseTree::StartNoneOperand(start_none_operand) => match index {
+                0 => Some(ParseTree::Token(start_none_operand.before)),
+                1 => Some(ParseTree::NoneOperand(start_none_operand.node)),
+                2 => Some(ParseTree::Token(start_none_operand.after)),
+                _ => None,
+            },
+            ParseTree::StartExcluded(start_excluded) => match index {
+                0 => Some(ParseTree::Token(start_excluded.before)),
+                1 => Some(ParseTree::Excluded(start_excluded.node)),
+                2 => Some(ParseTree::Token(start_excluded.after)),
+                _ => None,
+            },
+            ParseTree::StartExcludedOperand(start_excluded_operand) => match index {
+                0 => Some(ParseTree::Token(start_excluded_operand.before)),
+                1 => Some(ParseTree::ExcludedOperand(start_excluded_operand.node)),
+                2 => Some(ParseTree::Token(start_excluded_operand.after)),
+                _ => None,
+            },
+            ParseTree::StartFiltered(start_filtered) => match index {
+                0 => Some(ParseTree::Token(start_filtered.before)),
+                1 => Some(ParseTree::Filtered(start_filtered.node)),
+                2 => Some(ParseTree::Token(start_filtered.after)),
+                _ => None,
+            },
+            ParseTree::StartLexNullable(start_lex_nullable) => match index {
+                0 => Some(ParseTree::Token(start_lex_nullable.before)),
+                1 => Some(ParseTree::LexNullable(start_lex_nullable.node)),
+                2 => Some(ParseTree::Token(start_lex_nullable.after)),
+                _ => None,
+            },
+            ParseTree::StartLexNullableLeft(start_lex_nullable_left) => match index {
+                0 => Some(ParseTree::Token(start_lex_nullable_left.before)),
+                1 => Some(ParseTree::LexNullableLeft(start_lex_nullable_left.node)),
+                2 => Some(ParseTree::Token(start_lex_nullable_left.after)),
+                _ => None,
+            },
+            ParseTree::StartLexNullableRight(start_lex_nullable_right) => match index {
+                0 => Some(ParseTree::Token(start_lex_nullable_right.before)),
+                1 => Some(ParseTree::LexNullableRight(start_lex_nullable_right.node)),
+                2 => Some(ParseTree::Token(start_lex_nullable_right.after)),
+                _ => None,
+            },
+            ParseTree::StartMixedScale(start_mixed_scale) => match index {
+                0 => Some(ParseTree::Token(start_mixed_scale.before)),
+                1 => Some(ParseTree::MixedScale(start_mixed_scale.node)),
+                2 => Some(ParseTree::Token(start_mixed_scale.after)),
+                _ => None,
+            },
+            ParseTree::StartMixedOperand(start_mixed_operand) => match index {
+                0 => Some(ParseTree::Token(start_mixed_operand.before)),
+                1 => Some(ParseTree::MixedOperand(start_mixed_operand.node)),
+                2 => Some(ParseTree::Token(start_mixed_operand.after)),
+                _ => None,
+            },
+            ParseTree::StartMixedRight(start_mixed_right) => match index {
+                0 => Some(ParseTree::Token(start_mixed_right.before)),
+                1 => Some(ParseTree::MixedRight(start_mixed_right.node)),
+                2 => Some(ParseTree::Token(start_mixed_right.after)),
+                _ => None,
+            },
+            ParseTree::StartMixedForeign(start_mixed_foreign) => match index {
+                0 => Some(ParseTree::Token(start_mixed_foreign.before)),
+                1 => Some(ParseTree::MixedForeign(start_mixed_foreign.node)),
+                2 => Some(ParseTree::Token(start_mixed_foreign.after)),
+                _ => None,
+            },
+            ParseTree::StartPacked(start_packed) => match index {
+                0 => Some(ParseTree::Token(start_packed.before)),
+                1 => Some(ParseTree::Packed(start_packed.node)),
+                2 => Some(ParseTree::Token(start_packed.after)),
+                _ => None,
+            },
+            ParseTree::StartPackedOperand(start_packed_operand) => match index {
+                0 => Some(ParseTree::Token(start_packed_operand.before)),
+                1 => Some(ParseTree::PackedOperand(start_packed_operand.node)),
+                2 => Some(ParseTree::Token(start_packed_operand.after)),
+                _ => None,
+            },
+            ParseTree::StartPackedMiddle(start_packed_middle) => match index {
+                0 => Some(ParseTree::Token(start_packed_middle.before)),
+                1 => Some(ParseTree::PackedMiddle(start_packed_middle.node)),
+                2 => Some(ParseTree::Token(start_packed_middle.after)),
+                _ => None,
+            },
+            ParseTree::StartPackedFiltered(start_packed_filtered) => match index {
+                0 => Some(ParseTree::Token(start_packed_filtered.before)),
+                1 => Some(ParseTree::PackedFiltered(start_packed_filtered.node)),
+                2 => Some(ParseTree::Token(start_packed_filtered.after)),
+                _ => None,
+            },
+            ParseTree::StartNullableRecursive(start_nullable_recursive) => match index {
+                0 => Some(ParseTree::Token(start_nullable_recursive.before)),
+                1 => Some(ParseTree::NullableRecursive(start_nullable_recursive.node)),
+                2 => Some(ParseTree::Token(start_nullable_recursive.after)),
+                _ => None,
+            },
+            ParseTree::StartNullableOperand(start_nullable_operand) => match index {
+                0 => Some(ParseTree::Token(start_nullable_operand.before)),
+                1 => Some(ParseTree::NullableOperand(start_nullable_operand.node)),
+                2 => Some(ParseTree::Token(start_nullable_operand.after)),
+                _ => None,
+            },
+            ParseTree::StartNullableMaybe(start_nullable_maybe) => match index {
+                0 => Some(ParseTree::Token(start_nullable_maybe.before)),
+                1 => Some(ParseTree::NullableMaybe(start_nullable_maybe.node)),
+                2 => Some(ParseTree::Token(start_nullable_maybe.after)),
+                _ => None,
+            },
+            ParseTree::StartNullableLexRecursive(start_nullable_lex_recursive) => match index {
+                0 => Some(ParseTree::Token(start_nullable_lex_recursive.before)),
+                1 => Some(ParseTree::NullableLexRecursive(
+                    start_nullable_lex_recursive.node,
+                )),
+                2 => Some(ParseTree::Token(start_nullable_lex_recursive.after)),
+                _ => None,
+            },
+            ParseTree::StartNullableLexOperand(start_nullable_lex_operand) => match index {
+                0 => Some(ParseTree::Token(start_nullable_lex_operand.before)),
+                1 => Some(ParseTree::NullableLexOperand(
+                    start_nullable_lex_operand.node,
+                )),
+                2 => Some(ParseTree::Token(start_nullable_lex_operand.after)),
+                _ => None,
+            },
+            ParseTree::StartNullableLexMaybe(start_nullable_lex_maybe) => match index {
+                0 => Some(ParseTree::Token(start_nullable_lex_maybe.before)),
+                1 => Some(ParseTree::NullableLexMaybe(start_nullable_lex_maybe.node)),
+                2 => Some(ParseTree::Token(start_nullable_lex_maybe.after)),
+                _ => None,
+            },
+            ParseTree::StartNullableSuffix(start_nullable_suffix) => match index {
+                0 => Some(ParseTree::Token(start_nullable_suffix.before)),
+                1 => Some(ParseTree::NullableSuffix(start_nullable_suffix.node)),
+                2 => Some(ParseTree::Token(start_nullable_suffix.after)),
+                _ => None,
+            },
+            ParseTree::StartNullableSuffixOperand(start_nullable_suffix_operand) => match index {
+                0 => Some(ParseTree::Token(start_nullable_suffix_operand.before)),
+                1 => Some(ParseTree::NullableSuffixOperand(
+                    start_nullable_suffix_operand.node,
+                )),
+                2 => Some(ParseTree::Token(start_nullable_suffix_operand.after)),
+                _ => None,
+            },
+            ParseTree::StartNullableSuffixMaybe(start_nullable_suffix_maybe) => match index {
+                0 => Some(ParseTree::Token(start_nullable_suffix_maybe.before)),
+                1 => Some(ParseTree::NullableSuffixMaybe(
+                    start_nullable_suffix_maybe.node,
+                )),
+                2 => Some(ParseTree::Token(start_nullable_suffix_maybe.after)),
+                _ => None,
+            },
+            ParseTree::StartNullableShared(start_nullable_shared) => match index {
+                0 => Some(ParseTree::Token(start_nullable_shared.before)),
+                1 => Some(ParseTree::NullableShared(start_nullable_shared.node)),
+                2 => Some(ParseTree::Token(start_nullable_shared.after)),
+                _ => None,
+            },
+            ParseTree::StartNullableSharedOperand(start_nullable_shared_operand) => match index {
+                0 => Some(ParseTree::Token(start_nullable_shared_operand.before)),
+                1 => Some(ParseTree::NullableSharedOperand(
+                    start_nullable_shared_operand.node,
+                )),
+                2 => Some(ParseTree::Token(start_nullable_shared_operand.after)),
+                _ => None,
+            },
+            ParseTree::StartNullableSharedMaybe(start_nullable_shared_maybe) => match index {
+                0 => Some(ParseTree::Token(start_nullable_shared_maybe.before)),
+                1 => Some(ParseTree::NullableSharedMaybe(
+                    start_nullable_shared_maybe.node,
+                )),
+                2 => Some(ParseTree::Token(start_nullable_shared_maybe.after)),
+                _ => None,
+            },
+            ParseTree::StartOwnLabel(start_own_label) => match index {
+                0 => Some(ParseTree::Token(start_own_label.before)),
+                1 => Some(ParseTree::OwnLabel(start_own_label.node)),
+                2 => Some(ParseTree::Token(start_own_label.after)),
+                _ => None,
+            },
+            ParseTree::StartOwnOperand(start_own_operand) => match index {
+                0 => Some(ParseTree::Token(start_own_operand.before)),
+                1 => Some(ParseTree::OwnOperand(start_own_operand.node)),
+                2 => Some(ParseTree::Token(start_own_operand.after)),
+                _ => None,
+            },
+            ParseTree::StartOwnHeadFiltered(start_own_head_filtered) => match index {
+                0 => Some(ParseTree::Token(start_own_head_filtered.before)),
+                1 => Some(ParseTree::OwnHeadFiltered(start_own_head_filtered.node)),
+                2 => Some(ParseTree::Token(start_own_head_filtered.after)),
+                _ => None,
+            },
+            ParseTree::StartExcludeOnly(start_exclude_only) => match index {
+                0 => Some(ParseTree::Token(start_exclude_only.before)),
+                1 => Some(ParseTree::ExcludeOnly(start_exclude_only.node)),
+                2 => Some(ParseTree::Token(start_exclude_only.after)),
+                _ => None,
+            },
+            ParseTree::StartExcludeOnlyFiltered(start_exclude_only_filtered) => match index {
+                0 => Some(ParseTree::Token(start_exclude_only_filtered.before)),
+                1 => Some(ParseTree::ExcludeOnlyFiltered(
+                    start_exclude_only_filtered.node,
+                )),
+                2 => Some(ParseTree::Token(start_exclude_only_filtered.after)),
+                _ => None,
+            },
+            ParseTree::StartAbsent(start_absent) => match index {
+                0 => Some(ParseTree::Token(start_absent.before)),
+                1 => Some(ParseTree::Absent(start_absent.node)),
+                2 => Some(ParseTree::Token(start_absent.after)),
+                _ => None,
+            },
+            ParseTree::StartAbsentOperand(start_absent_operand) => match index {
+                0 => Some(ParseTree::Token(start_absent_operand.before)),
+                1 => Some(ParseTree::AbsentOperand(start_absent_operand.node)),
+                2 => Some(ParseTree::Token(start_absent_operand.after)),
+                _ => None,
+            },
+            ParseTree::StartClosedPrefix(start_closed_prefix) => match index {
+                0 => Some(ParseTree::Token(start_closed_prefix.before)),
+                1 => Some(ParseTree::ClosedPrefix(start_closed_prefix.node)),
+                2 => Some(ParseTree::Token(start_closed_prefix.after)),
+                _ => None,
+            },
+            ParseTree::StartClosedPrefixBody(start_closed_prefix_body) => match index {
+                0 => Some(ParseTree::Token(start_closed_prefix_body.before)),
+                1 => Some(ParseTree::ClosedPrefixBody(start_closed_prefix_body.node)),
+                2 => Some(ParseTree::Token(start_closed_prefix_body.after)),
+                _ => None,
+            },
+            ParseTree::StartClosedPostfix(start_closed_postfix) => match index {
+                0 => Some(ParseTree::Token(start_closed_postfix.before)),
+                1 => Some(ParseTree::ClosedPostfix(start_closed_postfix.node)),
+                2 => Some(ParseTree::Token(start_closed_postfix.after)),
+                _ => None,
+            },
+            ParseTree::StartClosedPostfixBody(start_closed_postfix_body) => match index {
+                0 => Some(ParseTree::Token(start_closed_postfix_body.before)),
+                1 => Some(ParseTree::ClosedPostfixBody(start_closed_postfix_body.node)),
+                2 => Some(ParseTree::Token(start_closed_postfix_body.after)),
+                _ => None,
+            },
+            ParseTree::StartHeadChoice(start_head_choice) => match index {
+                0 => Some(ParseTree::Token(start_head_choice.before)),
+                1 => Some(ParseTree::HeadChoice(start_head_choice.node)),
+                2 => Some(ParseTree::Token(start_head_choice.after)),
+                _ => None,
+            },
+            ParseTree::StartHeadOperand(start_head_operand) => match index {
+                0 => Some(ParseTree::Token(start_head_operand.before)),
+                1 => Some(ParseTree::HeadOperand(start_head_operand.node)),
+                2 => Some(ParseTree::Token(start_head_operand.after)),
+                _ => None,
+            },
+            ParseTree::StartInner(start_inner) => match index {
+                0 => Some(ParseTree::Token(start_inner.before)),
+                1 => Some(ParseTree::Inner(start_inner.node)),
+                2 => Some(ParseTree::Token(start_inner.after)),
+                _ => None,
+            },
+            ParseTree::StartUnaryMixedLeft(start_unary_mixed_left) => match index {
+                0 => Some(ParseTree::Token(start_unary_mixed_left.before)),
+                1 => Some(ParseTree::UnaryMixedLeft(start_unary_mixed_left.node)),
+                2 => Some(ParseTree::Token(start_unary_mixed_left.after)),
+                _ => None,
+            },
+            ParseTree::StartUnaryMixedRight(start_unary_mixed_right) => match index {
+                0 => Some(ParseTree::Token(start_unary_mixed_right.before)),
+                1 => Some(ParseTree::UnaryMixedRight(start_unary_mixed_right.node)),
+                2 => Some(ParseTree::Token(start_unary_mixed_right.after)),
+                _ => None,
+            },
+            ParseTree::StartUnaryMixedNone(start_unary_mixed_none) => match index {
+                0 => Some(ParseTree::Token(start_unary_mixed_none.before)),
+                1 => Some(ParseTree::UnaryMixedNone(start_unary_mixed_none.node)),
+                2 => Some(ParseTree::Token(start_unary_mixed_none.after)),
+                _ => None,
+            },
+            ParseTree::StartDynamic(start_dynamic) => match index {
+                0 => Some(ParseTree::Token(start_dynamic.before)),
+                1 => Some(ParseTree::Dynamic(start_dynamic.node)),
+                2 => Some(ParseTree::Token(start_dynamic.after)),
+                _ => None,
+            },
+            ParseTree::StartDynamicOperand(start_dynamic_operand) => match index {
+                0 => Some(ParseTree::Token(start_dynamic_operand.before)),
+                1 => Some(ParseTree::DynamicOperand(start_dynamic_operand.node)),
+                2 => Some(ParseTree::Token(start_dynamic_operand.after)),
+                _ => None,
+            },
+            ParseTree::StartDynamicFiltered(start_dynamic_filtered) => match index {
+                0 => Some(ParseTree::Token(start_dynamic_filtered.before)),
+                1 => Some(ParseTree::DynamicFiltered(start_dynamic_filtered.node)),
+                2 => Some(ParseTree::Token(start_dynamic_filtered.after)),
+                _ => None,
+            },
+            ParseTree::StartDynamicHeadFiltered(start_dynamic_head_filtered) => match index {
+                0 => Some(ParseTree::Token(start_dynamic_head_filtered.before)),
+                1 => Some(ParseTree::DynamicHeadFiltered(
+                    start_dynamic_head_filtered.node,
+                )),
+                2 => Some(ParseTree::Token(start_dynamic_head_filtered.after)),
+                _ => None,
+            },
+            ParseTree::StartDynamicMulti(start_dynamic_multi) => match index {
+                0 => Some(ParseTree::Token(start_dynamic_multi.before)),
+                1 => Some(ParseTree::DynamicMulti(start_dynamic_multi.node)),
+                2 => Some(ParseTree::Token(start_dynamic_multi.after)),
+                _ => None,
+            },
+            ParseTree::StartDynamicMultiOperand(start_dynamic_multi_operand) => match index {
+                0 => Some(ParseTree::Token(start_dynamic_multi_operand.before)),
+                1 => Some(ParseTree::DynamicMultiOperand(
+                    start_dynamic_multi_operand.node,
+                )),
+                2 => Some(ParseTree::Token(start_dynamic_multi_operand.after)),
+                _ => None,
+            },
+            ParseTree::StartNullableBoundaryPrefix(start_nullable_boundary_prefix) => match index {
+                0 => Some(ParseTree::Token(start_nullable_boundary_prefix.before)),
+                1 => Some(ParseTree::NullableBoundaryPrefix(
+                    start_nullable_boundary_prefix.node,
+                )),
+                2 => Some(ParseTree::Token(start_nullable_boundary_prefix.after)),
+                _ => None,
+            },
+            ParseTree::StartNullableBoundaryRight(start_nullable_boundary_right) => match index {
+                0 => Some(ParseTree::Token(start_nullable_boundary_right.before)),
+                1 => Some(ParseTree::NullableBoundaryRight(
+                    start_nullable_boundary_right.node,
+                )),
+                2 => Some(ParseTree::Token(start_nullable_boundary_right.after)),
+                _ => None,
+            },
+            ParseTree::StartNullableBoundaryOpt(start_nullable_boundary_opt) => match index {
+                0 => Some(ParseTree::Token(start_nullable_boundary_opt.before)),
+                1 => Some(ParseTree::NullableBoundaryOpt(
+                    start_nullable_boundary_opt.node,
+                )),
+                2 => Some(ParseTree::Token(start_nullable_boundary_opt.after)),
+                _ => None,
+            },
+            ParseTree::StartNullableBoundaryPostfix(start_nullable_boundary_postfix) => match index
+            {
+                0 => Some(ParseTree::Token(start_nullable_boundary_postfix.before)),
+                1 => Some(ParseTree::NullableBoundaryPostfix(
+                    start_nullable_boundary_postfix.node,
+                )),
+                2 => Some(ParseTree::Token(start_nullable_boundary_postfix.after)),
+                _ => None,
+            },
+            ParseTree::StartNullableBoundaryLeft(start_nullable_boundary_left) => match index {
+                0 => Some(ParseTree::Token(start_nullable_boundary_left.before)),
+                1 => Some(ParseTree::NullableBoundaryLeft(
+                    start_nullable_boundary_left.node,
+                )),
+                2 => Some(ParseTree::Token(start_nullable_boundary_left.after)),
+                _ => None,
+            },
+            ParseTree::StartNullableBoundaryBinary(start_nullable_boundary_binary) => match index {
+                0 => Some(ParseTree::Token(start_nullable_boundary_binary.before)),
+                1 => Some(ParseTree::NullableBoundaryBinary(
+                    start_nullable_boundary_binary.node,
+                )),
+                2 => Some(ParseTree::Token(start_nullable_boundary_binary.after)),
+                _ => None,
+            },
+            ParseTree::StartNullableBoundaryOperand(start_nullable_boundary_operand) => match index
+            {
+                0 => Some(ParseTree::Token(start_nullable_boundary_operand.before)),
+                1 => Some(ParseTree::NullableBoundaryOperand(
+                    start_nullable_boundary_operand.node,
+                )),
+                2 => Some(ParseTree::Token(start_nullable_boundary_operand.after)),
+                _ => None,
+            },
+            ParseTree::StartClosedLeftAssoc(start_closed_left_assoc) => match index {
+                0 => Some(ParseTree::Token(start_closed_left_assoc.before)),
+                1 => Some(ParseTree::ClosedLeftAssoc(start_closed_left_assoc.node)),
+                2 => Some(ParseTree::Token(start_closed_left_assoc.after)),
+                _ => None,
+            },
+            ParseTree::StartClosedLeftOperand(start_closed_left_operand) => match index {
+                0 => Some(ParseTree::Token(start_closed_left_operand.before)),
+                1 => Some(ParseTree::ClosedLeftOperand(start_closed_left_operand.node)),
+                2 => Some(ParseTree::Token(start_closed_left_operand.after)),
+                _ => None,
+            },
+            ParseTree::StartClosedRightAssoc(start_closed_right_assoc) => match index {
+                0 => Some(ParseTree::Token(start_closed_right_assoc.before)),
+                1 => Some(ParseTree::ClosedRightAssoc(start_closed_right_assoc.node)),
+                2 => Some(ParseTree::Token(start_closed_right_assoc.after)),
+                _ => None,
+            },
+            ParseTree::StartClosedRightOperand(start_closed_right_operand) => match index {
+                0 => Some(ParseTree::Token(start_closed_right_operand.before)),
+                1 => Some(ParseTree::ClosedRightOperand(
+                    start_closed_right_operand.node,
+                )),
+                2 => Some(ParseTree::Token(start_closed_right_operand.after)),
+                _ => None,
+            },
+            ParseTree::StartIndirectExclude(start_indirect_exclude) => match index {
+                0 => Some(ParseTree::Token(start_indirect_exclude.before)),
+                1 => Some(ParseTree::IndirectExclude(start_indirect_exclude.node)),
+                2 => Some(ParseTree::Token(start_indirect_exclude.after)),
+                _ => None,
+            },
+            ParseTree::StartIndirectExcludeOperand(start_indirect_exclude_operand) => match index {
+                0 => Some(ParseTree::Token(start_indirect_exclude_operand.before)),
+                1 => Some(ParseTree::IndirectExcludeOperand(
+                    start_indirect_exclude_operand.node,
+                )),
+                2 => Some(ParseTree::Token(start_indirect_exclude_operand.after)),
+                _ => None,
+            },
+            ParseTree::StartIndirectExcludeFiltered(start_indirect_exclude_filtered) => match index
+            {
+                0 => Some(ParseTree::Token(start_indirect_exclude_filtered.before)),
+                1 => Some(ParseTree::IndirectExcludeFiltered(
+                    start_indirect_exclude_filtered.node,
+                )),
+                2 => Some(ParseTree::Token(start_indirect_exclude_filtered.after)),
+                _ => None,
+            },
+            ParseTree::StartOperandLiteral(start_operand_literal) => match index {
+                0 => Some(ParseTree::Token(start_operand_literal.before)),
+                1 => Some(ParseTree::OperandLiteral(start_operand_literal.node)),
+                2 => Some(ParseTree::Token(start_operand_literal.after)),
+                _ => None,
+            },
+            ParseTree::StartOperandLiteralEnd(start_operand_literal_end) => match index {
+                0 => Some(ParseTree::Token(start_operand_literal_end.before)),
+                1 => Some(ParseTree::OperandLiteralEnd(start_operand_literal_end.node)),
+                2 => Some(ParseTree::Token(start_operand_literal_end.after)),
+                _ => None,
+            },
+            ParseTree::StartHeadLiteral(start_head_literal) => match index {
+                0 => Some(ParseTree::Token(start_head_literal.before)),
+                1 => Some(ParseTree::HeadLiteral(start_head_literal.node)),
+                2 => Some(ParseTree::Token(start_head_literal.after)),
+                _ => None,
+            },
+            ParseTree::StartHeadLiteralEnd(start_head_literal_end) => match index {
+                0 => Some(ParseTree::Token(start_head_literal_end.before)),
+                1 => Some(ParseTree::HeadLiteralEnd(start_head_literal_end.node)),
+                2 => Some(ParseTree::Token(start_head_literal_end.after)),
+                _ => None,
+            },
             ParseTree::Token(_) => None,
         }
     }
@@ -1234,185 +1605,89 @@ impl<'a> ParseTree<'a> {
             ParseTree::Opt1(opt_1) => opt_1.child_count(),
             ParseTree::Opt2(opt_2) => opt_2.child_count(),
             ParseTree::Opt3(opt_3) => opt_3.child_count(),
-            ParseTree::StartS(start_s) => start_s.child_count(),
-            ParseTree::StartE(start_e) => start_e.child_count(),
-            ParseTree::StartL(start_l) => start_l.child_count(),
-            ParseTree::StartOnly(start_only) => start_only.child_count(),
-            ParseTree::StartOnlyOperand(start_only_operand) => start_only_operand.child_count(),
-            ParseTree::StartCross(start_cross) => start_cross.child_count(),
-            ParseTree::StartForeign(start_foreign) => start_foreign.child_count(),
-            ParseTree::StartCascade(start_cascade) => start_cascade.child_count(),
-            ParseTree::StartTernary(start_ternary) => start_ternary.child_count(),
-            ParseTree::StartNullable(start_nullable) => start_nullable.child_count(),
-            ParseTree::StartNullableLeft(start_nullable_left) => start_nullable_left.child_count(),
-            ParseTree::StartNullableRight(start_nullable_right) => {
-                start_nullable_right.child_count()
-            }
-            ParseTree::StartRightExpr(start_right_expr) => start_right_expr.child_count(),
-            ParseTree::StartRightOperand(start_right_operand) => start_right_operand.child_count(),
-            ParseTree::StartNoneExpr(start_none_expr) => start_none_expr.child_count(),
-            ParseTree::StartNoneOperand(start_none_operand) => start_none_operand.child_count(),
-            ParseTree::StartExcluded(start_excluded) => start_excluded.child_count(),
-            ParseTree::StartExcludedOperand(start_excluded_operand) => {
-                start_excluded_operand.child_count()
-            }
-            ParseTree::StartFiltered(start_filtered) => start_filtered.child_count(),
-            ParseTree::StartLexNullable(start_lex_nullable) => start_lex_nullable.child_count(),
-            ParseTree::StartLexNullableLeft(start_lex_nullable_left) => {
-                start_lex_nullable_left.child_count()
-            }
-            ParseTree::StartLexNullableRight(start_lex_nullable_right) => {
-                start_lex_nullable_right.child_count()
-            }
-            ParseTree::StartMixedScale(start_mixed_scale) => start_mixed_scale.child_count(),
-            ParseTree::StartMixedOperand(start_mixed_operand) => start_mixed_operand.child_count(),
-            ParseTree::StartMixedRight(start_mixed_right) => start_mixed_right.child_count(),
-            ParseTree::StartMixedForeign(start_mixed_foreign) => start_mixed_foreign.child_count(),
-            ParseTree::StartPacked(start_packed) => start_packed.child_count(),
-            ParseTree::StartPackedOperand(start_packed_operand) => {
-                start_packed_operand.child_count()
-            }
-            ParseTree::StartPackedMiddle(start_packed_middle) => start_packed_middle.child_count(),
-            ParseTree::StartPackedFiltered(start_packed_filtered) => {
-                start_packed_filtered.child_count()
-            }
-            ParseTree::StartNullableRecursive(start_nullable_recursive) => {
-                start_nullable_recursive.child_count()
-            }
-            ParseTree::StartNullableOperand(start_nullable_operand) => {
-                start_nullable_operand.child_count()
-            }
-            ParseTree::StartNullableMaybe(start_nullable_maybe) => {
-                start_nullable_maybe.child_count()
-            }
-            ParseTree::StartNullableLexRecursive(start_nullable_lex_recursive) => {
-                start_nullable_lex_recursive.child_count()
-            }
-            ParseTree::StartNullableLexOperand(start_nullable_lex_operand) => {
-                start_nullable_lex_operand.child_count()
-            }
-            ParseTree::StartNullableLexMaybe(start_nullable_lex_maybe) => {
-                start_nullable_lex_maybe.child_count()
-            }
-            ParseTree::StartNullableSuffix(start_nullable_suffix) => {
-                start_nullable_suffix.child_count()
-            }
-            ParseTree::StartNullableSuffixOperand(start_nullable_suffix_operand) => {
-                start_nullable_suffix_operand.child_count()
-            }
-            ParseTree::StartNullableSuffixMaybe(start_nullable_suffix_maybe) => {
-                start_nullable_suffix_maybe.child_count()
-            }
-            ParseTree::StartNullableShared(start_nullable_shared) => {
-                start_nullable_shared.child_count()
-            }
-            ParseTree::StartNullableSharedOperand(start_nullable_shared_operand) => {
-                start_nullable_shared_operand.child_count()
-            }
-            ParseTree::StartNullableSharedMaybe(start_nullable_shared_maybe) => {
-                start_nullable_shared_maybe.child_count()
-            }
-            ParseTree::StartOwnLabel(start_own_label) => start_own_label.child_count(),
-            ParseTree::StartOwnOperand(start_own_operand) => start_own_operand.child_count(),
-            ParseTree::StartOwnHeadFiltered(start_own_head_filtered) => {
-                start_own_head_filtered.child_count()
-            }
-            ParseTree::StartExcludeOnly(start_exclude_only) => start_exclude_only.child_count(),
-            ParseTree::StartExcludeOnlyFiltered(start_exclude_only_filtered) => {
-                start_exclude_only_filtered.child_count()
-            }
-            ParseTree::StartAbsent(start_absent) => start_absent.child_count(),
-            ParseTree::StartAbsentOperand(start_absent_operand) => {
-                start_absent_operand.child_count()
-            }
-            ParseTree::StartClosedPrefix(start_closed_prefix) => start_closed_prefix.child_count(),
-            ParseTree::StartClosedPrefixBody(start_closed_prefix_body) => {
-                start_closed_prefix_body.child_count()
-            }
-            ParseTree::StartClosedPostfix(start_closed_postfix) => {
-                start_closed_postfix.child_count()
-            }
-            ParseTree::StartClosedPostfixBody(start_closed_postfix_body) => {
-                start_closed_postfix_body.child_count()
-            }
-            ParseTree::StartHeadChoice(start_head_choice) => start_head_choice.child_count(),
-            ParseTree::StartHeadOperand(start_head_operand) => start_head_operand.child_count(),
-            ParseTree::StartInner(start_inner) => start_inner.child_count(),
-            ParseTree::StartUnaryMixedLeft(start_unary_mixed_left) => {
-                start_unary_mixed_left.child_count()
-            }
-            ParseTree::StartUnaryMixedRight(start_unary_mixed_right) => {
-                start_unary_mixed_right.child_count()
-            }
-            ParseTree::StartUnaryMixedNone(start_unary_mixed_none) => {
-                start_unary_mixed_none.child_count()
-            }
-            ParseTree::StartDynamic(start_dynamic) => start_dynamic.child_count(),
-            ParseTree::StartDynamicOperand(start_dynamic_operand) => {
-                start_dynamic_operand.child_count()
-            }
-            ParseTree::StartDynamicFiltered(start_dynamic_filtered) => {
-                start_dynamic_filtered.child_count()
-            }
-            ParseTree::StartDynamicHeadFiltered(start_dynamic_head_filtered) => {
-                start_dynamic_head_filtered.child_count()
-            }
-            ParseTree::StartDynamicMulti(start_dynamic_multi) => start_dynamic_multi.child_count(),
-            ParseTree::StartDynamicMultiOperand(start_dynamic_multi_operand) => {
-                start_dynamic_multi_operand.child_count()
-            }
-            ParseTree::StartNullableBoundaryPrefix(start_nullable_boundary_prefix) => {
-                start_nullable_boundary_prefix.child_count()
-            }
-            ParseTree::StartNullableBoundaryRight(start_nullable_boundary_right) => {
-                start_nullable_boundary_right.child_count()
-            }
-            ParseTree::StartNullableBoundaryOpt(start_nullable_boundary_opt) => {
-                start_nullable_boundary_opt.child_count()
-            }
-            ParseTree::StartNullableBoundaryPostfix(start_nullable_boundary_postfix) => {
-                start_nullable_boundary_postfix.child_count()
-            }
-            ParseTree::StartNullableBoundaryLeft(start_nullable_boundary_left) => {
-                start_nullable_boundary_left.child_count()
-            }
-            ParseTree::StartNullableBoundaryBinary(start_nullable_boundary_binary) => {
-                start_nullable_boundary_binary.child_count()
-            }
-            ParseTree::StartNullableBoundaryOperand(start_nullable_boundary_operand) => {
-                start_nullable_boundary_operand.child_count()
-            }
-            ParseTree::StartClosedLeftAssoc(start_closed_left_assoc) => {
-                start_closed_left_assoc.child_count()
-            }
-            ParseTree::StartClosedLeftOperand(start_closed_left_operand) => {
-                start_closed_left_operand.child_count()
-            }
-            ParseTree::StartClosedRightAssoc(start_closed_right_assoc) => {
-                start_closed_right_assoc.child_count()
-            }
-            ParseTree::StartClosedRightOperand(start_closed_right_operand) => {
-                start_closed_right_operand.child_count()
-            }
-            ParseTree::StartIndirectExclude(start_indirect_exclude) => {
-                start_indirect_exclude.child_count()
-            }
-            ParseTree::StartIndirectExcludeOperand(start_indirect_exclude_operand) => {
-                start_indirect_exclude_operand.child_count()
-            }
-            ParseTree::StartIndirectExcludeFiltered(start_indirect_exclude_filtered) => {
-                start_indirect_exclude_filtered.child_count()
-            }
-            ParseTree::StartOperandLiteral(start_operand_literal) => {
-                start_operand_literal.child_count()
-            }
-            ParseTree::StartOperandLiteralEnd(start_operand_literal_end) => {
-                start_operand_literal_end.child_count()
-            }
-            ParseTree::StartHeadLiteral(start_head_literal) => start_head_literal.child_count(),
-            ParseTree::StartHeadLiteralEnd(start_head_literal_end) => {
-                start_head_literal_end.child_count()
-            }
+            ParseTree::StartS(_) => 3usize,
+            ParseTree::StartE(_) => 3usize,
+            ParseTree::StartL(_) => 3usize,
+            ParseTree::StartOnly(_) => 3usize,
+            ParseTree::StartOnlyOperand(_) => 3usize,
+            ParseTree::StartCross(_) => 3usize,
+            ParseTree::StartForeign(_) => 3usize,
+            ParseTree::StartCascade(_) => 3usize,
+            ParseTree::StartTernary(_) => 3usize,
+            ParseTree::StartNullable(_) => 3usize,
+            ParseTree::StartNullableLeft(_) => 3usize,
+            ParseTree::StartNullableRight(_) => 3usize,
+            ParseTree::StartRightExpr(_) => 3usize,
+            ParseTree::StartRightOperand(_) => 3usize,
+            ParseTree::StartNoneExpr(_) => 3usize,
+            ParseTree::StartNoneOperand(_) => 3usize,
+            ParseTree::StartExcluded(_) => 3usize,
+            ParseTree::StartExcludedOperand(_) => 3usize,
+            ParseTree::StartFiltered(_) => 3usize,
+            ParseTree::StartLexNullable(_) => 3usize,
+            ParseTree::StartLexNullableLeft(_) => 3usize,
+            ParseTree::StartLexNullableRight(_) => 3usize,
+            ParseTree::StartMixedScale(_) => 3usize,
+            ParseTree::StartMixedOperand(_) => 3usize,
+            ParseTree::StartMixedRight(_) => 3usize,
+            ParseTree::StartMixedForeign(_) => 3usize,
+            ParseTree::StartPacked(_) => 3usize,
+            ParseTree::StartPackedOperand(_) => 3usize,
+            ParseTree::StartPackedMiddle(_) => 3usize,
+            ParseTree::StartPackedFiltered(_) => 3usize,
+            ParseTree::StartNullableRecursive(_) => 3usize,
+            ParseTree::StartNullableOperand(_) => 3usize,
+            ParseTree::StartNullableMaybe(_) => 3usize,
+            ParseTree::StartNullableLexRecursive(_) => 3usize,
+            ParseTree::StartNullableLexOperand(_) => 3usize,
+            ParseTree::StartNullableLexMaybe(_) => 3usize,
+            ParseTree::StartNullableSuffix(_) => 3usize,
+            ParseTree::StartNullableSuffixOperand(_) => 3usize,
+            ParseTree::StartNullableSuffixMaybe(_) => 3usize,
+            ParseTree::StartNullableShared(_) => 3usize,
+            ParseTree::StartNullableSharedOperand(_) => 3usize,
+            ParseTree::StartNullableSharedMaybe(_) => 3usize,
+            ParseTree::StartOwnLabel(_) => 3usize,
+            ParseTree::StartOwnOperand(_) => 3usize,
+            ParseTree::StartOwnHeadFiltered(_) => 3usize,
+            ParseTree::StartExcludeOnly(_) => 3usize,
+            ParseTree::StartExcludeOnlyFiltered(_) => 3usize,
+            ParseTree::StartAbsent(_) => 3usize,
+            ParseTree::StartAbsentOperand(_) => 3usize,
+            ParseTree::StartClosedPrefix(_) => 3usize,
+            ParseTree::StartClosedPrefixBody(_) => 3usize,
+            ParseTree::StartClosedPostfix(_) => 3usize,
+            ParseTree::StartClosedPostfixBody(_) => 3usize,
+            ParseTree::StartHeadChoice(_) => 3usize,
+            ParseTree::StartHeadOperand(_) => 3usize,
+            ParseTree::StartInner(_) => 3usize,
+            ParseTree::StartUnaryMixedLeft(_) => 3usize,
+            ParseTree::StartUnaryMixedRight(_) => 3usize,
+            ParseTree::StartUnaryMixedNone(_) => 3usize,
+            ParseTree::StartDynamic(_) => 3usize,
+            ParseTree::StartDynamicOperand(_) => 3usize,
+            ParseTree::StartDynamicFiltered(_) => 3usize,
+            ParseTree::StartDynamicHeadFiltered(_) => 3usize,
+            ParseTree::StartDynamicMulti(_) => 3usize,
+            ParseTree::StartDynamicMultiOperand(_) => 3usize,
+            ParseTree::StartNullableBoundaryPrefix(_) => 3usize,
+            ParseTree::StartNullableBoundaryRight(_) => 3usize,
+            ParseTree::StartNullableBoundaryOpt(_) => 3usize,
+            ParseTree::StartNullableBoundaryPostfix(_) => 3usize,
+            ParseTree::StartNullableBoundaryLeft(_) => 3usize,
+            ParseTree::StartNullableBoundaryBinary(_) => 3usize,
+            ParseTree::StartNullableBoundaryOperand(_) => 3usize,
+            ParseTree::StartClosedLeftAssoc(_) => 3usize,
+            ParseTree::StartClosedLeftOperand(_) => 3usize,
+            ParseTree::StartClosedRightAssoc(_) => 3usize,
+            ParseTree::StartClosedRightOperand(_) => 3usize,
+            ParseTree::StartIndirectExclude(_) => 3usize,
+            ParseTree::StartIndirectExcludeOperand(_) => 3usize,
+            ParseTree::StartIndirectExcludeFiltered(_) => 3usize,
+            ParseTree::StartOperandLiteral(_) => 3usize,
+            ParseTree::StartOperandLiteralEnd(_) => 3usize,
+            ParseTree::StartHeadLiteral(_) => 3usize,
+            ParseTree::StartHeadLiteralEnd(_) => 3usize,
             ParseTree::Token(_) => 0,
         }
     }
@@ -3783,7 +4058,7 @@ pub trait OptNode {
 #[derive(Debug)]
 pub enum S<'a> {
     Alt0 { e: &'a E<'a>, span: Span },
-    Amb(&'a [&'a S<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum E<'a> {
@@ -3819,13 +4094,13 @@ pub enum E<'a> {
         e: &'a E<'a>,
         span: Span,
     },
-    Amb(&'a [&'a E<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // L = E
 #[derive(Debug)]
 pub enum L<'a> {
     Alt0 { e: &'a E<'a>, span: Span },
-    Amb(&'a [&'a L<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum Only<'a> {
@@ -3843,13 +4118,13 @@ pub enum Only<'a> {
         only_operand_4: &'a OnlyOperand<'a>,
         span: Span,
     },
-    Amb(&'a [&'a Only<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // OnlyOperand = Only
 #[derive(Debug)]
 pub enum OnlyOperand<'a> {
     Alt0 { only: &'a Only<'a>, span: Span },
-    Amb(&'a [&'a OnlyOperand<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum Cross<'a> {
@@ -3876,7 +4151,7 @@ pub enum Cross<'a> {
         foreign: &'a Foreign<'a>,
         span: Span,
     },
-    Amb(&'a [&'a Cross<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum Foreign<'a> {
@@ -3899,7 +4174,7 @@ pub enum Foreign<'a> {
         cross: &'a Cross<'a>,
         span: Span,
     },
-    Amb(&'a [&'a Foreign<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum Cascade<'a> {
@@ -3922,7 +4197,7 @@ pub enum Cascade<'a> {
         ternary: &'a Ternary<'a>,
         span: Span,
     },
-    Amb(&'a [&'a Cascade<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // Ternary = Cascade WS "?" WS Cascade WS ":" WS Cascade
 #[derive(Debug)]
@@ -3939,7 +4214,7 @@ pub enum Ternary<'a> {
         cascade_8: &'a Cascade<'a>,
         span: Span,
     },
-    Amb(&'a [&'a Ternary<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum Nullable<'a> {
@@ -3957,7 +4232,7 @@ pub enum Nullable<'a> {
         nullable_right: &'a NullableRight<'a>,
         span: Span,
     },
-    Amb(&'a [&'a Nullable<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // NullableLeft = "x"? WS Nullable
 #[derive(Debug)]
@@ -3968,7 +4243,7 @@ pub enum NullableLeft<'a> {
         nullable: &'a Nullable<'a>,
         span: Span,
     },
-    Amb(&'a [&'a NullableLeft<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // NullableRight = Nullable
 #[derive(Debug)]
@@ -3977,7 +4252,7 @@ pub enum NullableRight<'a> {
         nullable: &'a Nullable<'a>,
         span: Span,
     },
-    Amb(&'a [&'a NullableRight<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum RightExpr<'a> {
@@ -3995,7 +4270,7 @@ pub enum RightExpr<'a> {
         right_operand_4: &'a RightOperand<'a>,
         span: Span,
     },
-    Amb(&'a [&'a RightExpr<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // RightOperand = RightExpr
 #[derive(Debug)]
@@ -4004,7 +4279,7 @@ pub enum RightOperand<'a> {
         right_expr: &'a RightExpr<'a>,
         span: Span,
     },
-    Amb(&'a [&'a RightOperand<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum NoneExpr<'a> {
@@ -4022,7 +4297,7 @@ pub enum NoneExpr<'a> {
         none_operand_4: &'a NoneOperand<'a>,
         span: Span,
     },
-    Amb(&'a [&'a NoneExpr<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // NoneOperand = NoneExpr
 #[derive(Debug)]
@@ -4031,7 +4306,7 @@ pub enum NoneOperand<'a> {
         none_expr: &'a NoneExpr<'a>,
         span: Span,
     },
-    Amb(&'a [&'a NoneOperand<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum Excluded<'a> {
@@ -4049,7 +4324,7 @@ pub enum Excluded<'a> {
         excluded_operand_4: &'a ExcludedOperand<'a>,
         span: Span,
     },
-    Amb(&'a [&'a Excluded<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum ExcludedOperand<'a> {
@@ -4067,7 +4342,7 @@ pub enum ExcludedOperand<'a> {
         lit_4: Token,
         span: Span,
     },
-    Amb(&'a [&'a ExcludedOperand<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // Filtered = ExcludedOperand
 #[derive(Debug)]
@@ -4076,7 +4351,7 @@ pub enum Filtered<'a> {
         excluded_operand: &'a ExcludedOperand<'a>,
         span: Span,
     },
-    Amb(&'a [&'a Filtered<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum LexNullable<'a> {
@@ -4094,7 +4369,7 @@ pub enum LexNullable<'a> {
         lex_nullable_right: &'a LexNullableRight<'a>,
         span: Span,
     },
-    Amb(&'a [&'a LexNullable<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // LexNullableLeft = Digits WS LexNullable
 #[derive(Debug)]
@@ -4105,7 +4380,7 @@ pub enum LexNullableLeft<'a> {
         lex_nullable: &'a LexNullable<'a>,
         span: Span,
     },
-    Amb(&'a [&'a LexNullableLeft<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // LexNullableRight = LexNullable
 #[derive(Debug)]
@@ -4114,7 +4389,7 @@ pub enum LexNullableRight<'a> {
         lex_nullable: &'a LexNullable<'a>,
         span: Span,
     },
-    Amb(&'a [&'a LexNullableRight<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum MixedScale<'a> {
@@ -4132,7 +4407,7 @@ pub enum MixedScale<'a> {
         mixed_right: &'a MixedRight<'a>,
         span: Span,
     },
-    Amb(&'a [&'a MixedScale<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum MixedOperand<'a> {
@@ -4146,7 +4421,7 @@ pub enum MixedOperand<'a> {
         mixed_foreign: &'a MixedForeign<'a>,
         span: Span,
     },
-    Amb(&'a [&'a MixedOperand<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // MixedRight = MixedScale
 #[derive(Debug)]
@@ -4155,7 +4430,7 @@ pub enum MixedRight<'a> {
         mixed_scale: &'a MixedScale<'a>,
         span: Span,
     },
-    Amb(&'a [&'a MixedRight<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum MixedForeign<'a> {
@@ -4173,7 +4448,7 @@ pub enum MixedForeign<'a> {
         mixed_foreign_4: &'a MixedForeign<'a>,
         span: Span,
     },
-    Amb(&'a [&'a MixedForeign<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum Packed<'a> {
@@ -4191,7 +4466,7 @@ pub enum Packed<'a> {
         packed_operand_4: &'a PackedOperand<'a>,
         span: Span,
     },
-    Amb(&'a [&'a Packed<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // PackedOperand = PackedMiddle
 #[derive(Debug)]
@@ -4200,7 +4475,7 @@ pub enum PackedOperand<'a> {
         packed_middle: &'a PackedMiddle<'a>,
         span: Span,
     },
-    Amb(&'a [&'a PackedOperand<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum PackedMiddle<'a> {
@@ -4218,7 +4493,7 @@ pub enum PackedMiddle<'a> {
         lit_4: Token,
         span: Span,
     },
-    Amb(&'a [&'a PackedMiddle<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // PackedFiltered = PackedMiddle
 #[derive(Debug)]
@@ -4227,7 +4502,7 @@ pub enum PackedFiltered<'a> {
         packed_middle: &'a PackedMiddle<'a>,
         span: Span,
     },
-    Amb(&'a [&'a PackedFiltered<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum NullableRecursive<'a> {
@@ -4245,7 +4520,7 @@ pub enum NullableRecursive<'a> {
         nullable_recursive: &'a NullableRecursive<'a>,
         span: Span,
     },
-    Amb(&'a [&'a NullableRecursive<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // NullableOperand = NullableMaybe WS NullableRecursive
 #[derive(Debug)]
@@ -4256,7 +4531,7 @@ pub enum NullableOperand<'a> {
         nullable_recursive: &'a NullableRecursive<'a>,
         span: Span,
     },
-    Amb(&'a [&'a NullableOperand<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // NullableMaybe = NullableRecursive?
 #[derive(Debug)]
@@ -4265,7 +4540,7 @@ pub enum NullableMaybe<'a> {
         nullable_recursive: &'a Opt1<'a>,
         span: Span,
     },
-    Amb(&'a [&'a NullableMaybe<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum NullableLexRecursive<'a> {
@@ -4283,7 +4558,7 @@ pub enum NullableLexRecursive<'a> {
         nullable_lex_recursive: &'a NullableLexRecursive<'a>,
         span: Span,
     },
-    Amb(&'a [&'a NullableLexRecursive<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // NullableLexOperand = NullableLexMaybe WS NullableLexRecursive
 #[derive(Debug)]
@@ -4294,7 +4569,7 @@ pub enum NullableLexOperand<'a> {
         nullable_lex_recursive: &'a NullableLexRecursive<'a>,
         span: Span,
     },
-    Amb(&'a [&'a NullableLexOperand<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum NullableLexMaybe<'a> {
@@ -4308,7 +4583,7 @@ pub enum NullableLexMaybe<'a> {
         digits: Token,
         span: Span,
     },
-    Amb(&'a [&'a NullableLexMaybe<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum NullableSuffix<'a> {
@@ -4326,7 +4601,7 @@ pub enum NullableSuffix<'a> {
         nullable_suffix_operand: &'a NullableSuffixOperand<'a>,
         span: Span,
     },
-    Amb(&'a [&'a NullableSuffix<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // NullableSuffixOperand = NullableSuffix WS NullableSuffixMaybe
 #[derive(Debug)]
@@ -4337,7 +4612,7 @@ pub enum NullableSuffixOperand<'a> {
         nullable_suffix_maybe: &'a NullableSuffixMaybe<'a>,
         span: Span,
     },
-    Amb(&'a [&'a NullableSuffixOperand<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // NullableSuffixMaybe = NullableSuffix?
 #[derive(Debug)]
@@ -4346,7 +4621,7 @@ pub enum NullableSuffixMaybe<'a> {
         nullable_suffix: &'a Opt2<'a>,
         span: Span,
     },
-    Amb(&'a [&'a NullableSuffixMaybe<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum NullableShared<'a> {
@@ -4364,7 +4639,7 @@ pub enum NullableShared<'a> {
         nullable_shared_operand_4: &'a NullableSharedOperand<'a>,
         span: Span,
     },
-    Amb(&'a [&'a NullableShared<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // NullableSharedOperand = NullableSharedMaybe WS NullableShared WS NullableSharedMaybe
 #[derive(Debug)]
@@ -4377,7 +4652,7 @@ pub enum NullableSharedOperand<'a> {
         nullable_shared_maybe_4: &'a NullableSharedMaybe<'a>,
         span: Span,
     },
-    Amb(&'a [&'a NullableSharedOperand<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // NullableSharedMaybe = NullableShared?
 #[derive(Debug)]
@@ -4386,7 +4661,7 @@ pub enum NullableSharedMaybe<'a> {
         nullable_shared: &'a Opt3<'a>,
         span: Span,
     },
-    Amb(&'a [&'a NullableSharedMaybe<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum OwnLabel<'a> {
@@ -4404,7 +4679,7 @@ pub enum OwnLabel<'a> {
         own_operand_4: &'a OwnOperand<'a>,
         span: Span,
     },
-    Amb(&'a [&'a OwnLabel<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum OwnOperand<'a> {
@@ -4422,7 +4697,7 @@ pub enum OwnOperand<'a> {
         lit_4: Token,
         span: Span,
     },
-    Amb(&'a [&'a OwnOperand<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // OwnHeadFiltered = OwnLabel
 #[derive(Debug)]
@@ -4431,7 +4706,7 @@ pub enum OwnHeadFiltered<'a> {
         own_label: &'a OwnLabel<'a>,
         span: Span,
     },
-    Amb(&'a [&'a OwnHeadFiltered<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum ExcludeOnly<'a> {
@@ -4439,7 +4714,7 @@ pub enum ExcludeOnly<'a> {
     Blocked { lit_0: Token, span: Span },
     // ExcludeOnly = "t"
     Alt1 { lit_0: Token, span: Span },
-    Amb(&'a [&'a ExcludeOnly<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // ExcludeOnlyFiltered = ExcludeOnly
 #[derive(Debug)]
@@ -4448,7 +4723,7 @@ pub enum ExcludeOnlyFiltered<'a> {
         exclude_only: &'a ExcludeOnly<'a>,
         span: Span,
     },
-    Amb(&'a [&'a ExcludeOnlyFiltered<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum Absent<'a> {
@@ -4475,7 +4750,7 @@ pub enum Absent<'a> {
         absent_operand_4: &'a AbsentOperand<'a>,
         span: Span,
     },
-    Amb(&'a [&'a Absent<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum AbsentOperand<'a> {
@@ -4483,7 +4758,7 @@ pub enum AbsentOperand<'a> {
     Alt0 { absent: &'a Absent<'a>, span: Span },
     // AbsentOperand = "b"
     Alt1 { lit_0: Token, span: Span },
-    Amb(&'a [&'a AbsentOperand<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum ClosedPrefix<'a> {
@@ -4508,7 +4783,7 @@ pub enum ClosedPrefix<'a> {
         closed_prefix_body: &'a ClosedPrefixBody<'a>,
         span: Span,
     },
-    Amb(&'a [&'a ClosedPrefix<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum ClosedPrefixBody<'a> {
@@ -4522,7 +4797,7 @@ pub enum ClosedPrefixBody<'a> {
         lit_0: Token,
         span: Span,
     },
-    Amb(&'a [&'a ClosedPrefixBody<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum ClosedPostfix<'a> {
@@ -4545,7 +4820,7 @@ pub enum ClosedPostfix<'a> {
         lit_2: Token,
         span: Span,
     },
-    Amb(&'a [&'a ClosedPostfix<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum ClosedPostfixBody<'a> {
@@ -4559,7 +4834,7 @@ pub enum ClosedPostfixBody<'a> {
         lit_0: Token,
         span: Span,
     },
-    Amb(&'a [&'a ClosedPostfixBody<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum HeadChoice<'a> {
@@ -4582,7 +4857,7 @@ pub enum HeadChoice<'a> {
         inner: &'a Inner<'a>,
         span: Span,
     },
-    Amb(&'a [&'a HeadChoice<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // HeadOperand = HeadChoice
 #[derive(Debug)]
@@ -4591,7 +4866,7 @@ pub enum HeadOperand<'a> {
         head_choice: &'a HeadChoice<'a>,
         span: Span,
     },
-    Amb(&'a [&'a HeadOperand<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum Inner<'a> {
@@ -4609,7 +4884,7 @@ pub enum Inner<'a> {
         inner_4: &'a Inner<'a>,
         span: Span,
     },
-    Amb(&'a [&'a Inner<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum UnaryMixedLeft<'a> {
@@ -4641,7 +4916,7 @@ pub enum UnaryMixedLeft<'a> {
         lit_0: Token,
         span: Span,
     },
-    Amb(&'a [&'a UnaryMixedLeft<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum UnaryMixedRight<'a> {
@@ -4673,7 +4948,7 @@ pub enum UnaryMixedRight<'a> {
         lit_0: Token,
         span: Span,
     },
-    Amb(&'a [&'a UnaryMixedRight<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum UnaryMixedNone<'a> {
@@ -4705,7 +4980,7 @@ pub enum UnaryMixedNone<'a> {
         lit_0: Token,
         span: Span,
     },
-    Amb(&'a [&'a UnaryMixedNone<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum Dynamic<'a> {
@@ -4737,7 +5012,7 @@ pub enum Dynamic<'a> {
         lit_0: Token,
         span: Span,
     },
-    Amb(&'a [&'a Dynamic<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum DynamicOperand<'a> {
@@ -4751,7 +5026,7 @@ pub enum DynamicOperand<'a> {
         lit_0: Token,
         span: Span,
     },
-    Amb(&'a [&'a DynamicOperand<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // DynamicFiltered = DynamicOperand
 #[derive(Debug)]
@@ -4760,7 +5035,7 @@ pub enum DynamicFiltered<'a> {
         dynamic_operand: &'a DynamicOperand<'a>,
         span: Span,
     },
-    Amb(&'a [&'a DynamicFiltered<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // DynamicHeadFiltered = Dynamic
 #[derive(Debug)]
@@ -4769,7 +5044,7 @@ pub enum DynamicHeadFiltered<'a> {
         dynamic: &'a Dynamic<'a>,
         span: Span,
     },
-    Amb(&'a [&'a DynamicHeadFiltered<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum DynamicMulti<'a> {
@@ -4810,7 +5085,7 @@ pub enum DynamicMulti<'a> {
         lit_0: Token,
         span: Span,
     },
-    Amb(&'a [&'a DynamicMulti<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum DynamicMultiOperand<'a> {
@@ -4824,7 +5099,7 @@ pub enum DynamicMultiOperand<'a> {
         lit_0: Token,
         span: Span,
     },
-    Amb(&'a [&'a DynamicMultiOperand<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum NullableBoundaryPrefix<'a> {
@@ -4849,7 +5124,7 @@ pub enum NullableBoundaryPrefix<'a> {
         nullable_boundary_prefix_4: &'a NullableBoundaryPrefix<'a>,
         span: Span,
     },
-    Amb(&'a [&'a NullableBoundaryPrefix<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // NullableBoundaryRight = NullableBoundaryPrefix WS NullableBoundaryOpt
 #[derive(Debug)]
@@ -4860,7 +5135,7 @@ pub enum NullableBoundaryRight<'a> {
         nullable_boundary_opt: &'a NullableBoundaryOpt<'a>,
         span: Span,
     },
-    Amb(&'a [&'a NullableBoundaryRight<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum NullableBoundaryOpt<'a> {
@@ -4868,7 +5143,7 @@ pub enum NullableBoundaryOpt<'a> {
     Alt0 { lit_0: Token, span: Span },
     // NullableBoundaryOpt =
     Alt1 { span: Span },
-    Amb(&'a [&'a NullableBoundaryOpt<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum NullableBoundaryPostfix<'a> {
@@ -4893,7 +5168,7 @@ pub enum NullableBoundaryPostfix<'a> {
         nullable_boundary_postfix_4: &'a NullableBoundaryPostfix<'a>,
         span: Span,
     },
-    Amb(&'a [&'a NullableBoundaryPostfix<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // NullableBoundaryLeft = NullableBoundaryOpt WS NullableBoundaryPostfix
 #[derive(Debug)]
@@ -4904,7 +5179,7 @@ pub enum NullableBoundaryLeft<'a> {
         nullable_boundary_postfix: &'a NullableBoundaryPostfix<'a>,
         span: Span,
     },
-    Amb(&'a [&'a NullableBoundaryLeft<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum NullableBoundaryBinary<'a> {
@@ -4931,7 +5206,7 @@ pub enum NullableBoundaryBinary<'a> {
         nullable_boundary_binary_4: &'a NullableBoundaryBinary<'a>,
         span: Span,
     },
-    Amb(&'a [&'a NullableBoundaryBinary<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // NullableBoundaryOperand = NullableBoundaryBinary WS NullableBoundaryOpt
 #[derive(Debug)]
@@ -4942,7 +5217,7 @@ pub enum NullableBoundaryOperand<'a> {
         nullable_boundary_opt: &'a NullableBoundaryOpt<'a>,
         span: Span,
     },
-    Amb(&'a [&'a NullableBoundaryOperand<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum ClosedLeftAssoc<'a> {
@@ -4960,7 +5235,7 @@ pub enum ClosedLeftAssoc<'a> {
         closed_left_assoc: &'a ClosedLeftAssoc<'a>,
         span: Span,
     },
-    Amb(&'a [&'a ClosedLeftAssoc<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum ClosedLeftOperand<'a> {
@@ -4974,7 +5249,7 @@ pub enum ClosedLeftOperand<'a> {
         lit_0: Token,
         span: Span,
     },
-    Amb(&'a [&'a ClosedLeftOperand<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum ClosedRightAssoc<'a> {
@@ -4992,7 +5267,7 @@ pub enum ClosedRightAssoc<'a> {
         closed_right_operand: &'a ClosedRightOperand<'a>,
         span: Span,
     },
-    Amb(&'a [&'a ClosedRightAssoc<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum ClosedRightOperand<'a> {
@@ -5006,7 +5281,7 @@ pub enum ClosedRightOperand<'a> {
         lit_0: Token,
         span: Span,
     },
-    Amb(&'a [&'a ClosedRightOperand<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum IndirectExclude<'a> {
@@ -5024,7 +5299,7 @@ pub enum IndirectExclude<'a> {
         indirect_exclude_operand_4: &'a IndirectExcludeOperand<'a>,
         span: Span,
     },
-    Amb(&'a [&'a IndirectExclude<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum IndirectExcludeOperand<'a> {
@@ -5038,7 +5313,7 @@ pub enum IndirectExcludeOperand<'a> {
         lit_0: Token,
         span: Span,
     },
-    Amb(&'a [&'a IndirectExcludeOperand<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // IndirectExcludeFiltered = IndirectExcludeOperand
 #[derive(Debug)]
@@ -5047,7 +5322,7 @@ pub enum IndirectExcludeFiltered<'a> {
         indirect_exclude_operand: &'a IndirectExcludeOperand<'a>,
         span: Span,
     },
-    Amb(&'a [&'a IndirectExcludeFiltered<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum OperandLiteral<'a> {
@@ -5074,7 +5349,7 @@ pub enum OperandLiteral<'a> {
         operand_literal_end_4: &'a OperandLiteralEnd<'a>,
         span: Span,
     },
-    Amb(&'a [&'a OperandLiteral<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum OperandLiteralEnd<'a> {
@@ -5088,7 +5363,7 @@ pub enum OperandLiteralEnd<'a> {
         lit_0: Token,
         span: Span,
     },
-    Amb(&'a [&'a OperandLiteralEnd<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 #[derive(Debug)]
 pub enum HeadLiteral<'a> {
@@ -5120,7 +5395,7 @@ pub enum HeadLiteral<'a> {
         head_literal_end_4: &'a HeadLiteralEnd<'a>,
         span: Span,
     },
-    Amb(&'a [&'a HeadLiteral<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // HeadLiteralEnd = HeadLiteral
 #[derive(Debug)]
@@ -5129,7 +5404,7 @@ pub enum HeadLiteralEnd<'a> {
         head_literal: &'a HeadLiteral<'a>,
         span: Span,
     },
-    Amb(&'a [&'a HeadLiteralEnd<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // "x"?
 #[derive(Debug)]
@@ -5138,7 +5413,7 @@ pub enum Opt0<'a> {
     Alt0 { lit_0: Token, span: Span },
     // Opt_0 =
     Alt1 { span: Span },
-    Amb(&'a [&'a Opt0<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // NullableRecursive?
 #[derive(Debug)]
@@ -5152,7 +5427,7 @@ pub enum Opt1<'a> {
     Alt1 {
         span: Span,
     },
-    Amb(&'a [&'a Opt1<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // NullableSuffix?
 #[derive(Debug)]
@@ -5166,7 +5441,7 @@ pub enum Opt2<'a> {
     Alt1 {
         span: Span,
     },
-    Amb(&'a [&'a Opt2<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 // NullableShared?
 #[derive(Debug)]
@@ -5180,7 +5455,7 @@ pub enum Opt3<'a> {
     Alt1 {
         span: Span,
     },
-    Amb(&'a [&'a Opt3<'a>]),
+    Amb(&'a [ParseTree<'a>]),
 }
 impl<'a> S<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
@@ -5192,7 +5467,7 @@ impl<'a> S<'a> {
                 0 => Some(ParseTree::E(e)),
                 _ => None,
             },
-            S::Amb(alts) => alts.get(index).copied().map(ParseTree::S),
+            S::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -5278,7 +5553,7 @@ impl<'a> E<'a> {
                 4 => Some(ParseTree::E(e)),
                 _ => None,
             },
-            E::Amb(alts) => alts.get(index).copied().map(ParseTree::E),
+            E::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -5319,7 +5594,7 @@ impl<'a> L<'a> {
                 0 => Some(ParseTree::E(e)),
                 _ => None,
             },
-            L::Amb(alts) => alts.get(index).copied().map(ParseTree::L),
+            L::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -5375,7 +5650,7 @@ impl<'a> Only<'a> {
                 4 => Some(ParseTree::OnlyOperand(only_operand_4)),
                 _ => None,
             },
-            Only::Amb(alts) => alts.get(index).copied().map(ParseTree::Only),
+            Only::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -5412,7 +5687,7 @@ impl<'a> OnlyOperand<'a> {
                 0 => Some(ParseTree::Only(only)),
                 _ => None,
             },
-            OnlyOperand::Amb(alts) => alts.get(index).copied().map(ParseTree::OnlyOperand),
+            OnlyOperand::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -5483,7 +5758,7 @@ impl<'a> Cross<'a> {
                 4 => Some(ParseTree::Foreign(foreign)),
                 _ => None,
             },
-            Cross::Amb(alts) => alts.get(index).copied().map(ParseTree::Cross),
+            Cross::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -5541,7 +5816,7 @@ impl<'a> Foreign<'a> {
                 0 => Some(ParseTree::Cross(cross)),
                 _ => None,
             },
-            Foreign::Amb(alts) => alts.get(index).copied().map(ParseTree::Foreign),
+            Foreign::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -5599,7 +5874,7 @@ impl<'a> Cascade<'a> {
                 0 => Some(ParseTree::Ternary(ternary)),
                 _ => None,
             },
-            Cascade::Amb(alts) => alts.get(index).copied().map(ParseTree::Cascade),
+            Cascade::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -5657,7 +5932,7 @@ impl<'a> Ternary<'a> {
                 8 => Some(ParseTree::Cascade(cascade_8)),
                 _ => None,
             },
-            Ternary::Amb(alts) => alts.get(index).copied().map(ParseTree::Ternary),
+            Ternary::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -5761,7 +6036,7 @@ impl<'a> Nullable<'a> {
                 4 => Some(ParseTree::NullableRight(nullable_right)),
                 _ => None,
             },
-            Nullable::Amb(alts) => alts.get(index).copied().map(ParseTree::Nullable),
+            Nullable::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -5805,7 +6080,7 @@ impl<'a> NullableLeft<'a> {
                 2 => Some(ParseTree::Nullable(nullable)),
                 _ => None,
             },
-            NullableLeft::Amb(alts) => alts.get(index).copied().map(ParseTree::NullableLeft),
+            NullableLeft::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -5858,7 +6133,7 @@ impl<'a> NullableRight<'a> {
                 0 => Some(ParseTree::Nullable(nullable)),
                 _ => None,
             },
-            NullableRight::Amb(alts) => alts.get(index).copied().map(ParseTree::NullableRight),
+            NullableRight::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -5914,7 +6189,7 @@ impl<'a> RightExpr<'a> {
                 4 => Some(ParseTree::RightOperand(right_operand_4)),
                 _ => None,
             },
-            RightExpr::Amb(alts) => alts.get(index).copied().map(ParseTree::RightExpr),
+            RightExpr::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -5951,7 +6226,7 @@ impl<'a> RightOperand<'a> {
                 0 => Some(ParseTree::RightExpr(right_expr)),
                 _ => None,
             },
-            RightOperand::Amb(alts) => alts.get(index).copied().map(ParseTree::RightOperand),
+            RightOperand::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -6007,7 +6282,7 @@ impl<'a> NoneExpr<'a> {
                 4 => Some(ParseTree::NoneOperand(none_operand_4)),
                 _ => None,
             },
-            NoneExpr::Amb(alts) => alts.get(index).copied().map(ParseTree::NoneExpr),
+            NoneExpr::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -6044,7 +6319,7 @@ impl<'a> NoneOperand<'a> {
                 0 => Some(ParseTree::NoneExpr(none_expr)),
                 _ => None,
             },
-            NoneOperand::Amb(alts) => alts.get(index).copied().map(ParseTree::NoneOperand),
+            NoneOperand::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -6100,7 +6375,7 @@ impl<'a> Excluded<'a> {
                 4 => Some(ParseTree::ExcludedOperand(excluded_operand_4)),
                 _ => None,
             },
-            Excluded::Amb(alts) => alts.get(index).copied().map(ParseTree::Excluded),
+            Excluded::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -6152,7 +6427,7 @@ impl<'a> ExcludedOperand<'a> {
                 4 => Some(ParseTree::Token(*lit_4)),
                 _ => None,
             },
-            ExcludedOperand::Amb(alts) => alts.get(index).copied().map(ParseTree::ExcludedOperand),
+            ExcludedOperand::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -6191,7 +6466,7 @@ impl<'a> Filtered<'a> {
                 0 => Some(ParseTree::ExcludedOperand(excluded_operand)),
                 _ => None,
             },
-            Filtered::Amb(alts) => alts.get(index).copied().map(ParseTree::Filtered),
+            Filtered::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -6249,7 +6524,7 @@ impl<'a> LexNullable<'a> {
                 4 => Some(ParseTree::LexNullableRight(lex_nullable_right)),
                 _ => None,
             },
-            LexNullable::Amb(alts) => alts.get(index).copied().map(ParseTree::LexNullable),
+            LexNullable::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -6293,7 +6568,7 @@ impl<'a> LexNullableLeft<'a> {
                 2 => Some(ParseTree::LexNullable(lex_nullable)),
                 _ => None,
             },
-            LexNullableLeft::Amb(alts) => alts.get(index).copied().map(ParseTree::LexNullableLeft),
+            LexNullableLeft::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -6346,9 +6621,7 @@ impl<'a> LexNullableRight<'a> {
                 0 => Some(ParseTree::LexNullable(lex_nullable)),
                 _ => None,
             },
-            LexNullableRight::Amb(alts) => {
-                alts.get(index).copied().map(ParseTree::LexNullableRight)
-            }
+            LexNullableRight::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -6404,7 +6677,7 @@ impl<'a> MixedScale<'a> {
                 4 => Some(ParseTree::MixedRight(mixed_right)),
                 _ => None,
             },
-            MixedScale::Amb(alts) => alts.get(index).copied().map(ParseTree::MixedScale),
+            MixedScale::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -6445,7 +6718,7 @@ impl<'a> MixedOperand<'a> {
                 0 => Some(ParseTree::MixedForeign(mixed_foreign)),
                 _ => None,
             },
-            MixedOperand::Amb(alts) => alts.get(index).copied().map(ParseTree::MixedOperand),
+            MixedOperand::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -6482,7 +6755,7 @@ impl<'a> MixedRight<'a> {
                 0 => Some(ParseTree::MixedScale(mixed_scale)),
                 _ => None,
             },
-            MixedRight::Amb(alts) => alts.get(index).copied().map(ParseTree::MixedRight),
+            MixedRight::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -6538,7 +6811,7 @@ impl<'a> MixedForeign<'a> {
                 4 => Some(ParseTree::MixedForeign(mixed_foreign_4)),
                 _ => None,
             },
-            MixedForeign::Amb(alts) => alts.get(index).copied().map(ParseTree::MixedForeign),
+            MixedForeign::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -6590,7 +6863,7 @@ impl<'a> Packed<'a> {
                 4 => Some(ParseTree::PackedOperand(packed_operand_4)),
                 _ => None,
             },
-            Packed::Amb(alts) => alts.get(index).copied().map(ParseTree::Packed),
+            Packed::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -6627,7 +6900,7 @@ impl<'a> PackedOperand<'a> {
                 0 => Some(ParseTree::PackedMiddle(packed_middle)),
                 _ => None,
             },
-            PackedOperand::Amb(alts) => alts.get(index).copied().map(ParseTree::PackedOperand),
+            PackedOperand::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -6683,7 +6956,7 @@ impl<'a> PackedMiddle<'a> {
                 4 => Some(ParseTree::Token(*lit_4)),
                 _ => None,
             },
-            PackedMiddle::Amb(alts) => alts.get(index).copied().map(ParseTree::PackedMiddle),
+            PackedMiddle::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -6720,7 +6993,7 @@ impl<'a> PackedFiltered<'a> {
                 0 => Some(ParseTree::PackedMiddle(packed_middle)),
                 _ => None,
             },
-            PackedFiltered::Amb(alts) => alts.get(index).copied().map(ParseTree::PackedFiltered),
+            PackedFiltered::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -6776,9 +7049,7 @@ impl<'a> NullableRecursive<'a> {
                 4 => Some(ParseTree::NullableRecursive(nullable_recursive)),
                 _ => None,
             },
-            NullableRecursive::Amb(alts) => {
-                alts.get(index).copied().map(ParseTree::NullableRecursive)
-            }
+            NullableRecursive::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -6822,7 +7093,7 @@ impl<'a> NullableOperand<'a> {
                 2 => Some(ParseTree::NullableRecursive(nullable_recursive)),
                 _ => None,
             },
-            NullableOperand::Amb(alts) => alts.get(index).copied().map(ParseTree::NullableOperand),
+            NullableOperand::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -6879,7 +7150,7 @@ impl<'a> NullableMaybe<'a> {
                 0 => Some(ParseTree::Opt1(nullable_recursive)),
                 _ => None,
             },
-            NullableMaybe::Amb(alts) => alts.get(index).copied().map(ParseTree::NullableMaybe),
+            NullableMaybe::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -6937,10 +7208,7 @@ impl<'a> NullableLexRecursive<'a> {
                 4 => Some(ParseTree::NullableLexRecursive(nullable_lex_recursive)),
                 _ => None,
             },
-            NullableLexRecursive::Amb(alts) => alts
-                .get(index)
-                .copied()
-                .map(ParseTree::NullableLexRecursive),
+            NullableLexRecursive::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -6984,9 +7252,7 @@ impl<'a> NullableLexOperand<'a> {
                 2 => Some(ParseTree::NullableLexRecursive(nullable_lex_recursive)),
                 _ => None,
             },
-            NullableLexOperand::Amb(alts) => {
-                alts.get(index).copied().map(ParseTree::NullableLexOperand)
-            }
+            NullableLexOperand::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -7051,9 +7317,7 @@ impl<'a> NullableLexMaybe<'a> {
                 0 => Some(ParseTree::Token(*digits)),
                 _ => None,
             },
-            NullableLexMaybe::Amb(alts) => {
-                alts.get(index).copied().map(ParseTree::NullableLexMaybe)
-            }
+            NullableLexMaybe::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -7105,7 +7369,7 @@ impl<'a> NullableSuffix<'a> {
                 4 => Some(ParseTree::NullableSuffixOperand(nullable_suffix_operand)),
                 _ => None,
             },
-            NullableSuffix::Amb(alts) => alts.get(index).copied().map(ParseTree::NullableSuffix),
+            NullableSuffix::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -7149,10 +7413,7 @@ impl<'a> NullableSuffixOperand<'a> {
                 2 => Some(ParseTree::NullableSuffixMaybe(nullable_suffix_maybe)),
                 _ => None,
             },
-            NullableSuffixOperand::Amb(alts) => alts
-                .get(index)
-                .copied()
-                .map(ParseTree::NullableSuffixOperand),
+            NullableSuffixOperand::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -7212,9 +7473,7 @@ impl<'a> NullableSuffixMaybe<'a> {
                 0 => Some(ParseTree::Opt2(nullable_suffix)),
                 _ => None,
             },
-            NullableSuffixMaybe::Amb(alts) => {
-                alts.get(index).copied().map(ParseTree::NullableSuffixMaybe)
-            }
+            NullableSuffixMaybe::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -7272,7 +7531,7 @@ impl<'a> NullableShared<'a> {
                 4 => Some(ParseTree::NullableSharedOperand(nullable_shared_operand_4)),
                 _ => None,
             },
-            NullableShared::Amb(alts) => alts.get(index).copied().map(ParseTree::NullableShared),
+            NullableShared::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -7320,10 +7579,7 @@ impl<'a> NullableSharedOperand<'a> {
                 4 => Some(ParseTree::NullableSharedMaybe(nullable_shared_maybe_4)),
                 _ => None,
             },
-            NullableSharedOperand::Amb(alts) => alts
-                .get(index)
-                .copied()
-                .map(ParseTree::NullableSharedOperand),
+            NullableSharedOperand::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -7398,9 +7654,7 @@ impl<'a> NullableSharedMaybe<'a> {
                 0 => Some(ParseTree::Opt3(nullable_shared)),
                 _ => None,
             },
-            NullableSharedMaybe::Amb(alts) => {
-                alts.get(index).copied().map(ParseTree::NullableSharedMaybe)
-            }
+            NullableSharedMaybe::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -7458,7 +7712,7 @@ impl<'a> OwnLabel<'a> {
                 4 => Some(ParseTree::OwnOperand(own_operand_4)),
                 _ => None,
             },
-            OwnLabel::Amb(alts) => alts.get(index).copied().map(ParseTree::OwnLabel),
+            OwnLabel::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -7510,7 +7764,7 @@ impl<'a> OwnOperand<'a> {
                 4 => Some(ParseTree::Token(*lit_4)),
                 _ => None,
             },
-            OwnOperand::Amb(alts) => alts.get(index).copied().map(ParseTree::OwnOperand),
+            OwnOperand::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -7547,7 +7801,7 @@ impl<'a> OwnHeadFiltered<'a> {
                 0 => Some(ParseTree::OwnLabel(own_label)),
                 _ => None,
             },
-            OwnHeadFiltered::Amb(alts) => alts.get(index).copied().map(ParseTree::OwnHeadFiltered),
+            OwnHeadFiltered::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -7592,7 +7846,7 @@ impl<'a> ExcludeOnly<'a> {
                 0 => Some(ParseTree::Token(*lit_0)),
                 _ => None,
             },
-            ExcludeOnly::Amb(alts) => alts.get(index).copied().map(ParseTree::ExcludeOnly),
+            ExcludeOnly::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -7629,9 +7883,7 @@ impl<'a> ExcludeOnlyFiltered<'a> {
                 0 => Some(ParseTree::ExcludeOnly(exclude_only)),
                 _ => None,
             },
-            ExcludeOnlyFiltered::Amb(alts) => {
-                alts.get(index).copied().map(ParseTree::ExcludeOnlyFiltered)
-            }
+            ExcludeOnlyFiltered::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -7702,7 +7954,7 @@ impl<'a> Absent<'a> {
                 4 => Some(ParseTree::AbsentOperand(absent_operand_4)),
                 _ => None,
             },
-            Absent::Amb(alts) => alts.get(index).copied().map(ParseTree::Absent),
+            Absent::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -7745,7 +7997,7 @@ impl<'a> AbsentOperand<'a> {
                 0 => Some(ParseTree::Token(*lit_0)),
                 _ => None,
             },
-            AbsentOperand::Amb(alts) => alts.get(index).copied().map(ParseTree::AbsentOperand),
+            AbsentOperand::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -7808,7 +8060,7 @@ impl<'a> ClosedPrefix<'a> {
                 2 => Some(ParseTree::ClosedPrefixBody(closed_prefix_body)),
                 _ => None,
             },
-            ClosedPrefix::Amb(alts) => alts.get(index).copied().map(ParseTree::ClosedPrefix),
+            ClosedPrefix::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -7851,9 +8103,7 @@ impl<'a> ClosedPrefixBody<'a> {
                 0 => Some(ParseTree::Token(*lit_0)),
                 _ => None,
             },
-            ClosedPrefixBody::Amb(alts) => {
-                alts.get(index).copied().map(ParseTree::ClosedPrefixBody)
-            }
+            ClosedPrefixBody::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -7912,7 +8162,7 @@ impl<'a> ClosedPostfix<'a> {
                 2 => Some(ParseTree::Token(*lit_2)),
                 _ => None,
             },
-            ClosedPostfix::Amb(alts) => alts.get(index).copied().map(ParseTree::ClosedPostfix),
+            ClosedPostfix::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -7955,9 +8205,7 @@ impl<'a> ClosedPostfixBody<'a> {
                 0 => Some(ParseTree::Token(*lit_0)),
                 _ => None,
             },
-            ClosedPostfixBody::Amb(alts) => {
-                alts.get(index).copied().map(ParseTree::ClosedPostfixBody)
-            }
+            ClosedPostfixBody::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -8013,7 +8261,7 @@ impl<'a> HeadChoice<'a> {
                 0 => Some(ParseTree::Inner(inner)),
                 _ => None,
             },
-            HeadChoice::Amb(alts) => alts.get(index).copied().map(ParseTree::HeadChoice),
+            HeadChoice::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -8052,7 +8300,7 @@ impl<'a> HeadOperand<'a> {
                 0 => Some(ParseTree::HeadChoice(head_choice)),
                 _ => None,
             },
-            HeadOperand::Amb(alts) => alts.get(index).copied().map(ParseTree::HeadOperand),
+            HeadOperand::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -8108,7 +8356,7 @@ impl<'a> Inner<'a> {
                 4 => Some(ParseTree::Inner(inner_4)),
                 _ => None,
             },
-            Inner::Amb(alts) => alts.get(index).copied().map(ParseTree::Inner),
+            Inner::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -8182,7 +8430,7 @@ impl<'a> UnaryMixedLeft<'a> {
                 0 => Some(ParseTree::Token(*lit_0)),
                 _ => None,
             },
-            UnaryMixedLeft::Amb(alts) => alts.get(index).copied().map(ParseTree::UnaryMixedLeft),
+            UnaryMixedLeft::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -8260,7 +8508,7 @@ impl<'a> UnaryMixedRight<'a> {
                 0 => Some(ParseTree::Token(*lit_0)),
                 _ => None,
             },
-            UnaryMixedRight::Amb(alts) => alts.get(index).copied().map(ParseTree::UnaryMixedRight),
+            UnaryMixedRight::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -8338,7 +8586,7 @@ impl<'a> UnaryMixedNone<'a> {
                 0 => Some(ParseTree::Token(*lit_0)),
                 _ => None,
             },
-            UnaryMixedNone::Amb(alts) => alts.get(index).copied().map(ParseTree::UnaryMixedNone),
+            UnaryMixedNone::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -8416,7 +8664,7 @@ impl<'a> Dynamic<'a> {
                 0 => Some(ParseTree::Token(*lit_0)),
                 _ => None,
             },
-            Dynamic::Amb(alts) => alts.get(index).copied().map(ParseTree::Dynamic),
+            Dynamic::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -8461,7 +8709,7 @@ impl<'a> DynamicOperand<'a> {
                 0 => Some(ParseTree::Token(*lit_0)),
                 _ => None,
             },
-            DynamicOperand::Amb(alts) => alts.get(index).copied().map(ParseTree::DynamicOperand),
+            DynamicOperand::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -8500,7 +8748,7 @@ impl<'a> DynamicFiltered<'a> {
                 0 => Some(ParseTree::DynamicOperand(dynamic_operand)),
                 _ => None,
             },
-            DynamicFiltered::Amb(alts) => alts.get(index).copied().map(ParseTree::DynamicFiltered),
+            DynamicFiltered::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -8543,9 +8791,7 @@ impl<'a> DynamicHeadFiltered<'a> {
                 0 => Some(ParseTree::Dynamic(dynamic)),
                 _ => None,
             },
-            DynamicHeadFiltered::Amb(alts) => {
-                alts.get(index).copied().map(ParseTree::DynamicHeadFiltered)
-            }
+            DynamicHeadFiltered::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -8638,7 +8884,7 @@ impl<'a> DynamicMulti<'a> {
                 0 => Some(ParseTree::Token(*lit_0)),
                 _ => None,
             },
-            DynamicMulti::Amb(alts) => alts.get(index).copied().map(ParseTree::DynamicMulti),
+            DynamicMulti::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -8685,9 +8931,7 @@ impl<'a> DynamicMultiOperand<'a> {
                 0 => Some(ParseTree::Token(*lit_0)),
                 _ => None,
             },
-            DynamicMultiOperand::Amb(alts) => {
-                alts.get(index).copied().map(ParseTree::DynamicMultiOperand)
-            }
+            DynamicMultiOperand::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -8754,10 +8998,7 @@ impl<'a> NullableBoundaryPrefix<'a> {
                 )),
                 _ => None,
             },
-            NullableBoundaryPrefix::Amb(alts) => alts
-                .get(index)
-                .copied()
-                .map(ParseTree::NullableBoundaryPrefix),
+            NullableBoundaryPrefix::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -8803,10 +9044,7 @@ impl<'a> NullableBoundaryRight<'a> {
                 2 => Some(ParseTree::NullableBoundaryOpt(nullable_boundary_opt)),
                 _ => None,
             },
-            NullableBoundaryRight::Amb(alts) => alts
-                .get(index)
-                .copied()
-                .map(ParseTree::NullableBoundaryRight),
+            NullableBoundaryRight::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -8866,9 +9104,7 @@ impl<'a> NullableBoundaryOpt<'a> {
                 _ => None,
             },
             NullableBoundaryOpt::Alt1 { .. } => None,
-            NullableBoundaryOpt::Amb(alts) => {
-                alts.get(index).copied().map(ParseTree::NullableBoundaryOpt)
-            }
+            NullableBoundaryOpt::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -8935,10 +9171,7 @@ impl<'a> NullableBoundaryPostfix<'a> {
                 )),
                 _ => None,
             },
-            NullableBoundaryPostfix::Amb(alts) => alts
-                .get(index)
-                .copied()
-                .map(ParseTree::NullableBoundaryPostfix),
+            NullableBoundaryPostfix::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -8986,10 +9219,7 @@ impl<'a> NullableBoundaryLeft<'a> {
                 )),
                 _ => None,
             },
-            NullableBoundaryLeft::Amb(alts) => alts
-                .get(index)
-                .copied()
-                .map(ParseTree::NullableBoundaryLeft),
+            NullableBoundaryLeft::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -9084,10 +9314,7 @@ impl<'a> NullableBoundaryBinary<'a> {
                 )),
                 _ => None,
             },
-            NullableBoundaryBinary::Amb(alts) => alts
-                .get(index)
-                .copied()
-                .map(ParseTree::NullableBoundaryBinary),
+            NullableBoundaryBinary::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -9133,10 +9360,7 @@ impl<'a> NullableBoundaryOperand<'a> {
                 2 => Some(ParseTree::NullableBoundaryOpt(nullable_boundary_opt)),
                 _ => None,
             },
-            NullableBoundaryOperand::Amb(alts) => alts
-                .get(index)
-                .copied()
-                .map(ParseTree::NullableBoundaryOperand),
+            NullableBoundaryOperand::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -9210,7 +9434,7 @@ impl<'a> ClosedLeftAssoc<'a> {
                 4 => Some(ParseTree::ClosedLeftAssoc(closed_left_assoc)),
                 _ => None,
             },
-            ClosedLeftAssoc::Amb(alts) => alts.get(index).copied().map(ParseTree::ClosedLeftAssoc),
+            ClosedLeftAssoc::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -9253,9 +9477,7 @@ impl<'a> ClosedLeftOperand<'a> {
                 0 => Some(ParseTree::Token(*lit_0)),
                 _ => None,
             },
-            ClosedLeftOperand::Amb(alts) => {
-                alts.get(index).copied().map(ParseTree::ClosedLeftOperand)
-            }
+            ClosedLeftOperand::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -9307,9 +9529,7 @@ impl<'a> ClosedRightAssoc<'a> {
                 4 => Some(ParseTree::ClosedRightOperand(closed_right_operand)),
                 _ => None,
             },
-            ClosedRightAssoc::Amb(alts) => {
-                alts.get(index).copied().map(ParseTree::ClosedRightAssoc)
-            }
+            ClosedRightAssoc::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -9352,9 +9572,7 @@ impl<'a> ClosedRightOperand<'a> {
                 0 => Some(ParseTree::Token(*lit_0)),
                 _ => None,
             },
-            ClosedRightOperand::Amb(alts) => {
-                alts.get(index).copied().map(ParseTree::ClosedRightOperand)
-            }
+            ClosedRightOperand::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -9410,7 +9628,7 @@ impl<'a> IndirectExclude<'a> {
                 )),
                 _ => None,
             },
-            IndirectExclude::Amb(alts) => alts.get(index).copied().map(ParseTree::IndirectExclude),
+            IndirectExclude::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -9453,10 +9671,7 @@ impl<'a> IndirectExcludeOperand<'a> {
                 0 => Some(ParseTree::Token(*lit_0)),
                 _ => None,
             },
-            IndirectExcludeOperand::Amb(alts) => alts
-                .get(index)
-                .copied()
-                .map(ParseTree::IndirectExcludeOperand),
+            IndirectExcludeOperand::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -9496,10 +9711,7 @@ impl<'a> IndirectExcludeFiltered<'a> {
                 0 => Some(ParseTree::IndirectExcludeOperand(indirect_exclude_operand)),
                 _ => None,
             },
-            IndirectExcludeFiltered::Amb(alts) => alts
-                .get(index)
-                .copied()
-                .map(ParseTree::IndirectExcludeFiltered),
+            IndirectExcludeFiltered::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -9573,7 +9785,7 @@ impl<'a> OperandLiteral<'a> {
                 4 => Some(ParseTree::OperandLiteralEnd(operand_literal_end_4)),
                 _ => None,
             },
-            OperandLiteral::Amb(alts) => alts.get(index).copied().map(ParseTree::OperandLiteral),
+            OperandLiteral::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -9618,9 +9830,7 @@ impl<'a> OperandLiteralEnd<'a> {
                 0 => Some(ParseTree::Token(*lit_0)),
                 _ => None,
             },
-            OperandLiteralEnd::Amb(alts) => {
-                alts.get(index).copied().map(ParseTree::OperandLiteralEnd)
-            }
+            OperandLiteralEnd::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -9691,7 +9901,7 @@ impl<'a> HeadLiteral<'a> {
                 4 => Some(ParseTree::HeadLiteralEnd(head_literal_end_4)),
                 _ => None,
             },
-            HeadLiteral::Amb(alts) => alts.get(index).copied().map(ParseTree::HeadLiteral),
+            HeadLiteral::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -9732,7 +9942,7 @@ impl<'a> HeadLiteralEnd<'a> {
                 0 => Some(ParseTree::HeadLiteral(head_literal)),
                 _ => None,
             },
-            HeadLiteralEnd::Amb(alts) => alts.get(index).copied().map(ParseTree::HeadLiteralEnd),
+            HeadLiteralEnd::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -9774,7 +9984,7 @@ impl<'a> Opt0<'a> {
                 _ => None,
             },
             Opt0::Alt1 { .. } => None,
-            Opt0::Amb(alts) => alts.get(index).copied().map(ParseTree::Opt0),
+            Opt0::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -9817,7 +10027,7 @@ impl<'a> Opt1<'a> {
                 _ => None,
             },
             Opt1::Alt1 { .. } => None,
-            Opt1::Amb(alts) => alts.get(index).copied().map(ParseTree::Opt1),
+            Opt1::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -9860,7 +10070,7 @@ impl<'a> Opt2<'a> {
                 _ => None,
             },
             Opt2::Alt1 { .. } => None,
-            Opt2::Amb(alts) => alts.get(index).copied().map(ParseTree::Opt2),
+            Opt2::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -9903,7 +10113,7 @@ impl<'a> Opt3<'a> {
                 _ => None,
             },
             Opt3::Alt1 { .. } => None,
-            Opt3::Amb(alts) => alts.get(index).copied().map(ParseTree::Opt3),
+            Opt3::Amb(alts) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
@@ -9937,2075 +10147,415 @@ impl<'a> Start<&'a S<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartS(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::S(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a E<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartE(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::E(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a L<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartL(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::L(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a Only<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartOnly(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::Only(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a OnlyOperand<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartOnlyOperand(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::OnlyOperand(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a Cross<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartCross(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::Cross(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a Foreign<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartForeign(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::Foreign(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a Cascade<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartCascade(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::Cascade(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a Ternary<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartTernary(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::Ternary(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a Nullable<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullable(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::Nullable(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a NullableLeft<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableLeft(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::NullableLeft(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a NullableRight<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableRight(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::NullableRight(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a RightExpr<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartRightExpr(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::RightExpr(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a RightOperand<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartRightOperand(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::RightOperand(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a NoneExpr<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNoneExpr(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::NoneExpr(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a NoneOperand<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNoneOperand(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::NoneOperand(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a Excluded<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartExcluded(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::Excluded(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a ExcludedOperand<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartExcludedOperand(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::ExcludedOperand(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a Filtered<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartFiltered(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::Filtered(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a LexNullable<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartLexNullable(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::LexNullable(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a LexNullableLeft<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartLexNullableLeft(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::LexNullableLeft(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a LexNullableRight<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartLexNullableRight(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::LexNullableRight(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a MixedScale<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartMixedScale(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::MixedScale(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a MixedOperand<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartMixedOperand(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::MixedOperand(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a MixedRight<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartMixedRight(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::MixedRight(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a MixedForeign<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartMixedForeign(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::MixedForeign(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a Packed<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartPacked(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::Packed(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a PackedOperand<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartPackedOperand(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::PackedOperand(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a PackedMiddle<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartPackedMiddle(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::PackedMiddle(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a PackedFiltered<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartPackedFiltered(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::PackedFiltered(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a NullableRecursive<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableRecursive(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::NullableRecursive(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a NullableOperand<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableOperand(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::NullableOperand(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a NullableMaybe<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableMaybe(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::NullableMaybe(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a NullableLexRecursive<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableLexRecursive(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::NullableLexRecursive(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a NullableLexOperand<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableLexOperand(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::NullableLexOperand(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a NullableLexMaybe<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableLexMaybe(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::NullableLexMaybe(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a NullableSuffix<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableSuffix(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::NullableSuffix(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a NullableSuffixOperand<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableSuffixOperand(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::NullableSuffixOperand(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a NullableSuffixMaybe<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableSuffixMaybe(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::NullableSuffixMaybe(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a NullableShared<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableShared(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::NullableShared(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a NullableSharedOperand<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableSharedOperand(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::NullableSharedOperand(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a NullableSharedMaybe<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableSharedMaybe(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::NullableSharedMaybe(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a OwnLabel<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartOwnLabel(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::OwnLabel(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a OwnOperand<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartOwnOperand(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::OwnOperand(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a OwnHeadFiltered<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartOwnHeadFiltered(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::OwnHeadFiltered(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a ExcludeOnly<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartExcludeOnly(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::ExcludeOnly(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a ExcludeOnlyFiltered<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartExcludeOnlyFiltered(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::ExcludeOnlyFiltered(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a Absent<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartAbsent(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::Absent(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a AbsentOperand<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartAbsentOperand(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::AbsentOperand(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a ClosedPrefix<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartClosedPrefix(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::ClosedPrefix(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a ClosedPrefixBody<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartClosedPrefixBody(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::ClosedPrefixBody(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a ClosedPostfix<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartClosedPostfix(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::ClosedPostfix(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a ClosedPostfixBody<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartClosedPostfixBody(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::ClosedPostfixBody(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a HeadChoice<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartHeadChoice(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::HeadChoice(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a HeadOperand<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartHeadOperand(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::HeadOperand(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a Inner<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartInner(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::Inner(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a UnaryMixedLeft<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartUnaryMixedLeft(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::UnaryMixedLeft(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a UnaryMixedRight<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartUnaryMixedRight(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::UnaryMixedRight(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a UnaryMixedNone<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartUnaryMixedNone(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::UnaryMixedNone(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a Dynamic<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartDynamic(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::Dynamic(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a DynamicOperand<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartDynamicOperand(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::DynamicOperand(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a DynamicFiltered<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartDynamicFiltered(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::DynamicFiltered(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a DynamicHeadFiltered<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartDynamicHeadFiltered(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::DynamicHeadFiltered(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a DynamicMulti<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartDynamicMulti(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::DynamicMulti(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a DynamicMultiOperand<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartDynamicMultiOperand(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::DynamicMultiOperand(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a NullableBoundaryPrefix<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableBoundaryPrefix(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::NullableBoundaryPrefix(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a NullableBoundaryRight<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableBoundaryRight(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::NullableBoundaryRight(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a NullableBoundaryOpt<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableBoundaryOpt(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::NullableBoundaryOpt(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a NullableBoundaryPostfix<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableBoundaryPostfix(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::NullableBoundaryPostfix(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a NullableBoundaryLeft<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableBoundaryLeft(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::NullableBoundaryLeft(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a NullableBoundaryBinary<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableBoundaryBinary(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::NullableBoundaryBinary(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a NullableBoundaryOperand<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableBoundaryOperand(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::NullableBoundaryOperand(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a ClosedLeftAssoc<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartClosedLeftAssoc(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::ClosedLeftAssoc(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a ClosedLeftOperand<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartClosedLeftOperand(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::ClosedLeftOperand(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a ClosedRightAssoc<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartClosedRightAssoc(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::ClosedRightAssoc(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a ClosedRightOperand<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartClosedRightOperand(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::ClosedRightOperand(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a IndirectExclude<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartIndirectExclude(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::IndirectExclude(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a IndirectExcludeOperand<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartIndirectExcludeOperand(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::IndirectExcludeOperand(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a IndirectExcludeFiltered<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartIndirectExcludeFiltered(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::IndirectExcludeFiltered(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a OperandLiteral<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartOperandLiteral(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::OperandLiteral(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> Start<&'a OperandLiteralEnd<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartOperandLiteralEnd(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::OperandLiteralEnd(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a HeadLiteral<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartHeadLiteral(self)
     }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::HeadLiteral(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
-    }
 }
 impl<'a> Start<&'a HeadLiteralEnd<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartHeadLiteralEnd(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match index {
-            0 => Some(ParseTree::Token(self.before)),
-            1 => Some(ParseTree::HeadLiteralEnd(self.node)),
-            2 => Some(ParseTree::Token(self.after)),
-            _ => None,
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        3usize
-    }
-    pub fn span(&self) -> Span {
-        self.span
-    }
-    pub fn display_name(&self) -> &'static str {
-        "Start"
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        Some(Origin::Start)
     }
 }
 impl<'a> OptNode for Opt0<'a> {
@@ -12158,6 +10708,15 @@ pub struct IndirectBinaryParseTreeBuilder<'a> {
 impl<'a> IndirectBinaryParseTreeBuilder<'a> {
     pub fn new(tree_arena: &'a Arena) -> Self {
         Self { arena: tree_arena }
+    }
+    ///The child at `index` of each start wrapper in `alternatives`.
+    fn start_inner_alternatives(
+        &self,
+        alternatives: &[ParseTree<'a>],
+        index: usize,
+    ) -> &'a [ParseTree<'a>] {
+        self.arena
+            .alloc_slice(alternatives.iter().map(|a| a.child(index).unwrap()))
     }
 }
 impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> {
@@ -15233,628 +13792,220 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
         parent: NonterminalId,
         alternatives: Vec<ParseTree<'a>>,
     ) -> ParseTree<'a> {
+        let slice = &*self.arena.alloc_slice(alternatives);
         match parent {
-            grammar::S => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_s()));
-                ParseTree::S(self.arena.alloc(S::Amb(slice)))
-            }
-            grammar::E => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_e()));
-                ParseTree::E(self.arena.alloc(E::Amb(slice)))
-            }
-            grammar::L => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_l()));
-                ParseTree::L(self.arena.alloc(L::Amb(slice)))
-            }
-            grammar::ONLY => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_only()));
-                ParseTree::Only(self.arena.alloc(Only::Amb(slice)))
-            }
+            grammar::S => ParseTree::S(self.arena.alloc(S::Amb(slice))),
+            grammar::E => ParseTree::E(self.arena.alloc(E::Amb(slice))),
+            grammar::L => ParseTree::L(self.arena.alloc(L::Amb(slice))),
+            grammar::ONLY => ParseTree::Only(self.arena.alloc(Only::Amb(slice))),
             grammar::ONLY_OPERAND => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_only_operand()));
                 ParseTree::OnlyOperand(self.arena.alloc(OnlyOperand::Amb(slice)))
             }
-            grammar::CROSS => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_cross()));
-                ParseTree::Cross(self.arena.alloc(Cross::Amb(slice)))
-            }
-            grammar::FOREIGN => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_foreign()));
-                ParseTree::Foreign(self.arena.alloc(Foreign::Amb(slice)))
-            }
-            grammar::CASCADE => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_cascade()));
-                ParseTree::Cascade(self.arena.alloc(Cascade::Amb(slice)))
-            }
-            grammar::TERNARY => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_ternary()));
-                ParseTree::Ternary(self.arena.alloc(Ternary::Amb(slice)))
-            }
-            grammar::NULLABLE => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_nullable()));
-                ParseTree::Nullable(self.arena.alloc(Nullable::Amb(slice)))
-            }
+            grammar::CROSS => ParseTree::Cross(self.arena.alloc(Cross::Amb(slice))),
+            grammar::FOREIGN => ParseTree::Foreign(self.arena.alloc(Foreign::Amb(slice))),
+            grammar::CASCADE => ParseTree::Cascade(self.arena.alloc(Cascade::Amb(slice))),
+            grammar::TERNARY => ParseTree::Ternary(self.arena.alloc(Ternary::Amb(slice))),
+            grammar::NULLABLE => ParseTree::Nullable(self.arena.alloc(Nullable::Amb(slice))),
             grammar::NULLABLE_LEFT => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_nullable_left()));
                 ParseTree::NullableLeft(self.arena.alloc(NullableLeft::Amb(slice)))
             }
             grammar::NULLABLE_RIGHT => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_nullable_right()));
                 ParseTree::NullableRight(self.arena.alloc(NullableRight::Amb(slice)))
             }
-            grammar::RIGHT_EXPR => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_right_expr()));
-                ParseTree::RightExpr(self.arena.alloc(RightExpr::Amb(slice)))
-            }
+            grammar::RIGHT_EXPR => ParseTree::RightExpr(self.arena.alloc(RightExpr::Amb(slice))),
             grammar::RIGHT_OPERAND => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_right_operand()));
                 ParseTree::RightOperand(self.arena.alloc(RightOperand::Amb(slice)))
             }
-            grammar::NONE_EXPR => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_none_expr()));
-                ParseTree::NoneExpr(self.arena.alloc(NoneExpr::Amb(slice)))
-            }
+            grammar::NONE_EXPR => ParseTree::NoneExpr(self.arena.alloc(NoneExpr::Amb(slice))),
             grammar::NONE_OPERAND => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_none_operand()));
                 ParseTree::NoneOperand(self.arena.alloc(NoneOperand::Amb(slice)))
             }
-            grammar::EXCLUDED => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_excluded()));
-                ParseTree::Excluded(self.arena.alloc(Excluded::Amb(slice)))
-            }
+            grammar::EXCLUDED => ParseTree::Excluded(self.arena.alloc(Excluded::Amb(slice))),
             grammar::EXCLUDED_OPERAND => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_excluded_operand()),
-                );
                 ParseTree::ExcludedOperand(self.arena.alloc(ExcludedOperand::Amb(slice)))
             }
-            grammar::FILTERED => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_filtered()));
-                ParseTree::Filtered(self.arena.alloc(Filtered::Amb(slice)))
-            }
+            grammar::FILTERED => ParseTree::Filtered(self.arena.alloc(Filtered::Amb(slice))),
             grammar::LEX_NULLABLE => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_lex_nullable()));
                 ParseTree::LexNullable(self.arena.alloc(LexNullable::Amb(slice)))
             }
             grammar::LEX_NULLABLE_LEFT => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_lex_nullable_left()),
-                );
                 ParseTree::LexNullableLeft(self.arena.alloc(LexNullableLeft::Amb(slice)))
             }
             grammar::LEX_NULLABLE_RIGHT => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_lex_nullable_right()),
-                );
                 ParseTree::LexNullableRight(self.arena.alloc(LexNullableRight::Amb(slice)))
             }
-            grammar::MIXED_SCALE => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_mixed_scale()));
-                ParseTree::MixedScale(self.arena.alloc(MixedScale::Amb(slice)))
-            }
+            grammar::MIXED_SCALE => ParseTree::MixedScale(self.arena.alloc(MixedScale::Amb(slice))),
             grammar::MIXED_OPERAND => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_mixed_operand()));
                 ParseTree::MixedOperand(self.arena.alloc(MixedOperand::Amb(slice)))
             }
-            grammar::MIXED_RIGHT => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_mixed_right()));
-                ParseTree::MixedRight(self.arena.alloc(MixedRight::Amb(slice)))
-            }
+            grammar::MIXED_RIGHT => ParseTree::MixedRight(self.arena.alloc(MixedRight::Amb(slice))),
             grammar::MIXED_FOREIGN => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_mixed_foreign()));
                 ParseTree::MixedForeign(self.arena.alloc(MixedForeign::Amb(slice)))
             }
-            grammar::PACKED => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_packed()));
-                ParseTree::Packed(self.arena.alloc(Packed::Amb(slice)))
-            }
+            grammar::PACKED => ParseTree::Packed(self.arena.alloc(Packed::Amb(slice))),
             grammar::PACKED_OPERAND => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_packed_operand()));
                 ParseTree::PackedOperand(self.arena.alloc(PackedOperand::Amb(slice)))
             }
             grammar::PACKED_MIDDLE => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_packed_middle()));
                 ParseTree::PackedMiddle(self.arena.alloc(PackedMiddle::Amb(slice)))
             }
             grammar::PACKED_FILTERED => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_packed_filtered()));
                 ParseTree::PackedFiltered(self.arena.alloc(PackedFiltered::Amb(slice)))
             }
             grammar::NULLABLE_RECURSIVE => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_nullable_recursive()),
-                );
                 ParseTree::NullableRecursive(self.arena.alloc(NullableRecursive::Amb(slice)))
             }
             grammar::NULLABLE_OPERAND => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_nullable_operand()),
-                );
                 ParseTree::NullableOperand(self.arena.alloc(NullableOperand::Amb(slice)))
             }
             grammar::NULLABLE_MAYBE => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_nullable_maybe()));
                 ParseTree::NullableMaybe(self.arena.alloc(NullableMaybe::Amb(slice)))
             }
             grammar::NULLABLE_LEX_RECURSIVE => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_nullable_lex_recursive()),
-                );
                 ParseTree::NullableLexRecursive(self.arena.alloc(NullableLexRecursive::Amb(slice)))
             }
             grammar::NULLABLE_LEX_OPERAND => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_nullable_lex_operand()),
-                );
                 ParseTree::NullableLexOperand(self.arena.alloc(NullableLexOperand::Amb(slice)))
             }
             grammar::NULLABLE_LEX_MAYBE => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_nullable_lex_maybe()),
-                );
                 ParseTree::NullableLexMaybe(self.arena.alloc(NullableLexMaybe::Amb(slice)))
             }
             grammar::NULLABLE_SUFFIX => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_nullable_suffix()));
                 ParseTree::NullableSuffix(self.arena.alloc(NullableSuffix::Amb(slice)))
             }
-            grammar::NULLABLE_SUFFIX_OPERAND => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_nullable_suffix_operand()),
-                );
-                ParseTree::NullableSuffixOperand(
-                    self.arena.alloc(NullableSuffixOperand::Amb(slice)),
-                )
-            }
+            grammar::NULLABLE_SUFFIX_OPERAND => ParseTree::NullableSuffixOperand(
+                self.arena.alloc(NullableSuffixOperand::Amb(slice)),
+            ),
             grammar::NULLABLE_SUFFIX_MAYBE => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_nullable_suffix_maybe()),
-                );
                 ParseTree::NullableSuffixMaybe(self.arena.alloc(NullableSuffixMaybe::Amb(slice)))
             }
             grammar::NULLABLE_SHARED => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_nullable_shared()));
                 ParseTree::NullableShared(self.arena.alloc(NullableShared::Amb(slice)))
             }
-            grammar::NULLABLE_SHARED_OPERAND => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_nullable_shared_operand()),
-                );
-                ParseTree::NullableSharedOperand(
-                    self.arena.alloc(NullableSharedOperand::Amb(slice)),
-                )
-            }
+            grammar::NULLABLE_SHARED_OPERAND => ParseTree::NullableSharedOperand(
+                self.arena.alloc(NullableSharedOperand::Amb(slice)),
+            ),
             grammar::NULLABLE_SHARED_MAYBE => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_nullable_shared_maybe()),
-                );
                 ParseTree::NullableSharedMaybe(self.arena.alloc(NullableSharedMaybe::Amb(slice)))
             }
-            grammar::OWN_LABEL => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_own_label()));
-                ParseTree::OwnLabel(self.arena.alloc(OwnLabel::Amb(slice)))
-            }
-            grammar::OWN_OPERAND => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_own_operand()));
-                ParseTree::OwnOperand(self.arena.alloc(OwnOperand::Amb(slice)))
-            }
+            grammar::OWN_LABEL => ParseTree::OwnLabel(self.arena.alloc(OwnLabel::Amb(slice))),
+            grammar::OWN_OPERAND => ParseTree::OwnOperand(self.arena.alloc(OwnOperand::Amb(slice))),
             grammar::OWN_HEAD_FILTERED => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_own_head_filtered()),
-                );
                 ParseTree::OwnHeadFiltered(self.arena.alloc(OwnHeadFiltered::Amb(slice)))
             }
             grammar::EXCLUDE_ONLY => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_exclude_only()));
                 ParseTree::ExcludeOnly(self.arena.alloc(ExcludeOnly::Amb(slice)))
             }
             grammar::EXCLUDE_ONLY_FILTERED => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_exclude_only_filtered()),
-                );
                 ParseTree::ExcludeOnlyFiltered(self.arena.alloc(ExcludeOnlyFiltered::Amb(slice)))
             }
-            grammar::ABSENT => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_absent()));
-                ParseTree::Absent(self.arena.alloc(Absent::Amb(slice)))
-            }
+            grammar::ABSENT => ParseTree::Absent(self.arena.alloc(Absent::Amb(slice))),
             grammar::ABSENT_OPERAND => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_absent_operand()));
                 ParseTree::AbsentOperand(self.arena.alloc(AbsentOperand::Amb(slice)))
             }
             grammar::CLOSED_PREFIX => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_closed_prefix()));
                 ParseTree::ClosedPrefix(self.arena.alloc(ClosedPrefix::Amb(slice)))
             }
             grammar::CLOSED_PREFIX_BODY => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_closed_prefix_body()),
-                );
                 ParseTree::ClosedPrefixBody(self.arena.alloc(ClosedPrefixBody::Amb(slice)))
             }
             grammar::CLOSED_POSTFIX => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_closed_postfix()));
                 ParseTree::ClosedPostfix(self.arena.alloc(ClosedPostfix::Amb(slice)))
             }
             grammar::CLOSED_POSTFIX_BODY => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_closed_postfix_body()),
-                );
                 ParseTree::ClosedPostfixBody(self.arena.alloc(ClosedPostfixBody::Amb(slice)))
             }
-            grammar::HEAD_CHOICE => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_head_choice()));
-                ParseTree::HeadChoice(self.arena.alloc(HeadChoice::Amb(slice)))
-            }
+            grammar::HEAD_CHOICE => ParseTree::HeadChoice(self.arena.alloc(HeadChoice::Amb(slice))),
             grammar::HEAD_OPERAND => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_head_operand()));
                 ParseTree::HeadOperand(self.arena.alloc(HeadOperand::Amb(slice)))
             }
-            grammar::INNER => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_inner()));
-                ParseTree::Inner(self.arena.alloc(Inner::Amb(slice)))
-            }
+            grammar::INNER => ParseTree::Inner(self.arena.alloc(Inner::Amb(slice))),
             grammar::UNARY_MIXED_LEFT => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_unary_mixed_left()),
-                );
                 ParseTree::UnaryMixedLeft(self.arena.alloc(UnaryMixedLeft::Amb(slice)))
             }
             grammar::UNARY_MIXED_RIGHT => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_unary_mixed_right()),
-                );
                 ParseTree::UnaryMixedRight(self.arena.alloc(UnaryMixedRight::Amb(slice)))
             }
             grammar::UNARY_MIXED_NONE => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_unary_mixed_none()),
-                );
                 ParseTree::UnaryMixedNone(self.arena.alloc(UnaryMixedNone::Amb(slice)))
             }
-            grammar::DYNAMIC => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_dynamic()));
-                ParseTree::Dynamic(self.arena.alloc(Dynamic::Amb(slice)))
-            }
+            grammar::DYNAMIC => ParseTree::Dynamic(self.arena.alloc(Dynamic::Amb(slice))),
             grammar::DYNAMIC_OPERAND => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_dynamic_operand()));
                 ParseTree::DynamicOperand(self.arena.alloc(DynamicOperand::Amb(slice)))
             }
             grammar::DYNAMIC_FILTERED => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_dynamic_filtered()),
-                );
                 ParseTree::DynamicFiltered(self.arena.alloc(DynamicFiltered::Amb(slice)))
             }
             grammar::DYNAMIC_HEAD_FILTERED => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_dynamic_head_filtered()),
-                );
                 ParseTree::DynamicHeadFiltered(self.arena.alloc(DynamicHeadFiltered::Amb(slice)))
             }
             grammar::DYNAMIC_MULTI => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_dynamic_multi()));
                 ParseTree::DynamicMulti(self.arena.alloc(DynamicMulti::Amb(slice)))
             }
             grammar::DYNAMIC_MULTI_OPERAND => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_dynamic_multi_operand()),
-                );
                 ParseTree::DynamicMultiOperand(self.arena.alloc(DynamicMultiOperand::Amb(slice)))
             }
-            grammar::NULLABLE_BOUNDARY_PREFIX => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_nullable_boundary_prefix()),
-                );
-                ParseTree::NullableBoundaryPrefix(
-                    self.arena.alloc(NullableBoundaryPrefix::Amb(slice)),
-                )
-            }
-            grammar::NULLABLE_BOUNDARY_RIGHT => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_nullable_boundary_right()),
-                );
-                ParseTree::NullableBoundaryRight(
-                    self.arena.alloc(NullableBoundaryRight::Amb(slice)),
-                )
-            }
+            grammar::NULLABLE_BOUNDARY_PREFIX => ParseTree::NullableBoundaryPrefix(
+                self.arena.alloc(NullableBoundaryPrefix::Amb(slice)),
+            ),
+            grammar::NULLABLE_BOUNDARY_RIGHT => ParseTree::NullableBoundaryRight(
+                self.arena.alloc(NullableBoundaryRight::Amb(slice)),
+            ),
             grammar::NULLABLE_BOUNDARY_OPT => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_nullable_boundary_opt()),
-                );
                 ParseTree::NullableBoundaryOpt(self.arena.alloc(NullableBoundaryOpt::Amb(slice)))
             }
-            grammar::NULLABLE_BOUNDARY_POSTFIX => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_nullable_boundary_postfix()),
-                );
-                ParseTree::NullableBoundaryPostfix(
-                    self.arena.alloc(NullableBoundaryPostfix::Amb(slice)),
-                )
-            }
+            grammar::NULLABLE_BOUNDARY_POSTFIX => ParseTree::NullableBoundaryPostfix(
+                self.arena.alloc(NullableBoundaryPostfix::Amb(slice)),
+            ),
             grammar::NULLABLE_BOUNDARY_LEFT => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_nullable_boundary_left()),
-                );
                 ParseTree::NullableBoundaryLeft(self.arena.alloc(NullableBoundaryLeft::Amb(slice)))
             }
-            grammar::NULLABLE_BOUNDARY_BINARY => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_nullable_boundary_binary()),
-                );
-                ParseTree::NullableBoundaryBinary(
-                    self.arena.alloc(NullableBoundaryBinary::Amb(slice)),
-                )
-            }
-            grammar::NULLABLE_BOUNDARY_OPERAND => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_nullable_boundary_operand()),
-                );
-                ParseTree::NullableBoundaryOperand(
-                    self.arena.alloc(NullableBoundaryOperand::Amb(slice)),
-                )
-            }
+            grammar::NULLABLE_BOUNDARY_BINARY => ParseTree::NullableBoundaryBinary(
+                self.arena.alloc(NullableBoundaryBinary::Amb(slice)),
+            ),
+            grammar::NULLABLE_BOUNDARY_OPERAND => ParseTree::NullableBoundaryOperand(
+                self.arena.alloc(NullableBoundaryOperand::Amb(slice)),
+            ),
             grammar::CLOSED_LEFT_ASSOC => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_closed_left_assoc()),
-                );
                 ParseTree::ClosedLeftAssoc(self.arena.alloc(ClosedLeftAssoc::Amb(slice)))
             }
             grammar::CLOSED_LEFT_OPERAND => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_closed_left_operand()),
-                );
                 ParseTree::ClosedLeftOperand(self.arena.alloc(ClosedLeftOperand::Amb(slice)))
             }
             grammar::CLOSED_RIGHT_ASSOC => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_closed_right_assoc()),
-                );
                 ParseTree::ClosedRightAssoc(self.arena.alloc(ClosedRightAssoc::Amb(slice)))
             }
             grammar::CLOSED_RIGHT_OPERAND => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_closed_right_operand()),
-                );
                 ParseTree::ClosedRightOperand(self.arena.alloc(ClosedRightOperand::Amb(slice)))
             }
             grammar::INDIRECT_EXCLUDE => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_indirect_exclude()),
-                );
                 ParseTree::IndirectExclude(self.arena.alloc(IndirectExclude::Amb(slice)))
             }
-            grammar::INDIRECT_EXCLUDE_OPERAND => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_indirect_exclude_operand()),
-                );
-                ParseTree::IndirectExcludeOperand(
-                    self.arena.alloc(IndirectExcludeOperand::Amb(slice)),
-                )
-            }
-            grammar::INDIRECT_EXCLUDE_FILTERED => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_indirect_exclude_filtered()),
-                );
-                ParseTree::IndirectExcludeFiltered(
-                    self.arena.alloc(IndirectExcludeFiltered::Amb(slice)),
-                )
-            }
+            grammar::INDIRECT_EXCLUDE_OPERAND => ParseTree::IndirectExcludeOperand(
+                self.arena.alloc(IndirectExcludeOperand::Amb(slice)),
+            ),
+            grammar::INDIRECT_EXCLUDE_FILTERED => ParseTree::IndirectExcludeFiltered(
+                self.arena.alloc(IndirectExcludeFiltered::Amb(slice)),
+            ),
             grammar::OPERAND_LITERAL => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_operand_literal()));
                 ParseTree::OperandLiteral(self.arena.alloc(OperandLiteral::Amb(slice)))
             }
             grammar::OPERAND_LITERAL_END => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_operand_literal_end()),
-                );
                 ParseTree::OperandLiteralEnd(self.arena.alloc(OperandLiteralEnd::Amb(slice)))
             }
             grammar::HEAD_LITERAL => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_head_literal()));
                 ParseTree::HeadLiteral(self.arena.alloc(HeadLiteral::Amb(slice)))
             }
             grammar::HEAD_LITERAL_END => {
-                let slice = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_head_literal_end()),
-                );
                 ParseTree::HeadLiteralEnd(self.arena.alloc(HeadLiteralEnd::Amb(slice)))
             }
-            grammar::OPT_0 => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_opt_0()));
-                ParseTree::Opt0(self.arena.alloc(Opt0::Amb(slice)))
-            }
-            grammar::OPT_1 => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_opt_1()));
-                ParseTree::Opt1(self.arena.alloc(Opt1::Amb(slice)))
-            }
-            grammar::OPT_2 => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_opt_2()));
-                ParseTree::Opt2(self.arena.alloc(Opt2::Amb(slice)))
-            }
-            grammar::OPT_3 => {
-                let slice = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_opt_3()));
-                ParseTree::Opt3(self.arena.alloc(Opt3::Amb(slice)))
-            }
+            grammar::OPT_0 => ParseTree::Opt0(self.arena.alloc(Opt0::Amb(slice))),
+            grammar::OPT_1 => ParseTree::Opt1(self.arena.alloc(Opt1::Amb(slice))),
+            grammar::OPT_2 => ParseTree::Opt2(self.arena.alloc(Opt2::Amb(slice))),
+            grammar::OPT_3 => ParseTree::Opt3(self.arena.alloc(Opt3::Amb(slice))),
             grammar::START_S => {
-                let first = alternatives[0].unwrap_start_s();
-                let inner = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_start_s().node));
+                let first = slice[0].unwrap_start_s();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(S::Amb(inner));
                 ParseTree::StartS(self.arena.alloc(Start {
                     before: first.before,
@@ -15864,10 +14015,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_E => {
-                let first = alternatives[0].unwrap_start_e();
-                let inner = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_start_e().node));
+                let first = slice[0].unwrap_start_e();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(E::Amb(inner));
                 ParseTree::StartE(self.arena.alloc(Start {
                     before: first.before,
@@ -15877,10 +14026,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_L => {
-                let first = alternatives[0].unwrap_start_l();
-                let inner = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_start_l().node));
+                let first = slice[0].unwrap_start_l();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(L::Amb(inner));
                 ParseTree::StartL(self.arena.alloc(Start {
                     before: first.before,
@@ -15890,10 +14037,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_ONLY => {
-                let first = alternatives[0].unwrap_start_only();
-                let inner = self
-                    .arena
-                    .alloc_slice(alternatives.into_iter().map(|a| a.unwrap_start_only().node));
+                let first = slice[0].unwrap_start_only();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(Only::Amb(inner));
                 ParseTree::StartOnly(self.arena.alloc(Start {
                     before: first.before,
@@ -15903,12 +14048,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_ONLY_OPERAND => {
-                let first = alternatives[0].unwrap_start_only_operand();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_only_operand().node),
-                );
+                let first = slice[0].unwrap_start_only_operand();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(OnlyOperand::Amb(inner));
                 ParseTree::StartOnlyOperand(self.arena.alloc(Start {
                     before: first.before,
@@ -15918,12 +14059,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_CROSS => {
-                let first = alternatives[0].unwrap_start_cross();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_cross().node),
-                );
+                let first = slice[0].unwrap_start_cross();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(Cross::Amb(inner));
                 ParseTree::StartCross(self.arena.alloc(Start {
                     before: first.before,
@@ -15933,12 +14070,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_FOREIGN => {
-                let first = alternatives[0].unwrap_start_foreign();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_foreign().node),
-                );
+                let first = slice[0].unwrap_start_foreign();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(Foreign::Amb(inner));
                 ParseTree::StartForeign(self.arena.alloc(Start {
                     before: first.before,
@@ -15948,12 +14081,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_CASCADE => {
-                let first = alternatives[0].unwrap_start_cascade();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_cascade().node),
-                );
+                let first = slice[0].unwrap_start_cascade();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(Cascade::Amb(inner));
                 ParseTree::StartCascade(self.arena.alloc(Start {
                     before: first.before,
@@ -15963,12 +14092,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_TERNARY => {
-                let first = alternatives[0].unwrap_start_ternary();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_ternary().node),
-                );
+                let first = slice[0].unwrap_start_ternary();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(Ternary::Amb(inner));
                 ParseTree::StartTernary(self.arena.alloc(Start {
                     before: first.before,
@@ -15978,12 +14103,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_NULLABLE => {
-                let first = alternatives[0].unwrap_start_nullable();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_nullable().node),
-                );
+                let first = slice[0].unwrap_start_nullable();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(Nullable::Amb(inner));
                 ParseTree::StartNullable(self.arena.alloc(Start {
                     before: first.before,
@@ -15993,12 +14114,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_NULLABLE_LEFT => {
-                let first = alternatives[0].unwrap_start_nullable_left();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_nullable_left().node),
-                );
+                let first = slice[0].unwrap_start_nullable_left();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(NullableLeft::Amb(inner));
                 ParseTree::StartNullableLeft(self.arena.alloc(Start {
                     before: first.before,
@@ -16008,12 +14125,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_NULLABLE_RIGHT => {
-                let first = alternatives[0].unwrap_start_nullable_right();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_nullable_right().node),
-                );
+                let first = slice[0].unwrap_start_nullable_right();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(NullableRight::Amb(inner));
                 ParseTree::StartNullableRight(self.arena.alloc(Start {
                     before: first.before,
@@ -16023,12 +14136,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_RIGHT_EXPR => {
-                let first = alternatives[0].unwrap_start_right_expr();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_right_expr().node),
-                );
+                let first = slice[0].unwrap_start_right_expr();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(RightExpr::Amb(inner));
                 ParseTree::StartRightExpr(self.arena.alloc(Start {
                     before: first.before,
@@ -16038,12 +14147,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_RIGHT_OPERAND => {
-                let first = alternatives[0].unwrap_start_right_operand();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_right_operand().node),
-                );
+                let first = slice[0].unwrap_start_right_operand();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(RightOperand::Amb(inner));
                 ParseTree::StartRightOperand(self.arena.alloc(Start {
                     before: first.before,
@@ -16053,12 +14158,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_NONE_EXPR => {
-                let first = alternatives[0].unwrap_start_none_expr();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_none_expr().node),
-                );
+                let first = slice[0].unwrap_start_none_expr();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(NoneExpr::Amb(inner));
                 ParseTree::StartNoneExpr(self.arena.alloc(Start {
                     before: first.before,
@@ -16068,12 +14169,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_NONE_OPERAND => {
-                let first = alternatives[0].unwrap_start_none_operand();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_none_operand().node),
-                );
+                let first = slice[0].unwrap_start_none_operand();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(NoneOperand::Amb(inner));
                 ParseTree::StartNoneOperand(self.arena.alloc(Start {
                     before: first.before,
@@ -16083,12 +14180,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_EXCLUDED => {
-                let first = alternatives[0].unwrap_start_excluded();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_excluded().node),
-                );
+                let first = slice[0].unwrap_start_excluded();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(Excluded::Amb(inner));
                 ParseTree::StartExcluded(self.arena.alloc(Start {
                     before: first.before,
@@ -16098,12 +14191,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_EXCLUDED_OPERAND => {
-                let first = alternatives[0].unwrap_start_excluded_operand();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_excluded_operand().node),
-                );
+                let first = slice[0].unwrap_start_excluded_operand();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(ExcludedOperand::Amb(inner));
                 ParseTree::StartExcludedOperand(self.arena.alloc(Start {
                     before: first.before,
@@ -16113,12 +14202,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_FILTERED => {
-                let first = alternatives[0].unwrap_start_filtered();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_filtered().node),
-                );
+                let first = slice[0].unwrap_start_filtered();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(Filtered::Amb(inner));
                 ParseTree::StartFiltered(self.arena.alloc(Start {
                     before: first.before,
@@ -16128,12 +14213,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_LEX_NULLABLE => {
-                let first = alternatives[0].unwrap_start_lex_nullable();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_lex_nullable().node),
-                );
+                let first = slice[0].unwrap_start_lex_nullable();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(LexNullable::Amb(inner));
                 ParseTree::StartLexNullable(self.arena.alloc(Start {
                     before: first.before,
@@ -16143,12 +14224,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_LEX_NULLABLE_LEFT => {
-                let first = alternatives[0].unwrap_start_lex_nullable_left();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_lex_nullable_left().node),
-                );
+                let first = slice[0].unwrap_start_lex_nullable_left();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(LexNullableLeft::Amb(inner));
                 ParseTree::StartLexNullableLeft(self.arena.alloc(Start {
                     before: first.before,
@@ -16158,12 +14235,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_LEX_NULLABLE_RIGHT => {
-                let first = alternatives[0].unwrap_start_lex_nullable_right();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_lex_nullable_right().node),
-                );
+                let first = slice[0].unwrap_start_lex_nullable_right();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(LexNullableRight::Amb(inner));
                 ParseTree::StartLexNullableRight(self.arena.alloc(Start {
                     before: first.before,
@@ -16173,12 +14246,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_MIXED_SCALE => {
-                let first = alternatives[0].unwrap_start_mixed_scale();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_mixed_scale().node),
-                );
+                let first = slice[0].unwrap_start_mixed_scale();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(MixedScale::Amb(inner));
                 ParseTree::StartMixedScale(self.arena.alloc(Start {
                     before: first.before,
@@ -16188,12 +14257,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_MIXED_OPERAND => {
-                let first = alternatives[0].unwrap_start_mixed_operand();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_mixed_operand().node),
-                );
+                let first = slice[0].unwrap_start_mixed_operand();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(MixedOperand::Amb(inner));
                 ParseTree::StartMixedOperand(self.arena.alloc(Start {
                     before: first.before,
@@ -16203,12 +14268,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_MIXED_RIGHT => {
-                let first = alternatives[0].unwrap_start_mixed_right();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_mixed_right().node),
-                );
+                let first = slice[0].unwrap_start_mixed_right();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(MixedRight::Amb(inner));
                 ParseTree::StartMixedRight(self.arena.alloc(Start {
                     before: first.before,
@@ -16218,12 +14279,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_MIXED_FOREIGN => {
-                let first = alternatives[0].unwrap_start_mixed_foreign();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_mixed_foreign().node),
-                );
+                let first = slice[0].unwrap_start_mixed_foreign();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(MixedForeign::Amb(inner));
                 ParseTree::StartMixedForeign(self.arena.alloc(Start {
                     before: first.before,
@@ -16233,12 +14290,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_PACKED => {
-                let first = alternatives[0].unwrap_start_packed();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_packed().node),
-                );
+                let first = slice[0].unwrap_start_packed();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(Packed::Amb(inner));
                 ParseTree::StartPacked(self.arena.alloc(Start {
                     before: first.before,
@@ -16248,12 +14301,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_PACKED_OPERAND => {
-                let first = alternatives[0].unwrap_start_packed_operand();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_packed_operand().node),
-                );
+                let first = slice[0].unwrap_start_packed_operand();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(PackedOperand::Amb(inner));
                 ParseTree::StartPackedOperand(self.arena.alloc(Start {
                     before: first.before,
@@ -16263,12 +14312,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_PACKED_MIDDLE => {
-                let first = alternatives[0].unwrap_start_packed_middle();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_packed_middle().node),
-                );
+                let first = slice[0].unwrap_start_packed_middle();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(PackedMiddle::Amb(inner));
                 ParseTree::StartPackedMiddle(self.arena.alloc(Start {
                     before: first.before,
@@ -16278,12 +14323,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_PACKED_FILTERED => {
-                let first = alternatives[0].unwrap_start_packed_filtered();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_packed_filtered().node),
-                );
+                let first = slice[0].unwrap_start_packed_filtered();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(PackedFiltered::Amb(inner));
                 ParseTree::StartPackedFiltered(self.arena.alloc(Start {
                     before: first.before,
@@ -16293,12 +14334,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_NULLABLE_RECURSIVE => {
-                let first = alternatives[0].unwrap_start_nullable_recursive();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_nullable_recursive().node),
-                );
+                let first = slice[0].unwrap_start_nullable_recursive();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(NullableRecursive::Amb(inner));
                 ParseTree::StartNullableRecursive(self.arena.alloc(Start {
                     before: first.before,
@@ -16308,12 +14345,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_NULLABLE_OPERAND => {
-                let first = alternatives[0].unwrap_start_nullable_operand();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_nullable_operand().node),
-                );
+                let first = slice[0].unwrap_start_nullable_operand();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(NullableOperand::Amb(inner));
                 ParseTree::StartNullableOperand(self.arena.alloc(Start {
                     before: first.before,
@@ -16323,12 +14356,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_NULLABLE_MAYBE => {
-                let first = alternatives[0].unwrap_start_nullable_maybe();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_nullable_maybe().node),
-                );
+                let first = slice[0].unwrap_start_nullable_maybe();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(NullableMaybe::Amb(inner));
                 ParseTree::StartNullableMaybe(self.arena.alloc(Start {
                     before: first.before,
@@ -16338,12 +14367,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_NULLABLE_LEX_RECURSIVE => {
-                let first = alternatives[0].unwrap_start_nullable_lex_recursive();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_nullable_lex_recursive().node),
-                );
+                let first = slice[0].unwrap_start_nullable_lex_recursive();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(NullableLexRecursive::Amb(inner));
                 ParseTree::StartNullableLexRecursive(self.arena.alloc(Start {
                     before: first.before,
@@ -16353,12 +14378,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_NULLABLE_LEX_OPERAND => {
-                let first = alternatives[0].unwrap_start_nullable_lex_operand();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_nullable_lex_operand().node),
-                );
+                let first = slice[0].unwrap_start_nullable_lex_operand();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(NullableLexOperand::Amb(inner));
                 ParseTree::StartNullableLexOperand(self.arena.alloc(Start {
                     before: first.before,
@@ -16368,12 +14389,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_NULLABLE_LEX_MAYBE => {
-                let first = alternatives[0].unwrap_start_nullable_lex_maybe();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_nullable_lex_maybe().node),
-                );
+                let first = slice[0].unwrap_start_nullable_lex_maybe();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(NullableLexMaybe::Amb(inner));
                 ParseTree::StartNullableLexMaybe(self.arena.alloc(Start {
                     before: first.before,
@@ -16383,12 +14400,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_NULLABLE_SUFFIX => {
-                let first = alternatives[0].unwrap_start_nullable_suffix();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_nullable_suffix().node),
-                );
+                let first = slice[0].unwrap_start_nullable_suffix();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(NullableSuffix::Amb(inner));
                 ParseTree::StartNullableSuffix(self.arena.alloc(Start {
                     before: first.before,
@@ -16398,12 +14411,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_NULLABLE_SUFFIX_OPERAND => {
-                let first = alternatives[0].unwrap_start_nullable_suffix_operand();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_nullable_suffix_operand().node),
-                );
+                let first = slice[0].unwrap_start_nullable_suffix_operand();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(NullableSuffixOperand::Amb(inner));
                 ParseTree::StartNullableSuffixOperand(self.arena.alloc(Start {
                     before: first.before,
@@ -16413,12 +14422,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_NULLABLE_SUFFIX_MAYBE => {
-                let first = alternatives[0].unwrap_start_nullable_suffix_maybe();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_nullable_suffix_maybe().node),
-                );
+                let first = slice[0].unwrap_start_nullable_suffix_maybe();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(NullableSuffixMaybe::Amb(inner));
                 ParseTree::StartNullableSuffixMaybe(self.arena.alloc(Start {
                     before: first.before,
@@ -16428,12 +14433,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_NULLABLE_SHARED => {
-                let first = alternatives[0].unwrap_start_nullable_shared();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_nullable_shared().node),
-                );
+                let first = slice[0].unwrap_start_nullable_shared();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(NullableShared::Amb(inner));
                 ParseTree::StartNullableShared(self.arena.alloc(Start {
                     before: first.before,
@@ -16443,12 +14444,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_NULLABLE_SHARED_OPERAND => {
-                let first = alternatives[0].unwrap_start_nullable_shared_operand();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_nullable_shared_operand().node),
-                );
+                let first = slice[0].unwrap_start_nullable_shared_operand();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(NullableSharedOperand::Amb(inner));
                 ParseTree::StartNullableSharedOperand(self.arena.alloc(Start {
                     before: first.before,
@@ -16458,12 +14455,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_NULLABLE_SHARED_MAYBE => {
-                let first = alternatives[0].unwrap_start_nullable_shared_maybe();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_nullable_shared_maybe().node),
-                );
+                let first = slice[0].unwrap_start_nullable_shared_maybe();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(NullableSharedMaybe::Amb(inner));
                 ParseTree::StartNullableSharedMaybe(self.arena.alloc(Start {
                     before: first.before,
@@ -16473,12 +14466,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_OWN_LABEL => {
-                let first = alternatives[0].unwrap_start_own_label();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_own_label().node),
-                );
+                let first = slice[0].unwrap_start_own_label();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(OwnLabel::Amb(inner));
                 ParseTree::StartOwnLabel(self.arena.alloc(Start {
                     before: first.before,
@@ -16488,12 +14477,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_OWN_OPERAND => {
-                let first = alternatives[0].unwrap_start_own_operand();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_own_operand().node),
-                );
+                let first = slice[0].unwrap_start_own_operand();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(OwnOperand::Amb(inner));
                 ParseTree::StartOwnOperand(self.arena.alloc(Start {
                     before: first.before,
@@ -16503,12 +14488,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_OWN_HEAD_FILTERED => {
-                let first = alternatives[0].unwrap_start_own_head_filtered();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_own_head_filtered().node),
-                );
+                let first = slice[0].unwrap_start_own_head_filtered();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(OwnHeadFiltered::Amb(inner));
                 ParseTree::StartOwnHeadFiltered(self.arena.alloc(Start {
                     before: first.before,
@@ -16518,12 +14499,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_EXCLUDE_ONLY => {
-                let first = alternatives[0].unwrap_start_exclude_only();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_exclude_only().node),
-                );
+                let first = slice[0].unwrap_start_exclude_only();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(ExcludeOnly::Amb(inner));
                 ParseTree::StartExcludeOnly(self.arena.alloc(Start {
                     before: first.before,
@@ -16533,12 +14510,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_EXCLUDE_ONLY_FILTERED => {
-                let first = alternatives[0].unwrap_start_exclude_only_filtered();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_exclude_only_filtered().node),
-                );
+                let first = slice[0].unwrap_start_exclude_only_filtered();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(ExcludeOnlyFiltered::Amb(inner));
                 ParseTree::StartExcludeOnlyFiltered(self.arena.alloc(Start {
                     before: first.before,
@@ -16548,12 +14521,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_ABSENT => {
-                let first = alternatives[0].unwrap_start_absent();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_absent().node),
-                );
+                let first = slice[0].unwrap_start_absent();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(Absent::Amb(inner));
                 ParseTree::StartAbsent(self.arena.alloc(Start {
                     before: first.before,
@@ -16563,12 +14532,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_ABSENT_OPERAND => {
-                let first = alternatives[0].unwrap_start_absent_operand();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_absent_operand().node),
-                );
+                let first = slice[0].unwrap_start_absent_operand();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(AbsentOperand::Amb(inner));
                 ParseTree::StartAbsentOperand(self.arena.alloc(Start {
                     before: first.before,
@@ -16578,12 +14543,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_CLOSED_PREFIX => {
-                let first = alternatives[0].unwrap_start_closed_prefix();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_closed_prefix().node),
-                );
+                let first = slice[0].unwrap_start_closed_prefix();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(ClosedPrefix::Amb(inner));
                 ParseTree::StartClosedPrefix(self.arena.alloc(Start {
                     before: first.before,
@@ -16593,12 +14554,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_CLOSED_PREFIX_BODY => {
-                let first = alternatives[0].unwrap_start_closed_prefix_body();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_closed_prefix_body().node),
-                );
+                let first = slice[0].unwrap_start_closed_prefix_body();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(ClosedPrefixBody::Amb(inner));
                 ParseTree::StartClosedPrefixBody(self.arena.alloc(Start {
                     before: first.before,
@@ -16608,12 +14565,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_CLOSED_POSTFIX => {
-                let first = alternatives[0].unwrap_start_closed_postfix();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_closed_postfix().node),
-                );
+                let first = slice[0].unwrap_start_closed_postfix();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(ClosedPostfix::Amb(inner));
                 ParseTree::StartClosedPostfix(self.arena.alloc(Start {
                     before: first.before,
@@ -16623,12 +14576,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_CLOSED_POSTFIX_BODY => {
-                let first = alternatives[0].unwrap_start_closed_postfix_body();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_closed_postfix_body().node),
-                );
+                let first = slice[0].unwrap_start_closed_postfix_body();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(ClosedPostfixBody::Amb(inner));
                 ParseTree::StartClosedPostfixBody(self.arena.alloc(Start {
                     before: first.before,
@@ -16638,12 +14587,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_HEAD_CHOICE => {
-                let first = alternatives[0].unwrap_start_head_choice();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_head_choice().node),
-                );
+                let first = slice[0].unwrap_start_head_choice();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(HeadChoice::Amb(inner));
                 ParseTree::StartHeadChoice(self.arena.alloc(Start {
                     before: first.before,
@@ -16653,12 +14598,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_HEAD_OPERAND => {
-                let first = alternatives[0].unwrap_start_head_operand();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_head_operand().node),
-                );
+                let first = slice[0].unwrap_start_head_operand();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(HeadOperand::Amb(inner));
                 ParseTree::StartHeadOperand(self.arena.alloc(Start {
                     before: first.before,
@@ -16668,12 +14609,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_INNER => {
-                let first = alternatives[0].unwrap_start_inner();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_inner().node),
-                );
+                let first = slice[0].unwrap_start_inner();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(Inner::Amb(inner));
                 ParseTree::StartInner(self.arena.alloc(Start {
                     before: first.before,
@@ -16683,12 +14620,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_UNARY_MIXED_LEFT => {
-                let first = alternatives[0].unwrap_start_unary_mixed_left();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_unary_mixed_left().node),
-                );
+                let first = slice[0].unwrap_start_unary_mixed_left();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(UnaryMixedLeft::Amb(inner));
                 ParseTree::StartUnaryMixedLeft(self.arena.alloc(Start {
                     before: first.before,
@@ -16698,12 +14631,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_UNARY_MIXED_RIGHT => {
-                let first = alternatives[0].unwrap_start_unary_mixed_right();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_unary_mixed_right().node),
-                );
+                let first = slice[0].unwrap_start_unary_mixed_right();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(UnaryMixedRight::Amb(inner));
                 ParseTree::StartUnaryMixedRight(self.arena.alloc(Start {
                     before: first.before,
@@ -16713,12 +14642,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_UNARY_MIXED_NONE => {
-                let first = alternatives[0].unwrap_start_unary_mixed_none();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_unary_mixed_none().node),
-                );
+                let first = slice[0].unwrap_start_unary_mixed_none();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(UnaryMixedNone::Amb(inner));
                 ParseTree::StartUnaryMixedNone(self.arena.alloc(Start {
                     before: first.before,
@@ -16728,12 +14653,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_DYNAMIC => {
-                let first = alternatives[0].unwrap_start_dynamic();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_dynamic().node),
-                );
+                let first = slice[0].unwrap_start_dynamic();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(Dynamic::Amb(inner));
                 ParseTree::StartDynamic(self.arena.alloc(Start {
                     before: first.before,
@@ -16743,12 +14664,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_DYNAMIC_OPERAND => {
-                let first = alternatives[0].unwrap_start_dynamic_operand();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_dynamic_operand().node),
-                );
+                let first = slice[0].unwrap_start_dynamic_operand();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(DynamicOperand::Amb(inner));
                 ParseTree::StartDynamicOperand(self.arena.alloc(Start {
                     before: first.before,
@@ -16758,12 +14675,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_DYNAMIC_FILTERED => {
-                let first = alternatives[0].unwrap_start_dynamic_filtered();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_dynamic_filtered().node),
-                );
+                let first = slice[0].unwrap_start_dynamic_filtered();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(DynamicFiltered::Amb(inner));
                 ParseTree::StartDynamicFiltered(self.arena.alloc(Start {
                     before: first.before,
@@ -16773,12 +14686,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_DYNAMIC_HEAD_FILTERED => {
-                let first = alternatives[0].unwrap_start_dynamic_head_filtered();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_dynamic_head_filtered().node),
-                );
+                let first = slice[0].unwrap_start_dynamic_head_filtered();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(DynamicHeadFiltered::Amb(inner));
                 ParseTree::StartDynamicHeadFiltered(self.arena.alloc(Start {
                     before: first.before,
@@ -16788,12 +14697,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_DYNAMIC_MULTI => {
-                let first = alternatives[0].unwrap_start_dynamic_multi();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_dynamic_multi().node),
-                );
+                let first = slice[0].unwrap_start_dynamic_multi();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(DynamicMulti::Amb(inner));
                 ParseTree::StartDynamicMulti(self.arena.alloc(Start {
                     before: first.before,
@@ -16803,12 +14708,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_DYNAMIC_MULTI_OPERAND => {
-                let first = alternatives[0].unwrap_start_dynamic_multi_operand();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_dynamic_multi_operand().node),
-                );
+                let first = slice[0].unwrap_start_dynamic_multi_operand();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(DynamicMultiOperand::Amb(inner));
                 ParseTree::StartDynamicMultiOperand(self.arena.alloc(Start {
                     before: first.before,
@@ -16818,12 +14719,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_NULLABLE_BOUNDARY_PREFIX => {
-                let first = alternatives[0].unwrap_start_nullable_boundary_prefix();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_nullable_boundary_prefix().node),
-                );
+                let first = slice[0].unwrap_start_nullable_boundary_prefix();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(NullableBoundaryPrefix::Amb(inner));
                 ParseTree::StartNullableBoundaryPrefix(self.arena.alloc(Start {
                     before: first.before,
@@ -16833,12 +14730,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_NULLABLE_BOUNDARY_RIGHT => {
-                let first = alternatives[0].unwrap_start_nullable_boundary_right();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_nullable_boundary_right().node),
-                );
+                let first = slice[0].unwrap_start_nullable_boundary_right();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(NullableBoundaryRight::Amb(inner));
                 ParseTree::StartNullableBoundaryRight(self.arena.alloc(Start {
                     before: first.before,
@@ -16848,12 +14741,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_NULLABLE_BOUNDARY_OPT => {
-                let first = alternatives[0].unwrap_start_nullable_boundary_opt();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_nullable_boundary_opt().node),
-                );
+                let first = slice[0].unwrap_start_nullable_boundary_opt();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(NullableBoundaryOpt::Amb(inner));
                 ParseTree::StartNullableBoundaryOpt(self.arena.alloc(Start {
                     before: first.before,
@@ -16863,12 +14752,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_NULLABLE_BOUNDARY_POSTFIX => {
-                let first = alternatives[0].unwrap_start_nullable_boundary_postfix();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_nullable_boundary_postfix().node),
-                );
+                let first = slice[0].unwrap_start_nullable_boundary_postfix();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(NullableBoundaryPostfix::Amb(inner));
                 ParseTree::StartNullableBoundaryPostfix(self.arena.alloc(Start {
                     before: first.before,
@@ -16878,12 +14763,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_NULLABLE_BOUNDARY_LEFT => {
-                let first = alternatives[0].unwrap_start_nullable_boundary_left();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_nullable_boundary_left().node),
-                );
+                let first = slice[0].unwrap_start_nullable_boundary_left();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(NullableBoundaryLeft::Amb(inner));
                 ParseTree::StartNullableBoundaryLeft(self.arena.alloc(Start {
                     before: first.before,
@@ -16893,12 +14774,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_NULLABLE_BOUNDARY_BINARY => {
-                let first = alternatives[0].unwrap_start_nullable_boundary_binary();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_nullable_boundary_binary().node),
-                );
+                let first = slice[0].unwrap_start_nullable_boundary_binary();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(NullableBoundaryBinary::Amb(inner));
                 ParseTree::StartNullableBoundaryBinary(self.arena.alloc(Start {
                     before: first.before,
@@ -16908,12 +14785,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_NULLABLE_BOUNDARY_OPERAND => {
-                let first = alternatives[0].unwrap_start_nullable_boundary_operand();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_nullable_boundary_operand().node),
-                );
+                let first = slice[0].unwrap_start_nullable_boundary_operand();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(NullableBoundaryOperand::Amb(inner));
                 ParseTree::StartNullableBoundaryOperand(self.arena.alloc(Start {
                     before: first.before,
@@ -16923,12 +14796,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_CLOSED_LEFT_ASSOC => {
-                let first = alternatives[0].unwrap_start_closed_left_assoc();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_closed_left_assoc().node),
-                );
+                let first = slice[0].unwrap_start_closed_left_assoc();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(ClosedLeftAssoc::Amb(inner));
                 ParseTree::StartClosedLeftAssoc(self.arena.alloc(Start {
                     before: first.before,
@@ -16938,12 +14807,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_CLOSED_LEFT_OPERAND => {
-                let first = alternatives[0].unwrap_start_closed_left_operand();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_closed_left_operand().node),
-                );
+                let first = slice[0].unwrap_start_closed_left_operand();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(ClosedLeftOperand::Amb(inner));
                 ParseTree::StartClosedLeftOperand(self.arena.alloc(Start {
                     before: first.before,
@@ -16953,12 +14818,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_CLOSED_RIGHT_ASSOC => {
-                let first = alternatives[0].unwrap_start_closed_right_assoc();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_closed_right_assoc().node),
-                );
+                let first = slice[0].unwrap_start_closed_right_assoc();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(ClosedRightAssoc::Amb(inner));
                 ParseTree::StartClosedRightAssoc(self.arena.alloc(Start {
                     before: first.before,
@@ -16968,12 +14829,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_CLOSED_RIGHT_OPERAND => {
-                let first = alternatives[0].unwrap_start_closed_right_operand();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_closed_right_operand().node),
-                );
+                let first = slice[0].unwrap_start_closed_right_operand();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(ClosedRightOperand::Amb(inner));
                 ParseTree::StartClosedRightOperand(self.arena.alloc(Start {
                     before: first.before,
@@ -16983,12 +14840,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_INDIRECT_EXCLUDE => {
-                let first = alternatives[0].unwrap_start_indirect_exclude();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_indirect_exclude().node),
-                );
+                let first = slice[0].unwrap_start_indirect_exclude();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(IndirectExclude::Amb(inner));
                 ParseTree::StartIndirectExclude(self.arena.alloc(Start {
                     before: first.before,
@@ -16998,12 +14851,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_INDIRECT_EXCLUDE_OPERAND => {
-                let first = alternatives[0].unwrap_start_indirect_exclude_operand();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_indirect_exclude_operand().node),
-                );
+                let first = slice[0].unwrap_start_indirect_exclude_operand();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(IndirectExcludeOperand::Amb(inner));
                 ParseTree::StartIndirectExcludeOperand(self.arena.alloc(Start {
                     before: first.before,
@@ -17013,12 +14862,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_INDIRECT_EXCLUDE_FILTERED => {
-                let first = alternatives[0].unwrap_start_indirect_exclude_filtered();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_indirect_exclude_filtered().node),
-                );
+                let first = slice[0].unwrap_start_indirect_exclude_filtered();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(IndirectExcludeFiltered::Amb(inner));
                 ParseTree::StartIndirectExcludeFiltered(self.arena.alloc(Start {
                     before: first.before,
@@ -17028,12 +14873,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_OPERAND_LITERAL => {
-                let first = alternatives[0].unwrap_start_operand_literal();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_operand_literal().node),
-                );
+                let first = slice[0].unwrap_start_operand_literal();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(OperandLiteral::Amb(inner));
                 ParseTree::StartOperandLiteral(self.arena.alloc(Start {
                     before: first.before,
@@ -17043,12 +14884,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_OPERAND_LITERAL_END => {
-                let first = alternatives[0].unwrap_start_operand_literal_end();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_operand_literal_end().node),
-                );
+                let first = slice[0].unwrap_start_operand_literal_end();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(OperandLiteralEnd::Amb(inner));
                 ParseTree::StartOperandLiteralEnd(self.arena.alloc(Start {
                     before: first.before,
@@ -17058,12 +14895,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_HEAD_LITERAL => {
-                let first = alternatives[0].unwrap_start_head_literal();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_head_literal().node),
-                );
+                let first = slice[0].unwrap_start_head_literal();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(HeadLiteral::Amb(inner));
                 ParseTree::StartHeadLiteral(self.arena.alloc(Start {
                     before: first.before,
@@ -17073,12 +14906,8 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
                 }))
             }
             grammar::START_HEAD_LITERAL_END => {
-                let first = alternatives[0].unwrap_start_head_literal_end();
-                let inner = self.arena.alloc_slice(
-                    alternatives
-                        .into_iter()
-                        .map(|a| a.unwrap_start_head_literal_end().node),
-                );
+                let first = slice[0].unwrap_start_head_literal_end();
+                let inner = self.start_inner_alternatives(slice, 1);
                 let node = &*self.arena.alloc(HeadLiteralEnd::Amb(inner));
                 ParseTree::StartHeadLiteralEnd(self.arena.alloc(Start {
                     before: first.before,
