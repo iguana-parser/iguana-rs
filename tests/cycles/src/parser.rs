@@ -1844,274 +1844,266 @@ impl<'i, 'arena> CyclesParser<'i, 'arena> {
     pub fn parse_direct(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartDirect<'_>>, ParseError> {
-        Ok(self
-            .parse(START_DIRECT, tree_arena)?
-            .map(ParseTree::unwrap_start_direct))
+    ) -> Result<ParseSuccess<parse_tree::StartDirect<'_>>, ParseError> {
+        self.parse_start_without_layout(START_DIRECT, tree_arena, ParseTree::unwrap_direct)
     }
     pub fn parse_mutual_c(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartMutualC<'_>>, ParseError> {
-        Ok(self
-            .parse(START_MUTUAL_C, tree_arena)?
-            .map(ParseTree::unwrap_start_mutual_c))
+    ) -> Result<ParseSuccess<parse_tree::StartMutualC<'_>>, ParseError> {
+        self.parse_start_without_layout(START_MUTUAL_C, tree_arena, ParseTree::unwrap_mutual_c)
     }
     pub fn parse_mutual_b(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartMutualB<'_>>, ParseError> {
-        Ok(self
-            .parse(START_MUTUAL_B, tree_arena)?
-            .map(ParseTree::unwrap_start_mutual_b))
+    ) -> Result<ParseSuccess<parse_tree::StartMutualB<'_>>, ParseError> {
+        self.parse_start_without_layout(START_MUTUAL_B, tree_arena, ParseTree::unwrap_mutual_b)
     }
     pub fn parse_chain_c(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartChainC<'_>>, ParseError> {
-        Ok(self
-            .parse(START_CHAIN_C, tree_arena)?
-            .map(ParseTree::unwrap_start_chain_c))
+    ) -> Result<ParseSuccess<parse_tree::StartChainC<'_>>, ParseError> {
+        self.parse_start_without_layout(START_CHAIN_C, tree_arena, ParseTree::unwrap_chain_c)
     }
     pub fn parse_chain_a(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartChainA<'_>>, ParseError> {
-        Ok(self
-            .parse(START_CHAIN_A, tree_arena)?
-            .map(ParseTree::unwrap_start_chain_a))
+    ) -> Result<ParseSuccess<parse_tree::StartChainA<'_>>, ParseError> {
+        self.parse_start_without_layout(START_CHAIN_A, tree_arena, ParseTree::unwrap_chain_a)
     }
     pub fn parse_chain_b(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartChainB<'_>>, ParseError> {
-        Ok(self
-            .parse(START_CHAIN_B, tree_arena)?
-            .map(ParseTree::unwrap_start_chain_b))
+    ) -> Result<ParseSuccess<parse_tree::StartChainB<'_>>, ParseError> {
+        self.parse_start_without_layout(START_CHAIN_B, tree_arena, ParseTree::unwrap_chain_b)
     }
     pub fn parse_shared_s(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartSharedS<'_>>, ParseError> {
-        Ok(self
-            .parse(START_SHARED_S, tree_arena)?
-            .map(ParseTree::unwrap_start_shared_s))
+    ) -> Result<ParseSuccess<parse_tree::StartSharedS<'_>>, ParseError> {
+        self.parse_start_without_layout(START_SHARED_S, tree_arena, ParseTree::unwrap_shared_s)
     }
     pub fn parse_shared_a(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartSharedA<'_>>, ParseError> {
-        Ok(self
-            .parse(START_SHARED_A, tree_arena)?
-            .map(ParseTree::unwrap_start_shared_a))
+    ) -> Result<ParseSuccess<parse_tree::StartSharedA<'_>>, ParseError> {
+        self.parse_start_without_layout(START_SHARED_A, tree_arena, ParseTree::unwrap_shared_a)
     }
     pub fn parse_shared_b(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartSharedB<'_>>, ParseError> {
-        Ok(self
-            .parse(START_SHARED_B, tree_arena)?
-            .map(ParseTree::unwrap_start_shared_b))
+    ) -> Result<ParseSuccess<parse_tree::StartSharedB<'_>>, ParseError> {
+        self.parse_start_without_layout(START_SHARED_B, tree_arena, ParseTree::unwrap_shared_b)
     }
     pub fn parse_two_exits_c(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartTwoExitsC<'_>>, ParseError> {
-        Ok(self
-            .parse(START_TWO_EXITS_C, tree_arena)?
-            .map(ParseTree::unwrap_start_two_exits_c))
+    ) -> Result<ParseSuccess<parse_tree::StartTwoExitsC<'_>>, ParseError> {
+        self.parse_start_without_layout(
+            START_TWO_EXITS_C,
+            tree_arena,
+            ParseTree::unwrap_two_exits_c,
+        )
     }
     pub fn parse_two_exits_b(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartTwoExitsB<'_>>, ParseError> {
-        Ok(self
-            .parse(START_TWO_EXITS_B, tree_arena)?
-            .map(ParseTree::unwrap_start_two_exits_b))
+    ) -> Result<ParseSuccess<parse_tree::StartTwoExitsB<'_>>, ParseError> {
+        self.parse_start_without_layout(
+            START_TWO_EXITS_B,
+            tree_arena,
+            ParseTree::unwrap_two_exits_b,
+        )
     }
     pub fn parse_two_routes_c(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartTwoRoutesC<'_>>, ParseError> {
-        Ok(self
-            .parse(START_TWO_ROUTES_C, tree_arena)?
-            .map(ParseTree::unwrap_start_two_routes_c))
+    ) -> Result<ParseSuccess<parse_tree::StartTwoRoutesC<'_>>, ParseError> {
+        self.parse_start_without_layout(
+            START_TWO_ROUTES_C,
+            tree_arena,
+            ParseTree::unwrap_two_routes_c,
+        )
     }
     pub fn parse_two_routes_a(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartTwoRoutesA<'_>>, ParseError> {
-        Ok(self
-            .parse(START_TWO_ROUTES_A, tree_arena)?
-            .map(ParseTree::unwrap_start_two_routes_a))
+    ) -> Result<ParseSuccess<parse_tree::StartTwoRoutesA<'_>>, ParseError> {
+        self.parse_start_without_layout(
+            START_TWO_ROUTES_A,
+            tree_arena,
+            ParseTree::unwrap_two_routes_a,
+        )
     }
     pub fn parse_two_routes_b(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartTwoRoutesB<'_>>, ParseError> {
-        Ok(self
-            .parse(START_TWO_ROUTES_B, tree_arena)?
-            .map(ParseTree::unwrap_start_two_routes_b))
+    ) -> Result<ParseSuccess<parse_tree::StartTwoRoutesB<'_>>, ParseError> {
+        self.parse_start_without_layout(
+            START_TWO_ROUTES_B,
+            tree_arena,
+            ParseTree::unwrap_two_routes_b,
+        )
     }
     pub fn parse_nullable(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartNullable<'_>>, ParseError> {
-        Ok(self
-            .parse(START_NULLABLE, tree_arena)?
-            .map(ParseTree::unwrap_start_nullable))
+    ) -> Result<ParseSuccess<parse_tree::StartNullable<'_>>, ParseError> {
+        self.parse_start_without_layout(START_NULLABLE, tree_arena, ParseTree::unwrap_nullable)
     }
     pub fn parse_sibling_c(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartSiblingC<'_>>, ParseError> {
-        Ok(self
-            .parse(START_SIBLING_C, tree_arena)?
-            .map(ParseTree::unwrap_start_sibling_c))
+    ) -> Result<ParseSuccess<parse_tree::StartSiblingC<'_>>, ParseError> {
+        self.parse_start_without_layout(START_SIBLING_C, tree_arena, ParseTree::unwrap_sibling_c)
     }
     pub fn parse_sibling_d(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartSiblingD<'_>>, ParseError> {
-        Ok(self
-            .parse(START_SIBLING_D, tree_arena)?
-            .map(ParseTree::unwrap_start_sibling_d))
+    ) -> Result<ParseSuccess<parse_tree::StartSiblingD<'_>>, ParseError> {
+        self.parse_start_without_layout(START_SIBLING_D, tree_arena, ParseTree::unwrap_sibling_d)
     }
     pub fn parse_empty_e(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartEmptyE<'_>>, ParseError> {
-        Ok(self
-            .parse(START_EMPTY_E, tree_arena)?
-            .map(ParseTree::unwrap_start_empty_e))
+    ) -> Result<ParseSuccess<parse_tree::StartEmptyE<'_>>, ParseError> {
+        self.parse_start_without_layout(START_EMPTY_E, tree_arena, ParseTree::unwrap_empty_e)
     }
     pub fn parse_empty_f(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartEmptyF<'_>>, ParseError> {
-        Ok(self
-            .parse(START_EMPTY_F, tree_arena)?
-            .map(ParseTree::unwrap_start_empty_f))
+    ) -> Result<ParseSuccess<parse_tree::StartEmptyF<'_>>, ParseError> {
+        self.parse_start_without_layout(START_EMPTY_F, tree_arena, ParseTree::unwrap_empty_f)
     }
     pub fn parse_parent_c(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartParentC<'_>>, ParseError> {
-        Ok(self
-            .parse(START_PARENT_C, tree_arena)?
-            .map(ParseTree::unwrap_start_parent_c))
+    ) -> Result<ParseSuccess<parse_tree::StartParentC<'_>>, ParseError> {
+        self.parse_start_without_layout(START_PARENT_C, tree_arena, ParseTree::unwrap_parent_c)
     }
     pub fn parse_parent_d(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartParentD<'_>>, ParseError> {
-        Ok(self
-            .parse(START_PARENT_D, tree_arena)?
-            .map(ParseTree::unwrap_start_parent_d))
+    ) -> Result<ParseSuccess<parse_tree::StartParentD<'_>>, ParseError> {
+        self.parse_start_without_layout(START_PARENT_D, tree_arena, ParseTree::unwrap_parent_d)
     }
     pub fn parse_overlap_c(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartOverlapC<'_>>, ParseError> {
-        Ok(self
-            .parse(START_OVERLAP_C, tree_arena)?
-            .map(ParseTree::unwrap_start_overlap_c))
+    ) -> Result<ParseSuccess<parse_tree::StartOverlapC<'_>>, ParseError> {
+        self.parse_start_without_layout(START_OVERLAP_C, tree_arena, ParseTree::unwrap_overlap_c)
     }
     pub fn parse_overlap_b(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartOverlapB<'_>>, ParseError> {
-        Ok(self
-            .parse(START_OVERLAP_B, tree_arena)?
-            .map(ParseTree::unwrap_start_overlap_b))
+    ) -> Result<ParseSuccess<parse_tree::StartOverlapB<'_>>, ParseError> {
+        self.parse_start_without_layout(START_OVERLAP_B, tree_arena, ParseTree::unwrap_overlap_b)
     }
     pub fn parse_intermediate_y(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartIntermediateY<'_>>, ParseError> {
-        Ok(self
-            .parse(START_INTERMEDIATE_Y, tree_arena)?
-            .map(ParseTree::unwrap_start_intermediate_y))
+    ) -> Result<ParseSuccess<parse_tree::StartIntermediateY<'_>>, ParseError> {
+        self.parse_start_without_layout(
+            START_INTERMEDIATE_Y,
+            tree_arena,
+            ParseTree::unwrap_intermediate_y,
+        )
     }
     pub fn parse_intermediate_a(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartIntermediateA<'_>>, ParseError> {
-        Ok(self
-            .parse(START_INTERMEDIATE_A, tree_arena)?
-            .map(ParseTree::unwrap_start_intermediate_a))
+    ) -> Result<ParseSuccess<parse_tree::StartIntermediateA<'_>>, ParseError> {
+        self.parse_start_without_layout(
+            START_INTERMEDIATE_A,
+            tree_arena,
+            ParseTree::unwrap_intermediate_a,
+        )
     }
     pub fn parse_intermediate_b(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartIntermediateB<'_>>, ParseError> {
-        Ok(self
-            .parse(START_INTERMEDIATE_B, tree_arena)?
-            .map(ParseTree::unwrap_start_intermediate_b))
+    ) -> Result<ParseSuccess<parse_tree::StartIntermediateB<'_>>, ParseError> {
+        self.parse_start_without_layout(
+            START_INTERMEDIATE_B,
+            tree_arena,
+            ParseTree::unwrap_intermediate_b,
+        )
     }
     pub fn parse_mid_input(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartMidInput<'_>>, ParseError> {
-        Ok(self
-            .parse(START_MID_INPUT, tree_arena)?
-            .map(ParseTree::unwrap_start_mid_input))
+    ) -> Result<ParseSuccess<parse_tree::StartMidInput<'_>>, ParseError> {
+        self.parse_start_without_layout(START_MID_INPUT, tree_arena, ParseTree::unwrap_mid_input)
     }
     pub fn parse_consuming(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartConsuming<'_>>, ParseError> {
-        Ok(self
-            .parse(START_CONSUMING, tree_arena)?
-            .map(ParseTree::unwrap_start_consuming))
+    ) -> Result<ParseSuccess<parse_tree::StartConsuming<'_>>, ParseError> {
+        self.parse_start_without_layout(START_CONSUMING, tree_arena, ParseTree::unwrap_consuming)
     }
     pub fn parse_ordinary(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartOrdinary<'_>>, ParseError> {
-        Ok(self
-            .parse(START_ORDINARY, tree_arena)?
-            .map(ParseTree::unwrap_start_ordinary))
+    ) -> Result<ParseSuccess<parse_tree::StartOrdinary<'_>>, ParseError> {
+        self.parse_start_without_layout(START_ORDINARY, tree_arena, ParseTree::unwrap_ordinary)
     }
     pub fn parse_nullable_plus(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartNullablePlus<'_>>, ParseError> {
-        Ok(self
-            .parse(START_NULLABLE_PLUS, tree_arena)?
-            .map(ParseTree::unwrap_start_nullable_plus))
+    ) -> Result<ParseSuccess<parse_tree::StartNullablePlus<'_>>, ParseError> {
+        self.parse_start_without_layout(
+            START_NULLABLE_PLUS,
+            tree_arena,
+            ParseTree::unwrap_nullable_plus,
+        )
     }
     pub fn parse_nullable_star(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartNullableStar<'_>>, ParseError> {
-        Ok(self
-            .parse(START_NULLABLE_STAR, tree_arena)?
-            .map(ParseTree::unwrap_start_nullable_star))
+    ) -> Result<ParseSuccess<parse_tree::StartNullableStar<'_>>, ParseError> {
+        self.parse_start_without_layout(
+            START_NULLABLE_STAR,
+            tree_arena,
+            ParseTree::unwrap_nullable_star,
+        )
     }
     pub fn parse_nullable_separated(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartNullableSeparated<'_>>, ParseError> {
-        Ok(self
-            .parse(START_NULLABLE_SEPARATED, tree_arena)?
-            .map(ParseTree::unwrap_start_nullable_separated))
+    ) -> Result<ParseSuccess<parse_tree::StartNullableSeparated<'_>>, ParseError> {
+        self.parse_start_without_layout(
+            START_NULLABLE_SEPARATED,
+            tree_arena,
+            ParseTree::unwrap_nullable_separated,
+        )
     }
     pub fn parse_optional(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartOptional<'_>>, ParseError> {
-        Ok(self
-            .parse(START_OPTIONAL, tree_arena)?
-            .map(ParseTree::unwrap_start_optional))
+    ) -> Result<ParseSuccess<parse_tree::StartOptional<'_>>, ParseError> {
+        self.parse_start_without_layout(START_OPTIONAL, tree_arena, ParseTree::unwrap_optional)
     }
     pub fn parse_grouped(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartGrouped<'_>>, ParseError> {
-        Ok(self
-            .parse(START_GROUPED, tree_arena)?
-            .map(ParseTree::unwrap_start_grouped))
+    ) -> Result<ParseSuccess<parse_tree::StartGrouped<'_>>, ParseError> {
+        self.parse_start_without_layout(START_GROUPED, tree_arena, ParseTree::unwrap_grouped)
+    }
+    fn parse_start_without_layout<'a, T>(
+        self,
+        start: NonterminalId,
+        tree_arena: &'a Arena,
+        node: fn(ParseTree<'a>) -> T,
+    ) -> Result<ParseSuccess<parse_tree::Start<T, ()>>, ParseError> {
+        Ok(self.parse(start, tree_arena)?.map(|tree| {
+            let root = tree.unwrap_start();
+            parse_tree::Start {
+                before: (),
+                node: node(root.node),
+                after: (),
+                span: root.span,
+            }
+        }))
     }
     #[inline(never)]
     fn parse_empty_e_ll1(

@@ -597,7 +597,6 @@ WS = [\ ]*
                 );
             }
             assert!(comments.contains(&"E+"));
-            assert!(comments.contains(&"StartE = WS start:E WS"));
             for comment in &comments {
                 for detail in [
                     "E(", " return ", "l_pr", "l_label", "!Add", " & ", ">=", "SlotId",

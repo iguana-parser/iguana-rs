@@ -38,7 +38,11 @@ pub fn semantic_tokens(
 ) -> Vec<SemanticToken> {
     let mut builder = SemanticTokensBuilder::new();
 
-    for child in tree.as_parse_tree().children() {
+    for child in [
+        tree.before.as_parse_tree(),
+        tree.node.as_parse_tree(),
+        tree.after.as_parse_tree(),
+    ] {
         visit(child, &mut |node| match node {
             ParseTree::Token(token) => {
                 if let Some(token_type) = classify_token(&token) {

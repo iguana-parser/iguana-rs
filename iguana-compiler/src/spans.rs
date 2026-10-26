@@ -699,8 +699,8 @@ WS = [\ ]*
         let success = iggy::IggyParser::new(&input, &parser_arena)
             .parse_grammar(&tree_arena)
             .expect("the grammar should parse");
-        let grammar_def = crate::iggy::build_grammar(success.tree, &input).resolve();
-        let spans = build_spans(&grammar_def, success.tree, &input);
+        let grammar_def = crate::iggy::build_grammar(&success.tree, &input).resolve();
+        let spans = build_spans(&grammar_def, &success.tree, &input);
 
         for rule in &grammar_def.syntax_rules {
             spans.syntax_rule(rule);

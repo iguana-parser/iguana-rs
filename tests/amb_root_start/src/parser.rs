@@ -857,18 +857,30 @@ impl<'i, 'arena> AmbRootStartParser<'i, 'arena> {
     pub fn parse_e(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartE<'_>>, ParseError> {
-        Ok(self
-            .parse(START_E, tree_arena)?
-            .map(ParseTree::unwrap_start_e))
+    ) -> Result<ParseSuccess<parse_tree::StartE<'_>>, ParseError> {
+        self.parse_start(START_E, tree_arena, ParseTree::unwrap_e)
     }
     pub fn parse_type(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartType<'_>>, ParseError> {
-        Ok(self
-            .parse(START_TYPE, tree_arena)?
-            .map(ParseTree::unwrap_start_type))
+    ) -> Result<ParseSuccess<parse_tree::StartType<'_>>, ParseError> {
+        self.parse_start(START_TYPE, tree_arena, ParseTree::unwrap_type)
+    }
+    fn parse_start<'a, T>(
+        self,
+        start: NonterminalId,
+        tree_arena: &'a Arena,
+        node: fn(ParseTree<'a>) -> T,
+    ) -> Result<ParseSuccess<parse_tree::Start<T, parse_tree::Token>>, ParseError> {
+        Ok(self.parse(start, tree_arena)?.map(|tree| {
+            let root = tree.unwrap_start();
+            parse_tree::Start {
+                before: root.before.unwrap().unwrap_token(),
+                node: node(root.node),
+                after: root.after.unwrap().unwrap_token(),
+                span: root.span,
+            }
+        }))
     }
     #[inline(never)]
     #[allow(clippy::too_many_arguments)]

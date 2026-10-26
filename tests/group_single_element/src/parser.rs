@@ -594,18 +594,30 @@ impl<'i, 'arena> GroupSingleElementParser<'i, 'arena> {
     pub fn parse_d(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartD<'_>>, ParseError> {
-        Ok(self
-            .parse(START_D, tree_arena)?
-            .map(ParseTree::unwrap_start_d))
+    ) -> Result<ParseSuccess<parse_tree::StartD<'_>>, ParseError> {
+        self.parse_start_without_layout(START_D, tree_arena, ParseTree::unwrap_d)
     }
     pub fn parse_num(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartNum<'_>>, ParseError> {
-        Ok(self
-            .parse(START_NUM, tree_arena)?
-            .map(ParseTree::unwrap_start_num))
+    ) -> Result<ParseSuccess<parse_tree::StartNum<'_>>, ParseError> {
+        self.parse_start_without_layout(START_NUM, tree_arena, ParseTree::unwrap_num)
+    }
+    fn parse_start_without_layout<'a, T>(
+        self,
+        start: NonterminalId,
+        tree_arena: &'a Arena,
+        node: fn(ParseTree<'a>) -> T,
+    ) -> Result<ParseSuccess<parse_tree::Start<T, ()>>, ParseError> {
+        Ok(self.parse(start, tree_arena)?.map(|tree| {
+            let root = tree.unwrap_start();
+            parse_tree::Start {
+                before: (),
+                node: node(root.node),
+                after: (),
+                span: root.span,
+            }
+        }))
     }
     #[inline(never)]
     fn parse_d_ll1(

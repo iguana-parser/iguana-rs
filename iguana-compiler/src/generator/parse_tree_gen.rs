@@ -179,43 +179,9 @@ impl<'a> ParseTreeGen<'a> {
         let nonterminal_types_impl: Vec<_> = self
             .grammar
             .nonterminals()
-            .map(|n| {
-                if self.grammar.is_start(n) {
-                    self.gen_start_type_impl(n)
-                } else {
-                    self.gen_nonterminal_type_impl(n)
-                }
-            })
+            .filter(|n| !self.grammar.is_start(n))
+            .map(|n| self.gen_nonterminal_type_impl(n))
             .collect();
-
-        let has_start = self
-            .grammar
-            .nonterminals()
-            .any(|n| self.grammar.is_start(n));
-        let start_struct = if has_start {
-            quote! {
-                #[derive(Debug)]
-                pub struct Start<T, L> {
-                    pub before: L,
-                    pub node: T,
-                    pub after: L,
-                    pub span: Span,
-                }
-                impl<T, L> Start<T, L> {
-                    pub fn span(&self) -> Span {
-                        self.span
-                    }
-                    pub fn display_name(&self) -> &'static str {
-                        "Start"
-                    }
-                    pub fn origin(&self) -> Option<Origin> {
-                        Some(Origin::Start)
-                    }
-                }
-            }
-        } else {
-            quote! {}
-        };
 
         let parse_tree_node_impl = self.gen_parse_tree_node_impl();
         let start_aliases = self.gen_start_aliases();
@@ -224,7 +190,6 @@ impl<'a> ParseTreeGen<'a> {
             #imports
             #token_kind_enum
             #token_kind_impl
-            #start_struct
             #(#start_aliases)*
             #parse_tree_enum
             #parse_tree_impl
@@ -269,6 +234,7 @@ impl<'a> ParseTreeGen<'a> {
                 },
                 sppf::{NonterminalNode, TerminalNode},
             };
+            pub use iguana_runtime::parse_tree::Start;
             use crate::{grammar, parser::#parser_name};
         }
     }
@@ -525,63 +491,6 @@ impl<'a> ParseTreeGen<'a> {
         }
     }
 
-    fn gen_start_type_impl(&self, nonterminal: &Nonterminal) -> TokenStream {
-        let start_ty = self.nonterminal_type(nonterminal);
-        let start_variant = nt_ident(&nonterminal.name);
-        quote! {
-            impl<'a> #start_ty {
-                pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
-                    ParseTree::#start_variant(self)
-                }
-            }
-        }
-    }
-
-    /// The `child` match arms and the child count of the start wrapper `node`.
-    fn start_children(
-        &self,
-        nonterminal: &Nonterminal,
-        node: &Ident,
-    ) -> (TokenStream, TokenStream) {
-        let inner_ident = nonterminal
-            .origin
-            .as_ref()
-            .unwrap()
-            .as_identifier()
-            .unwrap();
-
-        let inner_variant = nt_ident(&nonterminal_type_name(&inner_ident.name));
-        let inner_child = quote! { ParseTree::#inner_variant(#node.node) };
-        // Without layout the wrapper holds only the inner node; with layout it
-        // has the two boundary layout children around it.
-        match self.grammar.start_layout(nonterminal) {
-            None => (quote! { 0 => Some(#inner_child), }, quote! { 1usize }),
-            Some(layout) => {
-                let layout_ident = layout.as_identifier().unwrap();
-                let (layout_before, layout_after) = if self.grammar.is_terminal(layout_ident) {
-                    (
-                        quote! { ParseTree::Token(#node.before) },
-                        quote! { ParseTree::Token(#node.after) },
-                    )
-                } else {
-                    let variant = nt_ident(&nonterminal_type_name(&layout_ident.name));
-                    (
-                        quote! { ParseTree::#variant(#node.before) },
-                        quote! { ParseTree::#variant(#node.after) },
-                    )
-                };
-                (
-                    quote! {
-                        0 => Some(#layout_before),
-                        1 => Some(#inner_child),
-                        2 => Some(#layout_after),
-                    },
-                    quote! { 3usize },
-                )
-            }
-        }
-    }
-
     fn gen_span_method(&self, nonterminal: &Nonterminal) -> TokenStream {
         let ident = nt_ident(&nonterminal.name);
         let alternatives = self.grammar.alternatives(nonterminal);
@@ -692,29 +601,8 @@ impl<'a> ParseTreeGen<'a> {
         let builder_name_ident = parse_tree_builder_ident(&self.grammar.name);
         let nonterminal_node_method = self.gen_nonterminal_node_method();
         let new_token_method = gen_new_token_method();
-        let new_ambiguity_node_method = self.gen_new_ambiguity_node_method();
+        let (ambiguity_node_methods, new_ambiguity_node_method) = self.gen_ambiguity_node_methods();
         let cycle_methods = self.gen_builder_cycle_methods();
-        let has_start = self
-            .grammar
-            .nonterminals()
-            .any(|n| self.grammar.is_start(n));
-        // One method serves every start wrapper's ambiguity arm, so the
-        // arms do not each instantiate a closure.
-        let start_inner_alternatives = if has_start {
-            quote! {
-                #[doc = "The child at `index` of each start wrapper in `alternatives`."]
-                fn start_inner_alternatives(
-                    &self,
-                    alternatives: &[ParseTree<'a>],
-                    index: usize,
-                ) -> &'a [ParseTree<'a>] {
-                    self.arena
-                        .alloc_slice(alternatives.iter().map(|a| a.child(index).unwrap()))
-                }
-            }
-        } else {
-            quote! {}
-        };
         quote! {
             pub struct #builder_name_ident<'a> {
                 pub arena: &'a Arena,
@@ -723,7 +611,7 @@ impl<'a> ParseTreeGen<'a> {
                 pub fn new(tree_arena: &'a Arena) -> Self {
                     Self { arena: tree_arena }
                 }
-                #start_inner_alternatives
+                #ambiguity_node_methods
             }
             impl<'a> ParseTreeBuilder<ParseTree<'a>> for #builder_name_ident<'a> {
                 #nonterminal_node_method
@@ -775,81 +663,91 @@ impl<'a> ParseTreeGen<'a> {
         }
     }
 
-    /// Generates a per-grammar `new_ambiguity_node` that dispatches on the parent
-    /// nonterminal id. Every generated nonterminal type is an enum with an `Amb`
-    /// variant, so every nonterminal can be the parent of an intermediate-node
-    /// ambiguity.
+    /// Generates the builder's `ambiguity_node`, which dispatches on the parent
+    /// nonterminal id, and the trait's `new_ambiguity_node`, which calls it.
+    /// Every generated nonterminal type is an enum with an `Amb` variant, so
+    /// every nonterminal can be the parent of an intermediate-node ambiguity.
     ///
-    /// A start wrapper can also be the parent of an ambiguity node. A
+    /// A start nonterminal can also be the parent of an ambiguity node. A
     /// data-dependent inner nonterminal pops its derivations keyed by return
     /// value: derivations with different return values are distinct nodes of
-    /// the inner nonterminal and cannot merge there. The wrapper node above
+    /// the inner nonterminal and cannot merge there. The start node above
     /// them is the lowest node such derivations have in common, and the
-    /// ambiguity is recorded on it. The wrapper's hardcoded `Start<T, L>`
-    /// type has no `Amb` variant, so the wrapper's arm collects the
-    /// derivations' inner nodes into the inner nonterminal's `Amb` and
-    /// rebuilds one `Start` around it. The inner node is the wrapper's child
-    /// 1 with layout and child 0 without. The layout fields and the span come
-    /// from the first derivation; every derivation shares the wrapper node's
-    /// span.
-    fn gen_new_ambiguity_node_method(&self) -> TokenStream {
+    /// ambiguity is recorded on it. `Start` does not have an `Amb` variant, so
+    /// `start_ambiguity_node` builds the ambiguity node of the inner
+    /// nonterminal from the derivations' inner nodes and wraps one `Start`
+    /// around it. The layout and the span come from the first derivation;
+    /// every derivation shares the start node's span.
+    fn gen_ambiguity_node_methods(&self) -> (TokenStream, TokenStream) {
         let cases: Vec<TokenStream> = self
             .grammar
             .nonterminals()
             .map(|n| {
-                let variant = nt_ident(&n.name);
                 let const_name = format_ident!("{}", to_snake_case(&n.name).to_uppercase());
                 if self.grammar.is_start(n) {
-                    let unwrap_method = format_ident!("unwrap_{}", to_snake_case(&n.name));
                     let inner_ident = n.origin.as_ref().unwrap().as_identifier().unwrap();
-                    let inner_ty = nt_ident(&nonterminal_type_name(&inner_ident.name));
-                    let inner_index = Literal::usize_unsuffixed(
-                        self.grammar.start_layout(n).map_or(0, |_| 1),
-                    );
-                    // The `&*` reborrows the allocation shared; without it the
-                    // wrapper's generic node type infers as a mutable reference.
+                    let inner_const =
+                        format_ident!("{}", to_snake_case(&inner_ident.name).to_uppercase());
                     quote! {
-                        grammar::#const_name => {
-                            let first = slice[0].#unwrap_method();
-                            let inner = self.start_inner_alternatives(slice, #inner_index);
-                            let node = &*self.arena.alloc(#inner_ty::Amb(inner));
-                            ParseTree::#variant(self.arena.alloc(Start {
-                                before: first.before,
-                                node,
-                                after: first.after,
-                                span: first.span,
-                            }))
-                        }
+                        grammar::#const_name => self.start_ambiguity_node(grammar::#inner_const, alternatives),
                     }
                 } else {
+                    let variant = nt_ident(&n.name);
                     quote! {
-                        grammar::#const_name => ParseTree::#variant(self.arena.alloc(#variant::Amb(slice))),
+                        grammar::#const_name => ParseTree::#variant(self.arena.alloc(#variant::Amb(alternatives))),
                     }
                 }
             })
             .collect();
         if cases.is_empty() {
-            return quote! {};
+            return (quote! {}, quote! {});
         }
-        quote! {
-            fn new_ambiguity_node(
+        let builder_methods = quote! {
+            fn ambiguity_node(
                 &self,
                 parent: NonterminalId,
-                alternatives: Vec<ParseTree<'a>>,
+                alternatives: &'a [ParseTree<'a>],
             ) -> ParseTree<'a> {
-                let slice = &*self.arena.alloc_slice(alternatives);
                 match parent {
                     #(#cases)*
                     _ => unreachable!("nonterminal cannot be ambiguous"),
                 }
             }
-        }
+
+            fn start_ambiguity_node(
+                &self,
+                inner: NonterminalId,
+                alternatives: &'a [ParseTree<'a>],
+            ) -> ParseTree<'a> {
+                let first = alternatives[0].unwrap_start();
+                let inner_alternatives = self
+                    .arena
+                    .alloc_slice(alternatives.iter().map(|a| a.unwrap_start().node));
+                ParseTree::Start(self.arena.alloc(Start {
+                    before: first.before,
+                    node: self.ambiguity_node(inner, inner_alternatives),
+                    after: first.after,
+                    span: first.span,
+                }))
+            }
+        };
+        let trait_method = quote! {
+            fn new_ambiguity_node(
+                &self,
+                parent: NonterminalId,
+                alternatives: Vec<ParseTree<'a>>,
+            ) -> ParseTree<'a> {
+                self.ambiguity_node(parent, self.arena.alloc_slice(alternatives))
+            }
+        };
+        (builder_methods, trait_method)
     }
 
     fn gen_nonterminal_node_method(&self) -> TokenStream {
-        let nonterminal_cases: Vec<TokenStream> = self
+        let mut nonterminal_cases: Vec<TokenStream> = self
             .nonterminal_ids
             .ids()
+            .filter(|id| !self.grammar.is_start(self.nonterminal_ids.get_nonterminal(*id)))
             .flat_map(|nonterminal_id| {
                 let nonterminal = self.nonterminal_ids.get_nonterminal(nonterminal_id);
                 let slot_cases: Vec<TokenStream> = self
@@ -881,45 +779,18 @@ impl<'a> ParseTreeGen<'a> {
                             .map(|(method, child)| quote! { #child.#method() })
                             .collect();
                         let nonterminal_type = nt_ident(&nonterminal.name);
-                        let parse_tree_variant = nt_ident(&nonterminal.name);
-                        let construction = if self.grammar.is_start(nonterminal) {
-                            let (before, node, after) = if self.grammar.start_layout(nonterminal).is_some() {
-                                let before = &method_calls[0];
-                                let node = &method_calls[1];
-                                let after = &method_calls[2];
-                                (quote! { #before }, quote! { #node }, quote! { #after })
-                            } else {
-                                let node = &method_calls[0];
-                                (quote! { () }, quote! { #node }, quote! { () })
-                            };
-                            quote! {
-                                ParseTree::#parse_tree_variant(self.arena.alloc(Start {
-                                    before: #before,
-                                    node: #node,
-                                    after: #after,
-                                    span: nonterminal_node.span,
-                                }))
-                            }
-                        } else {
-                            let variant = Ident::new(
-                                &to_pascal_case(&alternative_label(alternative, index)),
-                                Span::call_site()
-                            );
-                            quote! {
-                                ParseTree::#parse_tree_variant(self.arena.alloc(#nonterminal_type::#variant {
-                                    #(#field_names: #method_calls,)*
-                                    span: nonterminal_node.span,
-                                }))
-                            }
-                        };
-                        let bind_children = quote! {
-                            let &[#(#field_names),*] = children else { ParseTree::unexpected_node() };
-                        };
+                        let variant = Ident::new(
+                            &to_pascal_case(&alternative_label(alternative, index)),
+                            Span::call_site()
+                        );
                         quote! {
                             #[comment = #rule_comment]
                             #end_slot_id => {
-                                #bind_children
-                                #construction
+                                let &[#(#field_names),*] = children else { ParseTree::unexpected_node() };
+                                ParseTree::#nonterminal_type(self.arena.alloc(#nonterminal_type::#variant {
+                                    #(#field_names: #method_calls,)*
+                                    span: nonterminal_node.span,
+                                }))
                             }
                         }
                     })
@@ -927,6 +798,50 @@ impl<'a> ParseTreeGen<'a> {
                 slot_cases
             })
             .collect();
+        // All start nonterminals share two arms, one with layout and one
+        // without.
+        let (with_layout, without_layout): (Vec<_>, Vec<_>) = self
+            .nonterminal_ids
+            .ids()
+            .map(|id| (id, self.nonterminal_ids.get_nonterminal(id)))
+            .filter(|(_, nonterminal)| self.grammar.is_start(nonterminal))
+            .flat_map(|(id, nonterminal)| {
+                let has_layout = self.grammar.start_layout(nonterminal).is_some();
+                self.nonterminal_ids
+                    .end_slots(id)
+                    .map(move |end_slot| (end_slot.slot_id, has_layout))
+            })
+            .partition(|(_, has_layout)| *has_layout);
+        if !with_layout.is_empty() {
+            let slots = with_layout.iter().map(|(slot, _)| slot);
+            nonterminal_cases.push(quote! {
+                #[comment = "The start nonterminals with layout"]
+                #(#slots)|* => {
+                    let &[before, node, after] = children else { ParseTree::unexpected_node() };
+                    ParseTree::Start(self.arena.alloc(Start {
+                        before: Some(before),
+                        node,
+                        after: Some(after),
+                        span: nonterminal_node.span,
+                    }))
+                }
+            });
+        }
+        if !without_layout.is_empty() {
+            let slots = without_layout.iter().map(|(slot, _)| slot);
+            nonterminal_cases.push(quote! {
+                #[comment = "The start nonterminals without layout"]
+                #(#slots)|* => {
+                    let &[node] = children else { ParseTree::unexpected_node() };
+                    ParseTree::Start(self.arena.alloc(Start {
+                        before: None,
+                        node,
+                        after: None,
+                        span: nonterminal_node.span,
+                    }))
+                }
+            });
+        }
         // Slot ids are unique across the grammar, so the end slot alone
         // selects the alternative, in one jump table.
         quote! {
@@ -947,6 +862,7 @@ impl<'a> ParseTreeGen<'a> {
         let arms: Vec<_> = self
             .grammar
             .nonterminals()
+            .filter(|n| !self.grammar.is_start(n))
             .map(|n| {
                 let variant = nt_ident(&n.name);
                 let ty = self.nonterminal_type(n);
@@ -965,6 +881,8 @@ impl<'a> ParseTreeGen<'a> {
             #[derive(Debug, Clone, Copy)]
             pub enum ParseTree<'a> {
                 #(#arms,)*
+                #[comment = "Every start nonterminal. `before` and `after` are `None` without layout."]
+                Start(&'a Start<ParseTree<'a>, Option<ParseTree<'a>>>),
                 Token(Token)
             }
         }
@@ -991,7 +909,13 @@ impl<'a> ParseTreeGen<'a> {
                 #origin_method
                 #cycle_methods
                 #(#unwrap_methods)*
-                fn unwrap_token(self) -> Token {
+                pub(crate) fn unwrap_start(self) -> &'a Start<ParseTree<'a>, Option<ParseTree<'a>>> {
+                    match self {
+                        ParseTree::Start(start) => start,
+                        _ => Self::unexpected_node(),
+                    }
+                }
+                pub(crate) fn unwrap_token(self) -> Token {
                     match self {
                         ParseTree::Token(t) => t,
                         _ => Self::unexpected_node(),
@@ -1040,6 +964,7 @@ impl<'a> ParseTreeGen<'a> {
     fn gen_unwrap_methods(&self) -> Vec<TokenStream> {
         self.grammar
             .nonterminals()
+            .filter(|n| !self.grammar.is_start(n))
             .map(|n| {
                 let method_ident = format_ident!("unwrap_{}", to_snake_case(&n.name));
                 let variant = nt_ident(&n.name);
@@ -1061,21 +986,12 @@ impl<'a> ParseTreeGen<'a> {
         let arms: Vec<_> = self
             .grammar
             .nonterminals()
+            .filter(|n| !self.grammar.is_start(n))
             .map(|n| {
                 let variant = nt_ident(&n.name);
                 let var_ident = safe_ident(&to_snake_case(&n.name));
-                if self.grammar.is_start(n) {
-                    let (child_arms, _) = self.start_children(n, &var_ident);
-                    quote! {
-                        ParseTree::#variant(#var_ident) => match index {
-                            #child_arms
-                            _ => None,
-                        }
-                    }
-                } else {
-                    quote! {
-                        ParseTree::#variant(#var_ident) => #var_ident.child(index)
-                    }
+                quote! {
+                    ParseTree::#variant(#var_ident) => #var_ident.child(index)
                 }
             })
             .collect();
@@ -1083,6 +999,7 @@ impl<'a> ParseTreeGen<'a> {
             pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
                 match self {
                     #(#arms,)*
+                    ParseTree::Start(start) => start.child(index),
                     ParseTree::Token(_) => None,
                 }
             }
@@ -1090,15 +1007,20 @@ impl<'a> ParseTreeGen<'a> {
     }
 
     fn gen_parse_tree_name_method(&self) -> TokenStream {
-        let arms = self.grammar.nonterminals().map(|n| {
-            let name_ident = nt_ident(&n.name);
-            let var_ident = safe_ident(&to_snake_case(&n.name));
-            quote! { ParseTree::#name_ident(#var_ident) => #var_ident.display_name() }
-        });
+        let arms = self
+            .grammar
+            .nonterminals()
+            .filter(|n| !self.grammar.is_start(n))
+            .map(|n| {
+                let name_ident = nt_ident(&n.name);
+                let var_ident = safe_ident(&to_snake_case(&n.name));
+                quote! { ParseTree::#name_ident(#var_ident) => #var_ident.display_name() }
+            });
         quote! {
             pub fn display_name(&self) -> &'static str {
                 match self {
                     #(#arms,)*
+                    ParseTree::Start(start) => start.display_name(),
                     ParseTree::Token(token) => token.kind.name(),
                 }
             }
@@ -1109,18 +1031,12 @@ impl<'a> ParseTreeGen<'a> {
         let arms: Vec<_> = self
             .grammar
             .nonterminals()
+            .filter(|n| !self.grammar.is_start(n))
             .map(|n| {
                 let variant = nt_ident(&n.name);
                 let var_ident = safe_ident(&to_snake_case(&n.name));
-                if self.grammar.is_start(n) {
-                    let (_, child_count) = self.start_children(n, &var_ident);
-                    quote! {
-                        ParseTree::#variant(_) => #child_count
-                    }
-                } else {
-                    quote! {
-                        ParseTree::#variant(#var_ident) => #var_ident.child_count()
-                    }
+                quote! {
+                    ParseTree::#variant(#var_ident) => #var_ident.child_count()
                 }
             })
             .collect();
@@ -1128,6 +1044,7 @@ impl<'a> ParseTreeGen<'a> {
             pub(crate) fn child_count(&self) -> usize {
                 match self {
                     #(#arms,)*
+                    ParseTree::Start(start) => start.child_count(),
                     ParseTree::Token(_) => 0,
                 }
             }
@@ -1138,6 +1055,7 @@ impl<'a> ParseTreeGen<'a> {
         let arms: Vec<_> = self
             .grammar
             .nonterminals()
+            .filter(|n| !self.grammar.is_start(n))
             .map(|n| {
                 let variant = nt_ident(&n.name);
                 let var_ident = safe_ident(&to_snake_case(&n.name));
@@ -1150,6 +1068,7 @@ impl<'a> ParseTreeGen<'a> {
             pub fn span(&self) -> Span {
                 match self {
                     #(#arms,)*
+                    ParseTree::Start(start) => start.span(),
                     ParseTree::Token(token) => token.span(),
                 }
             }
@@ -1157,35 +1076,39 @@ impl<'a> ParseTreeGen<'a> {
     }
 
     fn gen_parse_tree_is_amb_method(&self) -> TokenStream {
-        let arms = self.grammar.nonterminals().map(|n| {
-            let variant = nt_ident(&n.name);
-            let var_ident = safe_ident(&to_snake_case(&n.name));
-            // A start nonterminal is wrapped in `Start<T, L>`, which has no `Amb` variant;
-            // its ambiguity surfaces on the inner type, not here.
-            if self.grammar.is_start(n) {
-                quote! { ParseTree::#variant(_) => false }
-            } else {
+        let arms = self
+            .grammar
+            .nonterminals()
+            .filter(|n| !self.grammar.is_start(n))
+            .map(|n| {
+                let variant = nt_ident(&n.name);
+                let var_ident = safe_ident(&to_snake_case(&n.name));
                 quote! { ParseTree::#variant(#var_ident) => matches!(#var_ident, #variant::Amb(_)) }
-            }
-        });
+            });
+        // `Start` does not have an `Amb` variant. The ambiguity of a start
+        // nonterminal is an `Amb` of the node it wraps.
         quote! {
             #[doc = "True when this node is an ambiguity cluster (any `*::Amb` variant). The"]
             #[doc = "uniform way to detect ambiguity without matching each nonterminal's enum."]
             pub fn is_amb(&self) -> bool {
                 match self {
                     #(#arms,)*
-                    ParseTree::Token(_) => false,
+                    ParseTree::Start(_) | ParseTree::Token(_) => false,
                 }
             }
         }
     }
 
     fn gen_parse_tree_node_id_method(&self) -> TokenStream {
-        let arms = self.grammar.nonterminals().map(|n| {
-            let variant = nt_ident(&n.name);
-            let var_ident = safe_ident(&to_snake_case(&n.name));
-            quote! { ParseTree::#variant(#var_ident) => Some(*#var_ident as *const _ as usize) }
-        });
+        let arms = self
+            .grammar
+            .nonterminals()
+            .filter(|n| !self.grammar.is_start(n))
+            .map(|n| {
+                let variant = nt_ident(&n.name);
+                let var_ident = safe_ident(&to_snake_case(&n.name));
+                quote! { ParseTree::#variant(#var_ident) => Some(*#var_ident as *const _ as usize) }
+            });
         quote! {
             #[doc = "Pointer identity of the underlying node, or `None` for tokens (by-value"]
             #[doc = "leaves that are never shared). Two parse trees with the same `node_id` are"]
@@ -1193,6 +1116,7 @@ impl<'a> ParseTreeGen<'a> {
             pub fn node_id(&self) -> Option<usize> {
                 match self {
                     #(#arms,)*
+                    ParseTree::Start(start) => Some(*start as *const _ as usize),
                     ParseTree::Token(_) => None,
                 }
             }
@@ -1200,15 +1124,20 @@ impl<'a> ParseTreeGen<'a> {
     }
 
     fn gen_parse_tree_origin_method(&self) -> TokenStream {
-        let arms = self.grammar.nonterminals().map(|n| {
-            let variant = nt_ident(&n.name);
-            let var_ident = safe_ident(&to_snake_case(&n.name));
-            quote! { ParseTree::#variant(#var_ident) => #var_ident.origin() }
-        });
+        let arms = self
+            .grammar
+            .nonterminals()
+            .filter(|n| !self.grammar.is_start(n))
+            .map(|n| {
+                let variant = nt_ident(&n.name);
+                let var_ident = safe_ident(&to_snake_case(&n.name));
+                quote! { ParseTree::#variant(#var_ident) => #var_ident.origin() }
+            });
         quote! {
             pub fn origin(&self) -> Option<Origin> {
                 match self {
                     #(#arms,)*
+                    ParseTree::Start(start) => start.origin(),
                     ParseTree::Token(_) => None,
                 }
             }
@@ -1654,9 +1583,10 @@ impl<'a> ParseTreeGen<'a> {
     fn gen_create_parse_tree_function(&self) -> TokenStream {
         let parser_name_ident = parser_ident(&self.grammar.name);
         let builder_name_ident = parse_tree_builder_ident(&self.grammar.name);
-        let arms: Vec<_> = self
+        let mut arms: Vec<_> = self
             .grammar
             .nonterminals()
+            .filter(|n| !self.grammar.is_start(n))
             .map(|n| {
                 let name = &n.name;
                 let const_name = format_ident!("{}", to_snake_case(name).to_uppercase());
@@ -1669,6 +1599,19 @@ impl<'a> ParseTreeGen<'a> {
                 }
             })
             .collect();
+        let start_consts: Vec<_> = self
+            .grammar
+            .nonterminals()
+            .filter(|n| self.grammar.is_start(n))
+            .map(|n| format_ident!("{}", to_snake_case(&n.name).to_uppercase()))
+            .collect();
+        if !start_consts.is_empty() {
+            arms.push(quote! {
+                #(grammar::#start_consts)|* => ParseTree::Start(
+                    visit_sppf(root_id, parser, builder).unwrap_start(),
+                )
+            });
+        }
         quote! {
             #[comment = "The parse tree of a finished parse, from the nonterminal node that spans the input."]
             pub fn create_parse_tree<'a>(

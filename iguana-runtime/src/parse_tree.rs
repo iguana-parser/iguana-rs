@@ -504,6 +504,51 @@ pub enum Origin {
     Alt,
 }
 
+/// The node of a start nonterminal: the node it wraps, between the layout
+/// before and after it. A typed entry point of a generated parser returns
+/// `Start<&X, &Layout>`, or `Start<&X, ()>` when the start nonterminal does
+/// not have layout. In the untyped parse tree, the layout is an
+/// `Option<ParseTree>` that is `None` without layout. The layout is not part
+/// of `node`, so a walk over the whole input visits `before`, `node`, and
+/// `after`.
+#[derive(Debug, Clone, Copy)]
+pub struct Start<T, L> {
+    pub before: L,
+    pub node: T,
+    pub after: L,
+    pub span: Span,
+}
+
+impl<T, L> Start<T, L> {
+    pub fn span(&self) -> Span {
+        self.span
+    }
+
+    pub fn display_name(&self) -> &'static str {
+        "Start"
+    }
+
+    pub fn origin(&self) -> Option<Origin> {
+        Some(Origin::Start)
+    }
+}
+
+impl<T: Copy> Start<T, Option<T>> {
+    /// The child at `index`: `before`, `node`, and `after`, or only `node`
+    /// when the start nonterminal does not have layout.
+    pub fn child(&self, index: usize) -> Option<T> {
+        match (self.before, self.after) {
+            (Some(before), Some(after)) => [before, self.node, after].get(index).copied(),
+            _ => (index == 0).then_some(self.node),
+        }
+    }
+
+    /// The number of children `child` returns.
+    pub fn child_count(&self) -> usize {
+        if self.before.is_some() { 3 } else { 1 }
+    }
+}
+
 /// The uniform interface for generic parse-tree traversals, such as conversion
 /// to an s-expression or JSON. Generated parsers implement it for their
 /// `ParseTree` type.

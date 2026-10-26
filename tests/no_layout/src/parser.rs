@@ -718,18 +718,30 @@ impl<'i, 'arena> NoLayoutParser<'i, 'arena> {
     pub fn parse_s(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartS<'_>>, ParseError> {
-        Ok(self
-            .parse(START_S, tree_arena)?
-            .map(ParseTree::unwrap_start_s))
+    ) -> Result<ParseSuccess<parse_tree::StartS<'_>>, ParseError> {
+        self.parse_start(START_S, tree_arena, ParseTree::unwrap_s)
     }
     pub fn parse_id(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartId<'_>>, ParseError> {
-        Ok(self
-            .parse(START_ID, tree_arena)?
-            .map(ParseTree::unwrap_start_id))
+    ) -> Result<ParseSuccess<parse_tree::StartId<'_>>, ParseError> {
+        self.parse_start(START_ID, tree_arena, ParseTree::unwrap_id)
+    }
+    fn parse_start<'a, T>(
+        self,
+        start: NonterminalId,
+        tree_arena: &'a Arena,
+        node: fn(ParseTree<'a>) -> T,
+    ) -> Result<ParseSuccess<parse_tree::Start<T, parse_tree::Token>>, ParseError> {
+        Ok(self.parse(start, tree_arena)?.map(|tree| {
+            let root = tree.unwrap_start();
+            parse_tree::Start {
+                before: root.before.unwrap().unwrap_token(),
+                node: node(root.node),
+                after: root.after.unwrap().unwrap_token(),
+                span: root.span,
+            }
+        }))
     }
     #[inline(never)]
     fn add_failure_at_farthest_index(

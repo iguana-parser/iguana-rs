@@ -803,18 +803,30 @@ impl<'i, 'arena> PlusExceptParser<'i, 'arena> {
     pub fn parse_sep(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartSep<'_>>, ParseError> {
-        Ok(self
-            .parse(START_SEP, tree_arena)?
-            .map(ParseTree::unwrap_start_sep))
+    ) -> Result<ParseSuccess<parse_tree::StartSep<'_>>, ParseError> {
+        self.parse_start_without_layout(START_SEP, tree_arena, ParseTree::unwrap_sep)
     }
     pub fn parse_base(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartBase<'_>>, ParseError> {
-        Ok(self
-            .parse(START_BASE, tree_arena)?
-            .map(ParseTree::unwrap_start_base))
+    ) -> Result<ParseSuccess<parse_tree::StartBase<'_>>, ParseError> {
+        self.parse_start_without_layout(START_BASE, tree_arena, ParseTree::unwrap_base)
+    }
+    fn parse_start_without_layout<'a, T>(
+        self,
+        start: NonterminalId,
+        tree_arena: &'a Arena,
+        node: fn(ParseTree<'a>) -> T,
+    ) -> Result<ParseSuccess<parse_tree::Start<T, ()>>, ParseError> {
+        Ok(self.parse(start, tree_arena)?.map(|tree| {
+            let root = tree.unwrap_start();
+            parse_tree::Start {
+                before: (),
+                node: node(root.node),
+                after: (),
+                span: root.span,
+            }
+        }))
     }
     #[inline(never)]
     fn add_failure_at_farthest_index(

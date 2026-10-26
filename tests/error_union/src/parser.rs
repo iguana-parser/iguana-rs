@@ -1638,154 +1638,188 @@ impl<'i, 'arena> ErrorUnionParser<'i, 'arena> {
     pub fn parse_t(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartT<'_>>, ParseError> {
-        Ok(self
-            .parse(START_T, tree_arena)?
-            .map(ParseTree::unwrap_start_t))
+    ) -> Result<ParseSuccess<parse_tree::StartT<'_>>, ParseError> {
+        self.parse_start(START_T, tree_arena, ParseTree::unwrap_t)
     }
     pub fn parse_u(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartU<'_>>, ParseError> {
-        Ok(self
-            .parse(START_U, tree_arena)?
-            .map(ParseTree::unwrap_start_u))
+    ) -> Result<ParseSuccess<parse_tree::StartU<'_>>, ParseError> {
+        self.parse_start(START_U, tree_arena, ParseTree::unwrap_u)
     }
     pub fn parse_p(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartP<'_>>, ParseError> {
-        Ok(self
-            .parse(START_P, tree_arena)?
-            .map(ParseTree::unwrap_start_p))
+    ) -> Result<ParseSuccess<parse_tree::StartP<'_>>, ParseError> {
+        self.parse_start(START_P, tree_arena, ParseTree::unwrap_p)
     }
     pub fn parse_q(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartQ<'_>>, ParseError> {
-        Ok(self
-            .parse(START_Q, tree_arena)?
-            .map(ParseTree::unwrap_start_q))
+    ) -> Result<ParseSuccess<parse_tree::StartQ<'_>>, ParseError> {
+        self.parse_start(START_Q, tree_arena, ParseTree::unwrap_q)
     }
     pub fn parse_before_p(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartBeforeP<'_>>, ParseError> {
-        Ok(self
-            .parse(START_BEFORE_P, tree_arena)?
-            .map(ParseTree::unwrap_start_before_p))
+    ) -> Result<ParseSuccess<parse_tree::StartBeforeP<'_>>, ParseError> {
+        self.parse_start(START_BEFORE_P, tree_arena, ParseTree::unwrap_before_p)
     }
     pub fn parse_before_q(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartBeforeQ<'_>>, ParseError> {
-        Ok(self
-            .parse(START_BEFORE_Q, tree_arena)?
-            .map(ParseTree::unwrap_start_before_q))
+    ) -> Result<ParseSuccess<parse_tree::StartBeforeQ<'_>>, ParseError> {
+        self.parse_start(START_BEFORE_Q, tree_arena, ParseTree::unwrap_before_q)
     }
     pub fn parse_unexpected_first(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartUnexpectedFirst<'_>>, ParseError> {
-        Ok(self
-            .parse(START_UNEXPECTED_FIRST, tree_arena)?
-            .map(ParseTree::unwrap_start_unexpected_first))
+    ) -> Result<ParseSuccess<parse_tree::StartUnexpectedFirst<'_>>, ParseError> {
+        self.parse_start(
+            START_UNEXPECTED_FIRST,
+            tree_arena,
+            ParseTree::unwrap_unexpected_first,
+        )
     }
     pub fn parse_excluded_first(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartExcludedFirst<'_>>, ParseError> {
-        Ok(self
-            .parse(START_EXCLUDED_FIRST, tree_arena)?
-            .map(ParseTree::unwrap_start_excluded_first))
+    ) -> Result<ParseSuccess<parse_tree::StartExcludedFirst<'_>>, ParseError> {
+        self.parse_start(
+            START_EXCLUDED_FIRST,
+            tree_arena,
+            ParseTree::unwrap_excluded_first,
+        )
     }
     pub fn parse_prediction_before_except(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartPredictionBeforeExcept<'_>>, ParseError> {
-        Ok(self
-            .parse(START_PREDICTION_BEFORE_EXCEPT, tree_arena)?
-            .map(ParseTree::unwrap_start_prediction_before_except))
+    ) -> Result<ParseSuccess<parse_tree::StartPredictionBeforeExcept<'_>>, ParseError> {
+        self.parse_start(
+            START_PREDICTION_BEFORE_EXCEPT,
+            tree_arena,
+            ParseTree::unwrap_prediction_before_except,
+        )
     }
     pub fn parse_except_before_prediction(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartExceptBeforePrediction<'_>>, ParseError> {
-        Ok(self
-            .parse(START_EXCEPT_BEFORE_PREDICTION, tree_arena)?
-            .map(ParseTree::unwrap_start_except_before_prediction))
+    ) -> Result<ParseSuccess<parse_tree::StartExceptBeforePrediction<'_>>, ParseError> {
+        self.parse_start(
+            START_EXCEPT_BEFORE_PREDICTION,
+            tree_arena,
+            ParseTree::unwrap_except_before_prediction,
+        )
     }
     pub fn parse_prediction_before_follow(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartPredictionBeforeFollow<'_>>, ParseError> {
-        Ok(self
-            .parse(START_PREDICTION_BEFORE_FOLLOW, tree_arena)?
-            .map(ParseTree::unwrap_start_prediction_before_follow))
+    ) -> Result<ParseSuccess<parse_tree::StartPredictionBeforeFollow<'_>>, ParseError> {
+        self.parse_start(
+            START_PREDICTION_BEFORE_FOLLOW,
+            tree_arena,
+            ParseTree::unwrap_prediction_before_follow,
+        )
     }
     pub fn parse_follow_before_prediction(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartFollowBeforePrediction<'_>>, ParseError> {
-        Ok(self
-            .parse(START_FOLLOW_BEFORE_PREDICTION, tree_arena)?
-            .map(ParseTree::unwrap_start_follow_before_prediction))
+    ) -> Result<ParseSuccess<parse_tree::StartFollowBeforePrediction<'_>>, ParseError> {
+        self.parse_start(
+            START_FOLLOW_BEFORE_PREDICTION,
+            tree_arena,
+            ParseTree::unwrap_follow_before_prediction,
+        )
     }
     pub fn parse_missing_suffix(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartMissingSuffix<'_>>, ParseError> {
-        Ok(self
-            .parse(START_MISSING_SUFFIX, tree_arena)?
-            .map(ParseTree::unwrap_start_missing_suffix))
+    ) -> Result<ParseSuccess<parse_tree::StartMissingSuffix<'_>>, ParseError> {
+        self.parse_start(
+            START_MISSING_SUFFIX,
+            tree_arena,
+            ParseTree::unwrap_missing_suffix,
+        )
     }
     pub fn parse_suffix_choice(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartSuffixChoice<'_>>, ParseError> {
-        Ok(self
-            .parse(START_SUFFIX_CHOICE, tree_arena)?
-            .map(ParseTree::unwrap_start_suffix_choice))
+    ) -> Result<ParseSuccess<parse_tree::StartSuffixChoice<'_>>, ParseError> {
+        self.parse_start(
+            START_SUFFIX_CHOICE,
+            tree_arena,
+            ParseTree::unwrap_suffix_choice,
+        )
     }
     pub fn parse_call_prediction(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartCallPrediction<'_>>, ParseError> {
-        Ok(self
-            .parse(START_CALL_PREDICTION, tree_arena)?
-            .map(ParseTree::unwrap_start_call_prediction))
+    ) -> Result<ParseSuccess<parse_tree::StartCallPrediction<'_>>, ParseError> {
+        self.parse_start(
+            START_CALL_PREDICTION,
+            tree_arena,
+            ParseTree::unwrap_call_prediction,
+        )
     }
     pub fn parse_prefix_x(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartPrefixX<'_>>, ParseError> {
-        Ok(self
-            .parse(START_PREFIX_X, tree_arena)?
-            .map(ParseTree::unwrap_start_prefix_x))
+    ) -> Result<ParseSuccess<parse_tree::StartPrefixX<'_>>, ParseError> {
+        self.parse_start(START_PREFIX_X, tree_arena, ParseTree::unwrap_prefix_x)
     }
     pub fn parse_prefix_w(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartPrefixW<'_>>, ParseError> {
-        Ok(self
-            .parse(START_PREFIX_W, tree_arena)?
-            .map(ParseTree::unwrap_start_prefix_w))
+    ) -> Result<ParseSuccess<parse_tree::StartPrefixW<'_>>, ParseError> {
+        self.parse_start(START_PREFIX_W, tree_arena, ParseTree::unwrap_prefix_w)
     }
     pub fn parse_nullable_prefix(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartNullablePrefix<'_>>, ParseError> {
-        Ok(self
-            .parse(START_NULLABLE_PREFIX, tree_arena)?
-            .map(ParseTree::unwrap_start_nullable_prefix))
+    ) -> Result<ParseSuccess<parse_tree::StartNullablePrefix<'_>>, ParseError> {
+        self.parse_start(
+            START_NULLABLE_PREFIX,
+            tree_arena,
+            ParseTree::unwrap_nullable_prefix,
+        )
     }
     pub fn parse_layout(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartLayout<'_>>, ParseError> {
-        Ok(self
-            .parse(START_LAYOUT, tree_arena)?
-            .map(ParseTree::unwrap_start_layout))
+    ) -> Result<ParseSuccess<parse_tree::StartLayout<'_>>, ParseError> {
+        self.parse_start_without_layout(START_LAYOUT, tree_arena, ParseTree::unwrap_layout)
+    }
+    fn parse_start<'a, T>(
+        self,
+        start: NonterminalId,
+        tree_arena: &'a Arena,
+        node: fn(ParseTree<'a>) -> T,
+    ) -> Result<ParseSuccess<parse_tree::Start<T, &'a parse_tree::Layout<'a>>>, ParseError> {
+        Ok(self.parse(start, tree_arena)?.map(|tree| {
+            let root = tree.unwrap_start();
+            parse_tree::Start {
+                before: root.before.unwrap().unwrap_layout(),
+                node: node(root.node),
+                after: root.after.unwrap().unwrap_layout(),
+                span: root.span,
+            }
+        }))
+    }
+    fn parse_start_without_layout<'a, T>(
+        self,
+        start: NonterminalId,
+        tree_arena: &'a Arena,
+        node: fn(ParseTree<'a>) -> T,
+    ) -> Result<ParseSuccess<parse_tree::Start<T, ()>>, ParseError> {
+        Ok(self.parse(start, tree_arena)?.map(|tree| {
+            let root = tree.unwrap_start();
+            parse_tree::Start {
+                before: (),
+                node: node(root.node),
+                after: (),
+                span: root.span,
+            }
+        }))
     }
     #[inline(never)]
     fn parse_q_ll1(

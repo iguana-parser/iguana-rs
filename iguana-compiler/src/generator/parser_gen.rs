@@ -1294,10 +1294,15 @@ impl<'a> ParserGen<'a> {
     }
 
     /// The typed entry points: one consuming method per declared nonterminal,
-    /// which parses from the nonterminal's start wrapper and narrows the tree
-    /// to the wrapper's type.
+    /// which parses from the nonterminal's start wrapper and converts the
+    /// untyped start node to the wrapper's type. The conversion is in
+    /// `parse_start`, for the start nonterminals with layout, and in
+    /// `parse_start_without_layout`, for the ones without.
     fn gen_typed_entry_points(&self) -> Vec<TokenStream> {
-        self.grammar
+        let mut with_layout = false;
+        let mut without_layout = false;
+        let mut methods: Vec<TokenStream> = self
+            .grammar
             .nonterminals()
             .filter(|nt| !nt.is_derived())
             .map(|nt| {
@@ -1307,21 +1312,84 @@ impl<'a> ParserGen<'a> {
                     .expect("a declared nonterminal has a start wrapper");
                 let fn_name = format_ident!("parse_{}", to_snake_case(&nt.name));
                 let nt_const = format_ident!("{}", to_snake_case(&start.name).to_uppercase());
-                let unwrap_method = format_ident!("unwrap_{}", to_snake_case(&start.name));
+                let unwrap_node = format_ident!("unwrap_{}", to_snake_case(&nt.name));
+                let parse_start = if self.grammar.start_layout(start).is_some() {
+                    with_layout = true;
+                    format_ident!("parse_start")
+                } else {
+                    without_layout = true;
+                    format_ident!("parse_start_without_layout")
+                };
                 // A start wrapper has a generated alias, which always has a
                 // lifetime.
                 let start_ident = nt_ident(&start.name);
-                let return_type = quote! { parse_tree::#start_ident<'_> };
                 quote! {
                     pub fn #fn_name(
                         self,
                         tree_arena: &Arena,
-                    ) -> Result<ParseSuccess<&#return_type>, ParseError> {
-                        Ok(self.parse(#nt_const, tree_arena)?.map(ParseTree::#unwrap_method))
+                    ) -> Result<ParseSuccess<parse_tree::#start_ident<'_>>, ParseError> {
+                        self.#parse_start(#nt_const, tree_arena, ParseTree::#unwrap_node)
                     }
                 }
             })
-            .collect()
+            .collect();
+        if with_layout {
+            let layout_ident = self
+                .grammar
+                .layout
+                .as_ref()
+                .unwrap()
+                .as_identifier()
+                .unwrap();
+            let (layout_type, unwrap_layout) = if self.grammar.is_terminal(layout_ident) {
+                (quote! { parse_tree::Token }, format_ident!("unwrap_token"))
+            } else {
+                let layout_type = nt_ident(&layout_ident.name);
+                (
+                    quote! { &'a parse_tree::#layout_type<'a> },
+                    format_ident!("unwrap_{}", to_snake_case(&layout_ident.name)),
+                )
+            };
+            methods.push(quote! {
+                fn parse_start<'a, T>(
+                    self,
+                    start: NonterminalId,
+                    tree_arena: &'a Arena,
+                    node: fn(ParseTree<'a>) -> T,
+                ) -> Result<ParseSuccess<parse_tree::Start<T, #layout_type>>, ParseError> {
+                    Ok(self.parse(start, tree_arena)?.map(|tree| {
+                        let root = tree.unwrap_start();
+                        parse_tree::Start {
+                            before: root.before.unwrap().#unwrap_layout(),
+                            node: node(root.node),
+                            after: root.after.unwrap().#unwrap_layout(),
+                            span: root.span,
+                        }
+                    }))
+                }
+            });
+        }
+        if without_layout {
+            methods.push(quote! {
+                fn parse_start_without_layout<'a, T>(
+                    self,
+                    start: NonterminalId,
+                    tree_arena: &'a Arena,
+                    node: fn(ParseTree<'a>) -> T,
+                ) -> Result<ParseSuccess<parse_tree::Start<T, ()>>, ParseError> {
+                    Ok(self.parse(start, tree_arena)?.map(|tree| {
+                        let root = tree.unwrap_start();
+                        parse_tree::Start {
+                            before: (),
+                            node: node(root.node),
+                            after: (),
+                            span: root.span,
+                        }
+                    }))
+                }
+            });
+        }
+        methods
     }
 
     fn gen_ambiguity_node_added_method(&self) -> TokenStream {

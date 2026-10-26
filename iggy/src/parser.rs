@@ -2410,146 +2410,170 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
     pub fn parse_grammar(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartGrammar<'_>>, ParseError> {
-        Ok(self
-            .parse(START_GRAMMAR, tree_arena)?
-            .map(ParseTree::unwrap_start_grammar))
+    ) -> Result<ParseSuccess<parse_tree::StartGrammar<'_>>, ParseError> {
+        self.parse_start(START_GRAMMAR, tree_arena, ParseTree::unwrap_grammar)
     }
     pub fn parse_rule(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartRule<'_>>, ParseError> {
-        Ok(self
-            .parse(START_RULE, tree_arena)?
-            .map(ParseTree::unwrap_start_rule))
+    ) -> Result<ParseSuccess<parse_tree::StartRule<'_>>, ParseError> {
+        self.parse_start(START_RULE, tree_arena, ParseTree::unwrap_rule)
     }
     pub fn parse_syntax_rule(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartSyntaxRule<'_>>, ParseError> {
-        Ok(self
-            .parse(START_SYNTAX_RULE, tree_arena)?
-            .map(ParseTree::unwrap_start_syntax_rule))
+    ) -> Result<ParseSuccess<parse_tree::StartSyntaxRule<'_>>, ParseError> {
+        self.parse_start(START_SYNTAX_RULE, tree_arena, ParseTree::unwrap_syntax_rule)
     }
     pub fn parse_annotation(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartAnnotation<'_>>, ParseError> {
-        Ok(self
-            .parse(START_ANNOTATION, tree_arena)?
-            .map(ParseTree::unwrap_start_annotation))
+    ) -> Result<ParseSuccess<parse_tree::StartAnnotation<'_>>, ParseError> {
+        self.parse_start(START_ANNOTATION, tree_arena, ParseTree::unwrap_annotation)
     }
     pub fn parse_regex_rule(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartRegexRule<'_>>, ParseError> {
-        Ok(self
-            .parse(START_REGEX_RULE, tree_arena)?
-            .map(ParseTree::unwrap_start_regex_rule))
+    ) -> Result<ParseSuccess<parse_tree::StartRegexRule<'_>>, ParseError> {
+        self.parse_start(START_REGEX_RULE, tree_arena, ParseTree::unwrap_regex_rule)
     }
     pub fn parse_regex_pre_condition(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartRegexPreCondition<'_>>, ParseError> {
-        Ok(self
-            .parse(START_REGEX_PRE_CONDITION, tree_arena)?
-            .map(ParseTree::unwrap_start_regex_pre_condition))
+    ) -> Result<ParseSuccess<parse_tree::StartRegexPreCondition<'_>>, ParseError> {
+        self.parse_start(
+            START_REGEX_PRE_CONDITION,
+            tree_arena,
+            ParseTree::unwrap_regex_pre_condition,
+        )
     }
     pub fn parse_regex_post_condition(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartRegexPostCondition<'_>>, ParseError> {
-        Ok(self
-            .parse(START_REGEX_POST_CONDITION, tree_arena)?
-            .map(ParseTree::unwrap_start_regex_post_condition))
+    ) -> Result<ParseSuccess<parse_tree::StartRegexPostCondition<'_>>, ParseError> {
+        self.parse_start(
+            START_REGEX_POST_CONDITION,
+            tree_arena,
+            ParseTree::unwrap_regex_post_condition,
+        )
     }
     pub fn parse_priority_level(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartPriorityLevel<'_>>, ParseError> {
-        Ok(self
-            .parse(START_PRIORITY_LEVEL, tree_arena)?
-            .map(ParseTree::unwrap_start_priority_level))
+    ) -> Result<ParseSuccess<parse_tree::StartPriorityLevel<'_>>, ParseError> {
+        self.parse_start(
+            START_PRIORITY_LEVEL,
+            tree_arena,
+            ParseTree::unwrap_priority_level,
+        )
     }
     pub fn parse_associativity(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartAssociativity<'_>>, ParseError> {
-        Ok(self
-            .parse(START_ASSOCIATIVITY, tree_arena)?
-            .map(ParseTree::unwrap_start_associativity))
+    ) -> Result<ParseSuccess<parse_tree::StartAssociativity<'_>>, ParseError> {
+        self.parse_start(
+            START_ASSOCIATIVITY,
+            tree_arena,
+            ParseTree::unwrap_associativity,
+        )
     }
     pub fn parse_alternative(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartAlternative<'_>>, ParseError> {
-        Ok(self
-            .parse(START_ALTERNATIVE, tree_arena)?
-            .map(ParseTree::unwrap_start_alternative))
+    ) -> Result<ParseSuccess<parse_tree::StartAlternative<'_>>, ParseError> {
+        self.parse_start(START_ALTERNATIVE, tree_arena, ParseTree::unwrap_alternative)
     }
     pub fn parse_symbol(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartSymbol<'_>>, ParseError> {
-        Ok(self
-            .parse(START_SYMBOL, tree_arena)?
-            .map(ParseTree::unwrap_start_symbol))
+    ) -> Result<ParseSuccess<parse_tree::StartSymbol<'_>>, ParseError> {
+        self.parse_start(START_SYMBOL, tree_arena, ParseTree::unwrap_symbol)
     }
     pub fn parse_pre_condition(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartPreCondition<'_>>, ParseError> {
-        Ok(self
-            .parse(START_PRE_CONDITION, tree_arena)?
-            .map(ParseTree::unwrap_start_pre_condition))
+    ) -> Result<ParseSuccess<parse_tree::StartPreCondition<'_>>, ParseError> {
+        self.parse_start(
+            START_PRE_CONDITION,
+            tree_arena,
+            ParseTree::unwrap_pre_condition,
+        )
     }
     pub fn parse_post_condition(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartPostCondition<'_>>, ParseError> {
-        Ok(self
-            .parse(START_POST_CONDITION, tree_arena)?
-            .map(ParseTree::unwrap_start_post_condition))
+    ) -> Result<ParseSuccess<parse_tree::StartPostCondition<'_>>, ParseError> {
+        self.parse_start(
+            START_POST_CONDITION,
+            tree_arena,
+            ParseTree::unwrap_post_condition,
+        )
     }
     pub fn parse_regex(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartRegex<'_>>, ParseError> {
-        Ok(self
-            .parse(START_REGEX, tree_arena)?
-            .map(ParseTree::unwrap_start_regex))
+    ) -> Result<ParseSuccess<parse_tree::StartRegex<'_>>, ParseError> {
+        self.parse_start(START_REGEX, tree_arena, ParseTree::unwrap_regex)
     }
     pub fn parse_char_class(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartCharClass<'_>>, ParseError> {
-        Ok(self
-            .parse(START_CHAR_CLASS, tree_arena)?
-            .map(ParseTree::unwrap_start_char_class))
+    ) -> Result<ParseSuccess<parse_tree::StartCharClass<'_>>, ParseError> {
+        self.parse_start(START_CHAR_CLASS, tree_arena, ParseTree::unwrap_char_class)
     }
     pub fn parse_range_element(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartRangeElement<'_>>, ParseError> {
-        Ok(self
-            .parse(START_RANGE_ELEMENT, tree_arena)?
-            .map(ParseTree::unwrap_start_range_element))
+    ) -> Result<ParseSuccess<parse_tree::StartRangeElement<'_>>, ParseError> {
+        self.parse_start(
+            START_RANGE_ELEMENT,
+            tree_arena,
+            ParseTree::unwrap_range_element,
+        )
     }
     pub fn parse_range(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartRange<'_>>, ParseError> {
-        Ok(self
-            .parse(START_RANGE, tree_arena)?
-            .map(ParseTree::unwrap_start_range))
+    ) -> Result<ParseSuccess<parse_tree::StartRange<'_>>, ParseError> {
+        self.parse_start(START_RANGE, tree_arena, ParseTree::unwrap_range)
     }
     pub fn parse_layout(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartLayout<'_>>, ParseError> {
-        Ok(self
-            .parse(START_LAYOUT, tree_arena)?
-            .map(ParseTree::unwrap_start_layout))
+    ) -> Result<ParseSuccess<parse_tree::StartLayout<'_>>, ParseError> {
+        self.parse_start_without_layout(START_LAYOUT, tree_arena, ParseTree::unwrap_layout)
+    }
+    fn parse_start<'a, T>(
+        self,
+        start: NonterminalId,
+        tree_arena: &'a Arena,
+        node: fn(ParseTree<'a>) -> T,
+    ) -> Result<ParseSuccess<parse_tree::Start<T, &'a parse_tree::Layout<'a>>>, ParseError> {
+        Ok(self.parse(start, tree_arena)?.map(|tree| {
+            let root = tree.unwrap_start();
+            parse_tree::Start {
+                before: root.before.unwrap().unwrap_layout(),
+                node: node(root.node),
+                after: root.after.unwrap().unwrap_layout(),
+                span: root.span,
+            }
+        }))
+    }
+    fn parse_start_without_layout<'a, T>(
+        self,
+        start: NonterminalId,
+        tree_arena: &'a Arena,
+        node: fn(ParseTree<'a>) -> T,
+    ) -> Result<ParseSuccess<parse_tree::Start<T, ()>>, ParseError> {
+        Ok(self.parse(start, tree_arena)?.map(|tree| {
+            let root = tree.unwrap_start();
+            parse_tree::Start {
+                before: (),
+                node: node(root.node),
+                after: (),
+                span: root.span,
+            }
+        }))
     }
     #[inline(never)]
     #[allow(clippy::too_many_arguments)]

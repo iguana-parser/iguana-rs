@@ -9043,666 +9043,760 @@ impl<'i, 'arena> IndirectBinaryParser<'i, 'arena> {
     pub fn parse_s(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartS<'_>>, ParseError> {
-        Ok(self
-            .parse(START_S, tree_arena)?
-            .map(ParseTree::unwrap_start_s))
+    ) -> Result<ParseSuccess<parse_tree::StartS<'_>>, ParseError> {
+        self.parse_start(START_S, tree_arena, ParseTree::unwrap_s)
     }
     pub fn parse_e(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartE<'_>>, ParseError> {
-        Ok(self
-            .parse(START_E, tree_arena)?
-            .map(ParseTree::unwrap_start_e))
+    ) -> Result<ParseSuccess<parse_tree::StartE<'_>>, ParseError> {
+        self.parse_start(START_E, tree_arena, ParseTree::unwrap_e)
     }
     pub fn parse_l(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartL<'_>>, ParseError> {
-        Ok(self
-            .parse(START_L, tree_arena)?
-            .map(ParseTree::unwrap_start_l))
+    ) -> Result<ParseSuccess<parse_tree::StartL<'_>>, ParseError> {
+        self.parse_start(START_L, tree_arena, ParseTree::unwrap_l)
     }
     pub fn parse_only(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartOnly<'_>>, ParseError> {
-        Ok(self
-            .parse(START_ONLY, tree_arena)?
-            .map(ParseTree::unwrap_start_only))
+    ) -> Result<ParseSuccess<parse_tree::StartOnly<'_>>, ParseError> {
+        self.parse_start(START_ONLY, tree_arena, ParseTree::unwrap_only)
     }
     pub fn parse_only_operand(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartOnlyOperand<'_>>, ParseError> {
-        Ok(self
-            .parse(START_ONLY_OPERAND, tree_arena)?
-            .map(ParseTree::unwrap_start_only_operand))
+    ) -> Result<ParseSuccess<parse_tree::StartOnlyOperand<'_>>, ParseError> {
+        self.parse_start(
+            START_ONLY_OPERAND,
+            tree_arena,
+            ParseTree::unwrap_only_operand,
+        )
     }
     pub fn parse_cross(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartCross<'_>>, ParseError> {
-        Ok(self
-            .parse(START_CROSS, tree_arena)?
-            .map(ParseTree::unwrap_start_cross))
+    ) -> Result<ParseSuccess<parse_tree::StartCross<'_>>, ParseError> {
+        self.parse_start(START_CROSS, tree_arena, ParseTree::unwrap_cross)
     }
     pub fn parse_foreign(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartForeign<'_>>, ParseError> {
-        Ok(self
-            .parse(START_FOREIGN, tree_arena)?
-            .map(ParseTree::unwrap_start_foreign))
+    ) -> Result<ParseSuccess<parse_tree::StartForeign<'_>>, ParseError> {
+        self.parse_start(START_FOREIGN, tree_arena, ParseTree::unwrap_foreign)
     }
     pub fn parse_cascade(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartCascade<'_>>, ParseError> {
-        Ok(self
-            .parse(START_CASCADE, tree_arena)?
-            .map(ParseTree::unwrap_start_cascade))
+    ) -> Result<ParseSuccess<parse_tree::StartCascade<'_>>, ParseError> {
+        self.parse_start(START_CASCADE, tree_arena, ParseTree::unwrap_cascade)
     }
     pub fn parse_ternary(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartTernary<'_>>, ParseError> {
-        Ok(self
-            .parse(START_TERNARY, tree_arena)?
-            .map(ParseTree::unwrap_start_ternary))
+    ) -> Result<ParseSuccess<parse_tree::StartTernary<'_>>, ParseError> {
+        self.parse_start(START_TERNARY, tree_arena, ParseTree::unwrap_ternary)
     }
     pub fn parse_nullable(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartNullable<'_>>, ParseError> {
-        Ok(self
-            .parse(START_NULLABLE, tree_arena)?
-            .map(ParseTree::unwrap_start_nullable))
+    ) -> Result<ParseSuccess<parse_tree::StartNullable<'_>>, ParseError> {
+        self.parse_start(START_NULLABLE, tree_arena, ParseTree::unwrap_nullable)
     }
     pub fn parse_nullable_left(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartNullableLeft<'_>>, ParseError> {
-        Ok(self
-            .parse(START_NULLABLE_LEFT, tree_arena)?
-            .map(ParseTree::unwrap_start_nullable_left))
+    ) -> Result<ParseSuccess<parse_tree::StartNullableLeft<'_>>, ParseError> {
+        self.parse_start(
+            START_NULLABLE_LEFT,
+            tree_arena,
+            ParseTree::unwrap_nullable_left,
+        )
     }
     pub fn parse_nullable_right(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartNullableRight<'_>>, ParseError> {
-        Ok(self
-            .parse(START_NULLABLE_RIGHT, tree_arena)?
-            .map(ParseTree::unwrap_start_nullable_right))
+    ) -> Result<ParseSuccess<parse_tree::StartNullableRight<'_>>, ParseError> {
+        self.parse_start(
+            START_NULLABLE_RIGHT,
+            tree_arena,
+            ParseTree::unwrap_nullable_right,
+        )
     }
     pub fn parse_right_expr(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartRightExpr<'_>>, ParseError> {
-        Ok(self
-            .parse(START_RIGHT_EXPR, tree_arena)?
-            .map(ParseTree::unwrap_start_right_expr))
+    ) -> Result<ParseSuccess<parse_tree::StartRightExpr<'_>>, ParseError> {
+        self.parse_start(START_RIGHT_EXPR, tree_arena, ParseTree::unwrap_right_expr)
     }
     pub fn parse_right_operand(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartRightOperand<'_>>, ParseError> {
-        Ok(self
-            .parse(START_RIGHT_OPERAND, tree_arena)?
-            .map(ParseTree::unwrap_start_right_operand))
+    ) -> Result<ParseSuccess<parse_tree::StartRightOperand<'_>>, ParseError> {
+        self.parse_start(
+            START_RIGHT_OPERAND,
+            tree_arena,
+            ParseTree::unwrap_right_operand,
+        )
     }
     pub fn parse_none_expr(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartNoneExpr<'_>>, ParseError> {
-        Ok(self
-            .parse(START_NONE_EXPR, tree_arena)?
-            .map(ParseTree::unwrap_start_none_expr))
+    ) -> Result<ParseSuccess<parse_tree::StartNoneExpr<'_>>, ParseError> {
+        self.parse_start(START_NONE_EXPR, tree_arena, ParseTree::unwrap_none_expr)
     }
     pub fn parse_none_operand(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartNoneOperand<'_>>, ParseError> {
-        Ok(self
-            .parse(START_NONE_OPERAND, tree_arena)?
-            .map(ParseTree::unwrap_start_none_operand))
+    ) -> Result<ParseSuccess<parse_tree::StartNoneOperand<'_>>, ParseError> {
+        self.parse_start(
+            START_NONE_OPERAND,
+            tree_arena,
+            ParseTree::unwrap_none_operand,
+        )
     }
     pub fn parse_excluded(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartExcluded<'_>>, ParseError> {
-        Ok(self
-            .parse(START_EXCLUDED, tree_arena)?
-            .map(ParseTree::unwrap_start_excluded))
+    ) -> Result<ParseSuccess<parse_tree::StartExcluded<'_>>, ParseError> {
+        self.parse_start(START_EXCLUDED, tree_arena, ParseTree::unwrap_excluded)
     }
     pub fn parse_excluded_operand(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartExcludedOperand<'_>>, ParseError> {
-        Ok(self
-            .parse(START_EXCLUDED_OPERAND, tree_arena)?
-            .map(ParseTree::unwrap_start_excluded_operand))
+    ) -> Result<ParseSuccess<parse_tree::StartExcludedOperand<'_>>, ParseError> {
+        self.parse_start(
+            START_EXCLUDED_OPERAND,
+            tree_arena,
+            ParseTree::unwrap_excluded_operand,
+        )
     }
     pub fn parse_filtered(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartFiltered<'_>>, ParseError> {
-        Ok(self
-            .parse(START_FILTERED, tree_arena)?
-            .map(ParseTree::unwrap_start_filtered))
+    ) -> Result<ParseSuccess<parse_tree::StartFiltered<'_>>, ParseError> {
+        self.parse_start(START_FILTERED, tree_arena, ParseTree::unwrap_filtered)
     }
     pub fn parse_lex_nullable(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartLexNullable<'_>>, ParseError> {
-        Ok(self
-            .parse(START_LEX_NULLABLE, tree_arena)?
-            .map(ParseTree::unwrap_start_lex_nullable))
+    ) -> Result<ParseSuccess<parse_tree::StartLexNullable<'_>>, ParseError> {
+        self.parse_start(
+            START_LEX_NULLABLE,
+            tree_arena,
+            ParseTree::unwrap_lex_nullable,
+        )
     }
     pub fn parse_lex_nullable_left(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartLexNullableLeft<'_>>, ParseError> {
-        Ok(self
-            .parse(START_LEX_NULLABLE_LEFT, tree_arena)?
-            .map(ParseTree::unwrap_start_lex_nullable_left))
+    ) -> Result<ParseSuccess<parse_tree::StartLexNullableLeft<'_>>, ParseError> {
+        self.parse_start(
+            START_LEX_NULLABLE_LEFT,
+            tree_arena,
+            ParseTree::unwrap_lex_nullable_left,
+        )
     }
     pub fn parse_lex_nullable_right(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartLexNullableRight<'_>>, ParseError> {
-        Ok(self
-            .parse(START_LEX_NULLABLE_RIGHT, tree_arena)?
-            .map(ParseTree::unwrap_start_lex_nullable_right))
+    ) -> Result<ParseSuccess<parse_tree::StartLexNullableRight<'_>>, ParseError> {
+        self.parse_start(
+            START_LEX_NULLABLE_RIGHT,
+            tree_arena,
+            ParseTree::unwrap_lex_nullable_right,
+        )
     }
     pub fn parse_mixed_scale(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartMixedScale<'_>>, ParseError> {
-        Ok(self
-            .parse(START_MIXED_SCALE, tree_arena)?
-            .map(ParseTree::unwrap_start_mixed_scale))
+    ) -> Result<ParseSuccess<parse_tree::StartMixedScale<'_>>, ParseError> {
+        self.parse_start(START_MIXED_SCALE, tree_arena, ParseTree::unwrap_mixed_scale)
     }
     pub fn parse_mixed_operand(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartMixedOperand<'_>>, ParseError> {
-        Ok(self
-            .parse(START_MIXED_OPERAND, tree_arena)?
-            .map(ParseTree::unwrap_start_mixed_operand))
+    ) -> Result<ParseSuccess<parse_tree::StartMixedOperand<'_>>, ParseError> {
+        self.parse_start(
+            START_MIXED_OPERAND,
+            tree_arena,
+            ParseTree::unwrap_mixed_operand,
+        )
     }
     pub fn parse_mixed_right(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartMixedRight<'_>>, ParseError> {
-        Ok(self
-            .parse(START_MIXED_RIGHT, tree_arena)?
-            .map(ParseTree::unwrap_start_mixed_right))
+    ) -> Result<ParseSuccess<parse_tree::StartMixedRight<'_>>, ParseError> {
+        self.parse_start(START_MIXED_RIGHT, tree_arena, ParseTree::unwrap_mixed_right)
     }
     pub fn parse_mixed_foreign(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartMixedForeign<'_>>, ParseError> {
-        Ok(self
-            .parse(START_MIXED_FOREIGN, tree_arena)?
-            .map(ParseTree::unwrap_start_mixed_foreign))
+    ) -> Result<ParseSuccess<parse_tree::StartMixedForeign<'_>>, ParseError> {
+        self.parse_start(
+            START_MIXED_FOREIGN,
+            tree_arena,
+            ParseTree::unwrap_mixed_foreign,
+        )
     }
     pub fn parse_packed(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartPacked<'_>>, ParseError> {
-        Ok(self
-            .parse(START_PACKED, tree_arena)?
-            .map(ParseTree::unwrap_start_packed))
+    ) -> Result<ParseSuccess<parse_tree::StartPacked<'_>>, ParseError> {
+        self.parse_start(START_PACKED, tree_arena, ParseTree::unwrap_packed)
     }
     pub fn parse_packed_operand(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartPackedOperand<'_>>, ParseError> {
-        Ok(self
-            .parse(START_PACKED_OPERAND, tree_arena)?
-            .map(ParseTree::unwrap_start_packed_operand))
+    ) -> Result<ParseSuccess<parse_tree::StartPackedOperand<'_>>, ParseError> {
+        self.parse_start(
+            START_PACKED_OPERAND,
+            tree_arena,
+            ParseTree::unwrap_packed_operand,
+        )
     }
     pub fn parse_packed_middle(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartPackedMiddle<'_>>, ParseError> {
-        Ok(self
-            .parse(START_PACKED_MIDDLE, tree_arena)?
-            .map(ParseTree::unwrap_start_packed_middle))
+    ) -> Result<ParseSuccess<parse_tree::StartPackedMiddle<'_>>, ParseError> {
+        self.parse_start(
+            START_PACKED_MIDDLE,
+            tree_arena,
+            ParseTree::unwrap_packed_middle,
+        )
     }
     pub fn parse_packed_filtered(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartPackedFiltered<'_>>, ParseError> {
-        Ok(self
-            .parse(START_PACKED_FILTERED, tree_arena)?
-            .map(ParseTree::unwrap_start_packed_filtered))
+    ) -> Result<ParseSuccess<parse_tree::StartPackedFiltered<'_>>, ParseError> {
+        self.parse_start(
+            START_PACKED_FILTERED,
+            tree_arena,
+            ParseTree::unwrap_packed_filtered,
+        )
     }
     pub fn parse_nullable_recursive(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartNullableRecursive<'_>>, ParseError> {
-        Ok(self
-            .parse(START_NULLABLE_RECURSIVE, tree_arena)?
-            .map(ParseTree::unwrap_start_nullable_recursive))
+    ) -> Result<ParseSuccess<parse_tree::StartNullableRecursive<'_>>, ParseError> {
+        self.parse_start(
+            START_NULLABLE_RECURSIVE,
+            tree_arena,
+            ParseTree::unwrap_nullable_recursive,
+        )
     }
     pub fn parse_nullable_operand(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartNullableOperand<'_>>, ParseError> {
-        Ok(self
-            .parse(START_NULLABLE_OPERAND, tree_arena)?
-            .map(ParseTree::unwrap_start_nullable_operand))
+    ) -> Result<ParseSuccess<parse_tree::StartNullableOperand<'_>>, ParseError> {
+        self.parse_start(
+            START_NULLABLE_OPERAND,
+            tree_arena,
+            ParseTree::unwrap_nullable_operand,
+        )
     }
     pub fn parse_nullable_maybe(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartNullableMaybe<'_>>, ParseError> {
-        Ok(self
-            .parse(START_NULLABLE_MAYBE, tree_arena)?
-            .map(ParseTree::unwrap_start_nullable_maybe))
+    ) -> Result<ParseSuccess<parse_tree::StartNullableMaybe<'_>>, ParseError> {
+        self.parse_start(
+            START_NULLABLE_MAYBE,
+            tree_arena,
+            ParseTree::unwrap_nullable_maybe,
+        )
     }
     pub fn parse_nullable_lex_recursive(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartNullableLexRecursive<'_>>, ParseError> {
-        Ok(self
-            .parse(START_NULLABLE_LEX_RECURSIVE, tree_arena)?
-            .map(ParseTree::unwrap_start_nullable_lex_recursive))
+    ) -> Result<ParseSuccess<parse_tree::StartNullableLexRecursive<'_>>, ParseError> {
+        self.parse_start(
+            START_NULLABLE_LEX_RECURSIVE,
+            tree_arena,
+            ParseTree::unwrap_nullable_lex_recursive,
+        )
     }
     pub fn parse_nullable_lex_operand(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartNullableLexOperand<'_>>, ParseError> {
-        Ok(self
-            .parse(START_NULLABLE_LEX_OPERAND, tree_arena)?
-            .map(ParseTree::unwrap_start_nullable_lex_operand))
+    ) -> Result<ParseSuccess<parse_tree::StartNullableLexOperand<'_>>, ParseError> {
+        self.parse_start(
+            START_NULLABLE_LEX_OPERAND,
+            tree_arena,
+            ParseTree::unwrap_nullable_lex_operand,
+        )
     }
     pub fn parse_nullable_lex_maybe(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartNullableLexMaybe<'_>>, ParseError> {
-        Ok(self
-            .parse(START_NULLABLE_LEX_MAYBE, tree_arena)?
-            .map(ParseTree::unwrap_start_nullable_lex_maybe))
+    ) -> Result<ParseSuccess<parse_tree::StartNullableLexMaybe<'_>>, ParseError> {
+        self.parse_start(
+            START_NULLABLE_LEX_MAYBE,
+            tree_arena,
+            ParseTree::unwrap_nullable_lex_maybe,
+        )
     }
     pub fn parse_nullable_suffix(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartNullableSuffix<'_>>, ParseError> {
-        Ok(self
-            .parse(START_NULLABLE_SUFFIX, tree_arena)?
-            .map(ParseTree::unwrap_start_nullable_suffix))
+    ) -> Result<ParseSuccess<parse_tree::StartNullableSuffix<'_>>, ParseError> {
+        self.parse_start(
+            START_NULLABLE_SUFFIX,
+            tree_arena,
+            ParseTree::unwrap_nullable_suffix,
+        )
     }
     pub fn parse_nullable_suffix_operand(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartNullableSuffixOperand<'_>>, ParseError> {
-        Ok(self
-            .parse(START_NULLABLE_SUFFIX_OPERAND, tree_arena)?
-            .map(ParseTree::unwrap_start_nullable_suffix_operand))
+    ) -> Result<ParseSuccess<parse_tree::StartNullableSuffixOperand<'_>>, ParseError> {
+        self.parse_start(
+            START_NULLABLE_SUFFIX_OPERAND,
+            tree_arena,
+            ParseTree::unwrap_nullable_suffix_operand,
+        )
     }
     pub fn parse_nullable_suffix_maybe(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartNullableSuffixMaybe<'_>>, ParseError> {
-        Ok(self
-            .parse(START_NULLABLE_SUFFIX_MAYBE, tree_arena)?
-            .map(ParseTree::unwrap_start_nullable_suffix_maybe))
+    ) -> Result<ParseSuccess<parse_tree::StartNullableSuffixMaybe<'_>>, ParseError> {
+        self.parse_start(
+            START_NULLABLE_SUFFIX_MAYBE,
+            tree_arena,
+            ParseTree::unwrap_nullable_suffix_maybe,
+        )
     }
     pub fn parse_nullable_shared(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartNullableShared<'_>>, ParseError> {
-        Ok(self
-            .parse(START_NULLABLE_SHARED, tree_arena)?
-            .map(ParseTree::unwrap_start_nullable_shared))
+    ) -> Result<ParseSuccess<parse_tree::StartNullableShared<'_>>, ParseError> {
+        self.parse_start(
+            START_NULLABLE_SHARED,
+            tree_arena,
+            ParseTree::unwrap_nullable_shared,
+        )
     }
     pub fn parse_nullable_shared_operand(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartNullableSharedOperand<'_>>, ParseError> {
-        Ok(self
-            .parse(START_NULLABLE_SHARED_OPERAND, tree_arena)?
-            .map(ParseTree::unwrap_start_nullable_shared_operand))
+    ) -> Result<ParseSuccess<parse_tree::StartNullableSharedOperand<'_>>, ParseError> {
+        self.parse_start(
+            START_NULLABLE_SHARED_OPERAND,
+            tree_arena,
+            ParseTree::unwrap_nullable_shared_operand,
+        )
     }
     pub fn parse_nullable_shared_maybe(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartNullableSharedMaybe<'_>>, ParseError> {
-        Ok(self
-            .parse(START_NULLABLE_SHARED_MAYBE, tree_arena)?
-            .map(ParseTree::unwrap_start_nullable_shared_maybe))
+    ) -> Result<ParseSuccess<parse_tree::StartNullableSharedMaybe<'_>>, ParseError> {
+        self.parse_start(
+            START_NULLABLE_SHARED_MAYBE,
+            tree_arena,
+            ParseTree::unwrap_nullable_shared_maybe,
+        )
     }
     pub fn parse_own_label(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartOwnLabel<'_>>, ParseError> {
-        Ok(self
-            .parse(START_OWN_LABEL, tree_arena)?
-            .map(ParseTree::unwrap_start_own_label))
+    ) -> Result<ParseSuccess<parse_tree::StartOwnLabel<'_>>, ParseError> {
+        self.parse_start(START_OWN_LABEL, tree_arena, ParseTree::unwrap_own_label)
     }
     pub fn parse_own_operand(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartOwnOperand<'_>>, ParseError> {
-        Ok(self
-            .parse(START_OWN_OPERAND, tree_arena)?
-            .map(ParseTree::unwrap_start_own_operand))
+    ) -> Result<ParseSuccess<parse_tree::StartOwnOperand<'_>>, ParseError> {
+        self.parse_start(START_OWN_OPERAND, tree_arena, ParseTree::unwrap_own_operand)
     }
     pub fn parse_own_head_filtered(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartOwnHeadFiltered<'_>>, ParseError> {
-        Ok(self
-            .parse(START_OWN_HEAD_FILTERED, tree_arena)?
-            .map(ParseTree::unwrap_start_own_head_filtered))
+    ) -> Result<ParseSuccess<parse_tree::StartOwnHeadFiltered<'_>>, ParseError> {
+        self.parse_start(
+            START_OWN_HEAD_FILTERED,
+            tree_arena,
+            ParseTree::unwrap_own_head_filtered,
+        )
     }
     pub fn parse_exclude_only(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartExcludeOnly<'_>>, ParseError> {
-        Ok(self
-            .parse(START_EXCLUDE_ONLY, tree_arena)?
-            .map(ParseTree::unwrap_start_exclude_only))
+    ) -> Result<ParseSuccess<parse_tree::StartExcludeOnly<'_>>, ParseError> {
+        self.parse_start(
+            START_EXCLUDE_ONLY,
+            tree_arena,
+            ParseTree::unwrap_exclude_only,
+        )
     }
     pub fn parse_exclude_only_filtered(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartExcludeOnlyFiltered<'_>>, ParseError> {
-        Ok(self
-            .parse(START_EXCLUDE_ONLY_FILTERED, tree_arena)?
-            .map(ParseTree::unwrap_start_exclude_only_filtered))
+    ) -> Result<ParseSuccess<parse_tree::StartExcludeOnlyFiltered<'_>>, ParseError> {
+        self.parse_start(
+            START_EXCLUDE_ONLY_FILTERED,
+            tree_arena,
+            ParseTree::unwrap_exclude_only_filtered,
+        )
     }
     pub fn parse_absent(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartAbsent<'_>>, ParseError> {
-        Ok(self
-            .parse(START_ABSENT, tree_arena)?
-            .map(ParseTree::unwrap_start_absent))
+    ) -> Result<ParseSuccess<parse_tree::StartAbsent<'_>>, ParseError> {
+        self.parse_start(START_ABSENT, tree_arena, ParseTree::unwrap_absent)
     }
     pub fn parse_absent_operand(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartAbsentOperand<'_>>, ParseError> {
-        Ok(self
-            .parse(START_ABSENT_OPERAND, tree_arena)?
-            .map(ParseTree::unwrap_start_absent_operand))
+    ) -> Result<ParseSuccess<parse_tree::StartAbsentOperand<'_>>, ParseError> {
+        self.parse_start(
+            START_ABSENT_OPERAND,
+            tree_arena,
+            ParseTree::unwrap_absent_operand,
+        )
     }
     pub fn parse_closed_prefix(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartClosedPrefix<'_>>, ParseError> {
-        Ok(self
-            .parse(START_CLOSED_PREFIX, tree_arena)?
-            .map(ParseTree::unwrap_start_closed_prefix))
+    ) -> Result<ParseSuccess<parse_tree::StartClosedPrefix<'_>>, ParseError> {
+        self.parse_start(
+            START_CLOSED_PREFIX,
+            tree_arena,
+            ParseTree::unwrap_closed_prefix,
+        )
     }
     pub fn parse_closed_prefix_body(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartClosedPrefixBody<'_>>, ParseError> {
-        Ok(self
-            .parse(START_CLOSED_PREFIX_BODY, tree_arena)?
-            .map(ParseTree::unwrap_start_closed_prefix_body))
+    ) -> Result<ParseSuccess<parse_tree::StartClosedPrefixBody<'_>>, ParseError> {
+        self.parse_start(
+            START_CLOSED_PREFIX_BODY,
+            tree_arena,
+            ParseTree::unwrap_closed_prefix_body,
+        )
     }
     pub fn parse_closed_postfix(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartClosedPostfix<'_>>, ParseError> {
-        Ok(self
-            .parse(START_CLOSED_POSTFIX, tree_arena)?
-            .map(ParseTree::unwrap_start_closed_postfix))
+    ) -> Result<ParseSuccess<parse_tree::StartClosedPostfix<'_>>, ParseError> {
+        self.parse_start(
+            START_CLOSED_POSTFIX,
+            tree_arena,
+            ParseTree::unwrap_closed_postfix,
+        )
     }
     pub fn parse_closed_postfix_body(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartClosedPostfixBody<'_>>, ParseError> {
-        Ok(self
-            .parse(START_CLOSED_POSTFIX_BODY, tree_arena)?
-            .map(ParseTree::unwrap_start_closed_postfix_body))
+    ) -> Result<ParseSuccess<parse_tree::StartClosedPostfixBody<'_>>, ParseError> {
+        self.parse_start(
+            START_CLOSED_POSTFIX_BODY,
+            tree_arena,
+            ParseTree::unwrap_closed_postfix_body,
+        )
     }
     pub fn parse_head_choice(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartHeadChoice<'_>>, ParseError> {
-        Ok(self
-            .parse(START_HEAD_CHOICE, tree_arena)?
-            .map(ParseTree::unwrap_start_head_choice))
+    ) -> Result<ParseSuccess<parse_tree::StartHeadChoice<'_>>, ParseError> {
+        self.parse_start(START_HEAD_CHOICE, tree_arena, ParseTree::unwrap_head_choice)
     }
     pub fn parse_head_operand(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartHeadOperand<'_>>, ParseError> {
-        Ok(self
-            .parse(START_HEAD_OPERAND, tree_arena)?
-            .map(ParseTree::unwrap_start_head_operand))
+    ) -> Result<ParseSuccess<parse_tree::StartHeadOperand<'_>>, ParseError> {
+        self.parse_start(
+            START_HEAD_OPERAND,
+            tree_arena,
+            ParseTree::unwrap_head_operand,
+        )
     }
     pub fn parse_inner(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartInner<'_>>, ParseError> {
-        Ok(self
-            .parse(START_INNER, tree_arena)?
-            .map(ParseTree::unwrap_start_inner))
+    ) -> Result<ParseSuccess<parse_tree::StartInner<'_>>, ParseError> {
+        self.parse_start(START_INNER, tree_arena, ParseTree::unwrap_inner)
     }
     pub fn parse_unary_mixed_left(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartUnaryMixedLeft<'_>>, ParseError> {
-        Ok(self
-            .parse(START_UNARY_MIXED_LEFT, tree_arena)?
-            .map(ParseTree::unwrap_start_unary_mixed_left))
+    ) -> Result<ParseSuccess<parse_tree::StartUnaryMixedLeft<'_>>, ParseError> {
+        self.parse_start(
+            START_UNARY_MIXED_LEFT,
+            tree_arena,
+            ParseTree::unwrap_unary_mixed_left,
+        )
     }
     pub fn parse_unary_mixed_right(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartUnaryMixedRight<'_>>, ParseError> {
-        Ok(self
-            .parse(START_UNARY_MIXED_RIGHT, tree_arena)?
-            .map(ParseTree::unwrap_start_unary_mixed_right))
+    ) -> Result<ParseSuccess<parse_tree::StartUnaryMixedRight<'_>>, ParseError> {
+        self.parse_start(
+            START_UNARY_MIXED_RIGHT,
+            tree_arena,
+            ParseTree::unwrap_unary_mixed_right,
+        )
     }
     pub fn parse_unary_mixed_none(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartUnaryMixedNone<'_>>, ParseError> {
-        Ok(self
-            .parse(START_UNARY_MIXED_NONE, tree_arena)?
-            .map(ParseTree::unwrap_start_unary_mixed_none))
+    ) -> Result<ParseSuccess<parse_tree::StartUnaryMixedNone<'_>>, ParseError> {
+        self.parse_start(
+            START_UNARY_MIXED_NONE,
+            tree_arena,
+            ParseTree::unwrap_unary_mixed_none,
+        )
     }
     pub fn parse_dynamic(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartDynamic<'_>>, ParseError> {
-        Ok(self
-            .parse(START_DYNAMIC, tree_arena)?
-            .map(ParseTree::unwrap_start_dynamic))
+    ) -> Result<ParseSuccess<parse_tree::StartDynamic<'_>>, ParseError> {
+        self.parse_start(START_DYNAMIC, tree_arena, ParseTree::unwrap_dynamic)
     }
     pub fn parse_dynamic_operand(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartDynamicOperand<'_>>, ParseError> {
-        Ok(self
-            .parse(START_DYNAMIC_OPERAND, tree_arena)?
-            .map(ParseTree::unwrap_start_dynamic_operand))
+    ) -> Result<ParseSuccess<parse_tree::StartDynamicOperand<'_>>, ParseError> {
+        self.parse_start(
+            START_DYNAMIC_OPERAND,
+            tree_arena,
+            ParseTree::unwrap_dynamic_operand,
+        )
     }
     pub fn parse_dynamic_filtered(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartDynamicFiltered<'_>>, ParseError> {
-        Ok(self
-            .parse(START_DYNAMIC_FILTERED, tree_arena)?
-            .map(ParseTree::unwrap_start_dynamic_filtered))
+    ) -> Result<ParseSuccess<parse_tree::StartDynamicFiltered<'_>>, ParseError> {
+        self.parse_start(
+            START_DYNAMIC_FILTERED,
+            tree_arena,
+            ParseTree::unwrap_dynamic_filtered,
+        )
     }
     pub fn parse_dynamic_head_filtered(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartDynamicHeadFiltered<'_>>, ParseError> {
-        Ok(self
-            .parse(START_DYNAMIC_HEAD_FILTERED, tree_arena)?
-            .map(ParseTree::unwrap_start_dynamic_head_filtered))
+    ) -> Result<ParseSuccess<parse_tree::StartDynamicHeadFiltered<'_>>, ParseError> {
+        self.parse_start(
+            START_DYNAMIC_HEAD_FILTERED,
+            tree_arena,
+            ParseTree::unwrap_dynamic_head_filtered,
+        )
     }
     pub fn parse_dynamic_multi(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartDynamicMulti<'_>>, ParseError> {
-        Ok(self
-            .parse(START_DYNAMIC_MULTI, tree_arena)?
-            .map(ParseTree::unwrap_start_dynamic_multi))
+    ) -> Result<ParseSuccess<parse_tree::StartDynamicMulti<'_>>, ParseError> {
+        self.parse_start(
+            START_DYNAMIC_MULTI,
+            tree_arena,
+            ParseTree::unwrap_dynamic_multi,
+        )
     }
     pub fn parse_dynamic_multi_operand(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartDynamicMultiOperand<'_>>, ParseError> {
-        Ok(self
-            .parse(START_DYNAMIC_MULTI_OPERAND, tree_arena)?
-            .map(ParseTree::unwrap_start_dynamic_multi_operand))
+    ) -> Result<ParseSuccess<parse_tree::StartDynamicMultiOperand<'_>>, ParseError> {
+        self.parse_start(
+            START_DYNAMIC_MULTI_OPERAND,
+            tree_arena,
+            ParseTree::unwrap_dynamic_multi_operand,
+        )
     }
     pub fn parse_nullable_boundary_prefix(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartNullableBoundaryPrefix<'_>>, ParseError> {
-        Ok(self
-            .parse(START_NULLABLE_BOUNDARY_PREFIX, tree_arena)?
-            .map(ParseTree::unwrap_start_nullable_boundary_prefix))
+    ) -> Result<ParseSuccess<parse_tree::StartNullableBoundaryPrefix<'_>>, ParseError> {
+        self.parse_start(
+            START_NULLABLE_BOUNDARY_PREFIX,
+            tree_arena,
+            ParseTree::unwrap_nullable_boundary_prefix,
+        )
     }
     pub fn parse_nullable_boundary_right(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartNullableBoundaryRight<'_>>, ParseError> {
-        Ok(self
-            .parse(START_NULLABLE_BOUNDARY_RIGHT, tree_arena)?
-            .map(ParseTree::unwrap_start_nullable_boundary_right))
+    ) -> Result<ParseSuccess<parse_tree::StartNullableBoundaryRight<'_>>, ParseError> {
+        self.parse_start(
+            START_NULLABLE_BOUNDARY_RIGHT,
+            tree_arena,
+            ParseTree::unwrap_nullable_boundary_right,
+        )
     }
     pub fn parse_nullable_boundary_opt(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartNullableBoundaryOpt<'_>>, ParseError> {
-        Ok(self
-            .parse(START_NULLABLE_BOUNDARY_OPT, tree_arena)?
-            .map(ParseTree::unwrap_start_nullable_boundary_opt))
+    ) -> Result<ParseSuccess<parse_tree::StartNullableBoundaryOpt<'_>>, ParseError> {
+        self.parse_start(
+            START_NULLABLE_BOUNDARY_OPT,
+            tree_arena,
+            ParseTree::unwrap_nullable_boundary_opt,
+        )
     }
     pub fn parse_nullable_boundary_postfix(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartNullableBoundaryPostfix<'_>>, ParseError> {
-        Ok(self
-            .parse(START_NULLABLE_BOUNDARY_POSTFIX, tree_arena)?
-            .map(ParseTree::unwrap_start_nullable_boundary_postfix))
+    ) -> Result<ParseSuccess<parse_tree::StartNullableBoundaryPostfix<'_>>, ParseError> {
+        self.parse_start(
+            START_NULLABLE_BOUNDARY_POSTFIX,
+            tree_arena,
+            ParseTree::unwrap_nullable_boundary_postfix,
+        )
     }
     pub fn parse_nullable_boundary_left(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartNullableBoundaryLeft<'_>>, ParseError> {
-        Ok(self
-            .parse(START_NULLABLE_BOUNDARY_LEFT, tree_arena)?
-            .map(ParseTree::unwrap_start_nullable_boundary_left))
+    ) -> Result<ParseSuccess<parse_tree::StartNullableBoundaryLeft<'_>>, ParseError> {
+        self.parse_start(
+            START_NULLABLE_BOUNDARY_LEFT,
+            tree_arena,
+            ParseTree::unwrap_nullable_boundary_left,
+        )
     }
     pub fn parse_nullable_boundary_binary(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartNullableBoundaryBinary<'_>>, ParseError> {
-        Ok(self
-            .parse(START_NULLABLE_BOUNDARY_BINARY, tree_arena)?
-            .map(ParseTree::unwrap_start_nullable_boundary_binary))
+    ) -> Result<ParseSuccess<parse_tree::StartNullableBoundaryBinary<'_>>, ParseError> {
+        self.parse_start(
+            START_NULLABLE_BOUNDARY_BINARY,
+            tree_arena,
+            ParseTree::unwrap_nullable_boundary_binary,
+        )
     }
     pub fn parse_nullable_boundary_operand(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartNullableBoundaryOperand<'_>>, ParseError> {
-        Ok(self
-            .parse(START_NULLABLE_BOUNDARY_OPERAND, tree_arena)?
-            .map(ParseTree::unwrap_start_nullable_boundary_operand))
+    ) -> Result<ParseSuccess<parse_tree::StartNullableBoundaryOperand<'_>>, ParseError> {
+        self.parse_start(
+            START_NULLABLE_BOUNDARY_OPERAND,
+            tree_arena,
+            ParseTree::unwrap_nullable_boundary_operand,
+        )
     }
     pub fn parse_closed_left_assoc(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartClosedLeftAssoc<'_>>, ParseError> {
-        Ok(self
-            .parse(START_CLOSED_LEFT_ASSOC, tree_arena)?
-            .map(ParseTree::unwrap_start_closed_left_assoc))
+    ) -> Result<ParseSuccess<parse_tree::StartClosedLeftAssoc<'_>>, ParseError> {
+        self.parse_start(
+            START_CLOSED_LEFT_ASSOC,
+            tree_arena,
+            ParseTree::unwrap_closed_left_assoc,
+        )
     }
     pub fn parse_closed_left_operand(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartClosedLeftOperand<'_>>, ParseError> {
-        Ok(self
-            .parse(START_CLOSED_LEFT_OPERAND, tree_arena)?
-            .map(ParseTree::unwrap_start_closed_left_operand))
+    ) -> Result<ParseSuccess<parse_tree::StartClosedLeftOperand<'_>>, ParseError> {
+        self.parse_start(
+            START_CLOSED_LEFT_OPERAND,
+            tree_arena,
+            ParseTree::unwrap_closed_left_operand,
+        )
     }
     pub fn parse_closed_right_assoc(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartClosedRightAssoc<'_>>, ParseError> {
-        Ok(self
-            .parse(START_CLOSED_RIGHT_ASSOC, tree_arena)?
-            .map(ParseTree::unwrap_start_closed_right_assoc))
+    ) -> Result<ParseSuccess<parse_tree::StartClosedRightAssoc<'_>>, ParseError> {
+        self.parse_start(
+            START_CLOSED_RIGHT_ASSOC,
+            tree_arena,
+            ParseTree::unwrap_closed_right_assoc,
+        )
     }
     pub fn parse_closed_right_operand(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartClosedRightOperand<'_>>, ParseError> {
-        Ok(self
-            .parse(START_CLOSED_RIGHT_OPERAND, tree_arena)?
-            .map(ParseTree::unwrap_start_closed_right_operand))
+    ) -> Result<ParseSuccess<parse_tree::StartClosedRightOperand<'_>>, ParseError> {
+        self.parse_start(
+            START_CLOSED_RIGHT_OPERAND,
+            tree_arena,
+            ParseTree::unwrap_closed_right_operand,
+        )
     }
     pub fn parse_indirect_exclude(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartIndirectExclude<'_>>, ParseError> {
-        Ok(self
-            .parse(START_INDIRECT_EXCLUDE, tree_arena)?
-            .map(ParseTree::unwrap_start_indirect_exclude))
+    ) -> Result<ParseSuccess<parse_tree::StartIndirectExclude<'_>>, ParseError> {
+        self.parse_start(
+            START_INDIRECT_EXCLUDE,
+            tree_arena,
+            ParseTree::unwrap_indirect_exclude,
+        )
     }
     pub fn parse_indirect_exclude_operand(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartIndirectExcludeOperand<'_>>, ParseError> {
-        Ok(self
-            .parse(START_INDIRECT_EXCLUDE_OPERAND, tree_arena)?
-            .map(ParseTree::unwrap_start_indirect_exclude_operand))
+    ) -> Result<ParseSuccess<parse_tree::StartIndirectExcludeOperand<'_>>, ParseError> {
+        self.parse_start(
+            START_INDIRECT_EXCLUDE_OPERAND,
+            tree_arena,
+            ParseTree::unwrap_indirect_exclude_operand,
+        )
     }
     pub fn parse_indirect_exclude_filtered(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartIndirectExcludeFiltered<'_>>, ParseError> {
-        Ok(self
-            .parse(START_INDIRECT_EXCLUDE_FILTERED, tree_arena)?
-            .map(ParseTree::unwrap_start_indirect_exclude_filtered))
+    ) -> Result<ParseSuccess<parse_tree::StartIndirectExcludeFiltered<'_>>, ParseError> {
+        self.parse_start(
+            START_INDIRECT_EXCLUDE_FILTERED,
+            tree_arena,
+            ParseTree::unwrap_indirect_exclude_filtered,
+        )
     }
     pub fn parse_operand_literal(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartOperandLiteral<'_>>, ParseError> {
-        Ok(self
-            .parse(START_OPERAND_LITERAL, tree_arena)?
-            .map(ParseTree::unwrap_start_operand_literal))
+    ) -> Result<ParseSuccess<parse_tree::StartOperandLiteral<'_>>, ParseError> {
+        self.parse_start(
+            START_OPERAND_LITERAL,
+            tree_arena,
+            ParseTree::unwrap_operand_literal,
+        )
     }
     pub fn parse_operand_literal_end(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartOperandLiteralEnd<'_>>, ParseError> {
-        Ok(self
-            .parse(START_OPERAND_LITERAL_END, tree_arena)?
-            .map(ParseTree::unwrap_start_operand_literal_end))
+    ) -> Result<ParseSuccess<parse_tree::StartOperandLiteralEnd<'_>>, ParseError> {
+        self.parse_start(
+            START_OPERAND_LITERAL_END,
+            tree_arena,
+            ParseTree::unwrap_operand_literal_end,
+        )
     }
     pub fn parse_head_literal(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartHeadLiteral<'_>>, ParseError> {
-        Ok(self
-            .parse(START_HEAD_LITERAL, tree_arena)?
-            .map(ParseTree::unwrap_start_head_literal))
+    ) -> Result<ParseSuccess<parse_tree::StartHeadLiteral<'_>>, ParseError> {
+        self.parse_start(
+            START_HEAD_LITERAL,
+            tree_arena,
+            ParseTree::unwrap_head_literal,
+        )
     }
     pub fn parse_head_literal_end(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartHeadLiteralEnd<'_>>, ParseError> {
-        Ok(self
-            .parse(START_HEAD_LITERAL_END, tree_arena)?
-            .map(ParseTree::unwrap_start_head_literal_end))
+    ) -> Result<ParseSuccess<parse_tree::StartHeadLiteralEnd<'_>>, ParseError> {
+        self.parse_start(
+            START_HEAD_LITERAL_END,
+            tree_arena,
+            ParseTree::unwrap_head_literal_end,
+        )
+    }
+    fn parse_start<'a, T>(
+        self,
+        start: NonterminalId,
+        tree_arena: &'a Arena,
+        node: fn(ParseTree<'a>) -> T,
+    ) -> Result<ParseSuccess<parse_tree::Start<T, parse_tree::Token>>, ParseError> {
+        Ok(self.parse(start, tree_arena)?.map(|tree| {
+            let root = tree.unwrap_start();
+            parse_tree::Start {
+                before: root.before.unwrap().unwrap_token(),
+                node: node(root.node),
+                after: root.after.unwrap().unwrap_token(),
+                span: root.span,
+            }
+        }))
     }
     #[inline(never)]
     #[allow(clippy::too_many_arguments)]

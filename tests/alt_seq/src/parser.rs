@@ -704,58 +704,60 @@ impl<'i, 'arena> AltSeqParser<'i, 'arena> {
     pub fn parse_s(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartS<'_>>, ParseError> {
-        Ok(self
-            .parse(START_S, tree_arena)?
-            .map(ParseTree::unwrap_start_s))
+    ) -> Result<ParseSuccess<parse_tree::StartS<'_>>, ParseError> {
+        self.parse_start_without_layout(START_S, tree_arena, ParseTree::unwrap_s)
     }
     pub fn parse_a(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartA<'_>>, ParseError> {
-        Ok(self
-            .parse(START_A, tree_arena)?
-            .map(ParseTree::unwrap_start_a))
+    ) -> Result<ParseSuccess<parse_tree::StartA<'_>>, ParseError> {
+        self.parse_start_without_layout(START_A, tree_arena, ParseTree::unwrap_a)
     }
     pub fn parse_b(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartB<'_>>, ParseError> {
-        Ok(self
-            .parse(START_B, tree_arena)?
-            .map(ParseTree::unwrap_start_b))
+    ) -> Result<ParseSuccess<parse_tree::StartB<'_>>, ParseError> {
+        self.parse_start_without_layout(START_B, tree_arena, ParseTree::unwrap_b)
     }
     pub fn parse_c(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartC<'_>>, ParseError> {
-        Ok(self
-            .parse(START_C, tree_arena)?
-            .map(ParseTree::unwrap_start_c))
+    ) -> Result<ParseSuccess<parse_tree::StartC<'_>>, ParseError> {
+        self.parse_start_without_layout(START_C, tree_arena, ParseTree::unwrap_c)
     }
     pub fn parse_d(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartD<'_>>, ParseError> {
-        Ok(self
-            .parse(START_D, tree_arena)?
-            .map(ParseTree::unwrap_start_d))
+    ) -> Result<ParseSuccess<parse_tree::StartD<'_>>, ParseError> {
+        self.parse_start_without_layout(START_D, tree_arena, ParseTree::unwrap_d)
     }
     pub fn parse_e(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartE<'_>>, ParseError> {
-        Ok(self
-            .parse(START_E, tree_arena)?
-            .map(ParseTree::unwrap_start_e))
+    ) -> Result<ParseSuccess<parse_tree::StartE<'_>>, ParseError> {
+        self.parse_start_without_layout(START_E, tree_arena, ParseTree::unwrap_e)
     }
     pub fn parse_f(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartF<'_>>, ParseError> {
-        Ok(self
-            .parse(START_F, tree_arena)?
-            .map(ParseTree::unwrap_start_f))
+    ) -> Result<ParseSuccess<parse_tree::StartF<'_>>, ParseError> {
+        self.parse_start_without_layout(START_F, tree_arena, ParseTree::unwrap_f)
+    }
+    fn parse_start_without_layout<'a, T>(
+        self,
+        start: NonterminalId,
+        tree_arena: &'a Arena,
+        node: fn(ParseTree<'a>) -> T,
+    ) -> Result<ParseSuccess<parse_tree::Start<T, ()>>, ParseError> {
+        Ok(self.parse(start, tree_arena)?.map(|tree| {
+            let root = tree.unwrap_start();
+            parse_tree::Start {
+                before: (),
+                node: node(root.node),
+                after: (),
+                span: root.span,
+            }
+        }))
     }
     #[inline(never)]
     fn parse_s_ll1(

@@ -88,6 +88,7 @@ fn direct_cycle_builds_a_finite_graph() {
         .parse_direct(&arena)
         .unwrap()
         .tree
+        .node
         .as_parse_tree();
     check_graph(root, true);
 }
@@ -101,6 +102,7 @@ fn mutual_cycle_from_c_builds_a_finite_graph() {
         .parse_mutual_c(&arena)
         .unwrap()
         .tree
+        .node
         .as_parse_tree();
     check_graph(root, true);
 }
@@ -114,6 +116,7 @@ fn mutual_cycle_from_b_builds_a_finite_graph() {
         .parse_mutual_b(&arena)
         .unwrap()
         .tree
+        .node
         .as_parse_tree();
     check_graph(root, true);
 }
@@ -127,6 +130,7 @@ fn cycle_chain_from_c_builds_a_finite_graph() {
         .parse_chain_c(&arena)
         .unwrap()
         .tree
+        .node
         .as_parse_tree();
     check_graph(root, true);
 }
@@ -140,6 +144,7 @@ fn cycle_chain_from_b_builds_a_finite_graph() {
         .parse_chain_b(&arena)
         .unwrap()
         .tree
+        .node
         .as_parse_tree();
     check_graph(root, true);
 }
@@ -153,6 +158,7 @@ fn shared_cycle_builds_a_finite_graph() {
         .parse_shared_s(&arena)
         .unwrap()
         .tree
+        .node
         .as_parse_tree();
     check_graph(root, true);
 }
@@ -166,6 +172,7 @@ fn two_exit_cycle_from_c_builds_a_finite_graph() {
         .parse_two_exits_c(&arena)
         .unwrap()
         .tree
+        .node
         .as_parse_tree();
     check_graph(root, true);
 }
@@ -179,6 +186,7 @@ fn two_exit_cycle_from_b_builds_a_finite_graph() {
         .parse_two_exits_b(&arena)
         .unwrap()
         .tree
+        .node
         .as_parse_tree();
     check_graph(root, true);
 }
@@ -192,6 +200,7 @@ fn two_route_cycle_builds_a_finite_graph() {
         .parse_two_routes_c(&arena)
         .unwrap()
         .tree
+        .node
         .as_parse_tree();
     check_graph(root, true);
 }
@@ -205,6 +214,7 @@ fn nullable_cycle_on_empty_input_builds_a_finite_graph() {
         .parse_nullable(&arena)
         .unwrap()
         .tree
+        .node
         .as_parse_tree();
     check_graph(root, true);
 }
@@ -218,6 +228,7 @@ fn nullable_cycle_on_nonempty_input_builds_a_finite_graph() {
         .parse_nullable(&arena)
         .unwrap()
         .tree
+        .node
         .as_parse_tree();
     check_graph(root, true);
 }
@@ -231,6 +242,7 @@ fn cycle_with_ambiguous_nullable_sibling_builds_a_finite_graph() {
         .parse_sibling_c(&arena)
         .unwrap()
         .tree
+        .node
         .as_parse_tree();
     check_graph(root, true);
 }
@@ -244,6 +256,7 @@ fn parent_of_cycle_builds_a_finite_graph() {
         .parse_parent_c(&arena)
         .unwrap()
         .tree
+        .node
         .as_parse_tree();
     check_graph(root, true);
 }
@@ -257,6 +270,7 @@ fn overlapping_cycles_from_c_builds_a_finite_graph() {
         .parse_overlap_c(&arena)
         .unwrap()
         .tree
+        .node
         .as_parse_tree();
     check_graph(root, true);
 }
@@ -270,6 +284,7 @@ fn overlapping_cycles_from_b_builds_a_finite_graph() {
         .parse_overlap_b(&arena)
         .unwrap()
         .tree
+        .node
         .as_parse_tree();
     check_graph(root, true);
 }
@@ -283,6 +298,7 @@ fn cycle_entered_through_an_intermediate_node_builds_a_finite_graph() {
         .parse_intermediate_y(&arena)
         .unwrap()
         .tree
+        .node
         .as_parse_tree();
     check_graph(root, true);
 }
@@ -296,6 +312,7 @@ fn cycle_followed_by_input_builds_a_finite_graph() {
         .parse_mid_input(&arena)
         .unwrap()
         .tree
+        .node
         .as_parse_tree();
     check_graph(root, true);
 }
@@ -309,6 +326,7 @@ fn consuming_recursion_builds_a_finite_graph() {
         .parse_consuming(&arena)
         .unwrap()
         .tree
+        .node
         .as_parse_tree();
     check_graph(root, false);
     assert!(!root.contains_ambiguity());
@@ -323,6 +341,7 @@ fn ordinary_rule_builds_a_finite_graph() {
         .parse_ordinary(&arena)
         .unwrap()
         .tree
+        .node
         .as_parse_tree();
     check_graph(root, false);
     assert!(!root.contains_ambiguity());
@@ -337,6 +356,7 @@ fn nullable_plus_builds_a_finite_graph() {
         .parse_nullable_plus(&arena)
         .unwrap()
         .tree
+        .node
         .as_parse_tree();
     check_graph(root, true);
 }
@@ -350,6 +370,7 @@ fn nullable_star_builds_a_finite_graph() {
         .parse_nullable_star(&arena)
         .unwrap()
         .tree
+        .node
         .as_parse_tree();
     check_graph(root, true);
 }
@@ -363,6 +384,7 @@ fn nullable_separated_list_builds_a_finite_graph() {
         .parse_nullable_separated(&arena)
         .unwrap()
         .tree
+        .node
         .as_parse_tree();
     check_graph(root, true);
 }
@@ -376,6 +398,7 @@ fn optional_cycle_on_empty_input_builds_a_finite_graph() {
         .parse_optional(&arena)
         .unwrap()
         .tree
+        .node
         .as_parse_tree();
     check_graph(root, true);
 }
@@ -389,6 +412,7 @@ fn optional_cycle_on_nonempty_input_builds_a_finite_graph() {
         .parse_optional(&arena)
         .unwrap()
         .tree
+        .node
         .as_parse_tree();
     check_graph(root, true);
 }
@@ -402,6 +426,7 @@ fn grouped_cycle_builds_a_finite_graph() {
         .parse_grouped(&arena)
         .unwrap()
         .tree
+        .node
         .as_parse_tree();
     check_graph(root, true);
 }
@@ -415,6 +440,7 @@ fn ambiguity_does_not_require_a_cycle() {
         .parse_sibling_d(&arena)
         .unwrap()
         .tree
+        .node
         .as_parse_tree();
     assert!(root.contains_ambiguity());
     assert!(!root.contains_cycle());
@@ -498,6 +524,7 @@ fn nullable_cycle_targets_distinguish_both_empty_spans() {
         .parse_nullable(&arena)
         .unwrap()
         .tree
+        .node
         .as_parse_tree();
     let targets: HashSet<_> = nodes(root)
         .into_iter()
@@ -562,6 +589,7 @@ fn typed_accessors_reject_cycles() {
         .parse_mutual_b(&arena)
         .unwrap()
         .tree
+        .node
         .as_parse_tree();
     let cycle = nodes(root)
         .into_iter()
@@ -577,6 +605,7 @@ fn typed_accessors_reject_cycles() {
         .parse_nullable_plus(&arena)
         .unwrap()
         .tree
+        .node
         .as_parse_tree();
     let cycle = nodes(root)
         .into_iter()

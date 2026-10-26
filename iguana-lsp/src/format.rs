@@ -66,8 +66,9 @@ struct FormattedAlt {
 
 impl<'a> Formatter<'a> {
     fn new(tree: &Start<&Grammar<'a>, &Layout<'a>>, input: &'a Input) -> Self {
-        let mut comments = Vec::new();
-        collect_comments(tree.as_parse_tree(), &mut comments);
+        let mut comments: Vec<Token> = tree.before.line_comments().collect();
+        collect_comments(tree.node.as_parse_tree(), &mut comments);
+        comments.extend(tree.after.line_comments());
         comments.sort_by_key(|comment| comment.span().left_extent);
         Self {
             input,

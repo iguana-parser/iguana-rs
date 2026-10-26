@@ -594,18 +594,30 @@ impl<'i, 'arena> LowercaseNameParser<'i, 'arena> {
     pub fn parse_s(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartS<'_>>, ParseError> {
-        Ok(self
-            .parse(START_S, tree_arena)?
-            .map(ParseTree::unwrap_start_s))
+    ) -> Result<ParseSuccess<parse_tree::StartS<'_>>, ParseError> {
+        self.parse_start_without_layout(START_S, tree_arena, ParseTree::unwrap_s)
     }
     pub fn parse_b(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartB<'_>>, ParseError> {
-        Ok(self
-            .parse(START_B, tree_arena)?
-            .map(ParseTree::unwrap_start_b))
+    ) -> Result<ParseSuccess<parse_tree::StartB<'_>>, ParseError> {
+        self.parse_start_without_layout(START_B, tree_arena, ParseTree::unwrap_b)
+    }
+    fn parse_start_without_layout<'a, T>(
+        self,
+        start: NonterminalId,
+        tree_arena: &'a Arena,
+        node: fn(ParseTree<'a>) -> T,
+    ) -> Result<ParseSuccess<parse_tree::Start<T, ()>>, ParseError> {
+        Ok(self.parse(start, tree_arena)?.map(|tree| {
+            let root = tree.unwrap_start();
+            parse_tree::Start {
+                before: (),
+                node: node(root.node),
+                after: (),
+                span: root.span,
+            }
+        }))
     }
     #[inline(never)]
     fn parse_s_ll1(

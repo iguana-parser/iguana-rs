@@ -865,98 +865,106 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     pub fn parse_s(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartS<'_>>, ParseError> {
-        Ok(self
-            .parse(START_S, tree_arena)?
-            .map(ParseTree::unwrap_start_s))
+    ) -> Result<ParseSuccess<parse_tree::StartS<'_>>, ParseError> {
+        self.parse_start_without_layout(START_S, tree_arena, ParseTree::unwrap_s)
     }
     pub fn parse_parse(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartParse<'_>>, ParseError> {
-        Ok(self
-            .parse(START_PARSE, tree_arena)?
-            .map(ParseTree::unwrap_start_parse))
+    ) -> Result<ParseSuccess<parse_tree::StartParse<'_>>, ParseError> {
+        self.parse_start_without_layout(START_PARSE, tree_arena, ParseTree::unwrap_parse)
     }
     pub fn parse_parser(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartParser<'_>>, ParseError> {
-        Ok(self
-            .parse(START_PARSER, tree_arena)?
-            .map(ParseTree::unwrap_start_parser))
+    ) -> Result<ParseSuccess<parse_tree::StartParser<'_>>, ParseError> {
+        self.parse_start_without_layout(START_PARSER, tree_arena, ParseTree::unwrap_parser)
     }
     pub fn parse_sppf_node(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartSPPFNode<'_>>, ParseError> {
-        Ok(self
-            .parse(START_SPPF_NODE, tree_arena)?
-            .map(ParseTree::unwrap_start_sppf_node))
+    ) -> Result<ParseSuccess<parse_tree::StartSPPFNode<'_>>, ParseError> {
+        self.parse_start_without_layout(START_SPPF_NODE, tree_arena, ParseTree::unwrap_sppf_node)
     }
     pub fn parse_input(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartInput<'_>>, ParseError> {
-        Ok(self
-            .parse(START_INPUT, tree_arena)?
-            .map(ParseTree::unwrap_start_input))
+    ) -> Result<ParseSuccess<parse_tree::StartInput<'_>>, ParseError> {
+        self.parse_start_without_layout(START_INPUT, tree_arena, ParseTree::unwrap_input)
     }
     pub fn parse_parse_error(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartParseError<'_>>, ParseError> {
-        Ok(self
-            .parse(START_PARSE_ERROR, tree_arena)?
-            .map(ParseTree::unwrap_start_parse_error))
+    ) -> Result<ParseSuccess<parse_tree::StartParseError<'_>>, ParseError> {
+        self.parse_start_without_layout(
+            START_PARSE_ERROR,
+            tree_arena,
+            ParseTree::unwrap_parse_error,
+        )
     }
     pub fn parse_parse_success(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartParseSuccess<'_>>, ParseError> {
-        Ok(self
-            .parse(START_PARSE_SUCCESS, tree_arena)?
-            .map(ParseTree::unwrap_start_parse_success))
+    ) -> Result<ParseSuccess<parse_tree::StartParseSuccess<'_>>, ParseError> {
+        self.parse_start_without_layout(
+            START_PARSE_SUCCESS,
+            tree_arena,
+            ParseTree::unwrap_parse_success,
+        )
     }
     pub fn parse_grammar(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartGrammar<'_>>, ParseError> {
-        Ok(self
-            .parse(START_GRAMMAR, tree_arena)?
-            .map(ParseTree::unwrap_start_grammar))
+    ) -> Result<ParseSuccess<parse_tree::StartGrammar<'_>>, ParseError> {
+        self.parse_start_without_layout(START_GRAMMAR, tree_arena, ParseTree::unwrap_grammar)
     }
     pub fn parse_nonterminal(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartNonterminal<'_>>, ParseError> {
-        Ok(self
-            .parse(START_NONTERMINAL, tree_arena)?
-            .map(ParseTree::unwrap_start_nonterminal))
+    ) -> Result<ParseSuccess<parse_tree::StartNonterminal<'_>>, ParseError> {
+        self.parse_start_without_layout(
+            START_NONTERMINAL,
+            tree_arena,
+            ParseTree::unwrap_nonterminal,
+        )
     }
     pub fn parse_terminal(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartTerminal<'_>>, ParseError> {
-        Ok(self
-            .parse(START_TERMINAL, tree_arena)?
-            .map(ParseTree::unwrap_start_terminal))
+    ) -> Result<ParseSuccess<parse_tree::StartTerminal<'_>>, ParseError> {
+        self.parse_start_without_layout(START_TERMINAL, tree_arena, ParseTree::unwrap_terminal)
     }
     pub fn parse_slot(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartSlot<'_>>, ParseError> {
-        Ok(self
-            .parse(START_SLOT, tree_arena)?
-            .map(ParseTree::unwrap_start_slot))
+    ) -> Result<ParseSuccess<parse_tree::StartSlot<'_>>, ParseError> {
+        self.parse_start_without_layout(START_SLOT, tree_arena, ParseTree::unwrap_slot)
     }
     pub fn parse_terminal_set(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartTerminalSet<'_>>, ParseError> {
-        Ok(self
-            .parse(START_TERMINAL_SET, tree_arena)?
-            .map(ParseTree::unwrap_start_terminal_set))
+    ) -> Result<ParseSuccess<parse_tree::StartTerminalSet<'_>>, ParseError> {
+        self.parse_start_without_layout(
+            START_TERMINAL_SET,
+            tree_arena,
+            ParseTree::unwrap_terminal_set,
+        )
+    }
+    fn parse_start_without_layout<'a, T>(
+        self,
+        start: NonterminalId,
+        tree_arena: &'a Arena,
+        node: fn(ParseTree<'a>) -> T,
+    ) -> Result<ParseSuccess<parse_tree::Start<T, ()>>, ParseError> {
+        Ok(self.parse(start, tree_arena)?.map(|tree| {
+            let root = tree.unwrap_start();
+            parse_tree::Start {
+                before: (),
+                node: node(root.node),
+                after: (),
+                span: root.span,
+            }
+        }))
     }
     #[inline(never)]
     fn parse_s_ll1(

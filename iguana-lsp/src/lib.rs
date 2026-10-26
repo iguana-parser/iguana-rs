@@ -64,7 +64,7 @@ pub fn build<'a>(input: &Input, tree_arena: &'a Arena) -> BuildResult<'a> {
                 BuildResult::Ambiguous
             } else {
                 BuildResult::Success {
-                    tree: success.tree,
+                    tree: tree_arena.alloc(success.tree),
                     parse_duration: success.parse_duration,
                     tree_construction_duration: success.tree_construction_duration,
                 }

@@ -864,18 +864,30 @@ impl<'i, 'arena> AssocTestParser<'i, 'arena> {
     pub fn parse_s(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartS<'_>>, ParseError> {
-        Ok(self
-            .parse(START_S, tree_arena)?
-            .map(ParseTree::unwrap_start_s))
+    ) -> Result<ParseSuccess<parse_tree::StartS<'_>>, ParseError> {
+        self.parse_start_without_layout(START_S, tree_arena, ParseTree::unwrap_s)
     }
     pub fn parse_e(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartE<'_>>, ParseError> {
-        Ok(self
-            .parse(START_E, tree_arena)?
-            .map(ParseTree::unwrap_start_e))
+    ) -> Result<ParseSuccess<parse_tree::StartE<'_>>, ParseError> {
+        self.parse_start_without_layout(START_E, tree_arena, ParseTree::unwrap_e)
+    }
+    fn parse_start_without_layout<'a, T>(
+        self,
+        start: NonterminalId,
+        tree_arena: &'a Arena,
+        node: fn(ParseTree<'a>) -> T,
+    ) -> Result<ParseSuccess<parse_tree::Start<T, ()>>, ParseError> {
+        Ok(self.parse(start, tree_arena)?.map(|tree| {
+            let root = tree.unwrap_start();
+            parse_tree::Start {
+                before: (),
+                node: node(root.node),
+                after: (),
+                span: root.span,
+            }
+        }))
     }
     #[inline(never)]
     #[allow(clippy::too_many_arguments)]

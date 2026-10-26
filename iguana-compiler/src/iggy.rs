@@ -24,10 +24,10 @@ pub fn parse_grammar(source: &str) -> Result<GrammarDef, Vec<GrammarError>> {
     let success = IggyParser::new(&input, &parser_arena)
         .parse_grammar(&tree_arena)
         .map_err(parse_error)?;
-    let grammar_def = build_grammar(success.tree, &input).resolve();
+    let grammar_def = build_grammar(&success.tree, &input).resolve();
 
     // Validate here because source spans require the parse tree.
-    let spans = spans::build_spans(&grammar_def, success.tree, &input);
+    let spans = spans::build_spans(&grammar_def, &success.tree, &input);
     let errors = validate(&grammar_def, &spans);
     if !errors.is_empty() {
         return Err(errors);
@@ -497,7 +497,7 @@ mod tests {
         let success = IggyParser::new(&input, &parser_arena)
             .parse_grammar(&tree_arena)
             .expect("the grammar should parse");
-        build_grammar(success.tree, &input)
+        build_grammar(&success.tree, &input)
     }
 
     /// The first symbol of the first alternative, for a grammar with one

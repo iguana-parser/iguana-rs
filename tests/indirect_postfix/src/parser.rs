@@ -939,34 +939,42 @@ impl<'i, 'arena> IndirectPostfixParser<'i, 'arena> {
     pub fn parse_s(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartS<'_>>, ParseError> {
-        Ok(self
-            .parse(START_S, tree_arena)?
-            .map(ParseTree::unwrap_start_s))
+    ) -> Result<ParseSuccess<parse_tree::StartS<'_>>, ParseError> {
+        self.parse_start(START_S, tree_arena, ParseTree::unwrap_s)
     }
     pub fn parse_e(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartE<'_>>, ParseError> {
-        Ok(self
-            .parse(START_E, tree_arena)?
-            .map(ParseTree::unwrap_start_e))
+    ) -> Result<ParseSuccess<parse_tree::StartE<'_>>, ParseError> {
+        self.parse_start(START_E, tree_arena, ParseTree::unwrap_e)
     }
     pub fn parse_postfix(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartPostfix<'_>>, ParseError> {
-        Ok(self
-            .parse(START_POSTFIX, tree_arena)?
-            .map(ParseTree::unwrap_start_postfix))
+    ) -> Result<ParseSuccess<parse_tree::StartPostfix<'_>>, ParseError> {
+        self.parse_start(START_POSTFIX, tree_arena, ParseTree::unwrap_postfix)
     }
     pub fn parse_body(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartBody<'_>>, ParseError> {
-        Ok(self
-            .parse(START_BODY, tree_arena)?
-            .map(ParseTree::unwrap_start_body))
+    ) -> Result<ParseSuccess<parse_tree::StartBody<'_>>, ParseError> {
+        self.parse_start(START_BODY, tree_arena, ParseTree::unwrap_body)
+    }
+    fn parse_start<'a, T>(
+        self,
+        start: NonterminalId,
+        tree_arena: &'a Arena,
+        node: fn(ParseTree<'a>) -> T,
+    ) -> Result<ParseSuccess<parse_tree::Start<T, parse_tree::Token>>, ParseError> {
+        Ok(self.parse(start, tree_arena)?.map(|tree| {
+            let root = tree.unwrap_start();
+            parse_tree::Start {
+                before: root.before.unwrap().unwrap_token(),
+                node: node(root.node),
+                after: root.after.unwrap().unwrap_token(),
+                span: root.span,
+            }
+        }))
     }
     #[inline(never)]
     #[allow(clippy::too_many_arguments)]

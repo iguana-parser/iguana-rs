@@ -630,18 +630,38 @@ impl<'i, 'arena> MultipleExceptParser<'i, 'arena> {
     pub fn parse_syntax_identifier(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartSyntaxIdentifier<'_>>, ParseError> {
-        Ok(self
-            .parse(START_SYNTAX_IDENTIFIER, tree_arena)?
-            .map(ParseTree::unwrap_start_syntax_identifier))
+    ) -> Result<ParseSuccess<parse_tree::StartSyntaxIdentifier<'_>>, ParseError> {
+        self.parse_start_without_layout(
+            START_SYNTAX_IDENTIFIER,
+            tree_arena,
+            ParseTree::unwrap_syntax_identifier,
+        )
     }
     pub fn parse_lexical_identifier(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartLexicalIdentifier<'_>>, ParseError> {
-        Ok(self
-            .parse(START_LEXICAL_IDENTIFIER, tree_arena)?
-            .map(ParseTree::unwrap_start_lexical_identifier))
+    ) -> Result<ParseSuccess<parse_tree::StartLexicalIdentifier<'_>>, ParseError> {
+        self.parse_start_without_layout(
+            START_LEXICAL_IDENTIFIER,
+            tree_arena,
+            ParseTree::unwrap_lexical_identifier,
+        )
+    }
+    fn parse_start_without_layout<'a, T>(
+        self,
+        start: NonterminalId,
+        tree_arena: &'a Arena,
+        node: fn(ParseTree<'a>) -> T,
+    ) -> Result<ParseSuccess<parse_tree::Start<T, ()>>, ParseError> {
+        Ok(self.parse(start, tree_arena)?.map(|tree| {
+            let root = tree.unwrap_start();
+            parse_tree::Start {
+                before: (),
+                node: node(root.node),
+                after: (),
+                span: root.span,
+            }
+        }))
     }
     #[inline(never)]
     fn parse_syntax_identifier_ll1(

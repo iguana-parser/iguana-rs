@@ -752,26 +752,52 @@ impl<'i, 'arena> DanglingElseFirstParseParser<'i, 'arena> {
     pub fn parse_s(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartS<'_>>, ParseError> {
-        Ok(self
-            .parse(START_S, tree_arena)?
-            .map(ParseTree::unwrap_start_s))
+    ) -> Result<ParseSuccess<parse_tree::StartS<'_>>, ParseError> {
+        self.parse_start(START_S, tree_arena, ParseTree::unwrap_s)
     }
     pub fn parse_statement(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartStatement<'_>>, ParseError> {
-        Ok(self
-            .parse(START_STATEMENT, tree_arena)?
-            .map(ParseTree::unwrap_start_statement))
+    ) -> Result<ParseSuccess<parse_tree::StartStatement<'_>>, ParseError> {
+        self.parse_start(START_STATEMENT, tree_arena, ParseTree::unwrap_statement)
     }
     pub fn parse_layout(
         self,
         tree_arena: &Arena,
-    ) -> Result<ParseSuccess<&parse_tree::StartLayout<'_>>, ParseError> {
-        Ok(self
-            .parse(START_LAYOUT, tree_arena)?
-            .map(ParseTree::unwrap_start_layout))
+    ) -> Result<ParseSuccess<parse_tree::StartLayout<'_>>, ParseError> {
+        self.parse_start_without_layout(START_LAYOUT, tree_arena, ParseTree::unwrap_layout)
+    }
+    fn parse_start<'a, T>(
+        self,
+        start: NonterminalId,
+        tree_arena: &'a Arena,
+        node: fn(ParseTree<'a>) -> T,
+    ) -> Result<ParseSuccess<parse_tree::Start<T, &'a parse_tree::Layout<'a>>>, ParseError> {
+        Ok(self.parse(start, tree_arena)?.map(|tree| {
+            let root = tree.unwrap_start();
+            parse_tree::Start {
+                before: root.before.unwrap().unwrap_layout(),
+                node: node(root.node),
+                after: root.after.unwrap().unwrap_layout(),
+                span: root.span,
+            }
+        }))
+    }
+    fn parse_start_without_layout<'a, T>(
+        self,
+        start: NonterminalId,
+        tree_arena: &'a Arena,
+        node: fn(ParseTree<'a>) -> T,
+    ) -> Result<ParseSuccess<parse_tree::Start<T, ()>>, ParseError> {
+        Ok(self.parse(start, tree_arena)?.map(|tree| {
+            let root = tree.unwrap_start();
+            parse_tree::Start {
+                before: (),
+                node: node(root.node),
+                after: (),
+                span: root.span,
+            }
+        }))
     }
     #[inline(never)]
     fn parse_layout_ll1(
