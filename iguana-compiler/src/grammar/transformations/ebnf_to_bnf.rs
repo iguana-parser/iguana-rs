@@ -126,14 +126,21 @@ fn rewrite_ebnf_symbol(
             })
         }
         // Transform A? into: Opt_n ::= A | ε
-        Symbol::Opt(symbol) => {
+        // An optional sequence, e.g., (A B)?, does not introduce a group and is
+        // transformed to Opt_n ::= A B | ε
+        Symbol::Opt(_) => {
             let name = counters.next_opt();
-            let transformed_symbol =
-                rewrite_ebnf_symbol(*symbol, layout, counters, new_rules, ebnf_symbols);
+            let body = sequence(&origin)
+                .into_iter()
+                .map(|s| rewrite_ebnf_symbol(s, layout, counters, new_rules, ebnf_symbols))
+                .collect();
             let new_rule = SyntaxRule {
                 head: Nonterminal::with_origin(&name, origin.clone()),
                 priority_levels: vec![priority_level!(
-                    alternative!(transformed_symbol),
+                    Alternative {
+                        symbols: body,
+                        label: None,
+                    },
                     Alternative::empty()
                 )],
                 layout: layout.clone(),
@@ -208,16 +215,19 @@ fn rewrite_ebnf_symbol(
             })
         }
         // Transform A+ into: Plus_n ::= Plus_n A | A (left-recursive)
+        // A repeated sequence, e.g., (A B)+, does not introduce a group and is
+        // transformed to Plus_n ::= Plus_n A B | A B
         Symbol::Plus(symbol, sep) => {
             let name = counters.next_plus();
-            let transformed_symbol =
-                rewrite_ebnf_symbol(*symbol, layout, counters, new_rules, ebnf_symbols);
             let new_symbol = Symbol::Identifier(Identifier {
                 name: name.clone(),
                 definition: None,
             });
             let new_rule = match sep {
+                // The element of a separated list keeps its group.
                 Some(sep) => {
+                    let transformed_symbol =
+                        rewrite_ebnf_symbol(*symbol, layout, counters, new_rules, ebnf_symbols);
                     let transformed_sep =
                         rewrite_ebnf_symbol(*sep, layout, counters, new_rules, ebnf_symbols);
                     SyntaxRule {
@@ -233,14 +243,28 @@ fn rewrite_ebnf_symbol(
                         layout: layout.clone(),
                     }
                 }
-                None => SyntaxRule {
-                    head: Nonterminal::with_origin(&name, origin.clone()),
-                    priority_levels: vec![priority_level!(
-                        alternative!(new_symbol.clone(), transformed_symbol.clone()),
-                        alternative!(transformed_symbol)
-                    )],
-                    layout: layout.clone(),
-                },
+                None => {
+                    let element: Vec<_> = sequence(&origin)
+                        .into_iter()
+                        .map(|s| rewrite_ebnf_symbol(s, layout, counters, new_rules, ebnf_symbols))
+                        .collect();
+                    let mut recursive = vec![new_symbol.clone()];
+                    recursive.extend(element.iter().cloned());
+                    SyntaxRule {
+                        head: Nonterminal::with_origin(&name, origin.clone()),
+                        priority_levels: vec![priority_level!(
+                            Alternative {
+                                symbols: recursive,
+                                label: None,
+                            },
+                            Alternative {
+                                symbols: element,
+                                label: None,
+                            }
+                        )],
+                        layout: layout.clone(),
+                    }
+                }
             };
             new_rules.push(new_rule);
             new_symbol
@@ -282,11 +306,29 @@ fn rewrite_ebnf_symbol(
     res
 }
 
+/// The sequence of symbols that the EBNF operator `X?`, `X*`, or `X+`
+/// applies to:
+/// - `A*` -> `[A]`
+/// - `(A B)*` -> `[A, B]`
+/// - `((A B))*` -> `[(A B)]`
+/// - `{(A B) ","}+` -> `[(A B)]`
+fn sequence(symbol: &Symbol) -> Vec<Symbol> {
+    match symbol {
+        Symbol::Opt(x) | Symbol::Star(x, None) | Symbol::Plus(x, None) => match x.as_ref() {
+            Symbol::Group(symbols) => symbols.clone(),
+            x => vec![x.clone()],
+        },
+        Symbol::Star(x, Some(_)) | Symbol::Plus(x, Some(_)) => vec![x.as_ref().clone()],
+        _ => unreachable!("sequence of a symbol that is not ?, * or +: {symbol}"),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::transform;
     use crate::{
-        alt, alternative, grammar_def, group, id, opt, plus, priority_level, star, syntax_rule,
+        alt, alternative, grammar::def::SyntaxRule, grammar_def, group, id, lit, opt, plus,
+        priority_level, star, syntax_rule,
     };
 
     #[test]
@@ -402,6 +444,59 @@ mod tests {
         let transformed = transform(grammar.syntax_rules);
 
         println!("Transformed grammar:\n{:?}", transformed);
+    }
+
+    /// Transforms `syntax_rules` and returns each resulting rule as it prints.
+    fn transformed_rules(syntax_rules: Vec<SyntaxRule>) -> Vec<String> {
+        transform(syntax_rules)
+            .iter()
+            .map(|rule| rule.to_string())
+            .collect()
+    }
+
+    #[test]
+    fn test_group_symbols_become_rule_symbols() {
+        // S ::= (A B)? (A B)* (C)+
+        let grammar = grammar_def!("TestGrammar",
+            syntax: [
+                syntax_rule!("S" => priority_level!(alternative!(
+                    opt!(group!(id!("A"), id!("B"))),
+                    star!(group!(id!("A"), id!("B"))),
+                    plus!(group!(id!("C")))
+                )))
+        ]);
+        assert_eq!(
+            transformed_rules(grammar.syntax_rules),
+            [
+                "S\n  = Opt_0 Star_0 Plus_1\n",
+                "Opt_0\n  = A B\n  | \n",
+                "Plus_0\n  = Plus_0 A B\n  | A B\n",
+                "Star_0\n  = Plus_0\n  | \n",
+                "Plus_1\n  = Plus_1 C\n  | C\n",
+            ]
+        );
+    }
+
+    #[test]
+    fn test_written_groups_stay_groups() {
+        // S ::= (A B) ((A B))? {(A B) ","}+
+        let grammar = grammar_def!("TestGrammar",
+            syntax: [
+                syntax_rule!("S" => priority_level!(alternative!(
+                    group!(id!("A"), id!("B")),
+                    opt!(group!(group!(id!("A"), id!("B")))),
+                    plus!(group!(id!("A"), id!("B")), lit!(","))
+                )))
+        ]);
+        assert_eq!(
+            transformed_rules(grammar.syntax_rules),
+            [
+                "S\n  = Group_0 Opt_0 Plus_0\n",
+                "Group_0\n  = A B\n",
+                "Opt_0\n  = Group_0\n  | \n",
+                "Plus_0\n  = Plus_0 \",\" Group_0\n  | Group_0\n",
+            ]
+        );
     }
 
     #[test]

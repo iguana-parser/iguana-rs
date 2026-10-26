@@ -17,11 +17,10 @@
           ";")
         WS
         (([0-9 A-Z _ a-z] !<< "else" !>> [0-9 A-Z _ a-z] Stmt)?
-          (([0-9 A-Z _ a-z] !<< "else" !>> [0-9 A-Z _ a-z] Stmt)
-            "else"
+          "else"
+          WS
+          (Stmt
+            (Expr Id)
             WS
-            (Stmt
-              (Expr Id)
-              WS
-              ";"))))))
+            ";")))))
   WS)

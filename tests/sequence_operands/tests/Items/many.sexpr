@@ -1,0 +1,16 @@
+(Start
+  (Layout WhiteSpace?)
+  (Items
+    (Item Name)
+    (Layout WhiteSpace?)
+    (("," Item)*
+      ","
+      (Layout
+        (WhiteSpace? WhiteSpace))
+      (Item Name)
+      (Layout
+        (WhiteSpace? WhiteSpace))
+      ","
+      (Layout WhiteSpace?)
+      (Item Name)))
+  (Layout WhiteSpace?))

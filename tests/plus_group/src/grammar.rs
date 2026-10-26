@@ -10,14 +10,13 @@ pub const S: NonterminalId = NonterminalId(0);
 pub const A: NonterminalId = NonterminalId(1);
 pub const B: NonterminalId = NonterminalId(2);
 pub const C: NonterminalId = NonterminalId(3);
-pub const GROUP_0: NonterminalId = NonterminalId(4);
-pub const PLUS_0: NonterminalId = NonterminalId(5);
-pub const START_S: NonterminalId = NonterminalId(6);
-pub const START_A: NonterminalId = NonterminalId(7);
-pub const START_B: NonterminalId = NonterminalId(8);
-pub const START_C: NonterminalId = NonterminalId(9);
+pub const PLUS_0: NonterminalId = NonterminalId(4);
+pub const START_S: NonterminalId = NonterminalId(5);
+pub const START_A: NonterminalId = NonterminalId(6);
+pub const START_B: NonterminalId = NonterminalId(7);
+pub const START_C: NonterminalId = NonterminalId(8);
 pub struct PlusGroupGrammar;
-static NONTERMINALS: [Nonterminal; 10] = [
+static NONTERMINALS: [Nonterminal; 9] = [
     Nonterminal {
         name: "S",
         display_name: "S",
@@ -33,10 +32,6 @@ static NONTERMINALS: [Nonterminal; 10] = [
     Nonterminal {
         name: "C",
         display_name: "C",
-    },
-    Nonterminal {
-        name: "Group_0",
-        display_name: "(A B C)",
     },
     Nonterminal {
         name: "Plus_0",
@@ -101,40 +96,40 @@ static SLOTS: [Slot; 25] = [
         position: 1,
     },
     Slot {
-        display_name: "(A B C) : . A B C",
+        display_name: "(A B C)+ : . (A B C)+ A B C",
         position: 0,
     },
     Slot {
-        display_name: "(A B C) : A . B C",
+        display_name: "(A B C)+ : (A B C)+ . A B C",
         position: 1,
     },
     Slot {
-        display_name: "(A B C) : A B . C",
+        display_name: "(A B C)+ : (A B C)+ A . B C",
         position: 2,
     },
     Slot {
-        display_name: "(A B C) : A B C.",
+        display_name: "(A B C)+ : (A B C)+ A B . C",
         position: 3,
     },
     Slot {
-        display_name: "(A B C)+ : . (A B C)+ (A B C)",
+        display_name: "(A B C)+ : (A B C)+ A B C.",
+        position: 4,
+    },
+    Slot {
+        display_name: "(A B C)+ : . A B C",
         position: 0,
     },
     Slot {
-        display_name: "(A B C)+ : (A B C)+ . (A B C)",
+        display_name: "(A B C)+ : A . B C",
         position: 1,
     },
     Slot {
-        display_name: "(A B C)+ : (A B C)+ (A B C).",
+        display_name: "(A B C)+ : A B . C",
         position: 2,
     },
     Slot {
-        display_name: "(A B C)+ : . (A B C)",
-        position: 0,
-    },
-    Slot {
-        display_name: "(A B C)+ : (A B C).",
-        position: 1,
+        display_name: "(A B C)+ : A B C.",
+        position: 3,
     },
     Slot {
         display_name: "S : . start:S",
@@ -169,13 +164,12 @@ static SLOTS: [Slot; 25] = [
         position: 1,
     },
 ];
-static FIRST_SLOTS: [&[SlotId]; 10] = [
+static FIRST_SLOTS: [&[SlotId]; 9] = [
     &[SlotId(0)],
     &[SlotId(2)],
     &[SlotId(4)],
     &[SlotId(6)],
-    &[SlotId(8)],
-    &[SlotId(12), SlotId(15)],
+    &[SlotId(8), SlotId(13)],
     &[SlotId(17)],
     &[SlotId(19)],
     &[SlotId(21)],
@@ -223,7 +217,6 @@ impl Grammar for PlusGroupGrammar {
             "A" => Some(A),
             "B" => Some(B),
             "C" => Some(C),
-            "Group_0" => Some(GROUP_0),
             "Plus_0" => Some(PLUS_0),
             "StartS" => Some(START_S),
             "StartA" => Some(START_A),
@@ -250,11 +243,6 @@ pub static FOLLOW_SET_B: TerminalSet = TerminalSet {
 };
 // C { "a", EOF }
 pub static FOLLOW_SET_C: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[TerminalId(0), TerminalId(4)],
-};
-// Group_0 { "a", EOF }
-pub static FOLLOW_SET_GROUP_0: TerminalSet = TerminalSet {
     id: 3,
     terminals: &[TerminalId(0), TerminalId(4)],
 };
@@ -302,11 +290,6 @@ pub static FIRST_SET_B: TerminalSet = TerminalSet {
 pub static FIRST_SET_C: TerminalSet = TerminalSet {
     id: 6,
     terminals: &[TerminalId(2)],
-};
-// Group_0 { "a" }
-pub static FIRST_SET_GROUP_0: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(0)],
 };
 // Plus_0 { "a" }
 pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {

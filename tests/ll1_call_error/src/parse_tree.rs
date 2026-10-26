@@ -114,6 +114,16 @@ impl<'a> ParseTree<'a> {
             ParseTree::Token(_) => None,
         }
     }
+    pub fn nonterminal_id(&self) -> Option<NonterminalId> {
+        match self {
+            ParseTree::S(_) => Some(grammar::S),
+            ParseTree::Layout(_) => Some(grammar::LAYOUT),
+            ParseTree::Alt0(_) => Some(grammar::ALT_0),
+            ParseTree::Plus0(_) => Some(grammar::PLUS_0),
+            ParseTree::Star0(_) => Some(grammar::STAR_0),
+            ParseTree::Start(_) | ParseTree::Token(_) => None,
+        }
+    }
     pub fn origin(&self) -> Option<Origin> {
         match self {
             ParseTree::S(s) => s.origin(),
@@ -762,6 +772,9 @@ impl<'a> ParseTreeNode for ParseTree<'a> {
     }
     fn node_id(&self) -> Option<usize> {
         ParseTree::node_id(self)
+    }
+    fn nonterminal_id(&self) -> Option<NonterminalId> {
+        ParseTree::nonterminal_id(self)
     }
     fn origin(&self) -> Option<Origin> {
         ParseTree::origin(self)

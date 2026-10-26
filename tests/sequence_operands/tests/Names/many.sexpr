@@ -1,0 +1,18 @@
+(Start
+  (Layout WhiteSpace?)
+  (Names
+    "names"
+    (Layout
+      (WhiteSpace? WhiteSpace))
+    (("," Name)*
+      ","
+      (Layout
+        (WhiteSpace? WhiteSpace))
+      Name
+      (Layout
+        (WhiteSpace? WhiteSpace))
+      ","
+      (Layout
+        (WhiteSpace? WhiteSpace))
+      Name))
+  (Layout WhiteSpace?))

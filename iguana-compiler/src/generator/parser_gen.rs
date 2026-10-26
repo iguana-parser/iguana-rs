@@ -1704,9 +1704,11 @@ impl<'a> ParserGen<'a> {
     ///   when the call returns None, and a call to X inside another
     ///   nonterminal's LL(1) function, which supplies its slot as the failure
     ///   context.
-    /// - If X is the repeated element of a * or +, a None means the repetition
-    ///   could not go further, and this is actually a loop continuation
-    ///   condition, not a real error, so no error is recorded.
+    /// - If X is at the first position of an element of a * or +, or is its
+    ///   separator, a None means the repetition could not go further. This is
+    ///   a loop continuation condition, not a real error, so no error is
+    ///   recorded. At a later position of an element, X is a required
+    ///   reference, as in the first case.
     ///
     /// Because only the caller knows which case it is in, a call inside an LL(1)
     /// function passes its slot for a required reference and None for a
@@ -1947,10 +1949,10 @@ impl<'a> ParserGen<'a> {
     ///
     /// `A+` desugars to `APlus = APlus A | A`. This is left-recursive,
     /// so a recursive-descent parser would loop infinitely. The standard
-    /// solution is to parse it as a loop: parse one `A`, then repeat
-    /// while more `A`s follow.
+    /// solution is to parse it as a loop: parse one element, such as `A`, or
+    /// `A B` for `(A B)+`, then repeat while more elements follow.
     ///
-    /// Layout and separators are handled naturally: they appear as symbols
+    /// Layout and separators need no special handling: they appear as symbols
     /// in the recursive alternative. For example, `{A ","}+` with layout
     /// desugars to `APlus = APlus Layout "," Layout A | A`. The loop
     /// parses Layout, `","`, Layout, A in sequence each iteration.
@@ -1977,16 +1979,66 @@ impl<'a> ParserGen<'a> {
         let recursive_end_slot_id = end_slots[0].slot_id;
         let base_end_slot_id = end_slots[1].slot_id;
 
-        // Base case: parse the single symbol in alt 1
-        let base_symbol = base_alt.symbols.last().unwrap();
-        let base_slot = Slot::new(nonterminal, base_alt, 0);
-        let base_slot_id = self.slot_ids.get_id(&base_slot);
-        let base_parse = self.gen_match_symbol_ll1(base_symbol, quote! { j }, base_slot_id);
+        // Base case: parse the symbols of alt 1, which are the symbols of one
+        // element, such as `A` for `A+` and `A B` for `(A B)+`. A failure
+        // fails the whole Plus. The node of the first symbol starts `current`,
+        // and the node of every later symbol extends `current` with an
+        // intermediate node, as in the loop below. For `(A B C)+`:
+        //
+        //   current = A
+        //   current = intermediate(current, B)
+        //   current = intermediate(current, C)
+        //   Plus    = nonterminal(current)
+        //
+        // The base case and the loop record failures by position. The examples
+        // use `S = "x" (A B C)+ "z"`:
+        // - At the first position of an element, and before it (the separator
+        //   and its layout in the loop), the parse method of a nonterminal
+        //   does not record its prediction failure, and `match_terminal`
+        //   records a terminal's failure at the slot before the symbol. In the
+        //   base case, the parse method of the Plus records the failure at the
+        //   caller's slot. In the loop, the failure ends the repetition: for
+        //   `x a b c z`, `A` fails at `z`, and the parser continues with `"z"`.
+        // - At a later position of an element, both record the failure at the
+        //   slot after the symbol, as in an ordinary alternative. The first
+        //   symbol has already selected the element, so a failure there is an
+        //   error, not the end of the repetition: for `x a b c a b q`, `C`
+        //   fails at `q`, and the parse error is reported at `q`.
+        let mut base_parses = vec![];
+        let mut base_pos = quote! { i };
+        for (position, symbol) in base_alt.symbols.iter().enumerate() {
+            let node_var = format_ident!("base_node_{}", position);
+            let pos_var = format_ident!("base_pos_{}", position);
+            if position == 0 {
+                let slot_id = self.slot_ids.get_id(&Slot::new(nonterminal, base_alt, 0));
+                let parse = self.gen_match_symbol_ll1(symbol, base_pos, slot_id, None);
+                base_parses.push(quote! {
+                    let (#pos_var, #node_var) = #parse?;
+                    let mut current = #node_var;
+                });
+            } else {
+                let next_slot_id =
+                    self.slot_ids
+                        .get_id(&Slot::new(nonterminal, base_alt, position + 1));
+                let parse =
+                    self.gen_match_symbol_ll1(symbol, base_pos, next_slot_id, Some(next_slot_id));
+                base_parses.push(quote! {
+                    let (#pos_var, #node_var) = #parse?;
+                    current = self.create_intermediate_node_ll1(
+                        #next_slot_id, left_extent, #pos_var, current, #node_var,
+                    );
+                });
+            }
+            base_pos = quote! { #pos_var };
+        }
 
         // Loop: try to parse symbols 1..n of the recursive alt (skip the
         // self-reference). Chain positions forward without updating j.
         // If all succeed, build intermediate nodes and advance j.
         let symbols: Vec<_> = recursive_alt.symbols.iter().skip(1).collect();
+        // The position of the first symbol of the element in the recursive
+        // alt, after the self-reference, the separator, and the layout.
+        let element_start = recursive_alt.symbols.len() - base_alt.symbols.len();
 
         // Phase 1: try each symbol, break if any fails.
         let mut parses = vec![];
@@ -1994,18 +2046,32 @@ impl<'a> ParserGen<'a> {
         for (idx, symbol) in symbols.iter().enumerate() {
             let node_var = format_ident!("node_{}", idx);
             let pos_var = format_ident!("pos_{}", idx);
-            let slot = Slot::new(nonterminal, recursive_alt, idx + 1);
-            let slot_id = self.slot_ids.get_id(&slot);
-            let parse = self.gen_match_symbol_ll1(symbol, current_pos.clone(), slot_id);
-            // The repetition probe: on a prediction failure the repetition is
-            // done, so break without recording. See gen_parse_method_ll1.
+            let position = idx + 1;
+            let parse = if position > element_start {
+                let next_slot_id =
+                    self.slot_ids
+                        .get_id(&Slot::new(nonterminal, recursive_alt, position + 1));
+                self.gen_match_symbol_ll1(
+                    symbol,
+                    current_pos.clone(),
+                    next_slot_id,
+                    Some(next_slot_id),
+                )
+            } else {
+                let slot_id =
+                    self.slot_ids
+                        .get_id(&Slot::new(nonterminal, recursive_alt, position));
+                self.gen_match_symbol_ll1(symbol, current_pos.clone(), slot_id, None)
+            };
+            // The repetition probe: a failure ends the repetition, and the loop
+            // breaks. Failures are recorded as in the base case.
             parses.push(quote! {
                 let Some((#pos_var, #node_var)) = #parse else { break; };
             });
             current_pos = quote! { #pos_var };
         }
 
-        // Phase 2: all succeeded — update j, build intermediate nodes
+        // Phase 2: all succeeded, so update j and build intermediate nodes
         let last_pos = format_ident!("pos_{}", symbols.len() - 1);
         let mut build_nodes = vec![quote! { j = #last_pos; }];
         for (idx, _) in symbols.iter().enumerate() {
@@ -2021,15 +2087,14 @@ impl<'a> ParserGen<'a> {
         }
 
         quote! {
-            let mut j = i;
-            let (body_end, body_node) = (#base_parse)?;
-            j = body_end;
             let left_extent = i;
-            let mut current = self.add_nonterminal_node(NonterminalNode {
+            #(#base_parses)*
+            let mut j = #base_pos;
+            current = self.add_nonterminal_node(NonterminalNode {
                 nonterminal_id: #nonterminal_id,
                 return_slot: #base_end_slot_id,
                 span: Span { left_extent, right_extent: j },
-                child: body_node,
+                child: current,
                 ambiguous: false,
             });
             #[allow(clippy::while_let_loop)]
@@ -2050,13 +2115,17 @@ impl<'a> ParserGen<'a> {
 
     /// Generates parse code for a symbol at position `pos`. Returns a
     /// `TokenStream` that evaluates to `Option<(u32, SPPFNodeId)>`, the right
-    /// extent and the node. Records a failure on terminal match
-    /// failure, consistent with GLL.
+    /// extent and the node. For a terminal, `match_terminal` records a match
+    /// failure at `slot_id`, as in GLL. For a nonterminal `X`, which does not
+    /// use `slot_id`, the parse method of `X` records `expected FIRST(X)` at
+    /// `failure_context` on a prediction failure, and does not record the
+    /// failure when `failure_context` is `None` (`gen_parse_method_ll1`).
     fn gen_match_symbol_ll1(
         &self,
         symbol: &Symbol,
         pos: TokenStream,
         slot_id: SlotId,
+        failure_context: Option<SlotId>,
     ) -> TokenStream {
         let identifier = symbol.as_identifier().unwrap();
         let def = self.grammar.definition(identifier.resolve());
@@ -2069,8 +2138,12 @@ impl<'a> ParserGen<'a> {
             }
             Definition::Nonterminal(nt) => {
                 let nt_method = format_ident!("parse_{}_ll1", to_snake_case(&nt.name));
+                let failure_context = match failure_context {
+                    Some(slot_id) => quote! { Some(#slot_id) },
+                    None => quote! { None },
+                };
                 quote! {
-                    self.#nt_method(#pos, None)
+                    self.#nt_method(#pos, #failure_context)
                 }
             }
         }

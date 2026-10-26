@@ -1,0 +1,26 @@
+(Start
+  (Layout WhiteSpace?)
+  (Mixed
+    "mixed"
+    (Layout
+      (WhiteSpace? WhiteSpace))
+    ((Key (Value Value)?)+
+      (Key "k")
+      (Layout
+        (WhiteSpace? WhiteSpace))
+      (Value Value)?
+      (Layout WhiteSpace?)
+      (Key "k")
+      (Layout
+        (WhiteSpace? WhiteSpace))
+      ((Value Value)?
+        (Value "v")
+        (Layout
+          (WhiteSpace? WhiteSpace))
+        (Value "v"))
+      (Layout
+        (WhiteSpace? WhiteSpace))
+      (Key "k")
+      (Layout WhiteSpace?)
+      (Value Value)?))
+  (Layout WhiteSpace?))

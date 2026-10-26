@@ -356,6 +356,33 @@ impl<'a> ParseTree<'a> {
             ParseTree::Token(_) => None,
         }
     }
+    pub fn nonterminal_id(&self) -> Option<NonterminalId> {
+        match self {
+            ParseTree::T(_) => Some(grammar::T),
+            ParseTree::U(_) => Some(grammar::U),
+            ParseTree::P(_) => Some(grammar::P),
+            ParseTree::Q(_) => Some(grammar::Q),
+            ParseTree::BeforeP(_) => Some(grammar::BEFORE_P),
+            ParseTree::BeforeQ(_) => Some(grammar::BEFORE_Q),
+            ParseTree::UnexpectedFirst(_) => Some(grammar::UNEXPECTED_FIRST),
+            ParseTree::ExcludedFirst(_) => Some(grammar::EXCLUDED_FIRST),
+            ParseTree::PredictionBeforeExcept(_) => Some(grammar::PREDICTION_BEFORE_EXCEPT),
+            ParseTree::ExceptBeforePrediction(_) => Some(grammar::EXCEPT_BEFORE_PREDICTION),
+            ParseTree::PredictionBeforeFollow(_) => Some(grammar::PREDICTION_BEFORE_FOLLOW),
+            ParseTree::FollowBeforePrediction(_) => Some(grammar::FOLLOW_BEFORE_PREDICTION),
+            ParseTree::MissingSuffix(_) => Some(grammar::MISSING_SUFFIX),
+            ParseTree::SuffixChoice(_) => Some(grammar::SUFFIX_CHOICE),
+            ParseTree::CallPrediction(_) => Some(grammar::CALL_PREDICTION),
+            ParseTree::PrefixX(_) => Some(grammar::PREFIX_X),
+            ParseTree::PrefixW(_) => Some(grammar::PREFIX_W),
+            ParseTree::NullablePrefix(_) => Some(grammar::NULLABLE_PREFIX),
+            ParseTree::Layout(_) => Some(grammar::LAYOUT),
+            ParseTree::Alt0(_) => Some(grammar::ALT_0),
+            ParseTree::Plus0(_) => Some(grammar::PLUS_0),
+            ParseTree::Star0(_) => Some(grammar::STAR_0),
+            ParseTree::Start(_) | ParseTree::Token(_) => None,
+        }
+    }
     pub fn origin(&self) -> Option<Origin> {
         match self {
             ParseTree::T(t) => t.origin(),
@@ -2724,6 +2751,9 @@ impl<'a> ParseTreeNode for ParseTree<'a> {
     }
     fn node_id(&self) -> Option<usize> {
         ParseTree::node_id(self)
+    }
+    fn nonterminal_id(&self) -> Option<NonterminalId> {
+        ParseTree::nonterminal_id(self)
     }
     fn origin(&self) -> Option<Origin> {
         ParseTree::origin(self)

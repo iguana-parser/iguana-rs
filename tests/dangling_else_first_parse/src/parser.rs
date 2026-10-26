@@ -942,18 +942,18 @@ impl<'i, 'arena> DanglingElseFirstParseParser<'i, 'arena> {
     }
     #[inline(always)]
     fn parse_plus_1_ll1_body(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let mut j = i;
-        let (body_end, body_node) = (self.parse_alt_0_ll1(j, None))?;
-        j = body_end;
         let left_extent = i;
-        let mut current = self.add_nonterminal_node(NonterminalNode {
+        let (base_pos_0, base_node_0) = self.parse_alt_0_ll1(i, None)?;
+        let mut current = base_node_0;
+        let mut j = base_pos_0;
+        current = self.add_nonterminal_node(NonterminalNode {
             nonterminal_id: NonterminalId(5),
             return_slot: SlotId(46),
             span: Span {
                 left_extent,
                 right_extent: j,
             },
-            child: body_node,
+            child: current,
             ambiguous: false,
         });
         #[allow(clippy::while_let_loop)]

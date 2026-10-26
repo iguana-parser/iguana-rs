@@ -314,10 +314,19 @@ impl<'a> FirstFollowSets<'a> {
         let Some(Symbol::Plus(element, separator)) = &nt.origin else {
             return false;
         };
-        // The LL(1) Plus loop only matches the symbol but ignores the restrictions.
-        // If a Plus inner symbol has restrictions, the Plus is not classified as LL(1),
-        // and will be parsed using GLL.
-        if element.has_restriction() || separator.as_deref().is_some_and(Symbol::has_restriction) {
+        // The LL(1) Plus loop matches the element and separator symbols without
+        // checking their restrictions, so a Plus with a restricted element or
+        // separator symbol is not LL(1) and is parsed with GLL. The element of
+        // `(A B)+` is the sequence `A B`, so a restriction on `A` or `B` also
+        // rules out LL(1). The element of a separated list stays a group, and
+        // the parse method of the group checks the restrictions inside it.
+        let element_has_restriction = match element.as_ref() {
+            Symbol::Group(symbols) if separator.is_none() => {
+                symbols.iter().any(Symbol::has_restriction)
+            }
+            element => element.has_restriction(),
+        };
+        if element_has_restriction || separator.as_deref().is_some_and(Symbol::has_restriction) {
             return false;
         }
         let continuation = &self.grammar.alternatives(nt)[0].symbols[1..];

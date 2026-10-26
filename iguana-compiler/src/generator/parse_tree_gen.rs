@@ -158,7 +158,9 @@ impl<'a> ParseTreeGen<'a> {
         let opt_node_impls: Vec<_> = self
             .grammar
             .nonterminals()
-            .filter(|n| matches!(&n.origin, Some(Symbol::Opt(_))))
+            .filter(|n| {
+                matches!(&n.origin, Some(Symbol::Opt(_))) && opt_symbol_count(self.grammar, n) == 1
+            })
             .map(|n| self.gen_opt_node_impl(n))
             .collect();
         let alt_accessor_impls: Vec<TokenStream> = self
@@ -389,8 +391,8 @@ impl<'a> ParseTreeGen<'a> {
     /// panic when called on a non-matching variant.
     ///
     /// A derived Group nonterminal, which has one alternative, also gets these
-    /// accessors. For example, with `("\\" Identifier)+` the Plus's typed
-    /// accessor `identifiers()` walks each Group child `r` and calls
+    /// accessors. For example, with `{("\\" Identifier) ","}+` the Plus's
+    /// typed accessor `identifiers()` walks each Group child `r` and calls
     /// `r.identifier()` to read its `identifier` field (skipping the `"\\"`
     /// literal). That method is the field accessor generated here.
     fn gen_field_accessor_methods(&self, nonterminal: &Nonterminal) -> TokenStream {
@@ -896,6 +898,7 @@ impl<'a> ParseTreeGen<'a> {
         let span_method = self.gen_parse_tree_span_method();
         let is_amb_method = self.gen_parse_tree_is_amb_method();
         let node_id_method = self.gen_parse_tree_node_id_method();
+        let nonterminal_id_method = self.gen_parse_tree_nonterminal_id_method();
         let origin_method = self.gen_parse_tree_origin_method();
         let cycle_methods = self.gen_parse_tree_cycle_methods();
         quote! {
@@ -906,6 +909,7 @@ impl<'a> ParseTreeGen<'a> {
                 #span_method
                 #is_amb_method
                 #node_id_method
+                #nonterminal_id_method
                 #origin_method
                 #cycle_methods
                 #(#unwrap_methods)*
@@ -1123,6 +1127,26 @@ impl<'a> ParseTreeGen<'a> {
         }
     }
 
+    fn gen_parse_tree_nonterminal_id_method(&self) -> TokenStream {
+        let arms = self
+            .grammar
+            .nonterminals()
+            .filter(|n| !self.grammar.is_start(n))
+            .map(|n| {
+                let variant = nt_ident(&n.name);
+                let id = format_ident!("{}", to_snake_case(&n.name).to_uppercase());
+                quote! { ParseTree::#variant(_) => Some(grammar::#id) }
+            });
+        quote! {
+            pub fn nonterminal_id(&self) -> Option<NonterminalId> {
+                match self {
+                    #(#arms,)*
+                    ParseTree::Start(_) | ParseTree::Token(_) => None,
+                }
+            }
+        }
+    }
+
     fn gen_parse_tree_origin_method(&self) -> TokenStream {
         let arms = self
             .grammar
@@ -1241,10 +1265,22 @@ impl<'a> ParseTreeGen<'a> {
     /// Generates a typed accessor method for Plus/Star/Opt nonterminals.
     ///
     /// These accessors provide a convenient way to iterate over elements
-    /// without manually navigating through wrapper types. The method name
-    /// is the pluralized snake_case form of the child element type.
+    /// without manually navigating through wrapper types. A list accessor's
+    /// name is the pluralized snake_case form of the child element type.
     ///
     /// # Generated Accessors
+    ///
+    /// For `("," Item)+` (Plus whose element is a sequence with one named
+    /// symbol, see `gen_sequence_element_accessor`):
+    /// ```ignore
+    /// pub fn items(&self) -> impl Iterator<Item = &Item> { ... }
+    /// ```
+    ///
+    /// For `("else" Stmt)?` (Opt with several symbols), one accessor per
+    /// field (see `gen_opt_field_accessors`):
+    /// ```ignore
+    /// pub fn stmt(&self) -> Option<&Stmt> { ... }
+    /// ```
     ///
     /// For `Symbol+` (Plus):
     /// ```ignore
@@ -1285,8 +1321,13 @@ impl<'a> ParseTreeGen<'a> {
     /// ```
     fn gen_typed_accessor(&self, nonterminal: &Nonterminal) -> Option<TokenStream> {
         match &nonterminal.origin {
-            Some(Symbol::Plus(inner, _)) => {
-                let element_types = get_list_element_types(self.grammar, inner);
+            Some(list @ Symbol::Plus(inner, None))
+                if matches!(inner.as_ref(), Symbol::Group(_)) =>
+            {
+                self.gen_sequence_element_accessor(nonterminal, list)
+            }
+            Some(list @ Symbol::Plus(inner, _)) => {
+                let element_types = list_element_types(self.grammar, list);
                 if element_types.is_empty() {
                     return None;
                 }
@@ -1323,7 +1364,8 @@ impl<'a> ParseTreeGen<'a> {
                         }
                     })
                 } else if let Symbol::Group(_) = inner.as_ref() {
-                    // Group case: e.g., `("|" Regex)+` or `("!" Identifier)+`
+                    // Group case: the element of a separated list, e.g.,
+                    // `{("!" Identifier) ","}+`
                     let field_name = safe_ident(&to_snake_case(&innermost.name));
                     Some(quote! {
                         pub fn #method_name(&'a self) -> #return_type {
@@ -1353,8 +1395,8 @@ impl<'a> ParseTreeGen<'a> {
                     })
                 }
             }
-            Some(Symbol::Star(inner, _)) => {
-                let element_types = get_list_element_types(self.grammar, inner);
+            Some(list @ Symbol::Star(..)) => {
+                let element_types = list_element_types(self.grammar, list);
                 if element_types.is_empty() {
                     return None;
                 }
@@ -1389,15 +1431,17 @@ impl<'a> ParseTreeGen<'a> {
                     .collect();
                 Some(quote! { #(#methods)* })
             }
+            Some(Symbol::Opt(_)) if opt_symbol_count(self.grammar, nonterminal) > 1 => {
+                Some(self.gen_opt_field_accessors(nonterminal))
+            }
             Some(Symbol::Opt(inner)) => {
                 // Opt types that wrap Plus/Star (e.g., `SyntaxRule+?`).
                 // Delegate to the inner Plus/Star's accessor via OptNode::value().
-                let inner_inner = match inner.as_ref() {
-                    Symbol::Plus(s, _) | Symbol::Star(s, _) => s.as_ref(),
-                    _ => return None,
-                };
-
-                let element_types = get_list_element_types(self.grammar, inner_inner);
+                let list = ungroup_single(inner);
+                if !list.is_list() {
+                    return None;
+                }
+                let element_types = list_element_types(self.grammar, list);
                 if element_types.is_empty() {
                     return None;
                 }
@@ -1426,6 +1470,88 @@ impl<'a> ParseTreeGen<'a> {
         }
     }
 
+    /// Generates the accessor of a Plus whose element is a sequence with one
+    /// named symbol: `("," Item)+` gets `items()`, which returns the `Item`
+    /// children in order. When the named symbol is a terminal, as in
+    /// `("," Name)+`, the accessor selects the tokens whose kind is `Name`,
+    /// since the `","` children are tokens too. The accessor panics on an Amb
+    /// or Cycle node of the list, as the other list accessors do.
+    fn gen_sequence_element_accessor(
+        &self,
+        nonterminal: &Nonterminal,
+        list: &Symbol,
+    ) -> Option<TokenStream> {
+        let element_types = list_element_types(self.grammar, list);
+        if element_types.is_empty() {
+            return None;
+        }
+        let list_variant = nt_ident(&nonterminal.name);
+        let amb_msg = format!("{} is ambiguous", nonterminal.name);
+        let cycle_msg = format!("{} is a cycle", nonterminal.name);
+        let cycle_arm = self.cycle_arm(
+            nonterminal,
+            quote! { other @ ParseTree::#list_variant(_) if other.is_cycle() => panic!(#cycle_msg), },
+        );
+        let methods = element_types.iter().map(|elem| {
+            let method_name = safe_ident(&pluralize(&to_snake_case(&elem.name)));
+            let return_type = self.gen_accessor_return_type(nonterminal, elem);
+            let element_arm = match self.grammar.definition(elem.resolve()) {
+                Definition::Terminal(terminal) => {
+                    let kind = format_ident!("T{}", self.terminal_ids.get_id(terminal).0);
+                    quote! {
+                        ParseTree::Token(r) if matches!(r.kind, TokenKind::#kind) => Some(r),
+                    }
+                }
+                Definition::Nonterminal(_) => {
+                    let variant = symbol_ident(self.grammar, elem);
+                    quote! { ParseTree::#variant(r) => Some(r), }
+                }
+            };
+            quote! {
+                pub fn #method_name(&'a self) -> #return_type {
+                    list_children(self.as_parse_tree())
+                        .into_iter()
+                        .filter_map(|node| match node {
+                            #element_arm
+                            other @ ParseTree::#list_variant(_) if other.is_amb() => panic!(#amb_msg),
+                            #cycle_arm
+                            _ => None,
+                        })
+                }
+            }
+        });
+        Some(quote! { #(#methods)* })
+    }
+
+    /// Generates one accessor per field of an optional with several symbols,
+    /// such as `("else" Stmt)?`. The accessor of a field returns the field when
+    /// the optional is present and `None` when it is empty. An optional with one
+    /// symbol implements `OptNode` instead.
+    fn gen_opt_field_accessors(&self, nonterminal: &Nonterminal) -> TokenStream {
+        let ident = nt_ident(&nonterminal.name);
+        let alternatives = self.grammar.alternatives(nonterminal);
+        let present = nt_ident(&alternative_label(&alternatives[0], 0));
+        let empty = nt_ident(&alternative_label(&alternatives[1], 1));
+        let panic_msg = format!("{} is ambiguous", nonterminal.name);
+        let cycle_arm = self.cycle_panic_arm(nonterminal);
+        let methods = self
+            .gen_fields_for_alternative_symbols(&alternatives[0])
+            .into_iter()
+            .map(|(field, ty)| {
+                quote! {
+                    pub fn #field(&self) -> Option<#ty> {
+                        match self {
+                            #ident::#present { #field, .. } => Some(*#field),
+                            #ident::#empty { .. } => None,
+                            #ident::Amb(_) => panic!(#panic_msg),
+                            #cycle_arm
+                        }
+                    }
+                }
+            });
+        quote! { #(#methods)* }
+    }
+
     // For user-defined rules with a single-symbol alternative, delegate the
     // EBNF field's typed accessors onto the parent struct. For example, given
     // `S = Expr+`, the struct `S` gets an `exprs()` method that delegates to
@@ -1445,10 +1571,10 @@ impl<'a> ParseTreeGen<'a> {
             Definition::Nonterminal(nt) => nt,
             _ => return None,
         };
-        let inner = match child_nt.origin.as_ref() {
-            Some(Symbol::Plus(s, _) | Symbol::Star(s, _)) => s.as_ref(),
-            Some(Symbol::Opt(s)) => match s.as_ref() {
-                Symbol::Plus(s, _) | Symbol::Star(s, _) => s.as_ref(),
+        let list = match child_nt.origin.as_ref() {
+            Some(list @ (Symbol::Plus(..) | Symbol::Star(..))) => list,
+            Some(Symbol::Opt(s)) => match ungroup_single(s) {
+                list @ (Symbol::Plus(..) | Symbol::Star(..)) => list,
                 _ => return None,
             },
             _ => return None,
@@ -1458,7 +1584,7 @@ impl<'a> ParseTreeGen<'a> {
         let alt0_variant = nt_ident(&alternative_label(&alternatives[0], 0));
         let panic_msg = format!("{} is ambiguous", nonterminal.name);
         let cycle_arm = self.cycle_panic_arm(nonterminal);
-        let element_types = get_list_element_types(self.grammar, inner);
+        let element_types = list_element_types(self.grammar, list);
         let methods: Vec<_> = element_types
             .iter()
             .filter(|elem| {
@@ -1496,7 +1622,7 @@ impl<'a> ParseTreeGen<'a> {
     //     `impl Iterator<Item = impl Iterator<Item = &Expr> + '_>`
     //   - alternation (`(Expr | Stmt)+`): one method per variant,
     //     `impl Iterator<Item = &Expr>` and `impl Iterator<Item = &Stmt>`
-    //   - group (`("," Expr)+`): `impl Iterator<Item = &Expr>`
+    //   - sequence (`("," Expr)+`): `impl Iterator<Item = &Expr>`
     // - Star (`Expr*`): desugared as `Expr* = Expr+ | ()`, so the return type
     //   is determined by the inner Plus
     // - Group (`("," Expr)`): `&Expr`
@@ -1688,6 +1814,10 @@ impl<'a> ParseTreeGen<'a> {
 
                 fn node_id(&self) -> Option<usize> {
                     ParseTree::node_id(self)
+                }
+
+                fn nonterminal_id(&self) -> Option<NonterminalId> {
+                    ParseTree::nonterminal_id(self)
                 }
 
                 #cycle_target
@@ -2089,25 +2219,24 @@ fn symbol_ident(grammar: &Grammar, ident: &Identifier) -> Ident {
     }
 }
 
-/// Returns the named element types inside an EBNF symbol.
+/// Returns the named types of a list element, given the element symbol.
+/// Literal terminals (e.g., `"!"`, `"|"`) are not named types, since typed
+/// accessors do not return them.
 ///
-/// Walks through Plus, Star, Group, and Alt wrappers to find the inner
-/// named identifiers. Literal terminals (e.g., `"!"`, `"|"`) are
-/// excluded since they carry no semantic value for typed accessors.
-///
-/// Returns a single element for simple repetitions, multiple elements
-/// for alternations:
+/// Returns one type for a single symbol, a group with one named symbol, or a
+/// nested list with one element type, and one type per alternative for an
+/// alternation:
+/// - `A` -> `[A]`
+/// - `("!" A)`, the element of `{("!" A) ","}+` -> `[A]`
 /// - `A+` -> `[A]`
-/// - `{A ","}+` -> `[A]`
-/// - `("!" A)+` -> `[A]`
-/// - `(A | B)+` -> `[A, B]`
+/// - `(A | B)` -> `[A, B]`
 ///
-/// Multiple elements occur only for `Symbol::Alt`. For alternations,
-/// only variants that are simple identifiers are included; nested EBNF
-/// variants like `A*` in `(A* | C)` are skipped since the desugared
+/// Multiple types occur only for `Symbol::Alt`. For alternations,
+/// only alternatives that are simple identifiers are included; nested EBNF
+/// alternatives like `A*` in `(A* | C)` are skipped since the desugared
 /// nonterminal type would not match. Returns an empty vec when no named
-/// elements are found (e.g., only literals).
-fn get_list_element_types(grammar: &Grammar, symbol: &Symbol) -> Vec<Identifier> {
+/// types are found (e.g., only literals).
+fn element_types(grammar: &Grammar, symbol: &Symbol) -> Vec<Identifier> {
     match symbol {
         Symbol::Identifier(ident) => {
             if let Some(def_id) = ident.definition {
@@ -2119,7 +2248,14 @@ fn get_list_element_types(grammar: &Grammar, symbol: &Symbol) -> Vec<Identifier>
             }
             vec![ident.clone()]
         }
-        Symbol::Plus(inner, _) | Symbol::Star(inner, _) => get_list_element_types(grammar, inner),
+        // A nested list contributes an element type only when the nested list
+        // has exactly one element type. The accessor of the outer list calls the accessor of
+        // the nested list with the same name, and a nested list with several
+        // element types does not have a single accessor to call.
+        list @ (Symbol::Plus(..) | Symbol::Star(..)) => {
+            let types = list_element_types(grammar, list);
+            if types.len() == 1 { types } else { vec![] }
+        }
         // No recursion into Alt variants: only simple identifiers are collected.
         // Nested EBNF like `A*` in `(A* | C)` is skipped.
         Symbol::Alt(variants) => variants
@@ -2141,7 +2277,7 @@ fn get_list_element_types(grammar: &Grammar, symbol: &Symbol) -> Vec<Identifier>
         Symbol::Group(elements) => {
             let named: Vec<_> = elements
                 .iter()
-                .flat_map(|elem| get_list_element_types(grammar, elem))
+                .flat_map(|elem| element_types(grammar, elem))
                 .collect();
             // A group has a flat element type only when its named element is not
             // itself a list. For `(Annotation* "[" "]")` the named element is a
@@ -2150,7 +2286,7 @@ fn get_list_element_types(grammar: &Grammar, symbol: &Symbol) -> Vec<Identifier>
             // children().
             let names_a_list = elements
                 .iter()
-                .any(|elem| elem.is_list() && !get_list_element_types(grammar, elem).is_empty());
+                .any(|elem| elem.is_list() && !element_types(grammar, elem).is_empty());
             if named.len() == 1 && !names_a_list {
                 named
             } else {
@@ -2159,6 +2295,73 @@ fn get_list_element_types(grammar: &Grammar, symbol: &Symbol) -> Vec<Identifier>
         }
         _ => vec![],
     }
+}
+
+/// Returns the named element types of a list symbol, `Plus` or `Star`:
+/// - `A+` -> `[A]`
+/// - `{A ","}+` -> `[A]`
+/// - `(A | B)+` -> `[A, B]`
+/// - `("," A)+` -> `[A]`
+/// - `(Comma A)+` -> `[]`
+///
+/// A list whose element is a sequence, such as `("," A)+`, holds the symbols
+/// of the sequence directly and has an element type only when the sequence
+/// has one named symbol (`sequence_element_type`). The element of a
+/// separated list keeps its group, so `{(A B) ","}+` takes the element types
+/// of the group.
+fn list_element_types(grammar: &Grammar, list: &Symbol) -> Vec<Identifier> {
+    match list {
+        Symbol::Plus(element, None) | Symbol::Star(element, None) => match element.as_ref() {
+            Symbol::Group(symbols) => sequence_element_type(grammar, symbols)
+                .into_iter()
+                .collect(),
+            element => element_types(grammar, element),
+        },
+        Symbol::Plus(element, Some(_)) | Symbol::Star(element, Some(_)) => {
+            element_types(grammar, element)
+        }
+        _ => vec![],
+    }
+}
+
+/// Returns the type of the one named symbol of a sequence, as for the element
+/// of `("," A)+`. A sequence has a named symbol when it has exactly one
+/// parse-tree symbol that is not a literal terminal, and that symbol refers to
+/// a rule. A sequence with several such symbols, as in `(Comma A)+` or
+/// `(A B?)+`, does not have one, and neither does a sequence whose one such
+/// symbol becomes a derived nonterminal, as in `("," A?)+`.
+fn sequence_element_type(grammar: &Grammar, symbols: &[Symbol]) -> Option<Identifier> {
+    let is_literal = |symbol: &Symbol| {
+        symbol.as_identifier().is_some_and(|ident| {
+            matches!(grammar.definition(ident.resolve()), Definition::Terminal(t) if t.is_literal())
+        })
+    };
+    let named: Vec<_> = symbols
+        .iter()
+        .filter(|s| s.is_parse_tree_symbol() && !is_literal(s))
+        .collect();
+    match named[..] {
+        [symbol] => symbol.as_identifier().cloned(),
+        _ => None,
+    }
+}
+
+/// The symbol of a one-symbol group, or the symbol itself. The operand of
+/// `(A+)?` is the list `A+`, as it is for `A+?`.
+fn ungroup_single(symbol: &Symbol) -> &Symbol {
+    match symbol {
+        Symbol::Group(symbols) if symbols.len() == 1 => &symbols[0],
+        symbol => symbol,
+    }
+}
+
+/// The number of parse-tree symbols of an optional when it is present.
+fn opt_symbol_count(grammar: &Grammar, nonterminal: &Nonterminal) -> usize {
+    grammar.alternatives(nonterminal)[0]
+        .symbols
+        .iter()
+        .filter(|s| s.is_parse_tree_symbol())
+        .count()
 }
 
 /// Gets the element type name from the base alternative of a Plus/Star nonterminal.

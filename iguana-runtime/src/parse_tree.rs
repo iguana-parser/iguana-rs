@@ -584,6 +584,10 @@ pub trait ParseTreeNode: Copy {
     /// A stable identity for the node, or `None` for nodes that are never
     /// shared. Used to detect sharing in an ambiguity DAG.
     fn node_id(&self) -> Option<usize>;
+    /// The nonterminal id of the node, or `None` for a token or a start node.
+    /// An Amb or Cycle node of a nonterminal also returns that nonterminal's
+    /// id.
+    fn nonterminal_id(&self) -> Option<NonterminalId>;
     /// The grammar construct this node was derived from, or `None` for a
     /// user-declared nonterminal or a token.
     fn origin(&self) -> Option<Origin> {
@@ -633,10 +637,10 @@ pub trait ParseTreeNode: Copy {
     }
 }
 
-/// The logical children of a `Star` or `Plus` node: its elements, with the
-/// separators and layout between them, without the `Plus` nodes of the list's
-/// left recursion. If the list or one of those `Plus` nodes is an Amb or Cycle
-/// node, that node is returned as one child.
+/// The logical children of a `Star` or `Plus` node: the nodes of the symbols
+/// of its elements, with the separators and layout between them, without the
+/// `Plus` nodes of the list's left recursion. If the list or one of those
+/// `Plus` nodes is an Amb or Cycle node, that node is returned as one child.
 pub fn list_children<N: ParseTreeNode>(list: N) -> Vec<N> {
     let mut plus = list;
     if list.origin() == Some(Origin::Star) && list.kind() == NodeKind::Nonterminal {
@@ -645,20 +649,31 @@ pub fn list_children<N: ParseTreeNode>(list: N) -> Vec<N> {
             None => return Vec::new(),
         }
     }
+    if plus.kind() != NodeKind::Nonterminal {
+        return vec![plus];
+    }
     // The walk descends the left recursion from the last element, so it
     // collects the children in reverse.
     let mut children = Vec::new();
     loop {
-        if plus.kind() != NodeKind::Nonterminal {
-            children.push(plus);
-            break;
-        }
         let count = plus.child_count();
         for i in (1..count).rev() {
             children.extend(plus.child(i));
         }
         match plus.child(0) {
-            Some(rest) if count > 1 => plus = rest,
+            // A list is `Plus = Plus Elem | Elem`, where `Elem` is one symbol,
+            // as in `A+`, or a sequence, as in `(A B)+`. Child 0 is the
+            // recursive `Plus` when it has the same nonterminal id as `plus`,
+            // and the walk continues there. If that `Plus` is ambiguous, child
+            // 0 is an Amb node, whose kind is not `Nonterminal`, so the walk
+            // stops and returns it as a child. A Cycle node is handled the
+            // same way.
+            Some(rest)
+                if rest.kind() == NodeKind::Nonterminal
+                    && rest.nonterminal_id() == plus.nonterminal_id() =>
+            {
+                plus = rest
+            }
             first => {
                 children.extend(first);
                 break;
@@ -1129,6 +1144,8 @@ impl<N: ParseTreeNode> TreeVisitor<N> for SexprPrinter<'_> {
 
 #[cfg(test)]
 mod tests {
+    use std::hash::{Hash, Hasher};
+
     use super::*;
     use crate::arena::Arena;
 
@@ -1163,6 +1180,15 @@ mod tests {
             // usize::MAX stands for a node that is never shared, as a token
             // is in a generated parser.
             (self.id != usize::MAX).then_some(self.id)
+        }
+        fn nonterminal_id(&self) -> Option<NonterminalId> {
+            // The nodes of one nonterminal have the same name in these
+            // tests, so a hash of the name stands for the nonterminal.
+            (self.kind != NodeKind::Token).then(|| {
+                let mut hasher = rustc_hash::FxHasher::default();
+                self.name.hash(&mut hasher);
+                NonterminalId(hasher.finish() as u16)
+            })
         }
         fn origin(&self) -> Option<Origin> {
             self.origin
@@ -1470,6 +1496,31 @@ mod tests {
             to_sexpr_with(start, Some("Layout"), DisplayOptions::simplified()),
             "(Grammar\n  a\n  (B* b1 b2))\n"
         );
+    }
+
+    #[test]
+    fn list_children_keeps_an_element_that_starts_with_a_nonterminal() {
+        // (A B)+ over two elements. The base node starts with the nonterminal
+        // A, which is an element symbol, not the list's left recursion.
+        let a = [leaf("a", 1)];
+        let b = [leaf("b", 2)];
+        let first = [nonterminal("A", 3, &a), nonterminal("B", 4, &b)];
+        let base = derived("(A B)+", 5, Origin::Plus, &first);
+        let rest = [base, nonterminal("A", 6, &a), nonterminal("B", 7, &b)];
+        let list = derived("(A B)+", 8, Origin::Plus, &rest);
+        let ids: Vec<_> = list_children(list).iter().map(|c| c.node_id()).collect();
+        assert_eq!(ids, [Some(3), Some(4), Some(6), Some(7)]);
+    }
+
+    #[test]
+    fn list_children_keeps_an_element_that_starts_with_another_list() {
+        // (X+ Y)+ over one element: the element's X+ is a different list.
+        let x = [leaf("x", 1)];
+        let inner = derived("X+", 2, Origin::Plus, &x);
+        let element = [inner, leaf("y", 3)];
+        let list = derived("(X+ Y)+", 4, Origin::Plus, &element);
+        let ids: Vec<_> = list_children(list).iter().map(|c| c.node_id()).collect();
+        assert_eq!(ids, [Some(2), Some(3)]);
     }
 
     #[test]

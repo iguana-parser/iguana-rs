@@ -395,6 +395,50 @@ impl<'a> ParseTree<'a> {
             ParseTree::Token(_) => None,
         }
     }
+    pub fn nonterminal_id(&self) -> Option<NonterminalId> {
+        match self {
+            ParseTree::Direct(_) => Some(grammar::DIRECT),
+            ParseTree::MutualC(_) => Some(grammar::MUTUAL_C),
+            ParseTree::MutualB(_) => Some(grammar::MUTUAL_B),
+            ParseTree::ChainC(_) => Some(grammar::CHAIN_C),
+            ParseTree::ChainA(_) => Some(grammar::CHAIN_A),
+            ParseTree::ChainB(_) => Some(grammar::CHAIN_B),
+            ParseTree::SharedS(_) => Some(grammar::SHARED_S),
+            ParseTree::SharedA(_) => Some(grammar::SHARED_A),
+            ParseTree::SharedB(_) => Some(grammar::SHARED_B),
+            ParseTree::TwoExitsC(_) => Some(grammar::TWO_EXITS_C),
+            ParseTree::TwoExitsB(_) => Some(grammar::TWO_EXITS_B),
+            ParseTree::TwoRoutesC(_) => Some(grammar::TWO_ROUTES_C),
+            ParseTree::TwoRoutesA(_) => Some(grammar::TWO_ROUTES_A),
+            ParseTree::TwoRoutesB(_) => Some(grammar::TWO_ROUTES_B),
+            ParseTree::Nullable(_) => Some(grammar::NULLABLE),
+            ParseTree::SiblingC(_) => Some(grammar::SIBLING_C),
+            ParseTree::SiblingD(_) => Some(grammar::SIBLING_D),
+            ParseTree::EmptyE(_) => Some(grammar::EMPTY_E),
+            ParseTree::EmptyF(_) => Some(grammar::EMPTY_F),
+            ParseTree::ParentC(_) => Some(grammar::PARENT_C),
+            ParseTree::ParentD(_) => Some(grammar::PARENT_D),
+            ParseTree::OverlapC(_) => Some(grammar::OVERLAP_C),
+            ParseTree::OverlapB(_) => Some(grammar::OVERLAP_B),
+            ParseTree::IntermediateY(_) => Some(grammar::INTERMEDIATE_Y),
+            ParseTree::IntermediateA(_) => Some(grammar::INTERMEDIATE_A),
+            ParseTree::IntermediateB(_) => Some(grammar::INTERMEDIATE_B),
+            ParseTree::MidInput(_) => Some(grammar::MID_INPUT),
+            ParseTree::Consuming(_) => Some(grammar::CONSUMING),
+            ParseTree::Ordinary(_) => Some(grammar::ORDINARY),
+            ParseTree::NullablePlus(_) => Some(grammar::NULLABLE_PLUS),
+            ParseTree::NullableStar(_) => Some(grammar::NULLABLE_STAR),
+            ParseTree::NullableSeparated(_) => Some(grammar::NULLABLE_SEPARATED),
+            ParseTree::Optional(_) => Some(grammar::OPTIONAL),
+            ParseTree::Grouped(_) => Some(grammar::GROUPED),
+            ParseTree::Plus0(_) => Some(grammar::PLUS_0),
+            ParseTree::Star0(_) => Some(grammar::STAR_0),
+            ParseTree::Plus1(_) => Some(grammar::PLUS_1),
+            ParseTree::Opt0(_) => Some(grammar::OPT_0),
+            ParseTree::Group0(_) => Some(grammar::GROUP_0),
+            ParseTree::Start(_) | ParseTree::Token(_) => None,
+        }
+    }
     pub fn origin(&self) -> Option<Origin> {
         match self {
             ParseTree::Direct(direct) => direct.origin(),
@@ -4316,6 +4360,9 @@ impl<'a> ParseTreeNode for ParseTree<'a> {
     }
     fn node_id(&self) -> Option<usize> {
         ParseTree::node_id(self)
+    }
+    fn nonterminal_id(&self) -> Option<NonterminalId> {
+        ParseTree::nonterminal_id(self)
     }
     fn cycle_target(&self) -> Option<Self> {
         ParseTree::cycle_target(self)

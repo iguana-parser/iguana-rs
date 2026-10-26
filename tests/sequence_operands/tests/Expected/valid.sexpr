@@ -1,0 +1,21 @@
+(Start
+  (Layout WhiteSpace?)
+  (Expected
+    "expect"
+    (Layout
+      (WhiteSpace? WhiteSpace))
+    ((Key Choice)+
+      (Key "k")
+      (Layout
+        (WhiteSpace? WhiteSpace))
+      (Choice "v")
+      (Layout
+        (WhiteSpace? WhiteSpace))
+      (Key "k")
+      (Layout
+        (WhiteSpace? WhiteSpace))
+      (Choice "w"))
+    (Layout
+      (WhiteSpace? WhiteSpace))
+    ";")
+  (Layout WhiteSpace?))

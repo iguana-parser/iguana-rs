@@ -1,0 +1,38 @@
+grammar SequenceOperands
+
+Items = Item ("," Item)*
+
+Names = "names" ("," Name)*
+
+Separated = ("," Item)+
+
+Pairs = (Key Value)+
+
+Else = "if" Item ("else" Item)?
+
+Single = "single" (Item)?
+
+Written = "written" ((Key Value))*
+
+Mixed = "mixed" (Key (Value Value)?)+
+
+Expected = "expect" (Key Choice)+ ";"
+
+Item = Name
+
+Key = "k"
+
+Value = "v"
+
+Choice
+  = "v"
+  | "w"
+
+@Layout
+Layout = WhiteSpace? !>> WhiteSpace
+
+@Regex
+WhiteSpace = [\ ]+
+
+@Regex
+Name = [a-j]+

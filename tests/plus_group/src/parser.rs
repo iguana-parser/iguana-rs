@@ -884,91 +884,13 @@ impl<'i, 'arena> PlusGroupParser<'i, 'arena> {
         }
     }
     #[inline(always)]
-    fn parse_group_0_ll1(
-        &mut self,
-        i: u32,
-        failure_context: Option<SlotId>,
-    ) -> Option<(u32, SPPFNodeId)> {
-        #[cfg(feature = "instrument")]
-        self.ll1_call_log.push((NonterminalId(4), i));
-        let result = self.parse_group_0_ll1_body(i);
-        if result.is_none() {
-            if let Some(slot_id) = failure_context {
-                self.add_failure(
-                    i,
-                    slot_id,
-                    None,
-                    GLLFailureKind::UnexpectedToken(&FIRST_SET_GROUP_0),
-                );
-            }
-        }
-        result
-    }
-    #[inline(always)]
-    fn parse_group_0_ll1_body(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_GROUP_0, i)?;
-        match matched {
-            TerminalId(0) => {
-                let mut j = i;
-                let right_child = {
-                    let start = j;
-                    let (end, node) = self.parse_a_ll1(start, Some(SlotId(9)))?;
-                    j = end;
-                    node
-                };
-                let left_extent = i;
-                let mut current = right_child;
-                let right_child = {
-                    let start = j;
-                    let (end, node) = self.parse_b_ll1(start, Some(SlotId(10)))?;
-                    j = end;
-                    node
-                };
-                current = self.create_intermediate_node_ll1(
-                    SlotId(10),
-                    left_extent,
-                    j,
-                    current,
-                    right_child,
-                );
-                let right_child = {
-                    let start = j;
-                    let (end, node) = self.parse_c_ll1(start, Some(SlotId(11)))?;
-                    j = end;
-                    node
-                };
-                current = self.create_intermediate_node_ll1(
-                    SlotId(11),
-                    left_extent,
-                    j,
-                    current,
-                    right_child,
-                );
-                Some((
-                    j,
-                    self.add_nonterminal_node(NonterminalNode {
-                        nonterminal_id: NonterminalId(4),
-                        return_slot: SlotId(11),
-                        span: Span {
-                            left_extent,
-                            right_extent: j,
-                        },
-                        child: current,
-                        ambiguous: false,
-                    }),
-                ))
-            }
-            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
-        }
-    }
-    #[inline(always)]
     fn parse_plus_0_ll1(
         &mut self,
         i: u32,
         failure_context: Option<SlotId>,
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
-        self.ll1_call_log.push((NonterminalId(5), i));
+        self.ll1_call_log.push((NonterminalId(4), i));
         let result = self.parse_plus_0_ll1_body(i);
         if result.is_none() {
             if let Some(slot_id) = failure_context {
@@ -984,31 +906,57 @@ impl<'i, 'arena> PlusGroupParser<'i, 'arena> {
     }
     #[inline(always)]
     fn parse_plus_0_ll1_body(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let mut j = i;
-        let (body_end, body_node) = (self.parse_group_0_ll1(j, None))?;
-        j = body_end;
         let left_extent = i;
-        let mut current = self.add_nonterminal_node(NonterminalNode {
-            nonterminal_id: NonterminalId(5),
+        let (base_pos_0, base_node_0) = self.parse_a_ll1(i, None)?;
+        let mut current = base_node_0;
+        let (base_pos_1, base_node_1) = self.parse_b_ll1(base_pos_0, Some(SlotId(15)))?;
+        current = self.create_intermediate_node_ll1(
+            SlotId(15),
+            left_extent,
+            base_pos_1,
+            current,
+            base_node_1,
+        );
+        let (base_pos_2, base_node_2) = self.parse_c_ll1(base_pos_1, Some(SlotId(16)))?;
+        current = self.create_intermediate_node_ll1(
+            SlotId(16),
+            left_extent,
+            base_pos_2,
+            current,
+            base_node_2,
+        );
+        let mut j = base_pos_2;
+        current = self.add_nonterminal_node(NonterminalNode {
+            nonterminal_id: NonterminalId(4),
             return_slot: SlotId(16),
             span: Span {
                 left_extent,
                 right_extent: j,
             },
-            child: body_node,
+            child: current,
             ambiguous: false,
         });
         #[allow(clippy::while_let_loop)]
         loop {
-            let Some((pos_0, node_0)) = self.parse_group_0_ll1(j, None) else {
+            let Some((pos_0, node_0)) = self.parse_a_ll1(j, None) else {
                 break;
             };
-            j = pos_0;
+            let Some((pos_1, node_1)) = self.parse_b_ll1(pos_0, Some(SlotId(11))) else {
+                break;
+            };
+            let Some((pos_2, node_2)) = self.parse_c_ll1(pos_1, Some(SlotId(12))) else {
+                break;
+            };
+            j = pos_2;
             current =
-                self.create_intermediate_node_ll1(SlotId(14), left_extent, pos_0, current, node_0);
+                self.create_intermediate_node_ll1(SlotId(10), left_extent, pos_0, current, node_0);
+            current =
+                self.create_intermediate_node_ll1(SlotId(11), left_extent, pos_1, current, node_1);
+            current =
+                self.create_intermediate_node_ll1(SlotId(12), left_extent, pos_2, current, node_2);
             current = self.add_nonterminal_node(NonterminalNode {
-                nonterminal_id: NonterminalId(5),
-                return_slot: SlotId(14),
+                nonterminal_id: NonterminalId(4),
+                return_slot: SlotId(12),
                 span: Span {
                     left_extent,
                     right_extent: j,

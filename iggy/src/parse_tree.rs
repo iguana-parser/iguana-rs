@@ -543,6 +543,54 @@ impl<'a> ParseTree<'a> {
             ParseTree::Token(_) => None,
         }
     }
+    pub fn nonterminal_id(&self) -> Option<NonterminalId> {
+        match self {
+            ParseTree::Grammar(_) => Some(grammar::GRAMMAR),
+            ParseTree::Rule(_) => Some(grammar::RULE),
+            ParseTree::SyntaxRule(_) => Some(grammar::SYNTAX_RULE),
+            ParseTree::Annotation(_) => Some(grammar::ANNOTATION),
+            ParseTree::RegexRule(_) => Some(grammar::REGEX_RULE),
+            ParseTree::RegexPreCondition(_) => Some(grammar::REGEX_PRE_CONDITION),
+            ParseTree::RegexPostCondition(_) => Some(grammar::REGEX_POST_CONDITION),
+            ParseTree::PriorityLevel(_) => Some(grammar::PRIORITY_LEVEL),
+            ParseTree::Associativity(_) => Some(grammar::ASSOCIATIVITY),
+            ParseTree::Alternative(_) => Some(grammar::ALTERNATIVE),
+            ParseTree::Symbol(_) => Some(grammar::SYMBOL),
+            ParseTree::PreCondition(_) => Some(grammar::PRE_CONDITION),
+            ParseTree::PostCondition(_) => Some(grammar::POST_CONDITION),
+            ParseTree::Regex(_) => Some(grammar::REGEX),
+            ParseTree::CharClass(_) => Some(grammar::CHAR_CLASS),
+            ParseTree::RangeElement(_) => Some(grammar::RANGE_ELEMENT),
+            ParseTree::Range(_) => Some(grammar::RANGE),
+            ParseTree::Layout(_) => Some(grammar::LAYOUT),
+            ParseTree::Plus0(_) => Some(grammar::PLUS_0),
+            ParseTree::Star0(_) => Some(grammar::STAR_0),
+            ParseTree::Opt0(_) => Some(grammar::OPT_0),
+            ParseTree::Plus1(_) => Some(grammar::PLUS_1),
+            ParseTree::Star1(_) => Some(grammar::STAR_1),
+            ParseTree::Opt1(_) => Some(grammar::OPT_1),
+            ParseTree::Opt2(_) => Some(grammar::OPT_2),
+            ParseTree::Opt3(_) => Some(grammar::OPT_3),
+            ParseTree::Plus3(_) => Some(grammar::PLUS_3),
+            ParseTree::Plus2(_) => Some(grammar::PLUS_2),
+            ParseTree::Plus4(_) => Some(grammar::PLUS_4),
+            ParseTree::Star2(_) => Some(grammar::STAR_2),
+            ParseTree::Opt4(_) => Some(grammar::OPT_4),
+            ParseTree::Plus5(_) => Some(grammar::PLUS_5),
+            ParseTree::Star3(_) => Some(grammar::STAR_3),
+            ParseTree::Plus6(_) => Some(grammar::PLUS_6),
+            ParseTree::Opt5(_) => Some(grammar::OPT_5),
+            ParseTree::Plus7(_) => Some(grammar::PLUS_7),
+            ParseTree::Plus8(_) => Some(grammar::PLUS_8),
+            ParseTree::Plus9(_) => Some(grammar::PLUS_9),
+            ParseTree::Opt6(_) => Some(grammar::OPT_6),
+            ParseTree::Plus10(_) => Some(grammar::PLUS_10),
+            ParseTree::Alt0(_) => Some(grammar::ALT_0),
+            ParseTree::Plus11(_) => Some(grammar::PLUS_11),
+            ParseTree::Star4(_) => Some(grammar::STAR_4),
+            ParseTree::Start(_) | ParseTree::Token(_) => None,
+        }
+    }
     pub fn origin(&self) -> Option<Origin> {
         match self {
             ParseTree::Grammar(grammar) => grammar.origin(),
@@ -6020,6 +6068,9 @@ impl<'a> ParseTreeNode for ParseTree<'a> {
     }
     fn node_id(&self) -> Option<usize> {
         ParseTree::node_id(self)
+    }
+    fn nonterminal_id(&self) -> Option<NonterminalId> {
+        ParseTree::nonterminal_id(self)
     }
     fn origin(&self) -> Option<Origin> {
         ParseTree::origin(self)

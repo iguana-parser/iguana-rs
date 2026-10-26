@@ -1,0 +1,20 @@
+(Start
+  (Layout WhiteSpace?)
+  (Written
+    "written"
+    (Layout
+      (WhiteSpace? WhiteSpace))
+    (((Key Value))*
+      ((Key Value)
+        (Key "k")
+        (Layout
+          (WhiteSpace? WhiteSpace))
+        (Value "v"))
+      (Layout
+        (WhiteSpace? WhiteSpace))
+      ((Key Value)
+        (Key "k")
+        (Layout
+          (WhiteSpace? WhiteSpace))
+        (Value "v"))))
+  (Layout WhiteSpace?))

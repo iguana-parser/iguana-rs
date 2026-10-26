@@ -11,13 +11,12 @@ pub const PROGRAM: NonterminalId = NonterminalId(0);
 pub const STMT: NonterminalId = NonterminalId(1);
 pub const EXPR: NonterminalId = NonterminalId(2);
 pub const PLUS_0: NonterminalId = NonterminalId(3);
-pub const GROUP_0: NonterminalId = NonterminalId(4);
-pub const OPT_0: NonterminalId = NonterminalId(5);
-pub const START_PROGRAM: NonterminalId = NonterminalId(6);
-pub const START_STMT: NonterminalId = NonterminalId(7);
-pub const START_EXPR: NonterminalId = NonterminalId(8);
+pub const OPT_0: NonterminalId = NonterminalId(4);
+pub const START_PROGRAM: NonterminalId = NonterminalId(5);
+pub const START_STMT: NonterminalId = NonterminalId(6);
+pub const START_EXPR: NonterminalId = NonterminalId(7);
 pub struct ExactKeywordGrammar;
-static NONTERMINALS: [Nonterminal; 9] = [
+static NONTERMINALS: [Nonterminal; 8] = [
     Nonterminal {
         name: "Program",
         display_name: "Program",
@@ -33,10 +32,6 @@ static NONTERMINALS: [Nonterminal; 9] = [
     Nonterminal {
         name: "Plus_0",
         display_name: "Stmt+",
-    },
-    Nonterminal {
-        name: "Group_0",
-        display_name: "([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)",
     },
     Nonterminal {
         name: "Opt_0",
@@ -72,7 +67,7 @@ static TERMINALS: [Terminal; 12] = [
     Terminal { name: "Epsilon" },
     Terminal { name: "EOF" },
 ];
-static SLOTS: [Slot; 53] = [
+static SLOTS: [Slot; 51] = [
     Slot {
         display_name: "Program : . Stmt+",
         position: 0,
@@ -210,28 +205,20 @@ static SLOTS: [Slot; 53] = [
         position: 1,
     },
     Slot {
-        display_name: "([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt) : . [0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] WS Stmt",
+        display_name: "([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)? : . [0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] WS Stmt",
         position: 0,
     },
     Slot {
-        display_name: "([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt) : [0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] . WS Stmt",
+        display_name: "([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)? : [0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] . WS Stmt",
         position: 1,
     },
     Slot {
-        display_name: "([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt) : [0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] WS . Stmt",
+        display_name: "([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)? : [0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] WS . Stmt",
         position: 2,
     },
     Slot {
-        display_name: "([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt) : [0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] WS Stmt.",
+        display_name: "([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)? : [0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] WS Stmt.",
         position: 3,
-    },
-    Slot {
-        display_name: "([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)? : . ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)",
-        position: 0,
-    },
-    Slot {
-        display_name: "([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)? : ([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt).",
-        position: 1,
     },
     Slot {
         display_name: "([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)? : .",
@@ -286,16 +273,15 @@ static SLOTS: [Slot; 53] = [
         position: 3,
     },
 ];
-static FIRST_SLOTS: [&[SlotId]; 9] = [
+static FIRST_SLOTS: [&[SlotId]; 8] = [
     &[SlotId(0)],
     &[SlotId(2), SlotId(6), SlotId(18)],
     &[SlotId(24), SlotId(26)],
     &[SlotId(28), SlotId(32)],
-    &[SlotId(34)],
-    &[SlotId(38), SlotId(40)],
-    &[SlotId(41)],
-    &[SlotId(45)],
-    &[SlotId(49)],
+    &[SlotId(34), SlotId(38)],
+    &[SlotId(39)],
+    &[SlotId(43)],
+    &[SlotId(47)],
 ];
 // A failed terminal match refers to a static terminal set like every other failure, so the
 // error reporting path needs to reach a terminal set from a terminal id. This table, indexed
@@ -367,7 +353,6 @@ impl Grammar for ExactKeywordGrammar {
             "Stmt" => Some(STMT),
             "Expr" => Some(EXPR),
             "Plus_0" => Some(PLUS_0),
-            "Group_0" => Some(GROUP_0),
             "Opt_0" => Some(OPT_0),
             "StartProgram" => Some(START_PROGRAM),
             "StartStmt" => Some(START_STMT),
@@ -423,24 +408,6 @@ pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
         TerminalId(11),
     ],
 };
-// Group_0 { Id, Num, WS, "if", "else", "assert", EOF }
-pub static FOLLOW_SET_GROUP_0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[
-        TerminalId(0),
-        TerminalId(1),
-        TerminalId(2),
-        TerminalId(4),
-        TerminalId(7),
-        TerminalId(8),
-        TerminalId(11),
-    ],
-};
-// Group_0 : . [0-9 A-Z _ a-z] !<< "else" !>> [0-9 A-Z _ a-z] WS Stmt !>> { [0-9 A-Z _ a-z] }
-pub static FOLLOW_RESTRICTION_GROUP_0_ALT0_POS0: TerminalSet = TerminalSet {
-    id: 2,
-    terminals: &[TerminalId(9)],
-};
 // Opt_0 { Id, Num, WS, "if", "else", "assert", EOF }
 pub static FOLLOW_SET_OPT_0: TerminalSet = TerminalSet {
     id: 1,
@@ -453,6 +420,11 @@ pub static FOLLOW_SET_OPT_0: TerminalSet = TerminalSet {
         TerminalId(8),
         TerminalId(11),
     ],
+};
+// Opt_0 : . [0-9 A-Z _ a-z] !<< "else" !>> [0-9 A-Z _ a-z] WS Stmt !>> { [0-9 A-Z _ a-z] }
+pub static FOLLOW_RESTRICTION_OPT_0_ALT0_POS0: TerminalSet = TerminalSet {
+    id: 2,
+    terminals: &[TerminalId(9)],
 };
 // StartProgram { EOF }
 pub static FOLLOW_SET_START_PROGRAM: TerminalSet = TerminalSet {
@@ -935,148 +907,8 @@ pub static PREDICTION_PLUS_0: Prediction = {
         end_of_input: &[],
     }
 };
-// Group_0
-// 0: [0-9 A-Z _ a-z] !<< "else" !>> [0-9 A-Z _ a-z] WS Stmt
-pub static PREDICTION_GROUP_0: Prediction = {
-    // "else"
-    const TERMINALS_1: &[(TerminalId, u16)] = &[(TerminalId(7), 0)];
-    Prediction {
-        ascii: [
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            TERMINALS_1,
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-            &[],
-        ],
-        non_ascii: &[],
-        end_of_input: &[],
-    }
-};
 // Opt_0
-// 0: Group_0
+// 0: [0-9 A-Z _ a-z] !<< "else" !>> [0-9 A-Z _ a-z] WS Stmt
 // 1: ()
 pub static PREDICTION_OPT_0: Prediction = {
     // WS

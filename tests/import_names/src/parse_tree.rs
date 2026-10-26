@@ -194,6 +194,23 @@ impl<'a> ParseTree<'a> {
             ParseTree::Token(_) => None,
         }
     }
+    pub fn nonterminal_id(&self) -> Option<NonterminalId> {
+        match self {
+            ParseTree::S(_) => Some(grammar::S),
+            ParseTree::Parse(_) => Some(grammar::PARSE),
+            ParseTree::Parser(_) => Some(grammar::PARSER),
+            ParseTree::SPPFNode(_) => Some(grammar::SPPF_NODE),
+            ParseTree::Input(_) => Some(grammar::INPUT),
+            ParseTree::ParseError(_) => Some(grammar::PARSE_ERROR),
+            ParseTree::ParseSuccess(_) => Some(grammar::PARSE_SUCCESS),
+            ParseTree::Grammar(_) => Some(grammar::GRAMMAR),
+            ParseTree::Nonterminal(_) => Some(grammar::NONTERMINAL),
+            ParseTree::Terminal(_) => Some(grammar::TERMINAL),
+            ParseTree::Slot(_) => Some(grammar::SLOT),
+            ParseTree::TerminalSet(_) => Some(grammar::TERMINAL_SET),
+            ParseTree::Start(_) | ParseTree::Token(_) => None,
+        }
+    }
     pub fn origin(&self) -> Option<Origin> {
         match self {
             ParseTree::S(s) => s.origin(),
@@ -1344,6 +1361,9 @@ impl<'a> ParseTreeNode for ParseTree<'a> {
     }
     fn node_id(&self) -> Option<usize> {
         ParseTree::node_id(self)
+    }
+    fn nonterminal_id(&self) -> Option<NonterminalId> {
+        ParseTree::nonterminal_id(self)
     }
     fn origin(&self) -> Option<Origin> {
         ParseTree::origin(self)

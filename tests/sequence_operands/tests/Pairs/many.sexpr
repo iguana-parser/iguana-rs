@@ -1,0 +1,15 @@
+(Start
+  (Layout WhiteSpace?)
+  (Pairs
+    ((Key Value)+
+      (Key "k")
+      (Layout
+        (WhiteSpace? WhiteSpace))
+      (Value "v")
+      (Layout
+        (WhiteSpace? WhiteSpace))
+      (Key "k")
+      (Layout
+        (WhiteSpace? WhiteSpace))
+      (Value "v")))
+  (Layout WhiteSpace?))

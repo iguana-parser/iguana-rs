@@ -58,8 +58,6 @@ pub enum ParseTree<'a> {
     Expr(&'a Expr<'a>),
     // Stmt+
     Plus0(&'a Plus0<'a>),
-    // ("else" Stmt)
-    Group0(&'a Group0<'a>),
     // ("else" Stmt)?
     Opt0(&'a Opt0<'a>),
     // Every start nonterminal. `before` and `after` are `None` without layout.
@@ -73,7 +71,6 @@ impl<'a> ParseTree<'a> {
             ParseTree::Stmt(stmt) => stmt.display_name(),
             ParseTree::Expr(expr) => expr.display_name(),
             ParseTree::Plus0(plus_0) => plus_0.display_name(),
-            ParseTree::Group0(group_0) => group_0.display_name(),
             ParseTree::Opt0(opt_0) => opt_0.display_name(),
             ParseTree::Start(start) => start.display_name(),
             ParseTree::Token(token) => token.kind.name(),
@@ -85,7 +82,6 @@ impl<'a> ParseTree<'a> {
             ParseTree::Stmt(stmt) => stmt.child(index),
             ParseTree::Expr(expr) => expr.child(index),
             ParseTree::Plus0(plus_0) => plus_0.child(index),
-            ParseTree::Group0(group_0) => group_0.child(index),
             ParseTree::Opt0(opt_0) => opt_0.child(index),
             ParseTree::Start(start) => start.child(index),
             ParseTree::Token(_) => None,
@@ -97,7 +93,6 @@ impl<'a> ParseTree<'a> {
             ParseTree::Stmt(stmt) => stmt.child_count(),
             ParseTree::Expr(expr) => expr.child_count(),
             ParseTree::Plus0(plus_0) => plus_0.child_count(),
-            ParseTree::Group0(group_0) => group_0.child_count(),
             ParseTree::Opt0(opt_0) => opt_0.child_count(),
             ParseTree::Start(start) => start.child_count(),
             ParseTree::Token(_) => 0,
@@ -109,7 +104,6 @@ impl<'a> ParseTree<'a> {
             ParseTree::Stmt(stmt) => stmt.span(),
             ParseTree::Expr(expr) => expr.span(),
             ParseTree::Plus0(plus_0) => plus_0.span(),
-            ParseTree::Group0(group_0) => group_0.span(),
             ParseTree::Opt0(opt_0) => opt_0.span(),
             ParseTree::Start(start) => start.span(),
             ParseTree::Token(token) => token.span(),
@@ -123,7 +117,6 @@ impl<'a> ParseTree<'a> {
             ParseTree::Stmt(stmt) => matches!(stmt, Stmt::Amb(_)),
             ParseTree::Expr(expr) => matches!(expr, Expr::Amb(_)),
             ParseTree::Plus0(plus_0) => matches!(plus_0, Plus0::Amb(_)),
-            ParseTree::Group0(group_0) => matches!(group_0, Group0::Amb(_)),
             ParseTree::Opt0(opt_0) => matches!(opt_0, Opt0::Amb(_)),
             ParseTree::Start(_) | ParseTree::Token(_) => false,
         }
@@ -137,10 +130,19 @@ impl<'a> ParseTree<'a> {
             ParseTree::Stmt(stmt) => Some(*stmt as *const _ as usize),
             ParseTree::Expr(expr) => Some(*expr as *const _ as usize),
             ParseTree::Plus0(plus_0) => Some(*plus_0 as *const _ as usize),
-            ParseTree::Group0(group_0) => Some(*group_0 as *const _ as usize),
             ParseTree::Opt0(opt_0) => Some(*opt_0 as *const _ as usize),
             ParseTree::Start(start) => Some(*start as *const _ as usize),
             ParseTree::Token(_) => None,
+        }
+    }
+    pub fn nonterminal_id(&self) -> Option<NonterminalId> {
+        match self {
+            ParseTree::Program(_) => Some(grammar::PROGRAM),
+            ParseTree::Stmt(_) => Some(grammar::STMT),
+            ParseTree::Expr(_) => Some(grammar::EXPR),
+            ParseTree::Plus0(_) => Some(grammar::PLUS_0),
+            ParseTree::Opt0(_) => Some(grammar::OPT_0),
+            ParseTree::Start(_) | ParseTree::Token(_) => None,
         }
     }
     pub fn origin(&self) -> Option<Origin> {
@@ -149,7 +151,6 @@ impl<'a> ParseTree<'a> {
             ParseTree::Stmt(stmt) => stmt.origin(),
             ParseTree::Expr(expr) => expr.origin(),
             ParseTree::Plus0(plus_0) => plus_0.origin(),
-            ParseTree::Group0(group_0) => group_0.origin(),
             ParseTree::Opt0(opt_0) => opt_0.origin(),
             ParseTree::Start(start) => start.origin(),
             ParseTree::Token(_) => None,
@@ -176,12 +177,6 @@ impl<'a> ParseTree<'a> {
     pub(crate) fn unwrap_plus_0(self) -> &'a Plus0<'a> {
         match self {
             ParseTree::Plus0(plus_0) => plus_0,
-            _ => Self::unexpected_node(),
-        }
-    }
-    pub(crate) fn unwrap_group_0(self) -> &'a Group0<'a> {
-        match self {
-            ParseTree::Group0(group_0) => group_0,
             _ => Self::unexpected_node(),
         }
     }
@@ -281,24 +276,20 @@ pub enum Plus0<'a> {
     },
     Amb(&'a [ParseTree<'a>]),
 }
-// ("else" Stmt)
+// ("else" Stmt)?
 #[derive(Debug)]
-pub enum Group0<'a> {
+pub enum Opt0<'a> {
+    // Opt_0 = "else" WS Stmt
     Alt0 {
         lit_0: Token,
         ws: Token,
         stmt: &'a Stmt<'a>,
         span: Span,
     },
-    Amb(&'a [ParseTree<'a>]),
-}
-// ("else" Stmt)?
-#[derive(Debug)]
-pub enum Opt0<'a> {
-    // Opt_0 = ("else" Stmt)
-    Alt0 { group_0: &'a Group0<'a>, span: Span },
     // Opt_0 =
-    Alt1 { span: Span },
+    Alt1 {
+        span: Span,
+    },
     Amb(&'a [ParseTree<'a>]),
 }
 impl<'a> Program<'a> {
@@ -528,74 +519,18 @@ impl<'a> Plus0<'a> {
             })
     }
 }
-impl<'a> Group0<'a> {
-    pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
-        ParseTree::Group0(self)
-    }
-    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
-        match self {
-            Group0::Alt0 {
-                lit_0, ws, stmt, ..
-            } => match index {
-                0 => Some(ParseTree::Token(*lit_0)),
-                1 => Some(ParseTree::Token(*ws)),
-                2 => Some(ParseTree::Stmt(stmt)),
-                _ => None,
-            },
-            Group0::Amb(alts) => alts.get(index).copied(),
-        }
-    }
-    pub(crate) fn child_count(&self) -> usize {
-        match self {
-            Group0::Alt0 { .. } => 3usize,
-            Group0::Amb(alts) => alts.len(),
-        }
-    }
-    pub fn span(&self) -> Span {
-        match self {
-            Group0::Alt0 { span, .. } => *span,
-            Group0::Amb(alts) => alts[0].span(),
-        }
-    }
-    pub fn display_name(&self) -> &'static str {
-        match self {
-            Group0::Amb(_) => "Amb",
-            _ => "([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)",
-        }
-    }
-    pub fn origin(&self) -> Option<Origin> {
-        match self {
-            Group0::Amb(_) => None,
-            _ => Some(Origin::Group),
-        }
-    }
-    pub fn lit_0(&self) -> Token {
-        match self {
-            Group0::Alt0 { lit_0, .. } => *lit_0,
-            Group0::Amb(_) => panic!("Group_0 is ambiguous"),
-        }
-    }
-    pub fn ws(&self) -> Token {
-        match self {
-            Group0::Alt0 { ws, .. } => *ws,
-            Group0::Amb(_) => panic!("Group_0 is ambiguous"),
-        }
-    }
-    pub fn stmt(&self) -> &'a Stmt<'a> {
-        match self {
-            Group0::Alt0 { stmt, .. } => stmt,
-            Group0::Amb(_) => panic!("Group_0 is ambiguous"),
-        }
-    }
-}
 impl<'a> Opt0<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::Opt0(self)
     }
     pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
-            Opt0::Alt0 { group_0, .. } => match index {
-                0 => Some(ParseTree::Group0(group_0)),
+            Opt0::Alt0 {
+                lit_0, ws, stmt, ..
+            } => match index {
+                0 => Some(ParseTree::Token(*lit_0)),
+                1 => Some(ParseTree::Token(*ws)),
+                2 => Some(ParseTree::Stmt(stmt)),
                 _ => None,
             },
             Opt0::Alt1 { .. } => None,
@@ -604,7 +539,7 @@ impl<'a> Opt0<'a> {
     }
     pub(crate) fn child_count(&self) -> usize {
         match self {
-            Opt0::Alt0 { .. } => 1usize,
+            Opt0::Alt0 { .. } => 3usize,
             Opt0::Alt1 { .. } => 0usize,
             Opt0::Amb(alts) => alts.len(),
         }
@@ -628,14 +563,25 @@ impl<'a> Opt0<'a> {
             _ => Some(Origin::Opt),
         }
     }
-}
-impl<'a> OptNode for Opt0<'a> {
-    type Inner = Group0<'a>;
-    fn value(&self) -> Option<&Self::Inner> {
+    pub fn lit_0(&self) -> Option<Token> {
         match self {
-            Opt0::Alt0 { group_0, .. } => Some(group_0),
+            Opt0::Alt0 { lit_0, .. } => Some(*lit_0),
             Opt0::Alt1 { .. } => None,
-            Opt0::Amb(_) => panic!("unexpected ambiguity in optional node"),
+            Opt0::Amb(_) => panic!("Opt_0 is ambiguous"),
+        }
+    }
+    pub fn ws(&self) -> Option<Token> {
+        match self {
+            Opt0::Alt0 { ws, .. } => Some(*ws),
+            Opt0::Alt1 { .. } => None,
+            Opt0::Amb(_) => panic!("Opt_0 is ambiguous"),
+        }
+    }
+    pub fn stmt(&self) -> Option<&'a Stmt<'a>> {
+        match self {
+            Opt0::Alt0 { stmt, .. } => Some(*stmt),
+            Opt0::Alt1 { .. } => None,
+            Opt0::Amb(_) => panic!("Opt_0 is ambiguous"),
         }
     }
 }
@@ -708,7 +654,6 @@ impl<'a> ExactKeywordParseTreeBuilder<'a> {
             grammar::STMT => ParseTree::Stmt(self.arena.alloc(Stmt::Amb(alternatives))),
             grammar::EXPR => ParseTree::Expr(self.arena.alloc(Expr::Amb(alternatives))),
             grammar::PLUS_0 => ParseTree::Plus0(self.arena.alloc(Plus0::Amb(alternatives))),
-            grammar::GROUP_0 => ParseTree::Group0(self.arena.alloc(Group0::Amb(alternatives))),
             grammar::OPT_0 => ParseTree::Opt0(self.arena.alloc(Opt0::Amb(alternatives))),
             grammar::START_PROGRAM => self.start_ambiguity_node(grammar::PROGRAM, alternatives),
             grammar::START_STMT => self.start_ambiguity_node(grammar::STMT, alternatives),
@@ -851,30 +796,20 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordParseTreeBuilder<'a> {
                     span: nonterminal_node.span,
                 }))
             }
-            // Group_0 = "else" WS Stmt
+            // Opt_0 = "else" WS Stmt
             SlotId(37) => {
                 let &[lit_0, ws, stmt] = children else {
                     ParseTree::unexpected_node()
                 };
-                ParseTree::Group0(self.arena.alloc(Group0::Alt0 {
+                ParseTree::Opt0(self.arena.alloc(Opt0::Alt0 {
                     lit_0: lit_0.unwrap_token(),
                     ws: ws.unwrap_token(),
                     stmt: stmt.unwrap_stmt(),
                     span: nonterminal_node.span,
                 }))
             }
-            // Opt_0 = ("else" Stmt)
-            SlotId(39) => {
-                let &[group_0] = children else {
-                    ParseTree::unexpected_node()
-                };
-                ParseTree::Opt0(self.arena.alloc(Opt0::Alt0 {
-                    group_0: group_0.unwrap_group_0(),
-                    span: nonterminal_node.span,
-                }))
-            }
             // Opt_0 =
-            SlotId(40) => {
+            SlotId(38) => {
                 let &[] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -883,7 +818,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordParseTreeBuilder<'a> {
                 }))
             }
             // The start nonterminals with layout
-            SlotId(44) | SlotId(48) | SlotId(52) => {
+            SlotId(42) | SlotId(46) | SlotId(50) => {
                 let &[before, node, after] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -929,9 +864,6 @@ pub fn create_parse_tree<'a>(
         grammar::STMT => ParseTree::Stmt(visit_sppf(root_id, parser, builder).unwrap_stmt()),
         grammar::EXPR => ParseTree::Expr(visit_sppf(root_id, parser, builder).unwrap_expr()),
         grammar::PLUS_0 => ParseTree::Plus0(visit_sppf(root_id, parser, builder).unwrap_plus_0()),
-        grammar::GROUP_0 => {
-            ParseTree::Group0(visit_sppf(root_id, parser, builder).unwrap_group_0())
-        }
         grammar::OPT_0 => ParseTree::Opt0(visit_sppf(root_id, parser, builder).unwrap_opt_0()),
         grammar::START_PROGRAM | grammar::START_STMT | grammar::START_EXPR => {
             ParseTree::Start(visit_sppf(root_id, parser, builder).unwrap_start())
@@ -963,6 +895,9 @@ impl<'a> ParseTreeNode for ParseTree<'a> {
     }
     fn node_id(&self) -> Option<usize> {
         ParseTree::node_id(self)
+    }
+    fn nonterminal_id(&self) -> Option<NonterminalId> {
+        ParseTree::nonterminal_id(self)
     }
     fn origin(&self) -> Option<Origin> {
         ParseTree::origin(self)

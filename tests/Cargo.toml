@@ -5,6 +5,7 @@
 [workspace]
 resolver = "3"
 members = [
+    "sequence_operands",
     "return_slot_lookahead_gll_layout",
     "alt_seq",
     "amb",

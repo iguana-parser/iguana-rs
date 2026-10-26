@@ -99,8 +99,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordParser<'i, 'arena> {
                     }
                     // Stmt : Expr . WS ";", and 12 more slots
                     SlotId(3) | SlotId(7) | SlotId(9) | SlotId(11) | SlotId(13) | SlotId(15)
-                    | SlotId(19) | SlotId(21) | SlotId(29) | SlotId(35) | SlotId(43)
-                    | SlotId(47) | SlotId(51) => {
+                    | SlotId(19) | SlotId(21) | SlotId(29) | SlotId(35) | SlotId(41)
+                    | SlotId(45) | SlotId(49) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(2),
                             input_index,
@@ -197,7 +197,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordParser<'i, 'arena> {
                     }
                     // Stmt : [0-9 A-Z _ a-z] !<< "if" !>> [0-9 A-Z _ a-z] WS "(" WS . Expr WS ")" WS Stmt WS
                     // Opt_0, and 2 more slots
-                    SlotId(10) | SlotId(20) | SlotId(50) => {
+                    SlotId(10) | SlotId(20) | SlotId(48) => {
                         if let Some((j, right_child)) = self.parse_expr_ll1(input_index, None) {
                             if let Some(new_node) = self.create_intermediate_node(
                                 result,
@@ -241,7 +241,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordParser<'i, 'arena> {
                     }
                     // Stmt : [0-9 A-Z _ a-z] !<< "if" !>> [0-9 A-Z _ a-z] WS "(" WS Expr WS ")" WS . Stmt WS
                     // Opt_0, and 4 more slots
-                    SlotId(14) | SlotId(30) | SlotId(32) | SlotId(36) | SlotId(46) => {
+                    SlotId(14) | SlotId(30) | SlotId(32) | SlotId(36) | SlotId(44) => {
                         self.create(
                             NonterminalId(1),
                             &PREDICTION_STMT,
@@ -255,7 +255,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordParser<'i, 'arena> {
                     // Opt_0
                     SlotId(16) => {
                         self.create(
-                            NonterminalId(5),
+                            NonterminalId(4),
                             &PREDICTION_OPT_0,
                             result,
                             gss_node_id,
@@ -296,7 +296,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordParser<'i, 'arena> {
                         };
                         self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_PLUS_0);
                     }
-                    // Group_0 : . [0-9 A-Z _ a-z] !<< "else" !>> [0-9 A-Z _ a-z] WS Stmt
+                    // Opt_0 : . [0-9 A-Z _ a-z] !<< "else" !>> [0-9 A-Z _ a-z] WS Stmt
                     SlotId(34) => {
                         if input_index == 0
                             || self
@@ -322,38 +322,20 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordParser<'i, 'arena> {
                             }
                         }
                     }
-                    // Group_0 : [0-9 A-Z _ a-z] !<< "else" !>> [0-9 A-Z _ a-z] WS Stmt.
+                    // Opt_0 : [0-9 A-Z _ a-z] !<< "else" !>> [0-9 A-Z _ a-z] WS Stmt.
                     SlotId(37) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_GROUP_0);
-                    }
-                    // Opt_0 : . Group_0
-                    SlotId(38) => {
-                        self.create(
-                            NonterminalId(4),
-                            &PREDICTION_GROUP_0,
-                            result,
-                            gss_node_id,
-                            slot_id.next(),
-                            env,
-                        );
-                    }
-                    // Opt_0 : Group_0.
-                    SlotId(39) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_OPT_0);
                     }
                     // Opt_0 : .
-                    SlotId(40) => {
+                    SlotId(38) => {
                         let result = self.get_or_create_epsilon_node(input_index);
                         self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_OPT_0);
                     }
                     // StartProgram : . WS start:Program WS, and 2 more slots
-                    SlotId(41) | SlotId(45) | SlotId(49) => {
+                    SlotId(39) | SlotId(43) | SlotId(47) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(2),
                             input_index,
@@ -366,7 +348,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordParser<'i, 'arena> {
                         }
                     }
                     // StartProgram : WS . start:Program WS
-                    SlotId(42) => {
+                    SlotId(40) => {
                         self.create(
                             NonterminalId(0),
                             &PREDICTION_PROGRAM,
@@ -377,7 +359,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordParser<'i, 'arena> {
                         );
                     }
                     // StartProgram : WS start:Program WS.
-                    SlotId(44) => {
+                    SlotId(42) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
@@ -390,14 +372,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordParser<'i, 'arena> {
                         );
                     }
                     // StartStmt : WS start:Stmt WS.
-                    SlotId(48) => {
+                    SlotId(46) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_STMT);
                     }
                     // StartExpr : WS start:Expr WS.
-                    SlotId(52) => {
+                    SlotId(50) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
@@ -519,11 +501,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordParser<'i, 'arena> {
             .push(SPPFNode::Intermediate(intermediate_node));
         if add_to_index {
             let arena = self.vec_arena;
-            if slot_idx < 53 {
+            if slot_idx < 51 {
                 self.intermediate_nodes_index
                     .insert(slot_idx, span, intermediate_node_id, arena);
             } else {
-                let idx = slot_idx - 53;
+                let idx = slot_idx - 51;
                 self.dd_intermediate_nodes_index.insert(
                     idx,
                     (span, env),
@@ -597,10 +579,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordParser<'i, 'arena> {
     ) -> Option<SPPFNodeId> {
         let slot_idx = slot_id.index();
         let span = Span::new(left_extent, right_extent);
-        if slot_idx < 53 {
+        if slot_idx < 51 {
             self.intermediate_nodes_index.get(slot_idx, &span)
         } else {
-            let idx = slot_idx - 53;
+            let idx = slot_idx - 51;
             self.dd_intermediate_nodes_index.get(idx, &(span, env))
         }
     }
@@ -780,10 +762,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordParser<'i, 'arena> {
             SlotId(35) => {
                 if self
                     .scanner
-                    .match_any(&FOLLOW_RESTRICTION_GROUP_0_ALT0_POS0, right_extent)
+                    .match_any(&FOLLOW_RESTRICTION_OPT_0_ALT0_POS0, right_extent)
                 {
                     Some(GLLFailureKind::ForbiddenFollow(
-                        &FOLLOW_RESTRICTION_GROUP_0_ALT0_POS0,
+                        &FOLLOW_RESTRICTION_OPT_0_ALT0_POS0,
                     ))
                 } else {
                     None
@@ -935,7 +917,7 @@ impl<'i, 'arena> ExactKeywordParser<'i, 'arena> {
             start_gss_node_id: None,
             sppf_nodes: vec_arena
                 .id_vec_with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
-            intermediate_nodes_index: LazyInlineMaps::new(53, vec_arena),
+            intermediate_nodes_index: LazyInlineMaps::new(51, vec_arena),
             dd_intermediate_nodes_index: LazyInlineMaps::new(0, vec_arena),
             terminal_nodes_index: LazyInlineMaps::new(12, vec_arena),
             epsilon_nodes: {
