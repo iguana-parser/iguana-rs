@@ -5,10 +5,9 @@ use iguana_runtime::{
     arena::Arena,
     ids::{NonterminalId, SPPFNodeId, SlotId, TerminalId},
     input::Span,
-    parse_tree::{NodeKind, Origin, ParseTreeBuilder, ParseTreeNode, visit_sppf},
+    parse_tree::{NodeKind, Origin, ParseTreeBuilder, ParseTreeNode, list_children, visit_sppf},
     sppf::{NonterminalNode, TerminalNode},
 };
-use std::vec::IntoIter;
 #[derive(Debug, Clone, Copy)]
 pub enum TokenKind {
     // Question
@@ -163,142 +162,6 @@ pub enum ParseTree<'a> {
     Token(Token),
 }
 impl<'a> ParseTree<'a> {
-    pub fn children(&self) -> Vec<ParseTree<'a>> {
-        match self {
-            ParseTree::T(t) => (0..t.child_count()).filter_map(|i| t.child(i)).collect(),
-            ParseTree::U(u) => (0..u.child_count()).filter_map(|i| u.child(i)).collect(),
-            ParseTree::P(p) => (0..p.child_count()).filter_map(|i| p.child(i)).collect(),
-            ParseTree::Q(q) => (0..q.child_count()).filter_map(|i| q.child(i)).collect(),
-            ParseTree::BeforeP(before_p) => (0..before_p.child_count())
-                .filter_map(|i| before_p.child(i))
-                .collect(),
-            ParseTree::BeforeQ(before_q) => (0..before_q.child_count())
-                .filter_map(|i| before_q.child(i))
-                .collect(),
-            ParseTree::UnexpectedFirst(unexpected_first) => (0..unexpected_first.child_count())
-                .filter_map(|i| unexpected_first.child(i))
-                .collect(),
-            ParseTree::ExcludedFirst(excluded_first) => (0..excluded_first.child_count())
-                .filter_map(|i| excluded_first.child(i))
-                .collect(),
-            ParseTree::PredictionBeforeExcept(prediction_before_except) => (0
-                ..prediction_before_except.child_count())
-                .filter_map(|i| prediction_before_except.child(i))
-                .collect(),
-            ParseTree::ExceptBeforePrediction(except_before_prediction) => (0
-                ..except_before_prediction.child_count())
-                .filter_map(|i| except_before_prediction.child(i))
-                .collect(),
-            ParseTree::PredictionBeforeFollow(prediction_before_follow) => (0
-                ..prediction_before_follow.child_count())
-                .filter_map(|i| prediction_before_follow.child(i))
-                .collect(),
-            ParseTree::FollowBeforePrediction(follow_before_prediction) => (0
-                ..follow_before_prediction.child_count())
-                .filter_map(|i| follow_before_prediction.child(i))
-                .collect(),
-            ParseTree::MissingSuffix(missing_suffix) => (0..missing_suffix.child_count())
-                .filter_map(|i| missing_suffix.child(i))
-                .collect(),
-            ParseTree::SuffixChoice(suffix_choice) => (0..suffix_choice.child_count())
-                .filter_map(|i| suffix_choice.child(i))
-                .collect(),
-            ParseTree::CallPrediction(call_prediction) => (0..call_prediction.child_count())
-                .filter_map(|i| call_prediction.child(i))
-                .collect(),
-            ParseTree::PrefixX(prefix_x) => (0..prefix_x.child_count())
-                .filter_map(|i| prefix_x.child(i))
-                .collect(),
-            ParseTree::PrefixW(prefix_w) => (0..prefix_w.child_count())
-                .filter_map(|i| prefix_w.child(i))
-                .collect(),
-            ParseTree::NullablePrefix(nullable_prefix) => (0..nullable_prefix.child_count())
-                .filter_map(|i| nullable_prefix.child(i))
-                .collect(),
-            ParseTree::Layout(layout) => (0..layout.child_count())
-                .filter_map(|i| layout.child(i))
-                .collect(),
-            ParseTree::Alt0(alt_0) => (0..alt_0.child_count())
-                .filter_map(|i| alt_0.child(i))
-                .collect(),
-            ParseTree::Plus0(plus_0) => match plus_0 {
-                Plus0::Amb(alts) => alts.iter().copied().map(ParseTree::Plus0).collect(),
-                _ => plus_0.iter().collect(),
-            },
-            ParseTree::Star0(star_0) => match star_0 {
-                Star0::Amb(alts) => alts.iter().copied().map(ParseTree::Star0).collect(),
-                _ => star_0.iter().collect(),
-            },
-            ParseTree::StartT(start_t) => (0..start_t.child_count())
-                .filter_map(|i| start_t.child(i))
-                .collect(),
-            ParseTree::StartU(start_u) => (0..start_u.child_count())
-                .filter_map(|i| start_u.child(i))
-                .collect(),
-            ParseTree::StartP(start_p) => (0..start_p.child_count())
-                .filter_map(|i| start_p.child(i))
-                .collect(),
-            ParseTree::StartQ(start_q) => (0..start_q.child_count())
-                .filter_map(|i| start_q.child(i))
-                .collect(),
-            ParseTree::StartBeforeP(start_before_p) => (0..start_before_p.child_count())
-                .filter_map(|i| start_before_p.child(i))
-                .collect(),
-            ParseTree::StartBeforeQ(start_before_q) => (0..start_before_q.child_count())
-                .filter_map(|i| start_before_q.child(i))
-                .collect(),
-            ParseTree::StartUnexpectedFirst(start_unexpected_first) => (0..start_unexpected_first
-                .child_count())
-                .filter_map(|i| start_unexpected_first.child(i))
-                .collect(),
-            ParseTree::StartExcludedFirst(start_excluded_first) => (0..start_excluded_first
-                .child_count())
-                .filter_map(|i| start_excluded_first.child(i))
-                .collect(),
-            ParseTree::StartPredictionBeforeExcept(start_prediction_before_except) => (0
-                ..start_prediction_before_except.child_count())
-                .filter_map(|i| start_prediction_before_except.child(i))
-                .collect(),
-            ParseTree::StartExceptBeforePrediction(start_except_before_prediction) => (0
-                ..start_except_before_prediction.child_count())
-                .filter_map(|i| start_except_before_prediction.child(i))
-                .collect(),
-            ParseTree::StartPredictionBeforeFollow(start_prediction_before_follow) => (0
-                ..start_prediction_before_follow.child_count())
-                .filter_map(|i| start_prediction_before_follow.child(i))
-                .collect(),
-            ParseTree::StartFollowBeforePrediction(start_follow_before_prediction) => (0
-                ..start_follow_before_prediction.child_count())
-                .filter_map(|i| start_follow_before_prediction.child(i))
-                .collect(),
-            ParseTree::StartMissingSuffix(start_missing_suffix) => (0..start_missing_suffix
-                .child_count())
-                .filter_map(|i| start_missing_suffix.child(i))
-                .collect(),
-            ParseTree::StartSuffixChoice(start_suffix_choice) => (0..start_suffix_choice
-                .child_count())
-                .filter_map(|i| start_suffix_choice.child(i))
-                .collect(),
-            ParseTree::StartCallPrediction(start_call_prediction) => (0..start_call_prediction
-                .child_count())
-                .filter_map(|i| start_call_prediction.child(i))
-                .collect(),
-            ParseTree::StartPrefixX(start_prefix_x) => (0..start_prefix_x.child_count())
-                .filter_map(|i| start_prefix_x.child(i))
-                .collect(),
-            ParseTree::StartPrefixW(start_prefix_w) => (0..start_prefix_w.child_count())
-                .filter_map(|i| start_prefix_w.child(i))
-                .collect(),
-            ParseTree::StartNullablePrefix(start_nullable_prefix) => (0..start_nullable_prefix
-                .child_count())
-                .filter_map(|i| start_nullable_prefix.child(i))
-                .collect(),
-            ParseTree::StartLayout(start_layout) => (0..start_layout.child_count())
-                .filter_map(|i| start_layout.child(i))
-                .collect(),
-            ParseTree::Token(_) => vec![],
-        }
-    }
     pub fn display_name(&self) -> &'static str {
         match self {
             ParseTree::T(t) => t.display_name(),
@@ -371,7 +234,79 @@ impl<'a> ParseTree<'a> {
             ParseTree::Token(token) => token.kind.name(),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+        match self {
+            ParseTree::T(t) => t.child(index),
+            ParseTree::U(u) => u.child(index),
+            ParseTree::P(p) => p.child(index),
+            ParseTree::Q(q) => q.child(index),
+            ParseTree::BeforeP(before_p) => before_p.child(index),
+            ParseTree::BeforeQ(before_q) => before_q.child(index),
+            ParseTree::UnexpectedFirst(unexpected_first) => unexpected_first.child(index),
+            ParseTree::ExcludedFirst(excluded_first) => excluded_first.child(index),
+            ParseTree::PredictionBeforeExcept(prediction_before_except) => {
+                prediction_before_except.child(index)
+            }
+            ParseTree::ExceptBeforePrediction(except_before_prediction) => {
+                except_before_prediction.child(index)
+            }
+            ParseTree::PredictionBeforeFollow(prediction_before_follow) => {
+                prediction_before_follow.child(index)
+            }
+            ParseTree::FollowBeforePrediction(follow_before_prediction) => {
+                follow_before_prediction.child(index)
+            }
+            ParseTree::MissingSuffix(missing_suffix) => missing_suffix.child(index),
+            ParseTree::SuffixChoice(suffix_choice) => suffix_choice.child(index),
+            ParseTree::CallPrediction(call_prediction) => call_prediction.child(index),
+            ParseTree::PrefixX(prefix_x) => prefix_x.child(index),
+            ParseTree::PrefixW(prefix_w) => prefix_w.child(index),
+            ParseTree::NullablePrefix(nullable_prefix) => nullable_prefix.child(index),
+            ParseTree::Layout(layout) => layout.child(index),
+            ParseTree::Alt0(alt_0) => alt_0.child(index),
+            ParseTree::Plus0(plus_0) => plus_0.child(index),
+            ParseTree::Star0(star_0) => star_0.child(index),
+            ParseTree::StartT(start_t) => start_t.child(index),
+            ParseTree::StartU(start_u) => start_u.child(index),
+            ParseTree::StartP(start_p) => start_p.child(index),
+            ParseTree::StartQ(start_q) => start_q.child(index),
+            ParseTree::StartBeforeP(start_before_p) => start_before_p.child(index),
+            ParseTree::StartBeforeQ(start_before_q) => start_before_q.child(index),
+            ParseTree::StartUnexpectedFirst(start_unexpected_first) => {
+                start_unexpected_first.child(index)
+            }
+            ParseTree::StartExcludedFirst(start_excluded_first) => {
+                start_excluded_first.child(index)
+            }
+            ParseTree::StartPredictionBeforeExcept(start_prediction_before_except) => {
+                start_prediction_before_except.child(index)
+            }
+            ParseTree::StartExceptBeforePrediction(start_except_before_prediction) => {
+                start_except_before_prediction.child(index)
+            }
+            ParseTree::StartPredictionBeforeFollow(start_prediction_before_follow) => {
+                start_prediction_before_follow.child(index)
+            }
+            ParseTree::StartFollowBeforePrediction(start_follow_before_prediction) => {
+                start_follow_before_prediction.child(index)
+            }
+            ParseTree::StartMissingSuffix(start_missing_suffix) => {
+                start_missing_suffix.child(index)
+            }
+            ParseTree::StartSuffixChoice(start_suffix_choice) => start_suffix_choice.child(index),
+            ParseTree::StartCallPrediction(start_call_prediction) => {
+                start_call_prediction.child(index)
+            }
+            ParseTree::StartPrefixX(start_prefix_x) => start_prefix_x.child(index),
+            ParseTree::StartPrefixW(start_prefix_w) => start_prefix_w.child(index),
+            ParseTree::StartNullablePrefix(start_nullable_prefix) => {
+                start_nullable_prefix.child(index)
+            }
+            ParseTree::StartLayout(start_layout) => start_layout.child(index),
+            ParseTree::Token(_) => None,
+        }
+    }
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             ParseTree::T(t) => t.child_count(),
             ParseTree::U(u) => u.child_count(),
@@ -1008,9 +943,6 @@ impl<'a> ParseTree<'a> {
         unreachable!("unexpected parse tree node")
     }
 }
-pub trait ListNode<'a> {
-    fn iter(&'a self) -> IntoIter<ParseTree<'a>>;
-}
 pub trait OptNode {
     type Inner;
     fn value(&self) -> Option<&Self::Inner>;
@@ -1324,7 +1256,7 @@ impl<'a> T<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::T(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             T::Alt0 {
                 lit_0,
@@ -1363,7 +1295,7 @@ impl<'a> T<'a> {
             T::Amb(alts) => alts.get(index).copied().map(ParseTree::T),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             T::Alt0 { .. } => 6usize,
             T::Alt1 { .. } => 6usize,
@@ -1391,7 +1323,7 @@ impl<'a> U<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::U(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             U::Alt0 {
                 lit_0,
@@ -1430,7 +1362,7 @@ impl<'a> U<'a> {
             U::Amb(alts) => alts.get(index).copied().map(ParseTree::U),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             U::Alt0 { .. } => 6usize,
             U::Alt1 { .. } => 6usize,
@@ -1458,7 +1390,7 @@ impl<'a> P<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::P(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             P::Alt0 { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -1471,7 +1403,7 @@ impl<'a> P<'a> {
             P::Amb(alts) => alts.get(index).copied().map(ParseTree::P),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             P::Alt0 { .. } => 1usize,
             P::Alt1 { .. } => 1usize,
@@ -1499,7 +1431,7 @@ impl<'a> Q<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::Q(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             Q::Alt0 { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -1508,7 +1440,7 @@ impl<'a> Q<'a> {
             Q::Amb(alts) => alts.get(index).copied().map(ParseTree::Q),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             Q::Alt0 { .. } => 1usize,
             Q::Amb(alts) => alts.len(),
@@ -1540,7 +1472,7 @@ impl<'a> BeforeP<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::BeforeP(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             BeforeP::Alt0 { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -1560,7 +1492,7 @@ impl<'a> BeforeP<'a> {
             BeforeP::Amb(alts) => alts.get(index).copied().map(ParseTree::BeforeP),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             BeforeP::Alt0 { .. } => 1usize,
             BeforeP::Alt1 { .. } => 3usize,
@@ -1588,7 +1520,7 @@ impl<'a> BeforeQ<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::BeforeQ(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             BeforeQ::Alt0 { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -1608,7 +1540,7 @@ impl<'a> BeforeQ<'a> {
             BeforeQ::Amb(alts) => alts.get(index).copied().map(ParseTree::BeforeQ),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             BeforeQ::Alt0 { .. } => 1usize,
             BeforeQ::Alt1 { .. } => 3usize,
@@ -1636,7 +1568,7 @@ impl<'a> UnexpectedFirst<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::UnexpectedFirst(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             UnexpectedFirst::Alt0 {
                 identifier, lit_1, ..
@@ -1652,7 +1584,7 @@ impl<'a> UnexpectedFirst<'a> {
             UnexpectedFirst::Amb(alts) => alts.get(index).copied().map(ParseTree::UnexpectedFirst),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             UnexpectedFirst::Alt0 { .. } => 2usize,
             UnexpectedFirst::Alt1 { .. } => 1usize,
@@ -1680,7 +1612,7 @@ impl<'a> ExcludedFirst<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::ExcludedFirst(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             ExcludedFirst::Alt0 { identifier, .. } => match index {
                 0 => Some(ParseTree::Token(*identifier)),
@@ -1696,7 +1628,7 @@ impl<'a> ExcludedFirst<'a> {
             ExcludedFirst::Amb(alts) => alts.get(index).copied().map(ParseTree::ExcludedFirst),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             ExcludedFirst::Alt0 { .. } => 1usize,
             ExcludedFirst::Alt1 { .. } => 2usize,
@@ -1724,7 +1656,7 @@ impl<'a> PredictionBeforeExcept<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::PredictionBeforeExcept(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             PredictionBeforeExcept::Alt0 {
                 identifier,
@@ -1745,7 +1677,7 @@ impl<'a> PredictionBeforeExcept<'a> {
                 .map(ParseTree::PredictionBeforeExcept),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             PredictionBeforeExcept::Alt0 { .. } => 2usize,
             PredictionBeforeExcept::Alt1 { .. } => 1usize,
@@ -1773,7 +1705,7 @@ impl<'a> ExceptBeforePrediction<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::ExceptBeforePrediction(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             ExceptBeforePrediction::Alt0 { identifier, .. } => match index {
                 0 => Some(ParseTree::Token(*identifier)),
@@ -1794,7 +1726,7 @@ impl<'a> ExceptBeforePrediction<'a> {
                 .map(ParseTree::ExceptBeforePrediction),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             ExceptBeforePrediction::Alt0 { .. } => 1usize,
             ExceptBeforePrediction::Alt1 { .. } => 2usize,
@@ -1822,7 +1754,7 @@ impl<'a> PredictionBeforeFollow<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::PredictionBeforeFollow(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             PredictionBeforeFollow::Alt0 {
                 identifier,
@@ -1848,7 +1780,7 @@ impl<'a> PredictionBeforeFollow<'a> {
                 .map(ParseTree::PredictionBeforeFollow),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             PredictionBeforeFollow::Alt0 { .. } => 2usize,
             PredictionBeforeFollow::Alt1 { .. } => 2usize,
@@ -1876,7 +1808,7 @@ impl<'a> FollowBeforePrediction<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::FollowBeforePrediction(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             FollowBeforePrediction::Alt0 {
                 identifier,
@@ -1902,7 +1834,7 @@ impl<'a> FollowBeforePrediction<'a> {
                 .map(ParseTree::FollowBeforePrediction),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             FollowBeforePrediction::Alt0 { .. } => 2usize,
             FollowBeforePrediction::Alt1 { .. } => 2usize,
@@ -1930,7 +1862,7 @@ impl<'a> MissingSuffix<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::MissingSuffix(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             MissingSuffix::Alt0 { suffix_choice, .. } => match index {
                 0 => Some(ParseTree::SuffixChoice(suffix_choice)),
@@ -1939,7 +1871,7 @@ impl<'a> MissingSuffix<'a> {
             MissingSuffix::Amb(alts) => alts.get(index).copied().map(ParseTree::MissingSuffix),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             MissingSuffix::Alt0 { .. } => 1usize,
             MissingSuffix::Amb(alts) => alts.len(),
@@ -1971,7 +1903,7 @@ impl<'a> SuffixChoice<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::SuffixChoice(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             SuffixChoice::Alt0 { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -1985,7 +1917,7 @@ impl<'a> SuffixChoice<'a> {
             SuffixChoice::Amb(alts) => alts.get(index).copied().map(ParseTree::SuffixChoice),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             SuffixChoice::Alt0 { .. } => 1usize,
             SuffixChoice::Alt1 { .. } => 2usize,
@@ -2013,7 +1945,7 @@ impl<'a> CallPrediction<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::CallPrediction(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             CallPrediction::Alt0 {
                 lit_0, prefix_x, ..
@@ -2032,7 +1964,7 @@ impl<'a> CallPrediction<'a> {
             CallPrediction::Amb(alts) => alts.get(index).copied().map(ParseTree::CallPrediction),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             CallPrediction::Alt0 { .. } => 2usize,
             CallPrediction::Alt1 { .. } => 2usize,
@@ -2060,7 +1992,7 @@ impl<'a> PrefixX<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::PrefixX(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             PrefixX::Alt0 {
                 nullable_prefix,
@@ -2074,7 +2006,7 @@ impl<'a> PrefixX<'a> {
             PrefixX::Amb(alts) => alts.get(index).copied().map(ParseTree::PrefixX),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             PrefixX::Alt0 { .. } => 2usize,
             PrefixX::Amb(alts) => alts.len(),
@@ -2114,7 +2046,7 @@ impl<'a> PrefixW<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::PrefixW(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             PrefixW::Alt0 {
                 nullable_prefix,
@@ -2128,7 +2060,7 @@ impl<'a> PrefixW<'a> {
             PrefixW::Amb(alts) => alts.get(index).copied().map(ParseTree::PrefixW),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             PrefixW::Alt0 { .. } => 2usize,
             PrefixW::Amb(alts) => alts.len(),
@@ -2168,7 +2100,7 @@ impl<'a> NullablePrefix<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::NullablePrefix(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             NullablePrefix::Alt0 { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -2183,7 +2115,7 @@ impl<'a> NullablePrefix<'a> {
             NullablePrefix::Amb(alts) => alts.get(index).copied().map(ParseTree::NullablePrefix),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             NullablePrefix::Alt0 { .. } => 1usize,
             NullablePrefix::Alt1 { .. } => 2usize,
@@ -2213,7 +2145,7 @@ impl<'a> Layout<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::Layout(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             Layout::Alt0 { star_0, .. } => match index {
                 0 => Some(ParseTree::Star0(star_0)),
@@ -2222,7 +2154,7 @@ impl<'a> Layout<'a> {
             Layout::Amb(alts) => alts.get(index).copied().map(ParseTree::Layout),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             Layout::Alt0 { .. } => 1usize,
             Layout::Amb(alts) => alts.len(),
@@ -2266,7 +2198,7 @@ impl<'a> Alt0<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::Alt0(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             Alt0::Alt0 { ws, .. } => match index {
                 0 => Some(ParseTree::Token(*ws)),
@@ -2279,7 +2211,7 @@ impl<'a> Alt0<'a> {
             Alt0::Amb(alts) => alts.get(index).copied().map(ParseTree::Alt0),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             Alt0::Alt0 { .. } => 1usize,
             Alt0::Alt1 { .. } => 1usize,
@@ -2310,7 +2242,7 @@ impl<'a> Plus0<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::Plus0(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             Plus0::Alt0 { plus_0, alt_0, .. } => match index {
                 0 => Some(ParseTree::Plus0(plus_0)),
@@ -2324,7 +2256,7 @@ impl<'a> Plus0<'a> {
             Plus0::Amb(alts) => alts.get(index).copied().map(ParseTree::Plus0),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             Plus0::Alt0 { .. } => 2usize,
             Plus0::Alt1 { .. } => 1usize,
@@ -2347,29 +2279,33 @@ impl<'a> Plus0<'a> {
     pub fn origin(&self) -> Option<Origin> {
         match self {
             Plus0::Amb(_) => None,
-            _ => Some(Origin::List),
+            _ => Some(Origin::Plus),
         }
     }
     pub fn wses(&'a self) -> impl Iterator<Item = Token> {
-        self.iter().filter_map(|node| match node {
-            ParseTree::Alt0(Alt0::Alt0 { ws, .. }) => Some(*ws),
-            other if other.is_amb() => panic!("Plus_0 is ambiguous"),
-            _ => None,
-        })
+        list_children(self.as_parse_tree())
+            .into_iter()
+            .filter_map(|node| match node {
+                ParseTree::Alt0(Alt0::Alt0 { ws, .. }) => Some(*ws),
+                other if other.is_amb() => panic!("Plus_0 is ambiguous"),
+                _ => None,
+            })
     }
     pub fn newlines(&'a self) -> impl Iterator<Item = Token> {
-        self.iter().filter_map(|node| match node {
-            ParseTree::Alt0(Alt0::Alt1 { newline, .. }) => Some(*newline),
-            other if other.is_amb() => panic!("Plus_0 is ambiguous"),
-            _ => None,
-        })
+        list_children(self.as_parse_tree())
+            .into_iter()
+            .filter_map(|node| match node {
+                ParseTree::Alt0(Alt0::Alt1 { newline, .. }) => Some(*newline),
+                other if other.is_amb() => panic!("Plus_0 is ambiguous"),
+                _ => None,
+            })
     }
 }
 impl<'a> Star0<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::Star0(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             Star0::Alt0 { plus_0, .. } => match index {
                 0 => Some(ParseTree::Plus0(plus_0)),
@@ -2379,7 +2315,7 @@ impl<'a> Star0<'a> {
             Star0::Amb(alts) => alts.get(index).copied().map(ParseTree::Star0),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             Star0::Alt0 { .. } => 1usize,
             Star0::Alt1 { .. } => 0usize,
@@ -2402,7 +2338,7 @@ impl<'a> Star0<'a> {
     pub fn origin(&self) -> Option<Origin> {
         match self {
             Star0::Amb(_) => None,
-            _ => Some(Origin::List),
+            _ => Some(Origin::Star),
         }
     }
     pub fn wses(&self) -> impl Iterator<Item = Token> {
@@ -2426,7 +2362,7 @@ impl<'a> Start<&'a T<'a>, &'a Layout<'a>> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartT(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Layout(self.before)),
             1 => Some(ParseTree::T(self.node)),
@@ -2434,7 +2370,7 @@ impl<'a> Start<&'a T<'a>, &'a Layout<'a>> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -2451,7 +2387,7 @@ impl<'a> Start<&'a U<'a>, &'a Layout<'a>> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartU(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Layout(self.before)),
             1 => Some(ParseTree::U(self.node)),
@@ -2459,7 +2395,7 @@ impl<'a> Start<&'a U<'a>, &'a Layout<'a>> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -2476,7 +2412,7 @@ impl<'a> Start<&'a P<'a>, &'a Layout<'a>> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartP(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Layout(self.before)),
             1 => Some(ParseTree::P(self.node)),
@@ -2484,7 +2420,7 @@ impl<'a> Start<&'a P<'a>, &'a Layout<'a>> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -2501,7 +2437,7 @@ impl<'a> Start<&'a Q<'a>, &'a Layout<'a>> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartQ(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Layout(self.before)),
             1 => Some(ParseTree::Q(self.node)),
@@ -2509,7 +2445,7 @@ impl<'a> Start<&'a Q<'a>, &'a Layout<'a>> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -2526,7 +2462,7 @@ impl<'a> Start<&'a BeforeP<'a>, &'a Layout<'a>> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartBeforeP(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Layout(self.before)),
             1 => Some(ParseTree::BeforeP(self.node)),
@@ -2534,7 +2470,7 @@ impl<'a> Start<&'a BeforeP<'a>, &'a Layout<'a>> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -2551,7 +2487,7 @@ impl<'a> Start<&'a BeforeQ<'a>, &'a Layout<'a>> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartBeforeQ(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Layout(self.before)),
             1 => Some(ParseTree::BeforeQ(self.node)),
@@ -2559,7 +2495,7 @@ impl<'a> Start<&'a BeforeQ<'a>, &'a Layout<'a>> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -2576,7 +2512,7 @@ impl<'a> Start<&'a UnexpectedFirst<'a>, &'a Layout<'a>> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartUnexpectedFirst(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Layout(self.before)),
             1 => Some(ParseTree::UnexpectedFirst(self.node)),
@@ -2584,7 +2520,7 @@ impl<'a> Start<&'a UnexpectedFirst<'a>, &'a Layout<'a>> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -2601,7 +2537,7 @@ impl<'a> Start<&'a ExcludedFirst<'a>, &'a Layout<'a>> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartExcludedFirst(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Layout(self.before)),
             1 => Some(ParseTree::ExcludedFirst(self.node)),
@@ -2609,7 +2545,7 @@ impl<'a> Start<&'a ExcludedFirst<'a>, &'a Layout<'a>> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -2626,7 +2562,7 @@ impl<'a> Start<&'a PredictionBeforeExcept<'a>, &'a Layout<'a>> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartPredictionBeforeExcept(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Layout(self.before)),
             1 => Some(ParseTree::PredictionBeforeExcept(self.node)),
@@ -2634,7 +2570,7 @@ impl<'a> Start<&'a PredictionBeforeExcept<'a>, &'a Layout<'a>> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -2651,7 +2587,7 @@ impl<'a> Start<&'a ExceptBeforePrediction<'a>, &'a Layout<'a>> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartExceptBeforePrediction(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Layout(self.before)),
             1 => Some(ParseTree::ExceptBeforePrediction(self.node)),
@@ -2659,7 +2595,7 @@ impl<'a> Start<&'a ExceptBeforePrediction<'a>, &'a Layout<'a>> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -2676,7 +2612,7 @@ impl<'a> Start<&'a PredictionBeforeFollow<'a>, &'a Layout<'a>> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartPredictionBeforeFollow(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Layout(self.before)),
             1 => Some(ParseTree::PredictionBeforeFollow(self.node)),
@@ -2684,7 +2620,7 @@ impl<'a> Start<&'a PredictionBeforeFollow<'a>, &'a Layout<'a>> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -2701,7 +2637,7 @@ impl<'a> Start<&'a FollowBeforePrediction<'a>, &'a Layout<'a>> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartFollowBeforePrediction(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Layout(self.before)),
             1 => Some(ParseTree::FollowBeforePrediction(self.node)),
@@ -2709,7 +2645,7 @@ impl<'a> Start<&'a FollowBeforePrediction<'a>, &'a Layout<'a>> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -2726,7 +2662,7 @@ impl<'a> Start<&'a MissingSuffix<'a>, &'a Layout<'a>> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartMissingSuffix(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Layout(self.before)),
             1 => Some(ParseTree::MissingSuffix(self.node)),
@@ -2734,7 +2670,7 @@ impl<'a> Start<&'a MissingSuffix<'a>, &'a Layout<'a>> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -2751,7 +2687,7 @@ impl<'a> Start<&'a SuffixChoice<'a>, &'a Layout<'a>> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartSuffixChoice(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Layout(self.before)),
             1 => Some(ParseTree::SuffixChoice(self.node)),
@@ -2759,7 +2695,7 @@ impl<'a> Start<&'a SuffixChoice<'a>, &'a Layout<'a>> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -2776,7 +2712,7 @@ impl<'a> Start<&'a CallPrediction<'a>, &'a Layout<'a>> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartCallPrediction(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Layout(self.before)),
             1 => Some(ParseTree::CallPrediction(self.node)),
@@ -2784,7 +2720,7 @@ impl<'a> Start<&'a CallPrediction<'a>, &'a Layout<'a>> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -2801,7 +2737,7 @@ impl<'a> Start<&'a PrefixX<'a>, &'a Layout<'a>> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartPrefixX(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Layout(self.before)),
             1 => Some(ParseTree::PrefixX(self.node)),
@@ -2809,7 +2745,7 @@ impl<'a> Start<&'a PrefixX<'a>, &'a Layout<'a>> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -2826,7 +2762,7 @@ impl<'a> Start<&'a PrefixW<'a>, &'a Layout<'a>> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartPrefixW(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Layout(self.before)),
             1 => Some(ParseTree::PrefixW(self.node)),
@@ -2834,7 +2770,7 @@ impl<'a> Start<&'a PrefixW<'a>, &'a Layout<'a>> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -2851,7 +2787,7 @@ impl<'a> Start<&'a NullablePrefix<'a>, &'a Layout<'a>> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullablePrefix(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Layout(self.before)),
             1 => Some(ParseTree::NullablePrefix(self.node)),
@@ -2859,7 +2795,7 @@ impl<'a> Start<&'a NullablePrefix<'a>, &'a Layout<'a>> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -2876,13 +2812,13 @@ impl<'a> Start<&'a Layout<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartLayout(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Layout(self.node)),
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         1usize
     }
     pub fn span(&self) -> Span {
@@ -2893,43 +2829,6 @@ impl<'a> Start<&'a Layout<'a>, ()> {
     }
     pub fn origin(&self) -> Option<Origin> {
         Some(Origin::Start)
-    }
-}
-impl<'a> ListNode<'a> for Plus0<'a> {
-    fn iter(&'a self) -> IntoIter<ParseTree<'a>> {
-        let mut items = vec![];
-        let mut current = self;
-        loop {
-            match current {
-                Plus0::Alt0 {
-                    plus_0: rest,
-                    alt_0: item,
-                    ..
-                } => {
-                    items.push(item.as_parse_tree());
-                    current = rest;
-                }
-                Plus0::Alt1 { alt_0: item, .. } => {
-                    items.push(item.as_parse_tree());
-                    break;
-                }
-                Plus0::Amb(_) => {
-                    items.push(ParseTree::Plus0(current));
-                    break;
-                }
-            }
-        }
-        items.reverse();
-        items.into_iter()
-    }
-}
-impl<'a> ListNode<'a> for Star0<'a> {
-    fn iter(&'a self) -> IntoIter<ParseTree<'a>> {
-        match self {
-            Star0::Alt0 { plus_0, .. } => plus_0.iter(),
-            Star0::Alt1 { .. } => vec![].into_iter(),
-            Star0::Amb(_) => vec![ParseTree::Star0(self)].into_iter(),
-        }
     }
 }
 impl<'a> Alt0<'a> {
@@ -4247,8 +4146,11 @@ pub fn create_parse_tree<'a>(
     }
 }
 impl<'a> ParseTreeNode for ParseTree<'a> {
-    fn children(&self) -> Vec<Self> {
-        ParseTree::children(self)
+    fn child(&self, index: usize) -> Option<Self> {
+        ParseTree::child(self, index)
+    }
+    fn child_count(&self) -> usize {
+        ParseTree::child_count(self)
     }
     fn display_name(&self) -> &'static str {
         ParseTree::display_name(self)

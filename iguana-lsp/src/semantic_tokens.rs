@@ -1,6 +1,9 @@
 use crate::{BuildResult, build};
 use iggy::parse_tree::{Grammar, Layout, ParseTree, Start, Token};
-use iguana_runtime::input::{Input, Span};
+use iguana_runtime::{
+    input::{Input, Span},
+    parse_tree::ParseTreeNode,
+};
 use lsp_types::{Position, Range, SemanticToken, SemanticTokenType, SemanticTokensLegend};
 
 pub fn legend() -> SemanticTokensLegend {
@@ -35,18 +38,16 @@ pub fn semantic_tokens(
 ) -> Vec<SemanticToken> {
     let mut builder = SemanticTokensBuilder::new();
 
-    for i in 0..tree.child_count() {
-        if let Some(child) = tree.child(i) {
-            visit(child, &mut |node| match node {
-                ParseTree::Token(token) => {
-                    if let Some(token_type) = classify_token(&token) {
-                        builder.push(to_range(token.span(), input), token_type, 0);
-                    }
-                    false
+    for child in tree.as_parse_tree().children() {
+        visit(child, &mut |node| match node {
+            ParseTree::Token(token) => {
+                if let Some(token_type) = classify_token(&token) {
+                    builder.push(to_range(token.span(), input), token_type, 0);
                 }
-                _ => true,
-            });
-        }
+                false
+            }
+            _ => true,
+        });
     }
 
     builder.build()

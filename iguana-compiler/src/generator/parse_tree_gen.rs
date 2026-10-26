@@ -154,25 +154,6 @@ impl<'a> ParseTreeGen<'a> {
         let token_impl = gen_token_impl();
         let parse_tree_enum = self.gen_parse_tree_enum();
         let parse_tree_impl = self.gen_parse_tree_impl();
-        let list_node_trait = gen_list_node_trait();
-        let list_node_impls_for_plus: Vec<_> = self
-            .grammar
-            .nonterminals()
-            .filter(|n| n.is_plus())
-            .map(|n| self.gen_list_node_impl_for_plus(n))
-            .collect();
-        let list_node_impls_for_star: Vec<_> = self
-            .grammar
-            .nonterminals()
-            .filter(|n| n.is_star())
-            .map(|n| self.gen_list_node_impl_for_star(n))
-            .collect();
-        let list_node_impls_for_group: Vec<_> = self
-            .grammar
-            .nonterminals()
-            .filter(|n| n.is_group())
-            .map(|n| self.gen_list_node_impl_for_group(n))
-            .collect();
         let opt_node_trait = gen_opt_node_trait();
         let opt_node_impls: Vec<_> = self
             .grammar
@@ -236,13 +217,9 @@ impl<'a> ParseTreeGen<'a> {
             #(#start_aliases)*
             #parse_tree_enum
             #parse_tree_impl
-            #list_node_trait
             #opt_node_trait
             #(#nonterminal_types)*
             #(#nonterminal_types_impl)*
-            #(#list_node_impls_for_plus)*
-            #(#list_node_impls_for_star)*
-            #(#list_node_impls_for_group)*
             #(#opt_node_impls)*
             #(#alt_accessor_impls)*
             #token_struct
@@ -261,15 +238,23 @@ impl<'a> ParseTreeGen<'a> {
         } else {
             quote! { CycleTarget, }
         };
+        // Only the typed accessors of `Plus` nonterminals call `list_children`.
+        let has_list_accessor = self.grammar.nonterminals().any(|n| {
+            matches!(n.origin, Some(Symbol::Plus(..))) && self.gen_typed_accessor(n).is_some()
+        });
+        let list_children = if has_list_accessor {
+            quote! { list_children, }
+        } else {
+            quote! {}
+        };
         quote! {
-            use std::vec::IntoIter;
             use iguana_runtime::{
                 arena::Arena,
                 ids::{NonterminalId, SPPFNodeId, SlotId, TerminalId},
                 input::Span,
                 parse_tree::{
                     #cycle_target NodeKind, Origin, ParseTreeBuilder,
-                    ParseTreeNode, visit_sppf,
+                    ParseTreeNode, #list_children visit_sppf,
                 },
                 sppf::{NonterminalNode, TerminalNode},
             };
@@ -426,7 +411,7 @@ impl<'a> ParseTreeGen<'a> {
     /// field-specific methods on multi-alternative nonterminals, which also
     /// panic when called on a non-matching variant.
     ///
-    /// Derived single-alternative nonterminals (Group, Star) also get these
+    /// A derived Group nonterminal, which has one alternative, also gets these
     /// accessors. For example, with `("\\" Identifier)+` the Plus's typed
     /// accessor `identifiers()` walks each Group child `r` and calls
     /// `r.identifier()` to read its `identifier` field (skipping the `"\\"`
@@ -575,13 +560,13 @@ impl<'a> ParseTreeGen<'a> {
                 pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
                     ParseTree::#start_variant(self)
                 }
-                pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+                pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
                     match index {
                         #child_arms
                         _ => None,
                     }
                 }
-                pub fn child_count(&self) -> usize {
+                pub(crate) fn child_count(&self) -> usize {
                     #child_count
                 }
                 pub fn span(&self) -> Span {
@@ -631,7 +616,7 @@ impl<'a> ParseTreeGen<'a> {
     fn gen_child_method(&self, nonterminal: &Nonterminal) -> TokenStream {
         let children_by_index = self.gen_children_by_index(nonterminal);
         quote! {
-            pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+            pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
                 #children_by_index
             }
         }
@@ -684,7 +669,7 @@ impl<'a> ParseTreeGen<'a> {
             .collect();
         let cycle_arm = self.cycle_arm(nonterminal, quote! { #ident::Cycle { .. } => 0, });
         quote! {
-            pub fn child_count(&self) -> usize {
+            pub(crate) fn child_count(&self) -> usize {
                 match self {
                     #(#arms,)*
                     #ident::Amb(alts) => alts.len(),
@@ -967,8 +952,8 @@ impl<'a> ParseTreeGen<'a> {
 
     fn gen_parse_tree_impl(&self) -> TokenStream {
         let unwrap_methods = self.gen_unwrap_methods();
-        let children_method = self.gen_parse_tree_children_method();
         let name_method = self.gen_parse_tree_name_method();
+        let child_method = self.gen_parse_tree_child_method();
         let child_count_method = self.gen_parse_tree_child_count_method();
         let span_method = self.gen_parse_tree_span_method();
         let is_amb_method = self.gen_parse_tree_is_amb_method();
@@ -977,8 +962,8 @@ impl<'a> ParseTreeGen<'a> {
         let cycle_methods = self.gen_parse_tree_cycle_methods();
         quote! {
             impl<'a> ParseTree<'a> {
-                #children_method
                 #name_method
+                #child_method
                 #child_count_method
                 #span_method
                 #is_amb_method
@@ -1052,39 +1037,23 @@ impl<'a> ParseTreeGen<'a> {
             .collect()
     }
 
-    fn gen_parse_tree_children_method(&self) -> TokenStream {
+    fn gen_parse_tree_child_method(&self) -> TokenStream {
         let arms: Vec<_> = self
             .grammar
             .nonterminals()
             .map(|n| {
                 let variant = nt_ident(&n.name);
                 let var_ident = safe_ident(&to_snake_case(&n.name));
-                let cycle_arm = self.cycle_arm(n, quote! { #variant::Cycle { .. } => vec![], });
-                if n.is_plus() || n.is_star() {
-                    // Plus::Amb and Star::Amb wrap a slice of complete list subtrees.
-                    // Show those as children directly; routing through iter() would push
-                    // the same Amb back as a child and recurse forever.
-                    quote! {
-                        ParseTree::#variant(#var_ident) => match #var_ident {
-                            #variant::Amb(alts) => alts.iter().copied().map(ParseTree::#variant).collect(),
-                            #cycle_arm
-                            _ => #var_ident.iter().collect(),
-                        }
-                    }
-                } else {
-                    quote! {
-                        ParseTree::#variant(#var_ident) => (0..#var_ident.child_count())
-                            .filter_map(|i| #var_ident.child(i))
-                            .collect()
-                    }
+                quote! {
+                    ParseTree::#variant(#var_ident) => #var_ident.child(index)
                 }
             })
             .collect();
         quote! {
-            pub fn children(&self) -> Vec<ParseTree<'a>> {
+            pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
                 match self {
                     #(#arms,)*
-                    ParseTree::Token(_) => vec![],
+                    ParseTree::Token(_) => None,
                 }
             }
         }
@@ -1119,7 +1088,7 @@ impl<'a> ParseTreeGen<'a> {
             })
             .collect();
         quote! {
-            pub fn child_count(&self) -> usize {
+            pub(crate) fn child_count(&self) -> usize {
                 match self {
                     #(#arms,)*
                     ParseTree::Token(_) => 0,
@@ -1309,13 +1278,6 @@ impl<'a> ParseTreeGen<'a> {
     /// without manually navigating through wrapper types. The method name
     /// is the pluralized snake_case form of the child element type.
     ///
-    /// # Type Hierarchy
-    ///
-    /// EBNF operators desugar into a type hierarchy:
-    /// - `Symbol*` → Star (struct wrapping `Symbol+?`)
-    /// - `Symbol+?` → Opt (enum: None | Some(Symbol+))
-    /// - `Symbol+` → Plus (recursive enum: Base(Symbol) | Rec(Symbol+, Symbol))
-    ///
     /// # Generated Accessors
     ///
     /// For `Symbol+` (Plus):
@@ -1330,10 +1292,15 @@ impl<'a> ParseTreeGen<'a> {
     /// }
     /// ```
     ///
-    /// For `Symbol*` (Star):
+    /// For `Symbol*` (Star), which delegates to the inner Plus's accessor:
     /// ```ignore
     /// pub fn symbols(&self) -> impl Iterator<Item = &Symbol> {
-    ///     self.symbol_opt.symbols()  // delegates to inner Opt's accessor
+    ///     let plus = match self {
+    ///         Star0::Alt0 { symbols, .. } => Some(*symbols),
+    ///         Star0::Alt1 { .. } => None,
+    ///         // The Amb and Cycle arms panic.
+    ///     };
+    ///     plus.into_iter().flat_map(|plus| plus.symbols())
     /// }
     /// ```
     ///
@@ -1344,7 +1311,7 @@ impl<'a> ParseTreeGen<'a> {
     /// ```ignore
     /// // For {Regex+ "|"}+, returns iterator over groups, each group is an iterator over Regex
     /// pub fn regexes(&self) -> impl Iterator<Item = impl Iterator<Item = &Regex>> {
-    ///     self.iter().filter_map(|node| match node {
+    ///     list_children(self.as_parse_tree()).into_iter().filter_map(|node| match node {
     ///         ParseTree::RegexPlus(r) => Some(r.regexes()),
     ///         _ => None,
     ///     })
@@ -1368,8 +1335,8 @@ impl<'a> ParseTreeGen<'a> {
                 let child_type = nt_ident(child_name);
                 // An ambiguous list segment appears here as the list's own `Amb` node, not
                 // an element. A typed accessor can't represent it, so fail loud rather than
-                // silently drop it and return a short list. Ambiguity-aware callers use the
-                // general `iter()` / `children()` path with `is_amb()` instead.
+                // silently drop it and return a short list. Ambiguity-aware callers use
+                // `children()` with `is_amb()` instead.
                 let panic_msg = format!("{} is ambiguous", nonterminal.name);
                 let amb_arm = quote! { other if other.is_amb() => panic!(#panic_msg), };
                 let cycle_arm = self.cycle_accessor_guard(nonterminal);
@@ -1379,12 +1346,14 @@ impl<'a> ParseTreeGen<'a> {
                     // Simple case: e.g., `Regex+` or `Identifier+`
                     Some(quote! {
                         pub fn #method_name(&'a self) -> #return_type {
-                            self.iter().filter_map(|node| match node {
-                                ParseTree::#innermost_type(r) => Some(r),
-                                #amb_arm
-                                #cycle_arm
-                                _ => None,
-                            })
+                            list_children(self.as_parse_tree())
+                                .into_iter()
+                                .filter_map(|node| match node {
+                                    ParseTree::#innermost_type(r) => Some(r),
+                                    #amb_arm
+                                    #cycle_arm
+                                    _ => None,
+                                })
                         }
                     })
                 } else if let Symbol::Group(_) = inner.as_ref() {
@@ -1392,24 +1361,28 @@ impl<'a> ParseTreeGen<'a> {
                     let field_name = safe_ident(&to_snake_case(&innermost.name));
                     Some(quote! {
                         pub fn #method_name(&'a self) -> #return_type {
-                            self.iter().filter_map(|node| match node {
-                                ParseTree::#child_type(r) => Some(r.#field_name()),
-                                #amb_arm
-                                #cycle_arm
-                                _ => None,
-                            })
+                            list_children(self.as_parse_tree())
+                                .into_iter()
+                                .filter_map(|node| match node {
+                                    ParseTree::#child_type(r) => Some(r.#field_name()),
+                                    #amb_arm
+                                    #cycle_arm
+                                    _ => None,
+                                })
                         }
                     })
                 } else {
-                    // Nested case: e.g., `{Regex+ "|"}+` where child is an intermediate Plus/Star type.
+                    // Nested case: e.g., `{Regex+ "|"}+` where child is a nested Plus/Star type.
                     Some(quote! {
                         pub fn #method_name(&'a self) -> #return_type {
-                            self.iter().filter_map(|node| match node {
-                                ParseTree::#child_type(r) => Some(r.#method_name()),
-                                #amb_arm
-                                #cycle_arm
-                                _ => None,
-                            })
+                            list_children(self.as_parse_tree())
+                                .into_iter()
+                                .filter_map(|node| match node {
+                                    ParseTree::#child_type(r) => Some(r.#method_name()),
+                                    #amb_arm
+                                    #cycle_arm
+                                    _ => None,
+                                })
                         }
                     })
                 }
@@ -1478,8 +1451,8 @@ impl<'a> ParseTreeGen<'a> {
             }
             Some(Symbol::Group(_)) => {
                 // Field accessors on a Group come from gen_field_accessor_methods.
-                // An iter-based accessor here would pick the wrong token when the
-                // Group has multiple positional `Token` fields (e.g. for
+                // An accessor that searches the fields would pick the wrong token
+                // when the Group has multiple positional `Token` fields (e.g. for
                 // `("\\" Identifier)`, find_map returns the `"\\"`).
                 None
             }
@@ -1558,8 +1531,8 @@ impl<'a> ParseTreeGen<'a> {
     //   - alternation (`(Expr | Stmt)+`): one method per variant,
     //     `impl Iterator<Item = &Expr>` and `impl Iterator<Item = &Stmt>`
     //   - group (`("," Expr)+`): `impl Iterator<Item = &Expr>`
-    // - Star (`Expr*`): desugared internally as Star -> Opt -> Plus, so the
-    //   return type is determined by the inner Plus
+    // - Star (`Expr*`): desugared as `Expr* = Expr+ | ()`, so the return type
+    //   is determined by the inner Plus
     // - Group (`("," Expr)`): `&Expr`
     fn gen_accessor_return_type(
         &self,
@@ -1593,7 +1566,7 @@ impl<'a> ParseTreeGen<'a> {
 
     /// Generates per-variant accessors for a Plus whose inner element is an Alt.
     /// For `(WS | LineComment)+`, generates `wses()` and `line_comments()` methods
-    /// that filter the iter for each Alt variant.
+    /// that filter the list's children for each Alt variant.
     fn gen_alt_variant_accessors_for_plus(
         &self,
         nonterminal: &Nonterminal,
@@ -1625,197 +1598,20 @@ impl<'a> ParseTreeGen<'a> {
                     safe_ident(&gen_field_name(self.grammar, &alt.symbols[0], 0, false));
                 quote! {
                     pub fn #method_name(&'a self) -> #return_type {
-                        self.iter().filter_map(|node| match node {
-                            ParseTree::#child_type(#child_type::#variant_name { #field_name, .. }) => Some(*#field_name),
-                            other if other.is_amb() => panic!(#panic_msg),
-                            #cycle_arm
-                            _ => None,
-                        })
+                        list_children(self.as_parse_tree())
+                            .into_iter()
+                            .filter_map(|node| match node {
+                                ParseTree::#child_type(#child_type::#variant_name { #field_name, .. }) => Some(*#field_name),
+                                other if other.is_amb() => panic!(#panic_msg),
+                                #cycle_arm
+                                _ => None,
+                            })
                     }
                 }
             })
             .collect();
 
         Some(quote! { #(#methods)* })
-    }
-
-    fn gen_list_node_impl_for_plus(&self, nonterminal: &Nonterminal) -> TokenStream {
-        let ident = nt_ident(&nonterminal.name);
-        let alternatives = self.grammar.alternatives(nonterminal);
-        // This method must only be called for list nodes, i.e., * and + nonterminals,
-        // which always have two alternatives.
-        assert_eq!(alternatives.len(), 2);
-        let label = alternative_label(&alternatives[0], 0);
-        let alt_variant = nt_ident(&label);
-        let first_alt_fields = field_names(self.grammar, &alternatives[0]);
-        let first_arm = match &nonterminal.origin {
-            Some(Symbol::Plus(_symbol, sep)) => match sep {
-                Some(_) => {
-                    if first_alt_fields.len() == 5 {
-                        // With layout: Plus ::= Plus Layout Sep Layout Item
-                        let (f0, f1, f2, f3, f4) = (
-                            &first_alt_fields[0],
-                            &first_alt_fields[1],
-                            &first_alt_fields[2],
-                            &first_alt_fields[3],
-                            &first_alt_fields[4],
-                        );
-                        quote! {
-                            #ident::#alt_variant { #f0: rest, #f1: layout1, #f2: sep, #f3: layout2, #f4: item, .. } => {
-                                items.push(item.as_parse_tree());
-                                items.push(layout2.as_parse_tree());
-                                items.push(sep.as_parse_tree());
-                                items.push(layout1.as_parse_tree());
-                                current = rest;
-                            }
-                        }
-                    } else {
-                        // Without layout: Plus ::= Plus Sep Item
-                        let (f0, f1, f2) = (
-                            &first_alt_fields[0],
-                            &first_alt_fields[1],
-                            &first_alt_fields[2],
-                        );
-                        quote! {
-                            #ident::#alt_variant { #f0: rest, #f1: sep, #f2: item, .. } => {
-                                items.push(item.as_parse_tree());
-                                items.push(sep.as_parse_tree());
-                                current = rest;
-                            }
-                        }
-                    }
-                }
-                None => {
-                    if first_alt_fields.len() == 3 {
-                        // With layout: Plus ::= Plus Layout Item | Item
-                        let (f0, f1, f2) = (
-                            &first_alt_fields[0],
-                            &first_alt_fields[1],
-                            &first_alt_fields[2],
-                        );
-                        quote! {
-                            #ident::#alt_variant { #f0: rest, #f1, #f2: item, .. } => {
-                                items.push(item.as_parse_tree());
-                                items.push(#f1.as_parse_tree());
-                                current = rest;
-                            }
-                        }
-                    } else {
-                        // Without layout (@layout(none)): Plus ::= Plus Item | Item
-                        let (f0, f1) = (&first_alt_fields[0], &first_alt_fields[1]);
-                        quote! {
-                            #ident::#alt_variant { #f0: rest, #f1: item, .. } => {
-                                items.push(item.as_parse_tree());
-                                current = rest;
-                            }
-                        }
-                    }
-                }
-            },
-            _ => unreachable!("Expected plus"),
-        };
-        let label = alternative_label(&alternatives[1], 1);
-        let alt_variant = nt_ident(&label);
-        let second_alt_fields = field_names(self.grammar, &alternatives[1]);
-        let f0 = &second_alt_fields[0];
-        let second_arm = quote! {
-            #ident::#alt_variant { #f0: item, .. } => {
-                items.push(item.as_parse_tree());
-                break;
-            }
-        };
-        let ty = self.nonterminal_type(nonterminal);
-        let cycle_arm = self.cycle_arm(
-            nonterminal,
-            quote! {
-                #ident::Cycle { .. } => {
-                    items.push(ParseTree::#ident(current));
-                    break;
-                }
-            },
-        );
-        quote! {
-            impl<'a> ListNode<'a> for #ty {
-                fn iter(&'a self) -> IntoIter<ParseTree<'a>> {
-                    let mut items = vec![];
-                    let mut current = self;
-                    loop {
-                        match current {
-                            #first_arm
-                            #second_arm
-                            #ident::Amb(_) => {
-                                items.push(ParseTree::#ident(current));
-                                break;
-                            }
-                            #cycle_arm
-                        }
-                    }
-                    items.reverse();
-                    items.into_iter()
-                }
-            }
-        }
-    }
-
-    fn gen_list_node_impl_for_star(&self, nonterminal: &Nonterminal) -> TokenStream {
-        let star_ident = nt_ident(&nonterminal.name);
-        let star_ty = self.nonterminal_type(nonterminal);
-        let star_alternatives = self.grammar.alternatives(nonterminal);
-        // Star is `Alt0 { plus_field, span } | Alt1 { span }`: a list or empty.
-        let star_alt0 = nt_ident(&alternative_label(&star_alternatives[0], 0));
-        let star_alt1 = nt_ident(&alternative_label(&star_alternatives[1], 1));
-        let plus_symbol = &star_alternatives[0].symbols[0];
-        let field_name = safe_ident(&gen_field_name(self.grammar, plus_symbol, 0, false));
-        let star_cycle_arm = self.cycle_arm(
-            nonterminal,
-            quote! { #star_ident::Cycle { .. } => vec![ParseTree::#star_ident(self)].into_iter(), },
-        );
-        quote! {
-            impl<'a> ListNode<'a> for #star_ty {
-                fn iter(&'a self) -> IntoIter<ParseTree<'a>> {
-                    match self {
-                        #star_ident::#star_alt0 { #field_name, .. } => #field_name.iter(),
-                        #star_ident::#star_alt1 { .. } => vec![].into_iter(),
-                        #star_ident::Amb(_) => vec![ParseTree::#star_ident(self)].into_iter(),
-                        #star_cycle_arm
-                    }
-                }
-            }
-        }
-    }
-
-    fn gen_list_node_impl_for_group(&self, nonterminal: &Nonterminal) -> TokenStream {
-        let ident = nt_ident(&nonterminal.name);
-        let ty = self.nonterminal_type(nonterminal);
-        let alternatives = self.grammar.alternatives(nonterminal);
-        // Groups always have exactly one alternative
-        assert_eq!(alternatives.len(), 1);
-        let alternative = &alternatives[0];
-        let alt0_variant = nt_ident(&alternative_label(alternative, 0));
-        let fields = field_names(self.grammar, alternative);
-
-        let item_exprs: Vec<_> = fields
-            .iter()
-            .map(|field| quote! { #field.as_parse_tree() })
-            .collect();
-
-        let cycle_arm = self.cycle_arm(
-            nonterminal,
-            quote! { #ident::Cycle { .. } => vec![ParseTree::#ident(self)].into_iter(), },
-        );
-        quote! {
-            impl<'a> ListNode<'a> for #ty {
-                fn iter(&'a self) -> IntoIter<ParseTree<'a>> {
-                    match self {
-                        #ident::#alt0_variant { #(#fields,)* .. } => {
-                            vec![#(#item_exprs),*].into_iter()
-                        }
-                        #ident::Amb(_) => vec![ParseTree::#ident(self)].into_iter(),
-                        #cycle_arm
-                    }
-                }
-            }
-        }
     }
 
     fn gen_create_parse_tree_function(&self) -> TokenStream {
@@ -1886,8 +1682,12 @@ impl<'a> ParseTreeGen<'a> {
         };
         quote! {
             impl<'a> ParseTreeNode for ParseTree<'a> {
-                fn children(&self) -> Vec<Self> {
-                    ParseTree::children(self)
+                fn child(&self, index: usize) -> Option<Self> {
+                    ParseTree::child(self, index)
+                }
+
+                fn child_count(&self) -> usize {
+                    ParseTree::child_count(self)
                 }
 
                 fn display_name(&self) -> &'static str {
@@ -2116,7 +1916,8 @@ fn gen_field_name(
 fn origin_kind(nonterminal: &Nonterminal) -> Option<TokenStream> {
     match &nonterminal.origin {
         Some(Symbol::Opt(_)) => Some(quote! { Origin::Opt }),
-        Some(Symbol::Star(_, _) | Symbol::Plus(_, _)) => Some(quote! { Origin::List }),
+        Some(Symbol::Star(_, _)) => Some(quote! { Origin::Star }),
+        Some(Symbol::Plus(_, _)) => Some(quote! { Origin::Plus }),
         Some(Symbol::Group(_)) => Some(quote! { Origin::Group }),
         Some(Symbol::Alt(_)) => Some(quote! { Origin::Alt }),
         _ => None,
@@ -2269,14 +2070,6 @@ fn gen_new_token_method() -> TokenStream {
     }
 }
 
-fn gen_list_node_trait() -> TokenStream {
-    quote! {
-        pub trait ListNode<'a> {
-            fn iter(&'a self) -> IntoIter<ParseTree<'a>>;
-        }
-    }
-}
-
 fn gen_opt_node_trait() -> TokenStream {
     quote! {
         pub trait OptNode {
@@ -2374,7 +2167,7 @@ fn get_list_element_types(grammar: &Grammar, symbol: &Symbol) -> Vec<Identifier>
             // itself a list. For `(Annotation* "[" "]")` the named element is a
             // list, whose Group field accessor returns the inner list node rather
             // than the element, so there is no flat type and callers fall back to
-            // iter()/children().
+            // children().
             let names_a_list = elements
                 .iter()
                 .any(|elem| elem.is_list() && !get_list_element_types(grammar, elem).is_empty());

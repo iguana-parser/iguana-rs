@@ -8,7 +8,6 @@ use iguana_runtime::{
     parse_tree::{NodeKind, Origin, ParseTreeBuilder, ParseTreeNode, visit_sppf},
     sppf::{NonterminalNode, TerminalNode},
 };
-use std::vec::IntoIter;
 #[derive(Debug, Clone, Copy)]
 pub enum TokenKind {
     // Identifier
@@ -53,26 +52,6 @@ pub enum ParseTree<'a> {
     Token(Token),
 }
 impl<'a> ParseTree<'a> {
-    pub fn children(&self) -> Vec<ParseTree<'a>> {
-        match self {
-            ParseTree::SyntaxIdentifier(syntax_identifier) => (0..syntax_identifier.child_count())
-                .filter_map(|i| syntax_identifier.child(i))
-                .collect(),
-            ParseTree::LexicalIdentifier(lexical_identifier) => (0..lexical_identifier
-                .child_count())
-                .filter_map(|i| lexical_identifier.child(i))
-                .collect(),
-            ParseTree::StartSyntaxIdentifier(start_syntax_identifier) => (0
-                ..start_syntax_identifier.child_count())
-                .filter_map(|i| start_syntax_identifier.child(i))
-                .collect(),
-            ParseTree::StartLexicalIdentifier(start_lexical_identifier) => (0
-                ..start_lexical_identifier.child_count())
-                .filter_map(|i| start_lexical_identifier.child(i))
-                .collect(),
-            ParseTree::Token(_) => vec![],
-        }
-    }
     pub fn display_name(&self) -> &'static str {
         match self {
             ParseTree::SyntaxIdentifier(syntax_identifier) => syntax_identifier.display_name(),
@@ -86,7 +65,20 @@ impl<'a> ParseTree<'a> {
             ParseTree::Token(token) => token.kind.name(),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+        match self {
+            ParseTree::SyntaxIdentifier(syntax_identifier) => syntax_identifier.child(index),
+            ParseTree::LexicalIdentifier(lexical_identifier) => lexical_identifier.child(index),
+            ParseTree::StartSyntaxIdentifier(start_syntax_identifier) => {
+                start_syntax_identifier.child(index)
+            }
+            ParseTree::StartLexicalIdentifier(start_lexical_identifier) => {
+                start_lexical_identifier.child(index)
+            }
+            ParseTree::Token(_) => None,
+        }
+    }
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             ParseTree::SyntaxIdentifier(syntax_identifier) => syntax_identifier.child_count(),
             ParseTree::LexicalIdentifier(lexical_identifier) => lexical_identifier.child_count(),
@@ -200,9 +192,6 @@ impl<'a> ParseTree<'a> {
         unreachable!("unexpected parse tree node")
     }
 }
-pub trait ListNode<'a> {
-    fn iter(&'a self) -> IntoIter<ParseTree<'a>>;
-}
 pub trait OptNode {
     type Inner;
     fn value(&self) -> Option<&Self::Inner>;
@@ -223,7 +212,7 @@ impl<'a> SyntaxIdentifier<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::SyntaxIdentifier(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             SyntaxIdentifier::Alt0 {
                 identifier_chars, ..
@@ -236,7 +225,7 @@ impl<'a> SyntaxIdentifier<'a> {
             }
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             SyntaxIdentifier::Alt0 { .. } => 1usize,
             SyntaxIdentifier::Amb(alts) => alts.len(),
@@ -270,7 +259,7 @@ impl<'a> LexicalIdentifier<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::LexicalIdentifier(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             LexicalIdentifier::Alt0 { identifier, .. } => match index {
                 0 => Some(ParseTree::Token(*identifier)),
@@ -281,7 +270,7 @@ impl<'a> LexicalIdentifier<'a> {
             }
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             LexicalIdentifier::Alt0 { .. } => 1usize,
             LexicalIdentifier::Amb(alts) => alts.len(),
@@ -313,13 +302,13 @@ impl<'a> Start<&'a SyntaxIdentifier<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartSyntaxIdentifier(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::SyntaxIdentifier(self.node)),
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         1usize
     }
     pub fn span(&self) -> Span {
@@ -336,13 +325,13 @@ impl<'a> Start<&'a LexicalIdentifier<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartLexicalIdentifier(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::LexicalIdentifier(self.node)),
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         1usize
     }
     pub fn span(&self) -> Span {
@@ -535,8 +524,11 @@ pub fn create_parse_tree<'a>(
     }
 }
 impl<'a> ParseTreeNode for ParseTree<'a> {
-    fn children(&self) -> Vec<Self> {
-        ParseTree::children(self)
+    fn child(&self, index: usize) -> Option<Self> {
+        ParseTree::child(self, index)
+    }
+    fn child_count(&self) -> usize {
+        ParseTree::child_count(self)
     }
     fn display_name(&self) -> &'static str {
         ParseTree::display_name(self)

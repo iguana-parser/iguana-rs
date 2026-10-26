@@ -1,6 +1,9 @@
 use by_address::ByAddress;
 use iggy::parse_tree::{self, Layout, OptNode, ParseTree};
-use iguana_runtime::input::{Input, Span};
+use iguana_runtime::{
+    input::{Input, Span},
+    parse_tree::ParseTreeNode,
+};
 use rustc_hash::FxHashMap;
 
 use crate::comments::{leading_comments, trailing_comment};

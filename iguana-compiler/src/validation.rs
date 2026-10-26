@@ -555,8 +555,6 @@ fn check_sequence_field_labels<'a>(
 const RESERVED_TYPE_NAMES: &[&str] = &[
     "Arena",
     "CycleTarget",
-    "IntoIter",
-    "ListNode",
     "NodeKind",
     "NonterminalId",
     "NonterminalNode",

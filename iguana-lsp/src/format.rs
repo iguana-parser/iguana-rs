@@ -25,7 +25,10 @@
 
 use iggy::parse_tree::*;
 use iguana_compiler::comments::is_same_line;
-use iguana_runtime::input::{Input, Span};
+use iguana_runtime::{
+    input::{Input, Span},
+    parse_tree::ParseTreeNode,
+};
 use rustc_hash::FxHashSet;
 
 const MAX_LINE_WIDTH: usize = 80;

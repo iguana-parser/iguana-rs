@@ -482,7 +482,8 @@ pub enum NodeKind {
 }
 
 /// The grammar construct a nonterminal node was derived from. Drives the
-/// presentation transforms (hiding empty repetitions, splicing wrappers).
+/// presentation transforms (hiding empty repetitions, splicing wrappers) and
+/// the logical children of lists in `ParseTreeNode::children`.
 /// `None` for a user-declared nonterminal or a token.
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Origin {
@@ -491,8 +492,12 @@ pub enum Origin {
     Start,
     /// An optional, `X?`.
     Opt,
-    /// A repetition, `X*` / `X+` / `{X sep}+`.
-    List,
+    /// A possibly empty repetition, `X*` or `{X sep}*`, defined as
+    /// `X* = X+ | ()` and `{X sep}* = {X sep}+ | ()`.
+    Star,
+    /// A non-empty repetition, `X+` or `{X sep}+`, defined as
+    /// `X+ = X+ X | X` and `{X sep}+ = {X sep}+ sep X | X`.
+    Plus,
     /// An anonymous sequence group, `(A B C)`.
     Group,
     /// An anonymous alternation, `(A | B)`.
@@ -503,7 +508,31 @@ pub enum Origin {
 /// to an s-expression or JSON. Generated parsers implement it for their
 /// `ParseTree` type.
 pub trait ParseTreeNode: Copy {
-    fn children(&self) -> Vec<Self>;
+    /// The child at `index`. Returns `None` when the index is past the last
+    /// child. The child is the node's actual child in the parse tree. To
+    /// iterate over the children of a list, use `children()`. It skips the
+    /// `Plus` nodes of the list's left recursion and returns only the logical
+    /// children (see `list_children`). The children of an Amb node are its
+    /// alternatives, and a Cycle node doesn't have any children.
+    #[doc(hidden)]
+    fn child(&self, index: usize) -> Option<Self>;
+    /// The number of children `child` returns.
+    #[doc(hidden)]
+    fn child_count(&self) -> usize;
+
+    /// The node's logical children. A list's children are the ones
+    /// `list_children` returns.
+    fn children(&self) -> Vec<Self> {
+        match self.origin() {
+            Some(Origin::Star | Origin::Plus) if self.kind() == NodeKind::Nonterminal => {
+                list_children(*self)
+            }
+            _ => (0..self.child_count())
+                .filter_map(|i| self.child(i))
+                .collect(),
+        }
+    }
+
     fn display_name(&self) -> &'static str;
     fn span(&self) -> Span;
     fn kind(&self) -> NodeKind;
@@ -511,9 +540,7 @@ pub trait ParseTreeNode: Copy {
     /// shared. Used to detect sharing in an ambiguity DAG.
     fn node_id(&self) -> Option<usize>;
     /// The grammar construct this node was derived from, or `None` for a
-    /// user-declared nonterminal or a token. The default keeps parsers
-    /// generated before this method was added compiling. Those parsers report
-    /// `None`, so the presentation transforms are no-ops until regeneration.
+    /// user-declared nonterminal or a token.
     fn origin(&self) -> Option<Origin> {
         None
     }
@@ -561,6 +588,42 @@ pub trait ParseTreeNode: Copy {
     }
 }
 
+/// The logical children of a `Star` or `Plus` node: its elements, with the
+/// separators and layout between them, without the `Plus` nodes of the list's
+/// left recursion. If the list or one of those `Plus` nodes is an Amb or Cycle
+/// node, that node is returned as one child.
+pub fn list_children<N: ParseTreeNode>(list: N) -> Vec<N> {
+    let mut plus = list;
+    if list.origin() == Some(Origin::Star) && list.kind() == NodeKind::Nonterminal {
+        match list.child(0) {
+            Some(child) => plus = child,
+            None => return Vec::new(),
+        }
+    }
+    // The walk descends the left recursion from the last element, so it
+    // collects the children in reverse.
+    let mut children = Vec::new();
+    loop {
+        if plus.kind() != NodeKind::Nonterminal {
+            children.push(plus);
+            break;
+        }
+        let count = plus.child_count();
+        for i in (1..count).rev() {
+            children.extend(plus.child(i));
+        }
+        match plus.child(0) {
+            Some(rest) if count > 1 => plus = rest,
+            first => {
+                children.extend(first);
+                break;
+            }
+        }
+    }
+    children.reverse();
+    children
+}
+
 /// Whether `walk` should descend into a node's children.
 pub enum Visit {
     Children,
@@ -576,7 +639,7 @@ pub trait TreeVisitor<N: ParseTreeNode> {
     fn exit(&mut self, node: N) {
         let _ = node;
     }
-    /// The children `walk` should descend into. Defaults to the node's real
+    /// The children `walk` should descend into. Defaults to the node's logical
     /// children; the s-expression visitors override it to descend into the
     /// transformed child list (layout hidden, empties dropped, wrappers
     /// spliced).
@@ -639,7 +702,7 @@ fn origin_name(origin: Option<Origin>) -> Option<&'static str> {
     origin.map(|o| match o {
         Origin::Start => "Start",
         Origin::Opt => "Opt",
-        Origin::List => "List",
+        Origin::Star | Origin::Plus => "List",
         Origin::Group => "Group",
         Origin::Alt => "Alt",
     })
@@ -760,10 +823,10 @@ fn is_wrapper(origin: Option<Origin>) -> bool {
     )
 }
 
-/// An empty optional or list: an `X?`, `X*`, or `{X sep}+` that matched
-/// nothing. The `show_empty` toggle decides whether these nodes appear.
+/// An empty optional or list: an `X?`, `X*`, or `{X sep}*` that matched the
+/// empty string. The renderers show these nodes only when `show_empty` is set.
 fn is_empty_opt_or_list<N: ParseTreeNode>(node: N) -> bool {
-    matches!(node.origin(), Some(Origin::Opt | Origin::List)) && node.children().is_empty()
+    matches!(node.origin(), Some(Origin::Opt | Origin::Star)) && node.child_count() == 0
 }
 
 /// The children of `node` that remain after filtering:
@@ -1036,8 +1099,11 @@ mod tests {
     }
 
     impl<'a> ParseTreeNode for Node<'a> {
-        fn children(&self) -> Vec<Self> {
-            self.children.to_vec()
+        fn child(&self, index: usize) -> Option<Self> {
+            self.children.get(index).copied()
+        }
+        fn child_count(&self) -> usize {
+            self.children.len()
         }
         fn display_name(&self) -> &'static str {
             self.name
@@ -1122,7 +1188,8 @@ mod tests {
     #[test]
     fn to_json_emits_nodes_and_edges() {
         let items = [leaf("a", 1)];
-        let list = derived("A*", 2, Origin::List, &items);
+        let plus = [derived("A+", 4, Origin::Plus, &items)];
+        let list = derived("A*", 2, Origin::Star, &plus);
         let kids = [list, leaf("b", 3)];
         let root = nonterminal("S", 0, &kids);
         let json = to_json(root, Some("Layout"));
@@ -1262,7 +1329,7 @@ mod tests {
         let a = [leaf("a", 1)];
         let present = derived("A?", 2, Origin::Opt, &a);
         let empty_opt = derived("B?", 3, Origin::Opt, &[]);
-        let empty_list = derived("C*", 4, Origin::List, &[]);
+        let empty_list = derived("C*", 4, Origin::Star, &[]);
         let kids = [present, empty_opt, empty_list, leaf("d", 5)];
         let s = nonterminal("S", 0, &kids);
 
@@ -1283,7 +1350,7 @@ mod tests {
         let a = [leaf("a", 1)];
         let present = derived("A?", 2, Origin::Opt, &a);
         let empty_opt = derived("B?", 3, Origin::Opt, &[]);
-        let empty_list = derived("C*", 4, Origin::List, &[]);
+        let empty_list = derived("C*", 4, Origin::Star, &[]);
         let kids = [present, empty_opt, empty_list, leaf("d", 5)];
         let s = nonterminal("S", 0, &kids);
 
@@ -1328,8 +1395,12 @@ mod tests {
         // StartGrammar -> [Layout, Grammar -> [A? -> a, B* -> b1 b2, C? empty], Layout].
         let a = [leaf("a", 1)];
         let opt = derived("A?", 2, Origin::Opt, &a);
-        let bitems = [leaf("b1", 3), leaf("b2", 4)];
-        let list = derived("B*", 5, Origin::List, &bitems);
+        // B* -> B+ -> [B+ -> b1, b2], the left-recursive shape of a list.
+        let b1 = [leaf("b1", 3)];
+        let first = derived("B+", 11, Origin::Plus, &b1);
+        let bitems = [first, leaf("b2", 4)];
+        let plus = [derived("B+", 12, Origin::Plus, &bitems)];
+        let list = derived("B*", 5, Origin::Star, &plus);
         let empty_opt = derived("C?", 6, Origin::Opt, &[]);
         let grammar_kids = [opt, list, empty_opt];
         let grammar = nonterminal("Grammar", 10, &grammar_kids);
@@ -1362,10 +1433,12 @@ mod tests {
         // cluster reports no origin, so simplified mode leaves it intact as
         // `(Amb …)` rather than splicing or dropping it; each alternative shows
         // as its own `(A+ …)` node.
-        let items1 = [leaf("a", 1), leaf("a", 2)];
-        let items2 = [leaf("a", 3), leaf("a", 4)];
-        let alt1 = derived("A+", 5, Origin::List, &items1);
-        let alt2 = derived("A+", 6, Origin::List, &items2);
+        let a1 = [leaf("a", 1)];
+        let a3 = [leaf("a", 3)];
+        let items1 = [derived("A+", 8, Origin::Plus, &a1), leaf("a", 2)];
+        let items2 = [derived("A+", 9, Origin::Plus, &a3), leaf("a", 4)];
+        let alt1 = derived("A+", 5, Origin::Plus, &items1);
+        let alt2 = derived("A+", 6, Origin::Plus, &items2);
         let alts = [alt1, alt2];
         let cluster = amb(7, &alts);
         let kids = [cluster];

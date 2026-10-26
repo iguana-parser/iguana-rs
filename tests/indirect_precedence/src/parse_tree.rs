@@ -8,7 +8,6 @@ use iguana_runtime::{
     parse_tree::{NodeKind, Origin, ParseTreeBuilder, ParseTreeNode, visit_sppf},
     sppf::{NonterminalNode, TerminalNode},
 };
-use std::vec::IntoIter;
 #[derive(Debug, Clone, Copy)]
 pub enum TokenKind {
     // "-"
@@ -58,27 +57,6 @@ pub enum ParseTree<'a> {
     Token(Token),
 }
 impl<'a> ParseTree<'a> {
-    pub fn children(&self) -> Vec<ParseTree<'a>> {
-        match self {
-            ParseTree::S(s) => (0..s.child_count()).filter_map(|i| s.child(i)).collect(),
-            ParseTree::E(e) => (0..e.child_count()).filter_map(|i| e.child(i)).collect(),
-            ParseTree::F(f) => (0..f.child_count()).filter_map(|i| f.child(i)).collect(),
-            ParseTree::K(k) => (0..k.child_count()).filter_map(|i| k.child(i)).collect(),
-            ParseTree::StartS(start_s) => (0..start_s.child_count())
-                .filter_map(|i| start_s.child(i))
-                .collect(),
-            ParseTree::StartE(start_e) => (0..start_e.child_count())
-                .filter_map(|i| start_e.child(i))
-                .collect(),
-            ParseTree::StartF(start_f) => (0..start_f.child_count())
-                .filter_map(|i| start_f.child(i))
-                .collect(),
-            ParseTree::StartK(start_k) => (0..start_k.child_count())
-                .filter_map(|i| start_k.child(i))
-                .collect(),
-            ParseTree::Token(_) => vec![],
-        }
-    }
     pub fn display_name(&self) -> &'static str {
         match self {
             ParseTree::S(s) => s.display_name(),
@@ -92,7 +70,20 @@ impl<'a> ParseTree<'a> {
             ParseTree::Token(token) => token.kind.name(),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+        match self {
+            ParseTree::S(s) => s.child(index),
+            ParseTree::E(e) => e.child(index),
+            ParseTree::F(f) => f.child(index),
+            ParseTree::K(k) => k.child(index),
+            ParseTree::StartS(start_s) => start_s.child(index),
+            ParseTree::StartE(start_e) => start_e.child(index),
+            ParseTree::StartF(start_f) => start_f.child(index),
+            ParseTree::StartK(start_k) => start_k.child(index),
+            ParseTree::Token(_) => None,
+        }
+    }
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             ParseTree::S(s) => s.child_count(),
             ParseTree::E(e) => e.child_count(),
@@ -224,9 +215,6 @@ impl<'a> ParseTree<'a> {
         unreachable!("unexpected parse tree node")
     }
 }
-pub trait ListNode<'a> {
-    fn iter(&'a self) -> IntoIter<ParseTree<'a>>;
-}
 pub trait OptNode {
     type Inner;
     fn value(&self) -> Option<&Self::Inner>;
@@ -280,7 +268,7 @@ impl<'a> S<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::S(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             S::Alt0 { e, .. } => match index {
                 0 => Some(ParseTree::E(e)),
@@ -289,7 +277,7 @@ impl<'a> S<'a> {
             S::Amb(alts) => alts.get(index).copied().map(ParseTree::S),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             S::Alt0 { .. } => 1usize,
             S::Amb(alts) => alts.len(),
@@ -321,7 +309,7 @@ impl<'a> E<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::E(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             E::Alt0 { lit_0, e, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -341,7 +329,7 @@ impl<'a> E<'a> {
             E::Amb(alts) => alts.get(index).copied().map(ParseTree::E),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             E::Alt0 { .. } => 2usize,
             E::Alt1 { .. } => 3usize,
@@ -371,7 +359,7 @@ impl<'a> F<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::F(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             F::Alt0 { e, lit_1, k, .. } => match index {
                 0 => Some(ParseTree::E(e)),
@@ -382,7 +370,7 @@ impl<'a> F<'a> {
             F::Amb(alts) => alts.get(index).copied().map(ParseTree::F),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             F::Alt0 { .. } => 3usize,
             F::Amb(alts) => alts.len(),
@@ -426,7 +414,7 @@ impl<'a> K<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::K(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             K::Alt0 { e, .. } => match index {
                 0 => Some(ParseTree::E(e)),
@@ -435,7 +423,7 @@ impl<'a> K<'a> {
             K::Amb(alts) => alts.get(index).copied().map(ParseTree::K),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             K::Alt0 { .. } => 1usize,
             K::Amb(alts) => alts.len(),
@@ -467,13 +455,13 @@ impl<'a> Start<&'a S<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartS(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::S(self.node)),
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         1usize
     }
     pub fn span(&self) -> Span {
@@ -490,13 +478,13 @@ impl<'a> Start<&'a E<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartE(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::E(self.node)),
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         1usize
     }
     pub fn span(&self) -> Span {
@@ -513,13 +501,13 @@ impl<'a> Start<&'a F<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartF(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::F(self.node)),
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         1usize
     }
     pub fn span(&self) -> Span {
@@ -536,13 +524,13 @@ impl<'a> Start<&'a K<'a>, ()> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartK(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::K(self.node)),
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         1usize
     }
     pub fn span(&self) -> Span {
@@ -836,8 +824,11 @@ pub fn create_parse_tree<'a>(
     }
 }
 impl<'a> ParseTreeNode for ParseTree<'a> {
-    fn children(&self) -> Vec<Self> {
-        ParseTree::children(self)
+    fn child(&self, index: usize) -> Option<Self> {
+        ParseTree::child(self, index)
+    }
+    fn child_count(&self) -> usize {
+        ParseTree::child_count(self)
     }
     fn display_name(&self) -> &'static str {
         ParseTree::display_name(self)

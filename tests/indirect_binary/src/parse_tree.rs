@@ -8,7 +8,6 @@ use iguana_runtime::{
     parse_tree::{NodeKind, Origin, ParseTreeBuilder, ParseTreeNode, visit_sppf},
     sppf::{NonterminalNode, TerminalNode},
 };
-use std::vec::IntoIter;
 #[derive(Debug, Clone, Copy)]
 pub enum TokenKind {
     // Digits
@@ -490,603 +489,6 @@ pub enum ParseTree<'a> {
     Token(Token),
 }
 impl<'a> ParseTree<'a> {
-    pub fn children(&self) -> Vec<ParseTree<'a>> {
-        match self {
-            ParseTree::S(s) => (0..s.child_count()).filter_map(|i| s.child(i)).collect(),
-            ParseTree::E(e) => (0..e.child_count()).filter_map(|i| e.child(i)).collect(),
-            ParseTree::L(l) => (0..l.child_count()).filter_map(|i| l.child(i)).collect(),
-            ParseTree::Only(only) => (0..only.child_count())
-                .filter_map(|i| only.child(i))
-                .collect(),
-            ParseTree::OnlyOperand(only_operand) => (0..only_operand.child_count())
-                .filter_map(|i| only_operand.child(i))
-                .collect(),
-            ParseTree::Cross(cross) => (0..cross.child_count())
-                .filter_map(|i| cross.child(i))
-                .collect(),
-            ParseTree::Foreign(foreign) => (0..foreign.child_count())
-                .filter_map(|i| foreign.child(i))
-                .collect(),
-            ParseTree::Cascade(cascade) => (0..cascade.child_count())
-                .filter_map(|i| cascade.child(i))
-                .collect(),
-            ParseTree::Ternary(ternary) => (0..ternary.child_count())
-                .filter_map(|i| ternary.child(i))
-                .collect(),
-            ParseTree::Nullable(nullable) => (0..nullable.child_count())
-                .filter_map(|i| nullable.child(i))
-                .collect(),
-            ParseTree::NullableLeft(nullable_left) => (0..nullable_left.child_count())
-                .filter_map(|i| nullable_left.child(i))
-                .collect(),
-            ParseTree::NullableRight(nullable_right) => (0..nullable_right.child_count())
-                .filter_map(|i| nullable_right.child(i))
-                .collect(),
-            ParseTree::RightExpr(right_expr) => (0..right_expr.child_count())
-                .filter_map(|i| right_expr.child(i))
-                .collect(),
-            ParseTree::RightOperand(right_operand) => (0..right_operand.child_count())
-                .filter_map(|i| right_operand.child(i))
-                .collect(),
-            ParseTree::NoneExpr(none_expr) => (0..none_expr.child_count())
-                .filter_map(|i| none_expr.child(i))
-                .collect(),
-            ParseTree::NoneOperand(none_operand) => (0..none_operand.child_count())
-                .filter_map(|i| none_operand.child(i))
-                .collect(),
-            ParseTree::Excluded(excluded) => (0..excluded.child_count())
-                .filter_map(|i| excluded.child(i))
-                .collect(),
-            ParseTree::ExcludedOperand(excluded_operand) => (0..excluded_operand.child_count())
-                .filter_map(|i| excluded_operand.child(i))
-                .collect(),
-            ParseTree::Filtered(filtered) => (0..filtered.child_count())
-                .filter_map(|i| filtered.child(i))
-                .collect(),
-            ParseTree::LexNullable(lex_nullable) => (0..lex_nullable.child_count())
-                .filter_map(|i| lex_nullable.child(i))
-                .collect(),
-            ParseTree::LexNullableLeft(lex_nullable_left) => (0..lex_nullable_left.child_count())
-                .filter_map(|i| lex_nullable_left.child(i))
-                .collect(),
-            ParseTree::LexNullableRight(lex_nullable_right) => (0..lex_nullable_right
-                .child_count())
-                .filter_map(|i| lex_nullable_right.child(i))
-                .collect(),
-            ParseTree::MixedScale(mixed_scale) => (0..mixed_scale.child_count())
-                .filter_map(|i| mixed_scale.child(i))
-                .collect(),
-            ParseTree::MixedOperand(mixed_operand) => (0..mixed_operand.child_count())
-                .filter_map(|i| mixed_operand.child(i))
-                .collect(),
-            ParseTree::MixedRight(mixed_right) => (0..mixed_right.child_count())
-                .filter_map(|i| mixed_right.child(i))
-                .collect(),
-            ParseTree::MixedForeign(mixed_foreign) => (0..mixed_foreign.child_count())
-                .filter_map(|i| mixed_foreign.child(i))
-                .collect(),
-            ParseTree::Packed(packed) => (0..packed.child_count())
-                .filter_map(|i| packed.child(i))
-                .collect(),
-            ParseTree::PackedOperand(packed_operand) => (0..packed_operand.child_count())
-                .filter_map(|i| packed_operand.child(i))
-                .collect(),
-            ParseTree::PackedMiddle(packed_middle) => (0..packed_middle.child_count())
-                .filter_map(|i| packed_middle.child(i))
-                .collect(),
-            ParseTree::PackedFiltered(packed_filtered) => (0..packed_filtered.child_count())
-                .filter_map(|i| packed_filtered.child(i))
-                .collect(),
-            ParseTree::NullableRecursive(nullable_recursive) => (0..nullable_recursive
-                .child_count())
-                .filter_map(|i| nullable_recursive.child(i))
-                .collect(),
-            ParseTree::NullableOperand(nullable_operand) => (0..nullable_operand.child_count())
-                .filter_map(|i| nullable_operand.child(i))
-                .collect(),
-            ParseTree::NullableMaybe(nullable_maybe) => (0..nullable_maybe.child_count())
-                .filter_map(|i| nullable_maybe.child(i))
-                .collect(),
-            ParseTree::NullableLexRecursive(nullable_lex_recursive) => (0..nullable_lex_recursive
-                .child_count())
-                .filter_map(|i| nullable_lex_recursive.child(i))
-                .collect(),
-            ParseTree::NullableLexOperand(nullable_lex_operand) => (0..nullable_lex_operand
-                .child_count())
-                .filter_map(|i| nullable_lex_operand.child(i))
-                .collect(),
-            ParseTree::NullableLexMaybe(nullable_lex_maybe) => (0..nullable_lex_maybe
-                .child_count())
-                .filter_map(|i| nullable_lex_maybe.child(i))
-                .collect(),
-            ParseTree::NullableSuffix(nullable_suffix) => (0..nullable_suffix.child_count())
-                .filter_map(|i| nullable_suffix.child(i))
-                .collect(),
-            ParseTree::NullableSuffixOperand(nullable_suffix_operand) => (0
-                ..nullable_suffix_operand.child_count())
-                .filter_map(|i| nullable_suffix_operand.child(i))
-                .collect(),
-            ParseTree::NullableSuffixMaybe(nullable_suffix_maybe) => (0..nullable_suffix_maybe
-                .child_count())
-                .filter_map(|i| nullable_suffix_maybe.child(i))
-                .collect(),
-            ParseTree::NullableShared(nullable_shared) => (0..nullable_shared.child_count())
-                .filter_map(|i| nullable_shared.child(i))
-                .collect(),
-            ParseTree::NullableSharedOperand(nullable_shared_operand) => (0
-                ..nullable_shared_operand.child_count())
-                .filter_map(|i| nullable_shared_operand.child(i))
-                .collect(),
-            ParseTree::NullableSharedMaybe(nullable_shared_maybe) => (0..nullable_shared_maybe
-                .child_count())
-                .filter_map(|i| nullable_shared_maybe.child(i))
-                .collect(),
-            ParseTree::OwnLabel(own_label) => (0..own_label.child_count())
-                .filter_map(|i| own_label.child(i))
-                .collect(),
-            ParseTree::OwnOperand(own_operand) => (0..own_operand.child_count())
-                .filter_map(|i| own_operand.child(i))
-                .collect(),
-            ParseTree::OwnHeadFiltered(own_head_filtered) => (0..own_head_filtered.child_count())
-                .filter_map(|i| own_head_filtered.child(i))
-                .collect(),
-            ParseTree::ExcludeOnly(exclude_only) => (0..exclude_only.child_count())
-                .filter_map(|i| exclude_only.child(i))
-                .collect(),
-            ParseTree::ExcludeOnlyFiltered(exclude_only_filtered) => (0..exclude_only_filtered
-                .child_count())
-                .filter_map(|i| exclude_only_filtered.child(i))
-                .collect(),
-            ParseTree::Absent(absent) => (0..absent.child_count())
-                .filter_map(|i| absent.child(i))
-                .collect(),
-            ParseTree::AbsentOperand(absent_operand) => (0..absent_operand.child_count())
-                .filter_map(|i| absent_operand.child(i))
-                .collect(),
-            ParseTree::ClosedPrefix(closed_prefix) => (0..closed_prefix.child_count())
-                .filter_map(|i| closed_prefix.child(i))
-                .collect(),
-            ParseTree::ClosedPrefixBody(closed_prefix_body) => (0..closed_prefix_body
-                .child_count())
-                .filter_map(|i| closed_prefix_body.child(i))
-                .collect(),
-            ParseTree::ClosedPostfix(closed_postfix) => (0..closed_postfix.child_count())
-                .filter_map(|i| closed_postfix.child(i))
-                .collect(),
-            ParseTree::ClosedPostfixBody(closed_postfix_body) => (0..closed_postfix_body
-                .child_count())
-                .filter_map(|i| closed_postfix_body.child(i))
-                .collect(),
-            ParseTree::HeadChoice(head_choice) => (0..head_choice.child_count())
-                .filter_map(|i| head_choice.child(i))
-                .collect(),
-            ParseTree::HeadOperand(head_operand) => (0..head_operand.child_count())
-                .filter_map(|i| head_operand.child(i))
-                .collect(),
-            ParseTree::Inner(inner) => (0..inner.child_count())
-                .filter_map(|i| inner.child(i))
-                .collect(),
-            ParseTree::UnaryMixedLeft(unary_mixed_left) => (0..unary_mixed_left.child_count())
-                .filter_map(|i| unary_mixed_left.child(i))
-                .collect(),
-            ParseTree::UnaryMixedRight(unary_mixed_right) => (0..unary_mixed_right.child_count())
-                .filter_map(|i| unary_mixed_right.child(i))
-                .collect(),
-            ParseTree::UnaryMixedNone(unary_mixed_none) => (0..unary_mixed_none.child_count())
-                .filter_map(|i| unary_mixed_none.child(i))
-                .collect(),
-            ParseTree::Dynamic(dynamic) => (0..dynamic.child_count())
-                .filter_map(|i| dynamic.child(i))
-                .collect(),
-            ParseTree::DynamicOperand(dynamic_operand) => (0..dynamic_operand.child_count())
-                .filter_map(|i| dynamic_operand.child(i))
-                .collect(),
-            ParseTree::DynamicFiltered(dynamic_filtered) => (0..dynamic_filtered.child_count())
-                .filter_map(|i| dynamic_filtered.child(i))
-                .collect(),
-            ParseTree::DynamicHeadFiltered(dynamic_head_filtered) => (0..dynamic_head_filtered
-                .child_count())
-                .filter_map(|i| dynamic_head_filtered.child(i))
-                .collect(),
-            ParseTree::DynamicMulti(dynamic_multi) => (0..dynamic_multi.child_count())
-                .filter_map(|i| dynamic_multi.child(i))
-                .collect(),
-            ParseTree::DynamicMultiOperand(dynamic_multi_operand) => (0..dynamic_multi_operand
-                .child_count())
-                .filter_map(|i| dynamic_multi_operand.child(i))
-                .collect(),
-            ParseTree::NullableBoundaryPrefix(nullable_boundary_prefix) => (0
-                ..nullable_boundary_prefix.child_count())
-                .filter_map(|i| nullable_boundary_prefix.child(i))
-                .collect(),
-            ParseTree::NullableBoundaryRight(nullable_boundary_right) => (0
-                ..nullable_boundary_right.child_count())
-                .filter_map(|i| nullable_boundary_right.child(i))
-                .collect(),
-            ParseTree::NullableBoundaryOpt(nullable_boundary_opt) => (0..nullable_boundary_opt
-                .child_count())
-                .filter_map(|i| nullable_boundary_opt.child(i))
-                .collect(),
-            ParseTree::NullableBoundaryPostfix(nullable_boundary_postfix) => (0
-                ..nullable_boundary_postfix.child_count())
-                .filter_map(|i| nullable_boundary_postfix.child(i))
-                .collect(),
-            ParseTree::NullableBoundaryLeft(nullable_boundary_left) => (0..nullable_boundary_left
-                .child_count())
-                .filter_map(|i| nullable_boundary_left.child(i))
-                .collect(),
-            ParseTree::NullableBoundaryBinary(nullable_boundary_binary) => (0
-                ..nullable_boundary_binary.child_count())
-                .filter_map(|i| nullable_boundary_binary.child(i))
-                .collect(),
-            ParseTree::NullableBoundaryOperand(nullable_boundary_operand) => (0
-                ..nullable_boundary_operand.child_count())
-                .filter_map(|i| nullable_boundary_operand.child(i))
-                .collect(),
-            ParseTree::ClosedLeftAssoc(closed_left_assoc) => (0..closed_left_assoc.child_count())
-                .filter_map(|i| closed_left_assoc.child(i))
-                .collect(),
-            ParseTree::ClosedLeftOperand(closed_left_operand) => (0..closed_left_operand
-                .child_count())
-                .filter_map(|i| closed_left_operand.child(i))
-                .collect(),
-            ParseTree::ClosedRightAssoc(closed_right_assoc) => (0..closed_right_assoc
-                .child_count())
-                .filter_map(|i| closed_right_assoc.child(i))
-                .collect(),
-            ParseTree::ClosedRightOperand(closed_right_operand) => (0..closed_right_operand
-                .child_count())
-                .filter_map(|i| closed_right_operand.child(i))
-                .collect(),
-            ParseTree::IndirectExclude(indirect_exclude) => (0..indirect_exclude.child_count())
-                .filter_map(|i| indirect_exclude.child(i))
-                .collect(),
-            ParseTree::IndirectExcludeOperand(indirect_exclude_operand) => (0
-                ..indirect_exclude_operand.child_count())
-                .filter_map(|i| indirect_exclude_operand.child(i))
-                .collect(),
-            ParseTree::IndirectExcludeFiltered(indirect_exclude_filtered) => (0
-                ..indirect_exclude_filtered.child_count())
-                .filter_map(|i| indirect_exclude_filtered.child(i))
-                .collect(),
-            ParseTree::OperandLiteral(operand_literal) => (0..operand_literal.child_count())
-                .filter_map(|i| operand_literal.child(i))
-                .collect(),
-            ParseTree::OperandLiteralEnd(operand_literal_end) => (0..operand_literal_end
-                .child_count())
-                .filter_map(|i| operand_literal_end.child(i))
-                .collect(),
-            ParseTree::HeadLiteral(head_literal) => (0..head_literal.child_count())
-                .filter_map(|i| head_literal.child(i))
-                .collect(),
-            ParseTree::HeadLiteralEnd(head_literal_end) => (0..head_literal_end.child_count())
-                .filter_map(|i| head_literal_end.child(i))
-                .collect(),
-            ParseTree::Opt0(opt_0) => (0..opt_0.child_count())
-                .filter_map(|i| opt_0.child(i))
-                .collect(),
-            ParseTree::Opt1(opt_1) => (0..opt_1.child_count())
-                .filter_map(|i| opt_1.child(i))
-                .collect(),
-            ParseTree::Opt2(opt_2) => (0..opt_2.child_count())
-                .filter_map(|i| opt_2.child(i))
-                .collect(),
-            ParseTree::Opt3(opt_3) => (0..opt_3.child_count())
-                .filter_map(|i| opt_3.child(i))
-                .collect(),
-            ParseTree::StartS(start_s) => (0..start_s.child_count())
-                .filter_map(|i| start_s.child(i))
-                .collect(),
-            ParseTree::StartE(start_e) => (0..start_e.child_count())
-                .filter_map(|i| start_e.child(i))
-                .collect(),
-            ParseTree::StartL(start_l) => (0..start_l.child_count())
-                .filter_map(|i| start_l.child(i))
-                .collect(),
-            ParseTree::StartOnly(start_only) => (0..start_only.child_count())
-                .filter_map(|i| start_only.child(i))
-                .collect(),
-            ParseTree::StartOnlyOperand(start_only_operand) => (0..start_only_operand
-                .child_count())
-                .filter_map(|i| start_only_operand.child(i))
-                .collect(),
-            ParseTree::StartCross(start_cross) => (0..start_cross.child_count())
-                .filter_map(|i| start_cross.child(i))
-                .collect(),
-            ParseTree::StartForeign(start_foreign) => (0..start_foreign.child_count())
-                .filter_map(|i| start_foreign.child(i))
-                .collect(),
-            ParseTree::StartCascade(start_cascade) => (0..start_cascade.child_count())
-                .filter_map(|i| start_cascade.child(i))
-                .collect(),
-            ParseTree::StartTernary(start_ternary) => (0..start_ternary.child_count())
-                .filter_map(|i| start_ternary.child(i))
-                .collect(),
-            ParseTree::StartNullable(start_nullable) => (0..start_nullable.child_count())
-                .filter_map(|i| start_nullable.child(i))
-                .collect(),
-            ParseTree::StartNullableLeft(start_nullable_left) => (0..start_nullable_left
-                .child_count())
-                .filter_map(|i| start_nullable_left.child(i))
-                .collect(),
-            ParseTree::StartNullableRight(start_nullable_right) => (0..start_nullable_right
-                .child_count())
-                .filter_map(|i| start_nullable_right.child(i))
-                .collect(),
-            ParseTree::StartRightExpr(start_right_expr) => (0..start_right_expr.child_count())
-                .filter_map(|i| start_right_expr.child(i))
-                .collect(),
-            ParseTree::StartRightOperand(start_right_operand) => (0..start_right_operand
-                .child_count())
-                .filter_map(|i| start_right_operand.child(i))
-                .collect(),
-            ParseTree::StartNoneExpr(start_none_expr) => (0..start_none_expr.child_count())
-                .filter_map(|i| start_none_expr.child(i))
-                .collect(),
-            ParseTree::StartNoneOperand(start_none_operand) => (0..start_none_operand
-                .child_count())
-                .filter_map(|i| start_none_operand.child(i))
-                .collect(),
-            ParseTree::StartExcluded(start_excluded) => (0..start_excluded.child_count())
-                .filter_map(|i| start_excluded.child(i))
-                .collect(),
-            ParseTree::StartExcludedOperand(start_excluded_operand) => (0..start_excluded_operand
-                .child_count())
-                .filter_map(|i| start_excluded_operand.child(i))
-                .collect(),
-            ParseTree::StartFiltered(start_filtered) => (0..start_filtered.child_count())
-                .filter_map(|i| start_filtered.child(i))
-                .collect(),
-            ParseTree::StartLexNullable(start_lex_nullable) => (0..start_lex_nullable
-                .child_count())
-                .filter_map(|i| start_lex_nullable.child(i))
-                .collect(),
-            ParseTree::StartLexNullableLeft(start_lex_nullable_left) => (0
-                ..start_lex_nullable_left.child_count())
-                .filter_map(|i| start_lex_nullable_left.child(i))
-                .collect(),
-            ParseTree::StartLexNullableRight(start_lex_nullable_right) => (0
-                ..start_lex_nullable_right.child_count())
-                .filter_map(|i| start_lex_nullable_right.child(i))
-                .collect(),
-            ParseTree::StartMixedScale(start_mixed_scale) => (0..start_mixed_scale.child_count())
-                .filter_map(|i| start_mixed_scale.child(i))
-                .collect(),
-            ParseTree::StartMixedOperand(start_mixed_operand) => (0..start_mixed_operand
-                .child_count())
-                .filter_map(|i| start_mixed_operand.child(i))
-                .collect(),
-            ParseTree::StartMixedRight(start_mixed_right) => (0..start_mixed_right.child_count())
-                .filter_map(|i| start_mixed_right.child(i))
-                .collect(),
-            ParseTree::StartMixedForeign(start_mixed_foreign) => (0..start_mixed_foreign
-                .child_count())
-                .filter_map(|i| start_mixed_foreign.child(i))
-                .collect(),
-            ParseTree::StartPacked(start_packed) => (0..start_packed.child_count())
-                .filter_map(|i| start_packed.child(i))
-                .collect(),
-            ParseTree::StartPackedOperand(start_packed_operand) => (0..start_packed_operand
-                .child_count())
-                .filter_map(|i| start_packed_operand.child(i))
-                .collect(),
-            ParseTree::StartPackedMiddle(start_packed_middle) => (0..start_packed_middle
-                .child_count())
-                .filter_map(|i| start_packed_middle.child(i))
-                .collect(),
-            ParseTree::StartPackedFiltered(start_packed_filtered) => (0..start_packed_filtered
-                .child_count())
-                .filter_map(|i| start_packed_filtered.child(i))
-                .collect(),
-            ParseTree::StartNullableRecursive(start_nullable_recursive) => (0
-                ..start_nullable_recursive.child_count())
-                .filter_map(|i| start_nullable_recursive.child(i))
-                .collect(),
-            ParseTree::StartNullableOperand(start_nullable_operand) => (0..start_nullable_operand
-                .child_count())
-                .filter_map(|i| start_nullable_operand.child(i))
-                .collect(),
-            ParseTree::StartNullableMaybe(start_nullable_maybe) => (0..start_nullable_maybe
-                .child_count())
-                .filter_map(|i| start_nullable_maybe.child(i))
-                .collect(),
-            ParseTree::StartNullableLexRecursive(start_nullable_lex_recursive) => (0
-                ..start_nullable_lex_recursive.child_count())
-                .filter_map(|i| start_nullable_lex_recursive.child(i))
-                .collect(),
-            ParseTree::StartNullableLexOperand(start_nullable_lex_operand) => (0
-                ..start_nullable_lex_operand.child_count())
-                .filter_map(|i| start_nullable_lex_operand.child(i))
-                .collect(),
-            ParseTree::StartNullableLexMaybe(start_nullable_lex_maybe) => (0
-                ..start_nullable_lex_maybe.child_count())
-                .filter_map(|i| start_nullable_lex_maybe.child(i))
-                .collect(),
-            ParseTree::StartNullableSuffix(start_nullable_suffix) => (0..start_nullable_suffix
-                .child_count())
-                .filter_map(|i| start_nullable_suffix.child(i))
-                .collect(),
-            ParseTree::StartNullableSuffixOperand(start_nullable_suffix_operand) => (0
-                ..start_nullable_suffix_operand.child_count())
-                .filter_map(|i| start_nullable_suffix_operand.child(i))
-                .collect(),
-            ParseTree::StartNullableSuffixMaybe(start_nullable_suffix_maybe) => (0
-                ..start_nullable_suffix_maybe.child_count())
-                .filter_map(|i| start_nullable_suffix_maybe.child(i))
-                .collect(),
-            ParseTree::StartNullableShared(start_nullable_shared) => (0..start_nullable_shared
-                .child_count())
-                .filter_map(|i| start_nullable_shared.child(i))
-                .collect(),
-            ParseTree::StartNullableSharedOperand(start_nullable_shared_operand) => (0
-                ..start_nullable_shared_operand.child_count())
-                .filter_map(|i| start_nullable_shared_operand.child(i))
-                .collect(),
-            ParseTree::StartNullableSharedMaybe(start_nullable_shared_maybe) => (0
-                ..start_nullable_shared_maybe.child_count())
-                .filter_map(|i| start_nullable_shared_maybe.child(i))
-                .collect(),
-            ParseTree::StartOwnLabel(start_own_label) => (0..start_own_label.child_count())
-                .filter_map(|i| start_own_label.child(i))
-                .collect(),
-            ParseTree::StartOwnOperand(start_own_operand) => (0..start_own_operand.child_count())
-                .filter_map(|i| start_own_operand.child(i))
-                .collect(),
-            ParseTree::StartOwnHeadFiltered(start_own_head_filtered) => (0
-                ..start_own_head_filtered.child_count())
-                .filter_map(|i| start_own_head_filtered.child(i))
-                .collect(),
-            ParseTree::StartExcludeOnly(start_exclude_only) => (0..start_exclude_only
-                .child_count())
-                .filter_map(|i| start_exclude_only.child(i))
-                .collect(),
-            ParseTree::StartExcludeOnlyFiltered(start_exclude_only_filtered) => (0
-                ..start_exclude_only_filtered.child_count())
-                .filter_map(|i| start_exclude_only_filtered.child(i))
-                .collect(),
-            ParseTree::StartAbsent(start_absent) => (0..start_absent.child_count())
-                .filter_map(|i| start_absent.child(i))
-                .collect(),
-            ParseTree::StartAbsentOperand(start_absent_operand) => (0..start_absent_operand
-                .child_count())
-                .filter_map(|i| start_absent_operand.child(i))
-                .collect(),
-            ParseTree::StartClosedPrefix(start_closed_prefix) => (0..start_closed_prefix
-                .child_count())
-                .filter_map(|i| start_closed_prefix.child(i))
-                .collect(),
-            ParseTree::StartClosedPrefixBody(start_closed_prefix_body) => (0
-                ..start_closed_prefix_body.child_count())
-                .filter_map(|i| start_closed_prefix_body.child(i))
-                .collect(),
-            ParseTree::StartClosedPostfix(start_closed_postfix) => (0..start_closed_postfix
-                .child_count())
-                .filter_map(|i| start_closed_postfix.child(i))
-                .collect(),
-            ParseTree::StartClosedPostfixBody(start_closed_postfix_body) => (0
-                ..start_closed_postfix_body.child_count())
-                .filter_map(|i| start_closed_postfix_body.child(i))
-                .collect(),
-            ParseTree::StartHeadChoice(start_head_choice) => (0..start_head_choice.child_count())
-                .filter_map(|i| start_head_choice.child(i))
-                .collect(),
-            ParseTree::StartHeadOperand(start_head_operand) => (0..start_head_operand
-                .child_count())
-                .filter_map(|i| start_head_operand.child(i))
-                .collect(),
-            ParseTree::StartInner(start_inner) => (0..start_inner.child_count())
-                .filter_map(|i| start_inner.child(i))
-                .collect(),
-            ParseTree::StartUnaryMixedLeft(start_unary_mixed_left) => (0..start_unary_mixed_left
-                .child_count())
-                .filter_map(|i| start_unary_mixed_left.child(i))
-                .collect(),
-            ParseTree::StartUnaryMixedRight(start_unary_mixed_right) => (0
-                ..start_unary_mixed_right.child_count())
-                .filter_map(|i| start_unary_mixed_right.child(i))
-                .collect(),
-            ParseTree::StartUnaryMixedNone(start_unary_mixed_none) => (0..start_unary_mixed_none
-                .child_count())
-                .filter_map(|i| start_unary_mixed_none.child(i))
-                .collect(),
-            ParseTree::StartDynamic(start_dynamic) => (0..start_dynamic.child_count())
-                .filter_map(|i| start_dynamic.child(i))
-                .collect(),
-            ParseTree::StartDynamicOperand(start_dynamic_operand) => (0..start_dynamic_operand
-                .child_count())
-                .filter_map(|i| start_dynamic_operand.child(i))
-                .collect(),
-            ParseTree::StartDynamicFiltered(start_dynamic_filtered) => (0..start_dynamic_filtered
-                .child_count())
-                .filter_map(|i| start_dynamic_filtered.child(i))
-                .collect(),
-            ParseTree::StartDynamicHeadFiltered(start_dynamic_head_filtered) => (0
-                ..start_dynamic_head_filtered.child_count())
-                .filter_map(|i| start_dynamic_head_filtered.child(i))
-                .collect(),
-            ParseTree::StartDynamicMulti(start_dynamic_multi) => (0..start_dynamic_multi
-                .child_count())
-                .filter_map(|i| start_dynamic_multi.child(i))
-                .collect(),
-            ParseTree::StartDynamicMultiOperand(start_dynamic_multi_operand) => (0
-                ..start_dynamic_multi_operand.child_count())
-                .filter_map(|i| start_dynamic_multi_operand.child(i))
-                .collect(),
-            ParseTree::StartNullableBoundaryPrefix(start_nullable_boundary_prefix) => (0
-                ..start_nullable_boundary_prefix.child_count())
-                .filter_map(|i| start_nullable_boundary_prefix.child(i))
-                .collect(),
-            ParseTree::StartNullableBoundaryRight(start_nullable_boundary_right) => (0
-                ..start_nullable_boundary_right.child_count())
-                .filter_map(|i| start_nullable_boundary_right.child(i))
-                .collect(),
-            ParseTree::StartNullableBoundaryOpt(start_nullable_boundary_opt) => (0
-                ..start_nullable_boundary_opt.child_count())
-                .filter_map(|i| start_nullable_boundary_opt.child(i))
-                .collect(),
-            ParseTree::StartNullableBoundaryPostfix(start_nullable_boundary_postfix) => (0
-                ..start_nullable_boundary_postfix.child_count())
-                .filter_map(|i| start_nullable_boundary_postfix.child(i))
-                .collect(),
-            ParseTree::StartNullableBoundaryLeft(start_nullable_boundary_left) => (0
-                ..start_nullable_boundary_left.child_count())
-                .filter_map(|i| start_nullable_boundary_left.child(i))
-                .collect(),
-            ParseTree::StartNullableBoundaryBinary(start_nullable_boundary_binary) => (0
-                ..start_nullable_boundary_binary.child_count())
-                .filter_map(|i| start_nullable_boundary_binary.child(i))
-                .collect(),
-            ParseTree::StartNullableBoundaryOperand(start_nullable_boundary_operand) => (0
-                ..start_nullable_boundary_operand.child_count())
-                .filter_map(|i| start_nullable_boundary_operand.child(i))
-                .collect(),
-            ParseTree::StartClosedLeftAssoc(start_closed_left_assoc) => (0
-                ..start_closed_left_assoc.child_count())
-                .filter_map(|i| start_closed_left_assoc.child(i))
-                .collect(),
-            ParseTree::StartClosedLeftOperand(start_closed_left_operand) => (0
-                ..start_closed_left_operand.child_count())
-                .filter_map(|i| start_closed_left_operand.child(i))
-                .collect(),
-            ParseTree::StartClosedRightAssoc(start_closed_right_assoc) => (0
-                ..start_closed_right_assoc.child_count())
-                .filter_map(|i| start_closed_right_assoc.child(i))
-                .collect(),
-            ParseTree::StartClosedRightOperand(start_closed_right_operand) => (0
-                ..start_closed_right_operand.child_count())
-                .filter_map(|i| start_closed_right_operand.child(i))
-                .collect(),
-            ParseTree::StartIndirectExclude(start_indirect_exclude) => (0..start_indirect_exclude
-                .child_count())
-                .filter_map(|i| start_indirect_exclude.child(i))
-                .collect(),
-            ParseTree::StartIndirectExcludeOperand(start_indirect_exclude_operand) => (0
-                ..start_indirect_exclude_operand.child_count())
-                .filter_map(|i| start_indirect_exclude_operand.child(i))
-                .collect(),
-            ParseTree::StartIndirectExcludeFiltered(start_indirect_exclude_filtered) => (0
-                ..start_indirect_exclude_filtered.child_count())
-                .filter_map(|i| start_indirect_exclude_filtered.child(i))
-                .collect(),
-            ParseTree::StartOperandLiteral(start_operand_literal) => (0..start_operand_literal
-                .child_count())
-                .filter_map(|i| start_operand_literal.child(i))
-                .collect(),
-            ParseTree::StartOperandLiteralEnd(start_operand_literal_end) => (0
-                ..start_operand_literal_end.child_count())
-                .filter_map(|i| start_operand_literal_end.child(i))
-                .collect(),
-            ParseTree::StartHeadLiteral(start_head_literal) => (0..start_head_literal
-                .child_count())
-                .filter_map(|i| start_head_literal.child(i))
-                .collect(),
-            ParseTree::StartHeadLiteralEnd(start_head_literal_end) => (0..start_head_literal_end
-                .child_count())
-                .filter_map(|i| start_head_literal_end.child(i))
-                .collect(),
-            ParseTree::Token(_) => vec![],
-        }
-    }
     pub fn display_name(&self) -> &'static str {
         match self {
             ParseTree::S(s) => s.display_name(),
@@ -1396,7 +798,316 @@ impl<'a> ParseTree<'a> {
             ParseTree::Token(token) => token.kind.name(),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+        match self {
+            ParseTree::S(s) => s.child(index),
+            ParseTree::E(e) => e.child(index),
+            ParseTree::L(l) => l.child(index),
+            ParseTree::Only(only) => only.child(index),
+            ParseTree::OnlyOperand(only_operand) => only_operand.child(index),
+            ParseTree::Cross(cross) => cross.child(index),
+            ParseTree::Foreign(foreign) => foreign.child(index),
+            ParseTree::Cascade(cascade) => cascade.child(index),
+            ParseTree::Ternary(ternary) => ternary.child(index),
+            ParseTree::Nullable(nullable) => nullable.child(index),
+            ParseTree::NullableLeft(nullable_left) => nullable_left.child(index),
+            ParseTree::NullableRight(nullable_right) => nullable_right.child(index),
+            ParseTree::RightExpr(right_expr) => right_expr.child(index),
+            ParseTree::RightOperand(right_operand) => right_operand.child(index),
+            ParseTree::NoneExpr(none_expr) => none_expr.child(index),
+            ParseTree::NoneOperand(none_operand) => none_operand.child(index),
+            ParseTree::Excluded(excluded) => excluded.child(index),
+            ParseTree::ExcludedOperand(excluded_operand) => excluded_operand.child(index),
+            ParseTree::Filtered(filtered) => filtered.child(index),
+            ParseTree::LexNullable(lex_nullable) => lex_nullable.child(index),
+            ParseTree::LexNullableLeft(lex_nullable_left) => lex_nullable_left.child(index),
+            ParseTree::LexNullableRight(lex_nullable_right) => lex_nullable_right.child(index),
+            ParseTree::MixedScale(mixed_scale) => mixed_scale.child(index),
+            ParseTree::MixedOperand(mixed_operand) => mixed_operand.child(index),
+            ParseTree::MixedRight(mixed_right) => mixed_right.child(index),
+            ParseTree::MixedForeign(mixed_foreign) => mixed_foreign.child(index),
+            ParseTree::Packed(packed) => packed.child(index),
+            ParseTree::PackedOperand(packed_operand) => packed_operand.child(index),
+            ParseTree::PackedMiddle(packed_middle) => packed_middle.child(index),
+            ParseTree::PackedFiltered(packed_filtered) => packed_filtered.child(index),
+            ParseTree::NullableRecursive(nullable_recursive) => nullable_recursive.child(index),
+            ParseTree::NullableOperand(nullable_operand) => nullable_operand.child(index),
+            ParseTree::NullableMaybe(nullable_maybe) => nullable_maybe.child(index),
+            ParseTree::NullableLexRecursive(nullable_lex_recursive) => {
+                nullable_lex_recursive.child(index)
+            }
+            ParseTree::NullableLexOperand(nullable_lex_operand) => {
+                nullable_lex_operand.child(index)
+            }
+            ParseTree::NullableLexMaybe(nullable_lex_maybe) => nullable_lex_maybe.child(index),
+            ParseTree::NullableSuffix(nullable_suffix) => nullable_suffix.child(index),
+            ParseTree::NullableSuffixOperand(nullable_suffix_operand) => {
+                nullable_suffix_operand.child(index)
+            }
+            ParseTree::NullableSuffixMaybe(nullable_suffix_maybe) => {
+                nullable_suffix_maybe.child(index)
+            }
+            ParseTree::NullableShared(nullable_shared) => nullable_shared.child(index),
+            ParseTree::NullableSharedOperand(nullable_shared_operand) => {
+                nullable_shared_operand.child(index)
+            }
+            ParseTree::NullableSharedMaybe(nullable_shared_maybe) => {
+                nullable_shared_maybe.child(index)
+            }
+            ParseTree::OwnLabel(own_label) => own_label.child(index),
+            ParseTree::OwnOperand(own_operand) => own_operand.child(index),
+            ParseTree::OwnHeadFiltered(own_head_filtered) => own_head_filtered.child(index),
+            ParseTree::ExcludeOnly(exclude_only) => exclude_only.child(index),
+            ParseTree::ExcludeOnlyFiltered(exclude_only_filtered) => {
+                exclude_only_filtered.child(index)
+            }
+            ParseTree::Absent(absent) => absent.child(index),
+            ParseTree::AbsentOperand(absent_operand) => absent_operand.child(index),
+            ParseTree::ClosedPrefix(closed_prefix) => closed_prefix.child(index),
+            ParseTree::ClosedPrefixBody(closed_prefix_body) => closed_prefix_body.child(index),
+            ParseTree::ClosedPostfix(closed_postfix) => closed_postfix.child(index),
+            ParseTree::ClosedPostfixBody(closed_postfix_body) => closed_postfix_body.child(index),
+            ParseTree::HeadChoice(head_choice) => head_choice.child(index),
+            ParseTree::HeadOperand(head_operand) => head_operand.child(index),
+            ParseTree::Inner(inner) => inner.child(index),
+            ParseTree::UnaryMixedLeft(unary_mixed_left) => unary_mixed_left.child(index),
+            ParseTree::UnaryMixedRight(unary_mixed_right) => unary_mixed_right.child(index),
+            ParseTree::UnaryMixedNone(unary_mixed_none) => unary_mixed_none.child(index),
+            ParseTree::Dynamic(dynamic) => dynamic.child(index),
+            ParseTree::DynamicOperand(dynamic_operand) => dynamic_operand.child(index),
+            ParseTree::DynamicFiltered(dynamic_filtered) => dynamic_filtered.child(index),
+            ParseTree::DynamicHeadFiltered(dynamic_head_filtered) => {
+                dynamic_head_filtered.child(index)
+            }
+            ParseTree::DynamicMulti(dynamic_multi) => dynamic_multi.child(index),
+            ParseTree::DynamicMultiOperand(dynamic_multi_operand) => {
+                dynamic_multi_operand.child(index)
+            }
+            ParseTree::NullableBoundaryPrefix(nullable_boundary_prefix) => {
+                nullable_boundary_prefix.child(index)
+            }
+            ParseTree::NullableBoundaryRight(nullable_boundary_right) => {
+                nullable_boundary_right.child(index)
+            }
+            ParseTree::NullableBoundaryOpt(nullable_boundary_opt) => {
+                nullable_boundary_opt.child(index)
+            }
+            ParseTree::NullableBoundaryPostfix(nullable_boundary_postfix) => {
+                nullable_boundary_postfix.child(index)
+            }
+            ParseTree::NullableBoundaryLeft(nullable_boundary_left) => {
+                nullable_boundary_left.child(index)
+            }
+            ParseTree::NullableBoundaryBinary(nullable_boundary_binary) => {
+                nullable_boundary_binary.child(index)
+            }
+            ParseTree::NullableBoundaryOperand(nullable_boundary_operand) => {
+                nullable_boundary_operand.child(index)
+            }
+            ParseTree::ClosedLeftAssoc(closed_left_assoc) => closed_left_assoc.child(index),
+            ParseTree::ClosedLeftOperand(closed_left_operand) => closed_left_operand.child(index),
+            ParseTree::ClosedRightAssoc(closed_right_assoc) => closed_right_assoc.child(index),
+            ParseTree::ClosedRightOperand(closed_right_operand) => {
+                closed_right_operand.child(index)
+            }
+            ParseTree::IndirectExclude(indirect_exclude) => indirect_exclude.child(index),
+            ParseTree::IndirectExcludeOperand(indirect_exclude_operand) => {
+                indirect_exclude_operand.child(index)
+            }
+            ParseTree::IndirectExcludeFiltered(indirect_exclude_filtered) => {
+                indirect_exclude_filtered.child(index)
+            }
+            ParseTree::OperandLiteral(operand_literal) => operand_literal.child(index),
+            ParseTree::OperandLiteralEnd(operand_literal_end) => operand_literal_end.child(index),
+            ParseTree::HeadLiteral(head_literal) => head_literal.child(index),
+            ParseTree::HeadLiteralEnd(head_literal_end) => head_literal_end.child(index),
+            ParseTree::Opt0(opt_0) => opt_0.child(index),
+            ParseTree::Opt1(opt_1) => opt_1.child(index),
+            ParseTree::Opt2(opt_2) => opt_2.child(index),
+            ParseTree::Opt3(opt_3) => opt_3.child(index),
+            ParseTree::StartS(start_s) => start_s.child(index),
+            ParseTree::StartE(start_e) => start_e.child(index),
+            ParseTree::StartL(start_l) => start_l.child(index),
+            ParseTree::StartOnly(start_only) => start_only.child(index),
+            ParseTree::StartOnlyOperand(start_only_operand) => start_only_operand.child(index),
+            ParseTree::StartCross(start_cross) => start_cross.child(index),
+            ParseTree::StartForeign(start_foreign) => start_foreign.child(index),
+            ParseTree::StartCascade(start_cascade) => start_cascade.child(index),
+            ParseTree::StartTernary(start_ternary) => start_ternary.child(index),
+            ParseTree::StartNullable(start_nullable) => start_nullable.child(index),
+            ParseTree::StartNullableLeft(start_nullable_left) => start_nullable_left.child(index),
+            ParseTree::StartNullableRight(start_nullable_right) => {
+                start_nullable_right.child(index)
+            }
+            ParseTree::StartRightExpr(start_right_expr) => start_right_expr.child(index),
+            ParseTree::StartRightOperand(start_right_operand) => start_right_operand.child(index),
+            ParseTree::StartNoneExpr(start_none_expr) => start_none_expr.child(index),
+            ParseTree::StartNoneOperand(start_none_operand) => start_none_operand.child(index),
+            ParseTree::StartExcluded(start_excluded) => start_excluded.child(index),
+            ParseTree::StartExcludedOperand(start_excluded_operand) => {
+                start_excluded_operand.child(index)
+            }
+            ParseTree::StartFiltered(start_filtered) => start_filtered.child(index),
+            ParseTree::StartLexNullable(start_lex_nullable) => start_lex_nullable.child(index),
+            ParseTree::StartLexNullableLeft(start_lex_nullable_left) => {
+                start_lex_nullable_left.child(index)
+            }
+            ParseTree::StartLexNullableRight(start_lex_nullable_right) => {
+                start_lex_nullable_right.child(index)
+            }
+            ParseTree::StartMixedScale(start_mixed_scale) => start_mixed_scale.child(index),
+            ParseTree::StartMixedOperand(start_mixed_operand) => start_mixed_operand.child(index),
+            ParseTree::StartMixedRight(start_mixed_right) => start_mixed_right.child(index),
+            ParseTree::StartMixedForeign(start_mixed_foreign) => start_mixed_foreign.child(index),
+            ParseTree::StartPacked(start_packed) => start_packed.child(index),
+            ParseTree::StartPackedOperand(start_packed_operand) => {
+                start_packed_operand.child(index)
+            }
+            ParseTree::StartPackedMiddle(start_packed_middle) => start_packed_middle.child(index),
+            ParseTree::StartPackedFiltered(start_packed_filtered) => {
+                start_packed_filtered.child(index)
+            }
+            ParseTree::StartNullableRecursive(start_nullable_recursive) => {
+                start_nullable_recursive.child(index)
+            }
+            ParseTree::StartNullableOperand(start_nullable_operand) => {
+                start_nullable_operand.child(index)
+            }
+            ParseTree::StartNullableMaybe(start_nullable_maybe) => {
+                start_nullable_maybe.child(index)
+            }
+            ParseTree::StartNullableLexRecursive(start_nullable_lex_recursive) => {
+                start_nullable_lex_recursive.child(index)
+            }
+            ParseTree::StartNullableLexOperand(start_nullable_lex_operand) => {
+                start_nullable_lex_operand.child(index)
+            }
+            ParseTree::StartNullableLexMaybe(start_nullable_lex_maybe) => {
+                start_nullable_lex_maybe.child(index)
+            }
+            ParseTree::StartNullableSuffix(start_nullable_suffix) => {
+                start_nullable_suffix.child(index)
+            }
+            ParseTree::StartNullableSuffixOperand(start_nullable_suffix_operand) => {
+                start_nullable_suffix_operand.child(index)
+            }
+            ParseTree::StartNullableSuffixMaybe(start_nullable_suffix_maybe) => {
+                start_nullable_suffix_maybe.child(index)
+            }
+            ParseTree::StartNullableShared(start_nullable_shared) => {
+                start_nullable_shared.child(index)
+            }
+            ParseTree::StartNullableSharedOperand(start_nullable_shared_operand) => {
+                start_nullable_shared_operand.child(index)
+            }
+            ParseTree::StartNullableSharedMaybe(start_nullable_shared_maybe) => {
+                start_nullable_shared_maybe.child(index)
+            }
+            ParseTree::StartOwnLabel(start_own_label) => start_own_label.child(index),
+            ParseTree::StartOwnOperand(start_own_operand) => start_own_operand.child(index),
+            ParseTree::StartOwnHeadFiltered(start_own_head_filtered) => {
+                start_own_head_filtered.child(index)
+            }
+            ParseTree::StartExcludeOnly(start_exclude_only) => start_exclude_only.child(index),
+            ParseTree::StartExcludeOnlyFiltered(start_exclude_only_filtered) => {
+                start_exclude_only_filtered.child(index)
+            }
+            ParseTree::StartAbsent(start_absent) => start_absent.child(index),
+            ParseTree::StartAbsentOperand(start_absent_operand) => {
+                start_absent_operand.child(index)
+            }
+            ParseTree::StartClosedPrefix(start_closed_prefix) => start_closed_prefix.child(index),
+            ParseTree::StartClosedPrefixBody(start_closed_prefix_body) => {
+                start_closed_prefix_body.child(index)
+            }
+            ParseTree::StartClosedPostfix(start_closed_postfix) => {
+                start_closed_postfix.child(index)
+            }
+            ParseTree::StartClosedPostfixBody(start_closed_postfix_body) => {
+                start_closed_postfix_body.child(index)
+            }
+            ParseTree::StartHeadChoice(start_head_choice) => start_head_choice.child(index),
+            ParseTree::StartHeadOperand(start_head_operand) => start_head_operand.child(index),
+            ParseTree::StartInner(start_inner) => start_inner.child(index),
+            ParseTree::StartUnaryMixedLeft(start_unary_mixed_left) => {
+                start_unary_mixed_left.child(index)
+            }
+            ParseTree::StartUnaryMixedRight(start_unary_mixed_right) => {
+                start_unary_mixed_right.child(index)
+            }
+            ParseTree::StartUnaryMixedNone(start_unary_mixed_none) => {
+                start_unary_mixed_none.child(index)
+            }
+            ParseTree::StartDynamic(start_dynamic) => start_dynamic.child(index),
+            ParseTree::StartDynamicOperand(start_dynamic_operand) => {
+                start_dynamic_operand.child(index)
+            }
+            ParseTree::StartDynamicFiltered(start_dynamic_filtered) => {
+                start_dynamic_filtered.child(index)
+            }
+            ParseTree::StartDynamicHeadFiltered(start_dynamic_head_filtered) => {
+                start_dynamic_head_filtered.child(index)
+            }
+            ParseTree::StartDynamicMulti(start_dynamic_multi) => start_dynamic_multi.child(index),
+            ParseTree::StartDynamicMultiOperand(start_dynamic_multi_operand) => {
+                start_dynamic_multi_operand.child(index)
+            }
+            ParseTree::StartNullableBoundaryPrefix(start_nullable_boundary_prefix) => {
+                start_nullable_boundary_prefix.child(index)
+            }
+            ParseTree::StartNullableBoundaryRight(start_nullable_boundary_right) => {
+                start_nullable_boundary_right.child(index)
+            }
+            ParseTree::StartNullableBoundaryOpt(start_nullable_boundary_opt) => {
+                start_nullable_boundary_opt.child(index)
+            }
+            ParseTree::StartNullableBoundaryPostfix(start_nullable_boundary_postfix) => {
+                start_nullable_boundary_postfix.child(index)
+            }
+            ParseTree::StartNullableBoundaryLeft(start_nullable_boundary_left) => {
+                start_nullable_boundary_left.child(index)
+            }
+            ParseTree::StartNullableBoundaryBinary(start_nullable_boundary_binary) => {
+                start_nullable_boundary_binary.child(index)
+            }
+            ParseTree::StartNullableBoundaryOperand(start_nullable_boundary_operand) => {
+                start_nullable_boundary_operand.child(index)
+            }
+            ParseTree::StartClosedLeftAssoc(start_closed_left_assoc) => {
+                start_closed_left_assoc.child(index)
+            }
+            ParseTree::StartClosedLeftOperand(start_closed_left_operand) => {
+                start_closed_left_operand.child(index)
+            }
+            ParseTree::StartClosedRightAssoc(start_closed_right_assoc) => {
+                start_closed_right_assoc.child(index)
+            }
+            ParseTree::StartClosedRightOperand(start_closed_right_operand) => {
+                start_closed_right_operand.child(index)
+            }
+            ParseTree::StartIndirectExclude(start_indirect_exclude) => {
+                start_indirect_exclude.child(index)
+            }
+            ParseTree::StartIndirectExcludeOperand(start_indirect_exclude_operand) => {
+                start_indirect_exclude_operand.child(index)
+            }
+            ParseTree::StartIndirectExcludeFiltered(start_indirect_exclude_filtered) => {
+                start_indirect_exclude_filtered.child(index)
+            }
+            ParseTree::StartOperandLiteral(start_operand_literal) => {
+                start_operand_literal.child(index)
+            }
+            ParseTree::StartOperandLiteralEnd(start_operand_literal_end) => {
+                start_operand_literal_end.child(index)
+            }
+            ParseTree::StartHeadLiteral(start_head_literal) => start_head_literal.child(index),
+            ParseTree::StartHeadLiteralEnd(start_head_literal_end) => {
+                start_head_literal_end.child(index)
+            }
+            ParseTree::Token(_) => None,
+        }
+    }
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             ParseTree::S(s) => s.child_count(),
             ParseTree::E(e) => e.child_count(),
@@ -4064,9 +3775,6 @@ impl<'a> ParseTree<'a> {
         unreachable!("unexpected parse tree node")
     }
 }
-pub trait ListNode<'a> {
-    fn iter(&'a self) -> IntoIter<ParseTree<'a>>;
-}
 pub trait OptNode {
     type Inner;
     fn value(&self) -> Option<&Self::Inner>;
@@ -5478,7 +5186,7 @@ impl<'a> S<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::S(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             S::Alt0 { e, .. } => match index {
                 0 => Some(ParseTree::E(e)),
@@ -5487,7 +5195,7 @@ impl<'a> S<'a> {
             S::Amb(alts) => alts.get(index).copied().map(ParseTree::S),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             S::Alt0 { .. } => 1usize,
             S::Amb(alts) => alts.len(),
@@ -5519,7 +5227,7 @@ impl<'a> E<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::E(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             E::Alt0 { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -5573,7 +5281,7 @@ impl<'a> E<'a> {
             E::Amb(alts) => alts.get(index).copied().map(ParseTree::E),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             E::Alt0 { .. } => 1usize,
             E::Alt1 { .. } => 5usize,
@@ -5605,7 +5313,7 @@ impl<'a> L<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::L(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             L::Alt0 { e, .. } => match index {
                 0 => Some(ParseTree::E(e)),
@@ -5614,7 +5322,7 @@ impl<'a> L<'a> {
             L::Amb(alts) => alts.get(index).copied().map(ParseTree::L),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             L::Alt0 { .. } => 1usize,
             L::Amb(alts) => alts.len(),
@@ -5646,7 +5354,7 @@ impl<'a> Only<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::Only(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             Only::Alt0 { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -5670,7 +5378,7 @@ impl<'a> Only<'a> {
             Only::Amb(alts) => alts.get(index).copied().map(ParseTree::Only),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             Only::Alt0 { .. } => 1usize,
             Only::Alt1 { .. } => 5usize,
@@ -5698,7 +5406,7 @@ impl<'a> OnlyOperand<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::OnlyOperand(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             OnlyOperand::Alt0 { only, .. } => match index {
                 0 => Some(ParseTree::Only(only)),
@@ -5707,7 +5415,7 @@ impl<'a> OnlyOperand<'a> {
             OnlyOperand::Amb(alts) => alts.get(index).copied().map(ParseTree::OnlyOperand),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             OnlyOperand::Alt0 { .. } => 1usize,
             OnlyOperand::Amb(alts) => alts.len(),
@@ -5739,7 +5447,7 @@ impl<'a> Cross<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::Cross(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             Cross::Alt0 { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -5778,7 +5486,7 @@ impl<'a> Cross<'a> {
             Cross::Amb(alts) => alts.get(index).copied().map(ParseTree::Cross),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             Cross::Alt0 { .. } => 1usize,
             Cross::Alt1 { .. } => 5usize,
@@ -5808,7 +5516,7 @@ impl<'a> Foreign<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::Foreign(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             Foreign::Alt0 { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -5836,7 +5544,7 @@ impl<'a> Foreign<'a> {
             Foreign::Amb(alts) => alts.get(index).copied().map(ParseTree::Foreign),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             Foreign::Alt0 { .. } => 1usize,
             Foreign::Alt1 { .. } => 5usize,
@@ -5866,7 +5574,7 @@ impl<'a> Cascade<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::Cascade(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             Cascade::Alt0 { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -5894,7 +5602,7 @@ impl<'a> Cascade<'a> {
             Cascade::Amb(alts) => alts.get(index).copied().map(ParseTree::Cascade),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             Cascade::Alt0 { .. } => 1usize,
             Cascade::Alt1 { .. } => 5usize,
@@ -5924,7 +5632,7 @@ impl<'a> Ternary<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::Ternary(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             Ternary::Alt0 {
                 cascade_0,
@@ -5952,7 +5660,7 @@ impl<'a> Ternary<'a> {
             Ternary::Amb(alts) => alts.get(index).copied().map(ParseTree::Ternary),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             Ternary::Alt0 { .. } => 9usize,
             Ternary::Amb(alts) => alts.len(),
@@ -6032,7 +5740,7 @@ impl<'a> Nullable<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::Nullable(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             Nullable::Alt0 { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -6056,7 +5764,7 @@ impl<'a> Nullable<'a> {
             Nullable::Amb(alts) => alts.get(index).copied().map(ParseTree::Nullable),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             Nullable::Alt0 { .. } => 1usize,
             Nullable::Alt1 { .. } => 5usize,
@@ -6084,7 +5792,7 @@ impl<'a> NullableLeft<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::NullableLeft(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             NullableLeft::Alt0 {
                 opt_0,
@@ -6100,7 +5808,7 @@ impl<'a> NullableLeft<'a> {
             NullableLeft::Amb(alts) => alts.get(index).copied().map(ParseTree::NullableLeft),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             NullableLeft::Alt0 { .. } => 3usize,
             NullableLeft::Amb(alts) => alts.len(),
@@ -6144,7 +5852,7 @@ impl<'a> NullableRight<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::NullableRight(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             NullableRight::Alt0 { nullable, .. } => match index {
                 0 => Some(ParseTree::Nullable(nullable)),
@@ -6153,7 +5861,7 @@ impl<'a> NullableRight<'a> {
             NullableRight::Amb(alts) => alts.get(index).copied().map(ParseTree::NullableRight),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             NullableRight::Alt0 { .. } => 1usize,
             NullableRight::Amb(alts) => alts.len(),
@@ -6185,7 +5893,7 @@ impl<'a> RightExpr<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::RightExpr(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             RightExpr::Alt0 { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -6209,7 +5917,7 @@ impl<'a> RightExpr<'a> {
             RightExpr::Amb(alts) => alts.get(index).copied().map(ParseTree::RightExpr),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             RightExpr::Alt0 { .. } => 1usize,
             RightExpr::Alt1 { .. } => 5usize,
@@ -6237,7 +5945,7 @@ impl<'a> RightOperand<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::RightOperand(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             RightOperand::Alt0 { right_expr, .. } => match index {
                 0 => Some(ParseTree::RightExpr(right_expr)),
@@ -6246,7 +5954,7 @@ impl<'a> RightOperand<'a> {
             RightOperand::Amb(alts) => alts.get(index).copied().map(ParseTree::RightOperand),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             RightOperand::Alt0 { .. } => 1usize,
             RightOperand::Amb(alts) => alts.len(),
@@ -6278,7 +5986,7 @@ impl<'a> NoneExpr<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::NoneExpr(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             NoneExpr::Alt0 { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -6302,7 +6010,7 @@ impl<'a> NoneExpr<'a> {
             NoneExpr::Amb(alts) => alts.get(index).copied().map(ParseTree::NoneExpr),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             NoneExpr::Alt0 { .. } => 1usize,
             NoneExpr::Alt1 { .. } => 5usize,
@@ -6330,7 +6038,7 @@ impl<'a> NoneOperand<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::NoneOperand(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             NoneOperand::Alt0 { none_expr, .. } => match index {
                 0 => Some(ParseTree::NoneExpr(none_expr)),
@@ -6339,7 +6047,7 @@ impl<'a> NoneOperand<'a> {
             NoneOperand::Amb(alts) => alts.get(index).copied().map(ParseTree::NoneOperand),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             NoneOperand::Alt0 { .. } => 1usize,
             NoneOperand::Amb(alts) => alts.len(),
@@ -6371,7 +6079,7 @@ impl<'a> Excluded<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::Excluded(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             Excluded::Alt0 { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -6395,7 +6103,7 @@ impl<'a> Excluded<'a> {
             Excluded::Amb(alts) => alts.get(index).copied().map(ParseTree::Excluded),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             Excluded::Alt0 { .. } => 1usize,
             Excluded::Alt1 { .. } => 5usize,
@@ -6423,7 +6131,7 @@ impl<'a> ExcludedOperand<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::ExcludedOperand(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             ExcludedOperand::Plain { excluded, .. } => match index {
                 0 => Some(ParseTree::Excluded(excluded)),
@@ -6447,7 +6155,7 @@ impl<'a> ExcludedOperand<'a> {
             ExcludedOperand::Amb(alts) => alts.get(index).copied().map(ParseTree::ExcludedOperand),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             ExcludedOperand::Plain { .. } => 1usize,
             ExcludedOperand::Paren { .. } => 5usize,
@@ -6475,7 +6183,7 @@ impl<'a> Filtered<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::Filtered(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             Filtered::Alt0 {
                 excluded_operand, ..
@@ -6486,7 +6194,7 @@ impl<'a> Filtered<'a> {
             Filtered::Amb(alts) => alts.get(index).copied().map(ParseTree::Filtered),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             Filtered::Alt0 { .. } => 1usize,
             Filtered::Amb(alts) => alts.len(),
@@ -6520,7 +6228,7 @@ impl<'a> LexNullable<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::LexNullable(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             LexNullable::Alt0 { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -6544,7 +6252,7 @@ impl<'a> LexNullable<'a> {
             LexNullable::Amb(alts) => alts.get(index).copied().map(ParseTree::LexNullable),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             LexNullable::Alt0 { .. } => 1usize,
             LexNullable::Alt1 { .. } => 5usize,
@@ -6572,7 +6280,7 @@ impl<'a> LexNullableLeft<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::LexNullableLeft(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             LexNullableLeft::Alt0 {
                 digits,
@@ -6588,7 +6296,7 @@ impl<'a> LexNullableLeft<'a> {
             LexNullableLeft::Amb(alts) => alts.get(index).copied().map(ParseTree::LexNullableLeft),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             LexNullableLeft::Alt0 { .. } => 3usize,
             LexNullableLeft::Amb(alts) => alts.len(),
@@ -6632,7 +6340,7 @@ impl<'a> LexNullableRight<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::LexNullableRight(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             LexNullableRight::Alt0 { lex_nullable, .. } => match index {
                 0 => Some(ParseTree::LexNullable(lex_nullable)),
@@ -6643,7 +6351,7 @@ impl<'a> LexNullableRight<'a> {
             }
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             LexNullableRight::Alt0 { .. } => 1usize,
             LexNullableRight::Amb(alts) => alts.len(),
@@ -6675,7 +6383,7 @@ impl<'a> MixedScale<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::MixedScale(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             MixedScale::Alt0 { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -6699,7 +6407,7 @@ impl<'a> MixedScale<'a> {
             MixedScale::Amb(alts) => alts.get(index).copied().map(ParseTree::MixedScale),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             MixedScale::Alt0 { .. } => 1usize,
             MixedScale::Alt1 { .. } => 5usize,
@@ -6727,7 +6435,7 @@ impl<'a> MixedOperand<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::MixedOperand(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             MixedOperand::Alt0 { mixed_scale, .. } => match index {
                 0 => Some(ParseTree::MixedScale(mixed_scale)),
@@ -6740,7 +6448,7 @@ impl<'a> MixedOperand<'a> {
             MixedOperand::Amb(alts) => alts.get(index).copied().map(ParseTree::MixedOperand),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             MixedOperand::Alt0 { .. } => 1usize,
             MixedOperand::Alt1 { .. } => 1usize,
@@ -6768,7 +6476,7 @@ impl<'a> MixedRight<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::MixedRight(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             MixedRight::Alt0 { mixed_scale, .. } => match index {
                 0 => Some(ParseTree::MixedScale(mixed_scale)),
@@ -6777,7 +6485,7 @@ impl<'a> MixedRight<'a> {
             MixedRight::Amb(alts) => alts.get(index).copied().map(ParseTree::MixedRight),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             MixedRight::Alt0 { .. } => 1usize,
             MixedRight::Amb(alts) => alts.len(),
@@ -6809,7 +6517,7 @@ impl<'a> MixedForeign<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::MixedForeign(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             MixedForeign::Alt0 { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -6833,7 +6541,7 @@ impl<'a> MixedForeign<'a> {
             MixedForeign::Amb(alts) => alts.get(index).copied().map(ParseTree::MixedForeign),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             MixedForeign::Alt0 { .. } => 1usize,
             MixedForeign::Alt1 { .. } => 5usize,
@@ -6861,7 +6569,7 @@ impl<'a> Packed<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::Packed(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             Packed::Alt0 { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -6885,7 +6593,7 @@ impl<'a> Packed<'a> {
             Packed::Amb(alts) => alts.get(index).copied().map(ParseTree::Packed),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             Packed::Alt0 { .. } => 1usize,
             Packed::Alt1 { .. } => 5usize,
@@ -6913,7 +6621,7 @@ impl<'a> PackedOperand<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::PackedOperand(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             PackedOperand::Alt0 { packed_middle, .. } => match index {
                 0 => Some(ParseTree::PackedMiddle(packed_middle)),
@@ -6922,7 +6630,7 @@ impl<'a> PackedOperand<'a> {
             PackedOperand::Amb(alts) => alts.get(index).copied().map(ParseTree::PackedOperand),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             PackedOperand::Alt0 { .. } => 1usize,
             PackedOperand::Amb(alts) => alts.len(),
@@ -6954,7 +6662,7 @@ impl<'a> PackedMiddle<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::PackedMiddle(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             PackedMiddle::Plain { packed, .. } => match index {
                 0 => Some(ParseTree::Packed(packed)),
@@ -6978,7 +6686,7 @@ impl<'a> PackedMiddle<'a> {
             PackedMiddle::Amb(alts) => alts.get(index).copied().map(ParseTree::PackedMiddle),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             PackedMiddle::Plain { .. } => 1usize,
             PackedMiddle::Paren { .. } => 5usize,
@@ -7006,7 +6714,7 @@ impl<'a> PackedFiltered<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::PackedFiltered(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             PackedFiltered::Alt0 { packed_middle, .. } => match index {
                 0 => Some(ParseTree::PackedMiddle(packed_middle)),
@@ -7015,7 +6723,7 @@ impl<'a> PackedFiltered<'a> {
             PackedFiltered::Amb(alts) => alts.get(index).copied().map(ParseTree::PackedFiltered),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             PackedFiltered::Alt0 { .. } => 1usize,
             PackedFiltered::Amb(alts) => alts.len(),
@@ -7047,7 +6755,7 @@ impl<'a> NullableRecursive<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::NullableRecursive(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             NullableRecursive::Alt0 { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -7073,7 +6781,7 @@ impl<'a> NullableRecursive<'a> {
             }
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             NullableRecursive::Alt0 { .. } => 1usize,
             NullableRecursive::Alt1 { .. } => 5usize,
@@ -7101,7 +6809,7 @@ impl<'a> NullableOperand<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::NullableOperand(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             NullableOperand::Alt0 {
                 nullable_maybe,
@@ -7117,7 +6825,7 @@ impl<'a> NullableOperand<'a> {
             NullableOperand::Amb(alts) => alts.get(index).copied().map(ParseTree::NullableOperand),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             NullableOperand::Alt0 { .. } => 3usize,
             NullableOperand::Amb(alts) => alts.len(),
@@ -7163,7 +6871,7 @@ impl<'a> NullableMaybe<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::NullableMaybe(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             NullableMaybe::Alt0 {
                 nullable_recursive, ..
@@ -7174,7 +6882,7 @@ impl<'a> NullableMaybe<'a> {
             NullableMaybe::Amb(alts) => alts.get(index).copied().map(ParseTree::NullableMaybe),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             NullableMaybe::Alt0 { .. } => 1usize,
             NullableMaybe::Amb(alts) => alts.len(),
@@ -7208,7 +6916,7 @@ impl<'a> NullableLexRecursive<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::NullableLexRecursive(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             NullableLexRecursive::Alt0 { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -7235,7 +6943,7 @@ impl<'a> NullableLexRecursive<'a> {
                 .map(ParseTree::NullableLexRecursive),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             NullableLexRecursive::Alt0 { .. } => 1usize,
             NullableLexRecursive::Alt1 { .. } => 5usize,
@@ -7263,7 +6971,7 @@ impl<'a> NullableLexOperand<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::NullableLexOperand(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             NullableLexOperand::Alt0 {
                 nullable_lex_maybe,
@@ -7281,7 +6989,7 @@ impl<'a> NullableLexOperand<'a> {
             }
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             NullableLexOperand::Alt0 { .. } => 3usize,
             NullableLexOperand::Amb(alts) => alts.len(),
@@ -7330,7 +7038,7 @@ impl<'a> NullableLexMaybe<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::NullableLexMaybe(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             NullableLexMaybe::Alt0 {
                 nullable_lex_recursive,
@@ -7348,7 +7056,7 @@ impl<'a> NullableLexMaybe<'a> {
             }
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             NullableLexMaybe::Alt0 { .. } => 1usize,
             NullableLexMaybe::Alt1 { .. } => 1usize,
@@ -7376,7 +7084,7 @@ impl<'a> NullableSuffix<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::NullableSuffix(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             NullableSuffix::Alt0 { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -7400,7 +7108,7 @@ impl<'a> NullableSuffix<'a> {
             NullableSuffix::Amb(alts) => alts.get(index).copied().map(ParseTree::NullableSuffix),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             NullableSuffix::Alt0 { .. } => 1usize,
             NullableSuffix::Alt1 { .. } => 5usize,
@@ -7428,7 +7136,7 @@ impl<'a> NullableSuffixOperand<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::NullableSuffixOperand(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             NullableSuffixOperand::Alt0 {
                 nullable_suffix,
@@ -7447,7 +7155,7 @@ impl<'a> NullableSuffixOperand<'a> {
                 .map(ParseTree::NullableSuffixOperand),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             NullableSuffixOperand::Alt0 { .. } => 3usize,
             NullableSuffixOperand::Amb(alts) => alts.len(),
@@ -7496,7 +7204,7 @@ impl<'a> NullableSuffixMaybe<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::NullableSuffixMaybe(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             NullableSuffixMaybe::Alt0 {
                 nullable_suffix, ..
@@ -7509,7 +7217,7 @@ impl<'a> NullableSuffixMaybe<'a> {
             }
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             NullableSuffixMaybe::Alt0 { .. } => 1usize,
             NullableSuffixMaybe::Amb(alts) => alts.len(),
@@ -7543,7 +7251,7 @@ impl<'a> NullableShared<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::NullableShared(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             NullableShared::Alt0 { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -7567,7 +7275,7 @@ impl<'a> NullableShared<'a> {
             NullableShared::Amb(alts) => alts.get(index).copied().map(ParseTree::NullableShared),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             NullableShared::Alt0 { .. } => 1usize,
             NullableShared::Alt1 { .. } => 5usize,
@@ -7595,7 +7303,7 @@ impl<'a> NullableSharedOperand<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::NullableSharedOperand(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             NullableSharedOperand::Alt0 {
                 nullable_shared_maybe_0,
@@ -7618,7 +7326,7 @@ impl<'a> NullableSharedOperand<'a> {
                 .map(ParseTree::NullableSharedOperand),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             NullableSharedOperand::Alt0 { .. } => 5usize,
             NullableSharedOperand::Amb(alts) => alts.len(),
@@ -7682,7 +7390,7 @@ impl<'a> NullableSharedMaybe<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::NullableSharedMaybe(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             NullableSharedMaybe::Alt0 {
                 nullable_shared, ..
@@ -7695,7 +7403,7 @@ impl<'a> NullableSharedMaybe<'a> {
             }
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             NullableSharedMaybe::Alt0 { .. } => 1usize,
             NullableSharedMaybe::Amb(alts) => alts.len(),
@@ -7729,7 +7437,7 @@ impl<'a> OwnLabel<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::OwnLabel(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             OwnLabel::Atom { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -7753,7 +7461,7 @@ impl<'a> OwnLabel<'a> {
             OwnLabel::Amb(alts) => alts.get(index).copied().map(ParseTree::OwnLabel),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             OwnLabel::Atom { .. } => 1usize,
             OwnLabel::Binary { .. } => 5usize,
@@ -7781,7 +7489,7 @@ impl<'a> OwnOperand<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::OwnOperand(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             OwnOperand::Allowed { own_label, .. } => match index {
                 0 => Some(ParseTree::OwnLabel(own_label)),
@@ -7805,7 +7513,7 @@ impl<'a> OwnOperand<'a> {
             OwnOperand::Amb(alts) => alts.get(index).copied().map(ParseTree::OwnOperand),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             OwnOperand::Allowed { .. } => 1usize,
             OwnOperand::Blocked { .. } => 5usize,
@@ -7833,7 +7541,7 @@ impl<'a> OwnHeadFiltered<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::OwnHeadFiltered(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             OwnHeadFiltered::Alt0 { own_label, .. } => match index {
                 0 => Some(ParseTree::OwnLabel(own_label)),
@@ -7842,7 +7550,7 @@ impl<'a> OwnHeadFiltered<'a> {
             OwnHeadFiltered::Amb(alts) => alts.get(index).copied().map(ParseTree::OwnHeadFiltered),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             OwnHeadFiltered::Alt0 { .. } => 1usize,
             OwnHeadFiltered::Amb(alts) => alts.len(),
@@ -7874,7 +7582,7 @@ impl<'a> ExcludeOnly<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::ExcludeOnly(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             ExcludeOnly::Blocked { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -7887,7 +7595,7 @@ impl<'a> ExcludeOnly<'a> {
             ExcludeOnly::Amb(alts) => alts.get(index).copied().map(ParseTree::ExcludeOnly),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             ExcludeOnly::Blocked { .. } => 1usize,
             ExcludeOnly::Alt1 { .. } => 1usize,
@@ -7915,7 +7623,7 @@ impl<'a> ExcludeOnlyFiltered<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::ExcludeOnlyFiltered(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             ExcludeOnlyFiltered::Alt0 { exclude_only, .. } => match index {
                 0 => Some(ParseTree::ExcludeOnly(exclude_only)),
@@ -7926,7 +7634,7 @@ impl<'a> ExcludeOnlyFiltered<'a> {
             }
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             ExcludeOnlyFiltered::Alt0 { .. } => 1usize,
             ExcludeOnlyFiltered::Amb(alts) => alts.len(),
@@ -7958,7 +7666,7 @@ impl<'a> Absent<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::Absent(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             Absent::Alt0 { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -7997,7 +7705,7 @@ impl<'a> Absent<'a> {
             Absent::Amb(alts) => alts.get(index).copied().map(ParseTree::Absent),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             Absent::Alt0 { .. } => 1usize,
             Absent::Alt1 { .. } => 5usize,
@@ -8027,7 +7735,7 @@ impl<'a> AbsentOperand<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::AbsentOperand(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             AbsentOperand::Alt0 { absent, .. } => match index {
                 0 => Some(ParseTree::Absent(absent)),
@@ -8040,7 +7748,7 @@ impl<'a> AbsentOperand<'a> {
             AbsentOperand::Amb(alts) => alts.get(index).copied().map(ParseTree::AbsentOperand),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             AbsentOperand::Alt0 { .. } => 1usize,
             AbsentOperand::Alt1 { .. } => 1usize,
@@ -8068,7 +7776,7 @@ impl<'a> ClosedPrefix<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::ClosedPrefix(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             ClosedPrefix::Alt0 { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -8103,7 +7811,7 @@ impl<'a> ClosedPrefix<'a> {
             ClosedPrefix::Amb(alts) => alts.get(index).copied().map(ParseTree::ClosedPrefix),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             ClosedPrefix::Alt0 { .. } => 1usize,
             ClosedPrefix::Alt1 { .. } => 5usize,
@@ -8133,7 +7841,7 @@ impl<'a> ClosedPrefixBody<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::ClosedPrefixBody(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             ClosedPrefixBody::Alt0 { closed_prefix, .. } => match index {
                 0 => Some(ParseTree::ClosedPrefix(closed_prefix)),
@@ -8148,7 +7856,7 @@ impl<'a> ClosedPrefixBody<'a> {
             }
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             ClosedPrefixBody::Alt0 { .. } => 1usize,
             ClosedPrefixBody::Alt1 { .. } => 1usize,
@@ -8176,7 +7884,7 @@ impl<'a> ClosedPostfix<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::ClosedPostfix(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             ClosedPostfix::Alt0 { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -8207,7 +7915,7 @@ impl<'a> ClosedPostfix<'a> {
             ClosedPostfix::Amb(alts) => alts.get(index).copied().map(ParseTree::ClosedPostfix),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             ClosedPostfix::Alt0 { .. } => 1usize,
             ClosedPostfix::Alt1 { .. } => 3usize,
@@ -8237,7 +7945,7 @@ impl<'a> ClosedPostfixBody<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::ClosedPostfixBody(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             ClosedPostfixBody::Alt0 { closed_postfix, .. } => match index {
                 0 => Some(ParseTree::ClosedPostfix(closed_postfix)),
@@ -8252,7 +7960,7 @@ impl<'a> ClosedPostfixBody<'a> {
             }
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             ClosedPostfixBody::Alt0 { .. } => 1usize,
             ClosedPostfixBody::Alt1 { .. } => 1usize,
@@ -8280,7 +7988,7 @@ impl<'a> HeadChoice<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::HeadChoice(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             HeadChoice::Alt0 { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -8308,7 +8016,7 @@ impl<'a> HeadChoice<'a> {
             HeadChoice::Amb(alts) => alts.get(index).copied().map(ParseTree::HeadChoice),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             HeadChoice::Alt0 { .. } => 1usize,
             HeadChoice::Alt1 { .. } => 5usize,
@@ -8338,7 +8046,7 @@ impl<'a> HeadOperand<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::HeadOperand(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             HeadOperand::Alt0 { head_choice, .. } => match index {
                 0 => Some(ParseTree::HeadChoice(head_choice)),
@@ -8347,7 +8055,7 @@ impl<'a> HeadOperand<'a> {
             HeadOperand::Amb(alts) => alts.get(index).copied().map(ParseTree::HeadOperand),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             HeadOperand::Alt0 { .. } => 1usize,
             HeadOperand::Amb(alts) => alts.len(),
@@ -8379,7 +8087,7 @@ impl<'a> Inner<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::Inner(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             Inner::Alt0 { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -8403,7 +8111,7 @@ impl<'a> Inner<'a> {
             Inner::Amb(alts) => alts.get(index).copied().map(ParseTree::Inner),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             Inner::Alt0 { .. } => 1usize,
             Inner::Alt1 { .. } => 5usize,
@@ -8431,7 +8139,7 @@ impl<'a> UnaryMixedLeft<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::UnaryMixedLeft(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             UnaryMixedLeft::Alt0 {
                 unary_mixed_left_0,
@@ -8477,7 +8185,7 @@ impl<'a> UnaryMixedLeft<'a> {
             UnaryMixedLeft::Amb(alts) => alts.get(index).copied().map(ParseTree::UnaryMixedLeft),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             UnaryMixedLeft::Alt0 { .. } => 5usize,
             UnaryMixedLeft::Alt1 { .. } => 3usize,
@@ -8509,7 +8217,7 @@ impl<'a> UnaryMixedRight<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::UnaryMixedRight(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             UnaryMixedRight::Alt0 {
                 unary_mixed_right_0,
@@ -8555,7 +8263,7 @@ impl<'a> UnaryMixedRight<'a> {
             UnaryMixedRight::Amb(alts) => alts.get(index).copied().map(ParseTree::UnaryMixedRight),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             UnaryMixedRight::Alt0 { .. } => 5usize,
             UnaryMixedRight::Alt1 { .. } => 3usize,
@@ -8587,7 +8295,7 @@ impl<'a> UnaryMixedNone<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::UnaryMixedNone(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             UnaryMixedNone::Alt0 {
                 unary_mixed_none_0,
@@ -8633,7 +8341,7 @@ impl<'a> UnaryMixedNone<'a> {
             UnaryMixedNone::Amb(alts) => alts.get(index).copied().map(ParseTree::UnaryMixedNone),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             UnaryMixedNone::Alt0 { .. } => 5usize,
             UnaryMixedNone::Alt1 { .. } => 3usize,
@@ -8665,7 +8373,7 @@ impl<'a> Dynamic<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::Dynamic(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             Dynamic::Binary {
                 dynamic_operand_0,
@@ -8711,7 +8419,7 @@ impl<'a> Dynamic<'a> {
             Dynamic::Amb(alts) => alts.get(index).copied().map(ParseTree::Dynamic),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             Dynamic::Binary { .. } => 5usize,
             Dynamic::Prefix { .. } => 3usize,
@@ -8743,7 +8451,7 @@ impl<'a> DynamicOperand<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::DynamicOperand(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             DynamicOperand::Pass { dynamic, .. } => match index {
                 0 => Some(ParseTree::Dynamic(dynamic)),
@@ -8756,7 +8464,7 @@ impl<'a> DynamicOperand<'a> {
             DynamicOperand::Amb(alts) => alts.get(index).copied().map(ParseTree::DynamicOperand),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             DynamicOperand::Pass { .. } => 1usize,
             DynamicOperand::Closed { .. } => 1usize,
@@ -8784,7 +8492,7 @@ impl<'a> DynamicFiltered<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::DynamicFiltered(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             DynamicFiltered::Alt0 {
                 dynamic_operand, ..
@@ -8795,7 +8503,7 @@ impl<'a> DynamicFiltered<'a> {
             DynamicFiltered::Amb(alts) => alts.get(index).copied().map(ParseTree::DynamicFiltered),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             DynamicFiltered::Alt0 { .. } => 1usize,
             DynamicFiltered::Amb(alts) => alts.len(),
@@ -8829,7 +8537,7 @@ impl<'a> DynamicHeadFiltered<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::DynamicHeadFiltered(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             DynamicHeadFiltered::Alt0 { dynamic, .. } => match index {
                 0 => Some(ParseTree::Dynamic(dynamic)),
@@ -8840,7 +8548,7 @@ impl<'a> DynamicHeadFiltered<'a> {
             }
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             DynamicHeadFiltered::Alt0 { .. } => 1usize,
             DynamicHeadFiltered::Amb(alts) => alts.len(),
@@ -8872,7 +8580,7 @@ impl<'a> DynamicMulti<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::DynamicMulti(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             DynamicMulti::Alt0 {
                 dynamic_multi_operand_0,
@@ -8933,7 +8641,7 @@ impl<'a> DynamicMulti<'a> {
             DynamicMulti::Amb(alts) => alts.get(index).copied().map(ParseTree::DynamicMulti),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             DynamicMulti::Alt0 { .. } => 5usize,
             DynamicMulti::Alt1 { .. } => 3usize,
@@ -8967,7 +8675,7 @@ impl<'a> DynamicMultiOperand<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::DynamicMultiOperand(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             DynamicMultiOperand::Alt0 { dynamic_multi, .. } => match index {
                 0 => Some(ParseTree::DynamicMulti(dynamic_multi)),
@@ -8982,7 +8690,7 @@ impl<'a> DynamicMultiOperand<'a> {
             }
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             DynamicMultiOperand::Alt0 { .. } => 1usize,
             DynamicMultiOperand::Alt1 { .. } => 1usize,
@@ -9010,7 +8718,7 @@ impl<'a> NullableBoundaryPrefix<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::NullableBoundaryPrefix(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             NullableBoundaryPrefix::Alt0 { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -9052,7 +8760,7 @@ impl<'a> NullableBoundaryPrefix<'a> {
                 .map(ParseTree::NullableBoundaryPrefix),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             NullableBoundaryPrefix::Alt0 { .. } => 1usize,
             NullableBoundaryPrefix::Alt1 { .. } => 3usize,
@@ -9082,7 +8790,7 @@ impl<'a> NullableBoundaryRight<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::NullableBoundaryRight(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             NullableBoundaryRight::Alt0 {
                 nullable_boundary_prefix,
@@ -9101,7 +8809,7 @@ impl<'a> NullableBoundaryRight<'a> {
                 .map(ParseTree::NullableBoundaryRight),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             NullableBoundaryRight::Alt0 { .. } => 3usize,
             NullableBoundaryRight::Amb(alts) => alts.len(),
@@ -9151,7 +8859,7 @@ impl<'a> NullableBoundaryOpt<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::NullableBoundaryOpt(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             NullableBoundaryOpt::Alt0 { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -9163,7 +8871,7 @@ impl<'a> NullableBoundaryOpt<'a> {
             }
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             NullableBoundaryOpt::Alt0 { .. } => 1usize,
             NullableBoundaryOpt::Alt1 { .. } => 0usize,
@@ -9191,7 +8899,7 @@ impl<'a> NullableBoundaryPostfix<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::NullableBoundaryPostfix(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             NullableBoundaryPostfix::Alt0 { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -9233,7 +8941,7 @@ impl<'a> NullableBoundaryPostfix<'a> {
                 .map(ParseTree::NullableBoundaryPostfix),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             NullableBoundaryPostfix::Alt0 { .. } => 1usize,
             NullableBoundaryPostfix::Alt1 { .. } => 3usize,
@@ -9263,7 +8971,7 @@ impl<'a> NullableBoundaryLeft<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::NullableBoundaryLeft(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             NullableBoundaryLeft::Alt0 {
                 nullable_boundary_opt,
@@ -9284,7 +8992,7 @@ impl<'a> NullableBoundaryLeft<'a> {
                 .map(ParseTree::NullableBoundaryLeft),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             NullableBoundaryLeft::Alt0 { .. } => 3usize,
             NullableBoundaryLeft::Amb(alts) => alts.len(),
@@ -9334,7 +9042,7 @@ impl<'a> NullableBoundaryBinary<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::NullableBoundaryBinary(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             NullableBoundaryBinary::Alt0 { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -9382,7 +9090,7 @@ impl<'a> NullableBoundaryBinary<'a> {
                 .map(ParseTree::NullableBoundaryBinary),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             NullableBoundaryBinary::Alt0 { .. } => 1usize,
             NullableBoundaryBinary::Alt1 { .. } => 5usize,
@@ -9412,7 +9120,7 @@ impl<'a> NullableBoundaryOperand<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::NullableBoundaryOperand(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             NullableBoundaryOperand::Alt0 {
                 nullable_boundary_binary,
@@ -9431,7 +9139,7 @@ impl<'a> NullableBoundaryOperand<'a> {
                 .map(ParseTree::NullableBoundaryOperand),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             NullableBoundaryOperand::Alt0 { .. } => 3usize,
             NullableBoundaryOperand::Amb(alts) => alts.len(),
@@ -9481,7 +9189,7 @@ impl<'a> ClosedLeftAssoc<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::ClosedLeftAssoc(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             ClosedLeftAssoc::Alt0 { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -9505,7 +9213,7 @@ impl<'a> ClosedLeftAssoc<'a> {
             ClosedLeftAssoc::Amb(alts) => alts.get(index).copied().map(ParseTree::ClosedLeftAssoc),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             ClosedLeftAssoc::Alt0 { .. } => 1usize,
             ClosedLeftAssoc::Alt1 { .. } => 5usize,
@@ -9533,7 +9241,7 @@ impl<'a> ClosedLeftOperand<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::ClosedLeftOperand(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             ClosedLeftOperand::Alt0 {
                 closed_left_assoc, ..
@@ -9550,7 +9258,7 @@ impl<'a> ClosedLeftOperand<'a> {
             }
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             ClosedLeftOperand::Alt0 { .. } => 1usize,
             ClosedLeftOperand::Alt1 { .. } => 1usize,
@@ -9578,7 +9286,7 @@ impl<'a> ClosedRightAssoc<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::ClosedRightAssoc(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             ClosedRightAssoc::Alt0 { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -9604,7 +9312,7 @@ impl<'a> ClosedRightAssoc<'a> {
             }
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             ClosedRightAssoc::Alt0 { .. } => 1usize,
             ClosedRightAssoc::Alt1 { .. } => 5usize,
@@ -9632,7 +9340,7 @@ impl<'a> ClosedRightOperand<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::ClosedRightOperand(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             ClosedRightOperand::Alt0 {
                 closed_right_assoc, ..
@@ -9649,7 +9357,7 @@ impl<'a> ClosedRightOperand<'a> {
             }
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             ClosedRightOperand::Alt0 { .. } => 1usize,
             ClosedRightOperand::Alt1 { .. } => 1usize,
@@ -9677,7 +9385,7 @@ impl<'a> IndirectExclude<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::IndirectExclude(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             IndirectExclude::Atom { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -9705,7 +9413,7 @@ impl<'a> IndirectExclude<'a> {
             IndirectExclude::Amb(alts) => alts.get(index).copied().map(ParseTree::IndirectExclude),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             IndirectExclude::Atom { .. } => 1usize,
             IndirectExclude::Binary { .. } => 5usize,
@@ -9733,7 +9441,7 @@ impl<'a> IndirectExcludeOperand<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::IndirectExcludeOperand(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             IndirectExcludeOperand::Pass {
                 indirect_exclude, ..
@@ -9751,7 +9459,7 @@ impl<'a> IndirectExcludeOperand<'a> {
                 .map(ParseTree::IndirectExcludeOperand),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             IndirectExcludeOperand::Pass { .. } => 1usize,
             IndirectExcludeOperand::Closed { .. } => 1usize,
@@ -9779,7 +9487,7 @@ impl<'a> IndirectExcludeFiltered<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::IndirectExcludeFiltered(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             IndirectExcludeFiltered::Alt0 {
                 indirect_exclude_operand,
@@ -9794,7 +9502,7 @@ impl<'a> IndirectExcludeFiltered<'a> {
                 .map(ParseTree::IndirectExcludeFiltered),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             IndirectExcludeFiltered::Alt0 { .. } => 1usize,
             IndirectExcludeFiltered::Amb(alts) => alts.len(),
@@ -9829,7 +9537,7 @@ impl<'a> OperandLiteral<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::OperandLiteral(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             OperandLiteral::Alt0 { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -9868,7 +9576,7 @@ impl<'a> OperandLiteral<'a> {
             OperandLiteral::Amb(alts) => alts.get(index).copied().map(ParseTree::OperandLiteral),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             OperandLiteral::Alt0 { .. } => 1usize,
             OperandLiteral::Alt1 { .. } => 5usize,
@@ -9898,7 +9606,7 @@ impl<'a> OperandLiteralEnd<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::OperandLiteralEnd(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             OperandLiteralEnd::Alt0 {
                 operand_literal, ..
@@ -9915,7 +9623,7 @@ impl<'a> OperandLiteralEnd<'a> {
             }
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             OperandLiteralEnd::Alt0 { .. } => 1usize,
             OperandLiteralEnd::Alt1 { .. } => 1usize,
@@ -9943,7 +9651,7 @@ impl<'a> HeadLiteral<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::HeadLiteral(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             HeadLiteral::Alt0 { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -9986,7 +9694,7 @@ impl<'a> HeadLiteral<'a> {
             HeadLiteral::Amb(alts) => alts.get(index).copied().map(ParseTree::HeadLiteral),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             HeadLiteral::Alt0 { .. } => 1usize,
             HeadLiteral::Alt1 { .. } => 1usize,
@@ -10018,7 +9726,7 @@ impl<'a> HeadLiteralEnd<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::HeadLiteralEnd(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             HeadLiteralEnd::Alt0 { head_literal, .. } => match index {
                 0 => Some(ParseTree::HeadLiteral(head_literal)),
@@ -10027,7 +9735,7 @@ impl<'a> HeadLiteralEnd<'a> {
             HeadLiteralEnd::Amb(alts) => alts.get(index).copied().map(ParseTree::HeadLiteralEnd),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             HeadLiteralEnd::Alt0 { .. } => 1usize,
             HeadLiteralEnd::Amb(alts) => alts.len(),
@@ -10059,7 +9767,7 @@ impl<'a> Opt0<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::Opt0(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             Opt0::Alt0 { lit_0, .. } => match index {
                 0 => Some(ParseTree::Token(*lit_0)),
@@ -10069,7 +9777,7 @@ impl<'a> Opt0<'a> {
             Opt0::Amb(alts) => alts.get(index).copied().map(ParseTree::Opt0),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             Opt0::Alt0 { .. } => 1usize,
             Opt0::Alt1 { .. } => 0usize,
@@ -10100,7 +9808,7 @@ impl<'a> Opt1<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::Opt1(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             Opt1::Alt0 {
                 nullable_recursive, ..
@@ -10112,7 +9820,7 @@ impl<'a> Opt1<'a> {
             Opt1::Amb(alts) => alts.get(index).copied().map(ParseTree::Opt1),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             Opt1::Alt0 { .. } => 1usize,
             Opt1::Alt1 { .. } => 0usize,
@@ -10143,7 +9851,7 @@ impl<'a> Opt2<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::Opt2(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             Opt2::Alt0 {
                 nullable_suffix, ..
@@ -10155,7 +9863,7 @@ impl<'a> Opt2<'a> {
             Opt2::Amb(alts) => alts.get(index).copied().map(ParseTree::Opt2),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             Opt2::Alt0 { .. } => 1usize,
             Opt2::Alt1 { .. } => 0usize,
@@ -10186,7 +9894,7 @@ impl<'a> Opt3<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::Opt3(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             Opt3::Alt0 {
                 nullable_shared, ..
@@ -10198,7 +9906,7 @@ impl<'a> Opt3<'a> {
             Opt3::Amb(alts) => alts.get(index).copied().map(ParseTree::Opt3),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             Opt3::Alt0 { .. } => 1usize,
             Opt3::Alt1 { .. } => 0usize,
@@ -10229,7 +9937,7 @@ impl<'a> Start<&'a S<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartS(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::S(self.node)),
@@ -10237,7 +9945,7 @@ impl<'a> Start<&'a S<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -10254,7 +9962,7 @@ impl<'a> Start<&'a E<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartE(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::E(self.node)),
@@ -10262,7 +9970,7 @@ impl<'a> Start<&'a E<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -10279,7 +9987,7 @@ impl<'a> Start<&'a L<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartL(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::L(self.node)),
@@ -10287,7 +9995,7 @@ impl<'a> Start<&'a L<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -10304,7 +10012,7 @@ impl<'a> Start<&'a Only<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartOnly(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::Only(self.node)),
@@ -10312,7 +10020,7 @@ impl<'a> Start<&'a Only<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -10329,7 +10037,7 @@ impl<'a> Start<&'a OnlyOperand<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartOnlyOperand(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::OnlyOperand(self.node)),
@@ -10337,7 +10045,7 @@ impl<'a> Start<&'a OnlyOperand<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -10354,7 +10062,7 @@ impl<'a> Start<&'a Cross<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartCross(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::Cross(self.node)),
@@ -10362,7 +10070,7 @@ impl<'a> Start<&'a Cross<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -10379,7 +10087,7 @@ impl<'a> Start<&'a Foreign<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartForeign(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::Foreign(self.node)),
@@ -10387,7 +10095,7 @@ impl<'a> Start<&'a Foreign<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -10404,7 +10112,7 @@ impl<'a> Start<&'a Cascade<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartCascade(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::Cascade(self.node)),
@@ -10412,7 +10120,7 @@ impl<'a> Start<&'a Cascade<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -10429,7 +10137,7 @@ impl<'a> Start<&'a Ternary<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartTernary(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::Ternary(self.node)),
@@ -10437,7 +10145,7 @@ impl<'a> Start<&'a Ternary<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -10454,7 +10162,7 @@ impl<'a> Start<&'a Nullable<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullable(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::Nullable(self.node)),
@@ -10462,7 +10170,7 @@ impl<'a> Start<&'a Nullable<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -10479,7 +10187,7 @@ impl<'a> Start<&'a NullableLeft<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableLeft(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::NullableLeft(self.node)),
@@ -10487,7 +10195,7 @@ impl<'a> Start<&'a NullableLeft<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -10504,7 +10212,7 @@ impl<'a> Start<&'a NullableRight<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableRight(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::NullableRight(self.node)),
@@ -10512,7 +10220,7 @@ impl<'a> Start<&'a NullableRight<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -10529,7 +10237,7 @@ impl<'a> Start<&'a RightExpr<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartRightExpr(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::RightExpr(self.node)),
@@ -10537,7 +10245,7 @@ impl<'a> Start<&'a RightExpr<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -10554,7 +10262,7 @@ impl<'a> Start<&'a RightOperand<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartRightOperand(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::RightOperand(self.node)),
@@ -10562,7 +10270,7 @@ impl<'a> Start<&'a RightOperand<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -10579,7 +10287,7 @@ impl<'a> Start<&'a NoneExpr<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNoneExpr(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::NoneExpr(self.node)),
@@ -10587,7 +10295,7 @@ impl<'a> Start<&'a NoneExpr<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -10604,7 +10312,7 @@ impl<'a> Start<&'a NoneOperand<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNoneOperand(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::NoneOperand(self.node)),
@@ -10612,7 +10320,7 @@ impl<'a> Start<&'a NoneOperand<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -10629,7 +10337,7 @@ impl<'a> Start<&'a Excluded<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartExcluded(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::Excluded(self.node)),
@@ -10637,7 +10345,7 @@ impl<'a> Start<&'a Excluded<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -10654,7 +10362,7 @@ impl<'a> Start<&'a ExcludedOperand<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartExcludedOperand(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::ExcludedOperand(self.node)),
@@ -10662,7 +10370,7 @@ impl<'a> Start<&'a ExcludedOperand<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -10679,7 +10387,7 @@ impl<'a> Start<&'a Filtered<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartFiltered(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::Filtered(self.node)),
@@ -10687,7 +10395,7 @@ impl<'a> Start<&'a Filtered<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -10704,7 +10412,7 @@ impl<'a> Start<&'a LexNullable<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartLexNullable(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::LexNullable(self.node)),
@@ -10712,7 +10420,7 @@ impl<'a> Start<&'a LexNullable<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -10729,7 +10437,7 @@ impl<'a> Start<&'a LexNullableLeft<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartLexNullableLeft(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::LexNullableLeft(self.node)),
@@ -10737,7 +10445,7 @@ impl<'a> Start<&'a LexNullableLeft<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -10754,7 +10462,7 @@ impl<'a> Start<&'a LexNullableRight<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartLexNullableRight(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::LexNullableRight(self.node)),
@@ -10762,7 +10470,7 @@ impl<'a> Start<&'a LexNullableRight<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -10779,7 +10487,7 @@ impl<'a> Start<&'a MixedScale<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartMixedScale(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::MixedScale(self.node)),
@@ -10787,7 +10495,7 @@ impl<'a> Start<&'a MixedScale<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -10804,7 +10512,7 @@ impl<'a> Start<&'a MixedOperand<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartMixedOperand(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::MixedOperand(self.node)),
@@ -10812,7 +10520,7 @@ impl<'a> Start<&'a MixedOperand<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -10829,7 +10537,7 @@ impl<'a> Start<&'a MixedRight<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartMixedRight(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::MixedRight(self.node)),
@@ -10837,7 +10545,7 @@ impl<'a> Start<&'a MixedRight<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -10854,7 +10562,7 @@ impl<'a> Start<&'a MixedForeign<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartMixedForeign(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::MixedForeign(self.node)),
@@ -10862,7 +10570,7 @@ impl<'a> Start<&'a MixedForeign<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -10879,7 +10587,7 @@ impl<'a> Start<&'a Packed<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartPacked(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::Packed(self.node)),
@@ -10887,7 +10595,7 @@ impl<'a> Start<&'a Packed<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -10904,7 +10612,7 @@ impl<'a> Start<&'a PackedOperand<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartPackedOperand(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::PackedOperand(self.node)),
@@ -10912,7 +10620,7 @@ impl<'a> Start<&'a PackedOperand<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -10929,7 +10637,7 @@ impl<'a> Start<&'a PackedMiddle<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartPackedMiddle(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::PackedMiddle(self.node)),
@@ -10937,7 +10645,7 @@ impl<'a> Start<&'a PackedMiddle<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -10954,7 +10662,7 @@ impl<'a> Start<&'a PackedFiltered<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartPackedFiltered(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::PackedFiltered(self.node)),
@@ -10962,7 +10670,7 @@ impl<'a> Start<&'a PackedFiltered<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -10979,7 +10687,7 @@ impl<'a> Start<&'a NullableRecursive<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableRecursive(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::NullableRecursive(self.node)),
@@ -10987,7 +10695,7 @@ impl<'a> Start<&'a NullableRecursive<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11004,7 +10712,7 @@ impl<'a> Start<&'a NullableOperand<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableOperand(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::NullableOperand(self.node)),
@@ -11012,7 +10720,7 @@ impl<'a> Start<&'a NullableOperand<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11029,7 +10737,7 @@ impl<'a> Start<&'a NullableMaybe<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableMaybe(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::NullableMaybe(self.node)),
@@ -11037,7 +10745,7 @@ impl<'a> Start<&'a NullableMaybe<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11054,7 +10762,7 @@ impl<'a> Start<&'a NullableLexRecursive<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableLexRecursive(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::NullableLexRecursive(self.node)),
@@ -11062,7 +10770,7 @@ impl<'a> Start<&'a NullableLexRecursive<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11079,7 +10787,7 @@ impl<'a> Start<&'a NullableLexOperand<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableLexOperand(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::NullableLexOperand(self.node)),
@@ -11087,7 +10795,7 @@ impl<'a> Start<&'a NullableLexOperand<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11104,7 +10812,7 @@ impl<'a> Start<&'a NullableLexMaybe<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableLexMaybe(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::NullableLexMaybe(self.node)),
@@ -11112,7 +10820,7 @@ impl<'a> Start<&'a NullableLexMaybe<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11129,7 +10837,7 @@ impl<'a> Start<&'a NullableSuffix<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableSuffix(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::NullableSuffix(self.node)),
@@ -11137,7 +10845,7 @@ impl<'a> Start<&'a NullableSuffix<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11154,7 +10862,7 @@ impl<'a> Start<&'a NullableSuffixOperand<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableSuffixOperand(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::NullableSuffixOperand(self.node)),
@@ -11162,7 +10870,7 @@ impl<'a> Start<&'a NullableSuffixOperand<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11179,7 +10887,7 @@ impl<'a> Start<&'a NullableSuffixMaybe<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableSuffixMaybe(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::NullableSuffixMaybe(self.node)),
@@ -11187,7 +10895,7 @@ impl<'a> Start<&'a NullableSuffixMaybe<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11204,7 +10912,7 @@ impl<'a> Start<&'a NullableShared<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableShared(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::NullableShared(self.node)),
@@ -11212,7 +10920,7 @@ impl<'a> Start<&'a NullableShared<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11229,7 +10937,7 @@ impl<'a> Start<&'a NullableSharedOperand<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableSharedOperand(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::NullableSharedOperand(self.node)),
@@ -11237,7 +10945,7 @@ impl<'a> Start<&'a NullableSharedOperand<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11254,7 +10962,7 @@ impl<'a> Start<&'a NullableSharedMaybe<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableSharedMaybe(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::NullableSharedMaybe(self.node)),
@@ -11262,7 +10970,7 @@ impl<'a> Start<&'a NullableSharedMaybe<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11279,7 +10987,7 @@ impl<'a> Start<&'a OwnLabel<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartOwnLabel(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::OwnLabel(self.node)),
@@ -11287,7 +10995,7 @@ impl<'a> Start<&'a OwnLabel<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11304,7 +11012,7 @@ impl<'a> Start<&'a OwnOperand<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartOwnOperand(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::OwnOperand(self.node)),
@@ -11312,7 +11020,7 @@ impl<'a> Start<&'a OwnOperand<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11329,7 +11037,7 @@ impl<'a> Start<&'a OwnHeadFiltered<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartOwnHeadFiltered(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::OwnHeadFiltered(self.node)),
@@ -11337,7 +11045,7 @@ impl<'a> Start<&'a OwnHeadFiltered<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11354,7 +11062,7 @@ impl<'a> Start<&'a ExcludeOnly<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartExcludeOnly(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::ExcludeOnly(self.node)),
@@ -11362,7 +11070,7 @@ impl<'a> Start<&'a ExcludeOnly<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11379,7 +11087,7 @@ impl<'a> Start<&'a ExcludeOnlyFiltered<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartExcludeOnlyFiltered(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::ExcludeOnlyFiltered(self.node)),
@@ -11387,7 +11095,7 @@ impl<'a> Start<&'a ExcludeOnlyFiltered<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11404,7 +11112,7 @@ impl<'a> Start<&'a Absent<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartAbsent(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::Absent(self.node)),
@@ -11412,7 +11120,7 @@ impl<'a> Start<&'a Absent<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11429,7 +11137,7 @@ impl<'a> Start<&'a AbsentOperand<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartAbsentOperand(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::AbsentOperand(self.node)),
@@ -11437,7 +11145,7 @@ impl<'a> Start<&'a AbsentOperand<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11454,7 +11162,7 @@ impl<'a> Start<&'a ClosedPrefix<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartClosedPrefix(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::ClosedPrefix(self.node)),
@@ -11462,7 +11170,7 @@ impl<'a> Start<&'a ClosedPrefix<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11479,7 +11187,7 @@ impl<'a> Start<&'a ClosedPrefixBody<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartClosedPrefixBody(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::ClosedPrefixBody(self.node)),
@@ -11487,7 +11195,7 @@ impl<'a> Start<&'a ClosedPrefixBody<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11504,7 +11212,7 @@ impl<'a> Start<&'a ClosedPostfix<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartClosedPostfix(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::ClosedPostfix(self.node)),
@@ -11512,7 +11220,7 @@ impl<'a> Start<&'a ClosedPostfix<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11529,7 +11237,7 @@ impl<'a> Start<&'a ClosedPostfixBody<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartClosedPostfixBody(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::ClosedPostfixBody(self.node)),
@@ -11537,7 +11245,7 @@ impl<'a> Start<&'a ClosedPostfixBody<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11554,7 +11262,7 @@ impl<'a> Start<&'a HeadChoice<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartHeadChoice(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::HeadChoice(self.node)),
@@ -11562,7 +11270,7 @@ impl<'a> Start<&'a HeadChoice<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11579,7 +11287,7 @@ impl<'a> Start<&'a HeadOperand<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartHeadOperand(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::HeadOperand(self.node)),
@@ -11587,7 +11295,7 @@ impl<'a> Start<&'a HeadOperand<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11604,7 +11312,7 @@ impl<'a> Start<&'a Inner<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartInner(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::Inner(self.node)),
@@ -11612,7 +11320,7 @@ impl<'a> Start<&'a Inner<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11629,7 +11337,7 @@ impl<'a> Start<&'a UnaryMixedLeft<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartUnaryMixedLeft(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::UnaryMixedLeft(self.node)),
@@ -11637,7 +11345,7 @@ impl<'a> Start<&'a UnaryMixedLeft<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11654,7 +11362,7 @@ impl<'a> Start<&'a UnaryMixedRight<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartUnaryMixedRight(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::UnaryMixedRight(self.node)),
@@ -11662,7 +11370,7 @@ impl<'a> Start<&'a UnaryMixedRight<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11679,7 +11387,7 @@ impl<'a> Start<&'a UnaryMixedNone<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartUnaryMixedNone(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::UnaryMixedNone(self.node)),
@@ -11687,7 +11395,7 @@ impl<'a> Start<&'a UnaryMixedNone<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11704,7 +11412,7 @@ impl<'a> Start<&'a Dynamic<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartDynamic(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::Dynamic(self.node)),
@@ -11712,7 +11420,7 @@ impl<'a> Start<&'a Dynamic<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11729,7 +11437,7 @@ impl<'a> Start<&'a DynamicOperand<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartDynamicOperand(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::DynamicOperand(self.node)),
@@ -11737,7 +11445,7 @@ impl<'a> Start<&'a DynamicOperand<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11754,7 +11462,7 @@ impl<'a> Start<&'a DynamicFiltered<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartDynamicFiltered(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::DynamicFiltered(self.node)),
@@ -11762,7 +11470,7 @@ impl<'a> Start<&'a DynamicFiltered<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11779,7 +11487,7 @@ impl<'a> Start<&'a DynamicHeadFiltered<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartDynamicHeadFiltered(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::DynamicHeadFiltered(self.node)),
@@ -11787,7 +11495,7 @@ impl<'a> Start<&'a DynamicHeadFiltered<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11804,7 +11512,7 @@ impl<'a> Start<&'a DynamicMulti<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartDynamicMulti(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::DynamicMulti(self.node)),
@@ -11812,7 +11520,7 @@ impl<'a> Start<&'a DynamicMulti<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11829,7 +11537,7 @@ impl<'a> Start<&'a DynamicMultiOperand<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartDynamicMultiOperand(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::DynamicMultiOperand(self.node)),
@@ -11837,7 +11545,7 @@ impl<'a> Start<&'a DynamicMultiOperand<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11854,7 +11562,7 @@ impl<'a> Start<&'a NullableBoundaryPrefix<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableBoundaryPrefix(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::NullableBoundaryPrefix(self.node)),
@@ -11862,7 +11570,7 @@ impl<'a> Start<&'a NullableBoundaryPrefix<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11879,7 +11587,7 @@ impl<'a> Start<&'a NullableBoundaryRight<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableBoundaryRight(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::NullableBoundaryRight(self.node)),
@@ -11887,7 +11595,7 @@ impl<'a> Start<&'a NullableBoundaryRight<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11904,7 +11612,7 @@ impl<'a> Start<&'a NullableBoundaryOpt<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableBoundaryOpt(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::NullableBoundaryOpt(self.node)),
@@ -11912,7 +11620,7 @@ impl<'a> Start<&'a NullableBoundaryOpt<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11929,7 +11637,7 @@ impl<'a> Start<&'a NullableBoundaryPostfix<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableBoundaryPostfix(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::NullableBoundaryPostfix(self.node)),
@@ -11937,7 +11645,7 @@ impl<'a> Start<&'a NullableBoundaryPostfix<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11954,7 +11662,7 @@ impl<'a> Start<&'a NullableBoundaryLeft<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableBoundaryLeft(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::NullableBoundaryLeft(self.node)),
@@ -11962,7 +11670,7 @@ impl<'a> Start<&'a NullableBoundaryLeft<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -11979,7 +11687,7 @@ impl<'a> Start<&'a NullableBoundaryBinary<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableBoundaryBinary(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::NullableBoundaryBinary(self.node)),
@@ -11987,7 +11695,7 @@ impl<'a> Start<&'a NullableBoundaryBinary<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -12004,7 +11712,7 @@ impl<'a> Start<&'a NullableBoundaryOperand<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartNullableBoundaryOperand(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::NullableBoundaryOperand(self.node)),
@@ -12012,7 +11720,7 @@ impl<'a> Start<&'a NullableBoundaryOperand<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -12029,7 +11737,7 @@ impl<'a> Start<&'a ClosedLeftAssoc<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartClosedLeftAssoc(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::ClosedLeftAssoc(self.node)),
@@ -12037,7 +11745,7 @@ impl<'a> Start<&'a ClosedLeftAssoc<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -12054,7 +11762,7 @@ impl<'a> Start<&'a ClosedLeftOperand<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartClosedLeftOperand(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::ClosedLeftOperand(self.node)),
@@ -12062,7 +11770,7 @@ impl<'a> Start<&'a ClosedLeftOperand<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -12079,7 +11787,7 @@ impl<'a> Start<&'a ClosedRightAssoc<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartClosedRightAssoc(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::ClosedRightAssoc(self.node)),
@@ -12087,7 +11795,7 @@ impl<'a> Start<&'a ClosedRightAssoc<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -12104,7 +11812,7 @@ impl<'a> Start<&'a ClosedRightOperand<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartClosedRightOperand(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::ClosedRightOperand(self.node)),
@@ -12112,7 +11820,7 @@ impl<'a> Start<&'a ClosedRightOperand<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -12129,7 +11837,7 @@ impl<'a> Start<&'a IndirectExclude<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartIndirectExclude(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::IndirectExclude(self.node)),
@@ -12137,7 +11845,7 @@ impl<'a> Start<&'a IndirectExclude<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -12154,7 +11862,7 @@ impl<'a> Start<&'a IndirectExcludeOperand<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartIndirectExcludeOperand(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::IndirectExcludeOperand(self.node)),
@@ -12162,7 +11870,7 @@ impl<'a> Start<&'a IndirectExcludeOperand<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -12179,7 +11887,7 @@ impl<'a> Start<&'a IndirectExcludeFiltered<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartIndirectExcludeFiltered(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::IndirectExcludeFiltered(self.node)),
@@ -12187,7 +11895,7 @@ impl<'a> Start<&'a IndirectExcludeFiltered<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -12204,7 +11912,7 @@ impl<'a> Start<&'a OperandLiteral<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartOperandLiteral(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::OperandLiteral(self.node)),
@@ -12212,7 +11920,7 @@ impl<'a> Start<&'a OperandLiteral<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -12229,7 +11937,7 @@ impl<'a> Start<&'a OperandLiteralEnd<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartOperandLiteralEnd(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::OperandLiteralEnd(self.node)),
@@ -12237,7 +11945,7 @@ impl<'a> Start<&'a OperandLiteralEnd<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -12254,7 +11962,7 @@ impl<'a> Start<&'a HeadLiteral<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartHeadLiteral(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::HeadLiteral(self.node)),
@@ -12262,7 +11970,7 @@ impl<'a> Start<&'a HeadLiteral<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -12279,7 +11987,7 @@ impl<'a> Start<&'a HeadLiteralEnd<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartHeadLiteralEnd(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::HeadLiteralEnd(self.node)),
@@ -12287,7 +11995,7 @@ impl<'a> Start<&'a HeadLiteralEnd<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -17885,8 +17593,11 @@ pub fn create_parse_tree<'a>(
     }
 }
 impl<'a> ParseTreeNode for ParseTree<'a> {
-    fn children(&self) -> Vec<Self> {
-        ParseTree::children(self)
+    fn child(&self, index: usize) -> Option<Self> {
+        ParseTree::child(self, index)
+    }
+    fn child_count(&self) -> usize {
+        ParseTree::child_count(self)
     }
     fn display_name(&self) -> &'static str {
         ParseTree::display_name(self)

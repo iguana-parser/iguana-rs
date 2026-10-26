@@ -8,7 +8,6 @@ use iguana_runtime::{
     parse_tree::{NodeKind, Origin, ParseTreeBuilder, ParseTreeNode, visit_sppf},
     sppf::{NonterminalNode, TerminalNode},
 };
-use std::vec::IntoIter;
 #[derive(Debug, Clone, Copy)]
 pub enum TokenKind {
     // Id
@@ -52,17 +51,6 @@ pub enum ParseTree<'a> {
     Token(Token),
 }
 impl<'a> ParseTree<'a> {
-    pub fn children(&self) -> Vec<ParseTree<'a>> {
-        match self {
-            ParseTree::Decl(decl) => (0..decl.child_count())
-                .filter_map(|i| decl.child(i))
-                .collect(),
-            ParseTree::StartDecl(start_decl) => (0..start_decl.child_count())
-                .filter_map(|i| start_decl.child(i))
-                .collect(),
-            ParseTree::Token(_) => vec![],
-        }
-    }
     pub fn display_name(&self) -> &'static str {
         match self {
             ParseTree::Decl(decl) => decl.display_name(),
@@ -70,7 +58,14 @@ impl<'a> ParseTree<'a> {
             ParseTree::Token(token) => token.kind.name(),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+        match self {
+            ParseTree::Decl(decl) => decl.child(index),
+            ParseTree::StartDecl(start_decl) => start_decl.child(index),
+            ParseTree::Token(_) => None,
+        }
+    }
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             ParseTree::Decl(decl) => decl.child_count(),
             ParseTree::StartDecl(start_decl) => start_decl.child_count(),
@@ -136,9 +131,6 @@ impl<'a> ParseTree<'a> {
         unreachable!("unexpected parse tree node")
     }
 }
-pub trait ListNode<'a> {
-    fn iter(&'a self) -> IntoIter<ParseTree<'a>>;
-}
 pub trait OptNode {
     type Inner;
     fn value(&self) -> Option<&Self::Inner>;
@@ -171,7 +163,7 @@ impl<'a> Decl<'a> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::Decl(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             Decl::Var {
                 lit_0,
@@ -210,7 +202,7 @@ impl<'a> Decl<'a> {
             Decl::Amb(alts) => alts.get(index).copied().map(ParseTree::Decl),
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         match self {
             Decl::Var { .. } => 5usize,
             Decl::Assign { .. } => 7usize,
@@ -238,7 +230,7 @@ impl<'a> Start<&'a Decl<'a>, Token> {
     pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
         ParseTree::StartDecl(self)
     }
-    pub fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match index {
             0 => Some(ParseTree::Token(self.before)),
             1 => Some(ParseTree::Decl(self.node)),
@@ -246,7 +238,7 @@ impl<'a> Start<&'a Decl<'a>, Token> {
             _ => None,
         }
     }
-    pub fn child_count(&self) -> usize {
+    pub(crate) fn child_count(&self) -> usize {
         3usize
     }
     pub fn span(&self) -> Span {
@@ -404,8 +396,11 @@ pub fn create_parse_tree<'a>(
     }
 }
 impl<'a> ParseTreeNode for ParseTree<'a> {
-    fn children(&self) -> Vec<Self> {
-        ParseTree::children(self)
+    fn child(&self, index: usize) -> Option<Self> {
+        ParseTree::child(self, index)
+    }
+    fn child_count(&self) -> usize {
+        ParseTree::child_count(self)
     }
     fn display_name(&self) -> &'static str {
         ParseTree::display_name(self)
