@@ -124,7 +124,6 @@ fn gen_scanner_struct(grammar_name: &str, config: &GenConfig) -> TokenStream {
         quote! {
             pub struct #name_ident<'i, 'arena> {
                 pub input: &'i Input,
-                vec_arena: &'arena Arena,
                 memo: MatchMemo<'arena, MATCH_MEMO_WORDS>,
             }
         }
@@ -354,7 +353,7 @@ fn gen_scanner_imp(
             quote! { input: &'i Input, vec_arena: &'arena Arena },
             quote! {
                 let memo = MatchMemo::new(input.len() as usize, vec_arena);
-                Self { input, vec_arena, memo }
+                Self { input, memo }
             },
         )
     } else {
@@ -657,9 +656,8 @@ fn gen_match_token_and_memoize(terminal_ids: &TerminalIds, config: &GenConfig) -
         #[inline(never)]
         fn match_token_and_memoize(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
             let result = #dispatch;
-            let arena = self.vec_arena;
             match result {
-                Some(end) => self.memo.insert_match(terminal_id, input_index, end, arena),
+                Some(end) => self.memo.insert_match(terminal_id, input_index, end),
                 None => self.memo.insert_fail(terminal_id, input_index),
             }
             result

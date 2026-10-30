@@ -205,17 +205,12 @@ static FIRST_CHAR_MASKS: [[u64; MATCH_MEMO_WORDS]; 128] = [
 ];
 pub struct LayoutNonterminalScanner<'i, 'arena> {
     pub input: &'i Input,
-    vec_arena: &'arena Arena,
     memo: MatchMemo<'arena, MATCH_MEMO_WORDS>,
 }
 impl<'i, 'arena> LayoutNonterminalScanner<'i, 'arena> {
     pub fn new(input: &'i Input, vec_arena: &'arena Arena) -> Self {
         let memo = MatchMemo::new(input.len() as usize, vec_arena);
-        Self {
-            input,
-            vec_arena,
-            memo,
-        }
+        Self { input, memo }
     }
     // WhiteSpace = [ \t \n]+
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
@@ -318,9 +313,8 @@ impl<'i, 'arena> LayoutNonterminalScanner<'i, 'arena> {
                 unreachable!("Unknown token type: {terminal_id}");
             }
         };
-        let arena = self.vec_arena;
         match result {
-            Some(end) => self.memo.insert_match(terminal_id, input_index, end, arena),
+            Some(end) => self.memo.insert_match(terminal_id, input_index, end),
             None => self.memo.insert_fail(terminal_id, input_index),
         }
         result
