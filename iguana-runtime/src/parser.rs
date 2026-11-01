@@ -217,13 +217,14 @@ pub trait Parser<'i, 'arena>: Sized {
     /// `predicted_alternatives`, the alternatives of the nonterminal that are
     /// predicted at `input_index`.
     ///
-    /// The alternatives are scheduled from the last to the first. The
-    /// descriptor worklist is a stack, so the parser runs the first
-    /// alternative first, which gives the GLL execution a depth-first
+    /// In the first-parse mode, the alternatives are scheduled from the last to
+    /// the first. The descriptor worklist is a stack, so the parser runs the
+    /// first alternative first, which gives the GLL execution a depth-first
     /// exploration of the alternatives. The benefit is in the first-parse mode,
     /// which stops at the first derivation that spans the whole input and
-    /// reaches it earlier this way. The default mode drains every descriptor,
-    /// so the order does not change the result there.
+    /// reaches it earlier this way. The default mode drains every descriptor
+    /// and schedules the alternatives from the first to the last, which is
+    /// faster on highly ambiguous grammars.
     #[inline(always)]
     fn add_first_descriptors(
         &mut self,
@@ -234,8 +235,14 @@ pub trait Parser<'i, 'arena>: Sized {
         predicted_alternatives: Self::Alternatives,
     ) {
         let first_slots = Self::Grammar::FIRST_SLOTS[nonterminal_id.index()];
-        for alternative in predicted_alternatives.iter_descending() {
-            self.add_first_descriptor(first_slots[alternative], input_index, gss_node_id, env);
+        if Self::FIRST_PARSE {
+            for alternative in predicted_alternatives.iter_descending() {
+                self.add_first_descriptor(first_slots[alternative], input_index, gss_node_id, env);
+            }
+        } else {
+            for alternative in predicted_alternatives.iter_ascending() {
+                self.add_first_descriptor(first_slots[alternative], input_index, gss_node_id, env);
+            }
         }
     }
     fn next_descriptor(&mut self) -> Option<Descriptor>;

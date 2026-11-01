@@ -2,26 +2,10 @@
   WS
   (Amb
     (Nullable
-      (NullableLeft
-        #1="x"?
+      #1=(NullableLeft
+        #2="x"?
         WS
-        (Nullable
-          #2=(NullableLeft
-            #1#
-            WS
-            (Nullable "n"))
-          WS
-          "%"
-          WS
-          (NullableRight
-            (Nullable "n"))))
-      WS
-      "%"
-      WS
-      #3=(NullableRight
-        (Nullable "n")))
-    (Nullable
-      #2#
+        (Nullable "n"))
       WS
       "%"
       WS
@@ -34,5 +18,21 @@
           WS
           "%"
           WS
-          #3#))))
+          #3=(NullableRight
+            (Nullable "n")))))
+    (Nullable
+      (NullableLeft
+        #2#
+        WS
+        (Nullable
+          #1#
+          WS
+          "%"
+          WS
+          (NullableRight
+            (Nullable "n"))))
+      WS
+      "%"
+      WS
+      #3#))
   WS)

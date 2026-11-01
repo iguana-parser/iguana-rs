@@ -4,5 +4,5 @@
     (SiblingC
       #1#
       (Amb
-        (SiblingD EmptyE)
-        (SiblingD EmptyF)))))
+        (SiblingD EmptyF)
+        (SiblingD EmptyE)))))

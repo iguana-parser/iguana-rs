@@ -38,6 +38,22 @@ impl<const W: usize> BitSet<W> {
             })
         })
     }
+
+    /// The members from the smallest to the largest.
+    pub fn iter_ascending(&self) -> impl Iterator<Item = usize> {
+        let words = self.0;
+        (0..W).flat_map(move |index| {
+            let mut remaining = words[index];
+            std::iter::from_fn(move || {
+                if remaining == 0 {
+                    return None;
+                }
+                let bit = remaining.trailing_zeros();
+                remaining &= remaining - 1;
+                Some(index * 64 + bit as usize)
+            })
+        })
+    }
 }
 
 #[cfg(test)]
@@ -53,5 +69,18 @@ mod tests {
         }
         assert!(set.contains(64) && !set.contains(65));
         assert_eq!(set.iter_descending().collect::<Vec<_>>(), [127, 64, 3, 0]);
+    }
+
+    #[test]
+    fn members_iterate_from_the_smallest_across_words() {
+        let mut set = BitSet::<2>::default();
+        assert_eq!(set.iter_ascending().next(), None);
+        for i in [0, 3, 63, 64, 127] {
+            set.insert(i);
+        }
+        assert_eq!(
+            set.iter_ascending().collect::<Vec<_>>(),
+            [0, 3, 63, 64, 127]
+        );
     }
 }

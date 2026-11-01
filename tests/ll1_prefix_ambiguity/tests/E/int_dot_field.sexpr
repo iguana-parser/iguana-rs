@@ -1,5 +1,5 @@
 (Start
   (E
     (Amb
-      (Expr Int "." Id)
-      (Expr Float))))
+      (Expr Float)
+      (Expr Int "." Id))))

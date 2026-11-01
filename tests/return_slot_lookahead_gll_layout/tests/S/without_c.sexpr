@@ -7,15 +7,15 @@
         (Layout
           (WS* WS))
         "b")
+      (Layout WS*)
+      B
       #2=(Layout
         (WS* WS))
-      B
-      (Layout WS*)
       "x")
     (S
       #1#
-      (Layout WS*)
-      B
       #2#
+      B
+      (Layout WS*)
       "x"))
   (Layout WS*))

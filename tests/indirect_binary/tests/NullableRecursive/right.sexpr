@@ -2,24 +2,10 @@
   WS
   (Amb
     (NullableRecursive
-      (NullableOperand
-        #1=(NullableMaybe NullableRecursive?)
+      #1=(NullableOperand
+        #2=(NullableMaybe NullableRecursive?)
         WS
-        (NullableRecursive
-          #2=(NullableOperand
-            #1#
-            WS
-            (NullableRecursive "u"))
-          WS
-          "+"
-          WS
-          (NullableRecursive "u")))
-      WS
-      "+"
-      WS
-      #3=(NullableRecursive "u"))
-    (NullableRecursive
-      #2#
+        (NullableRecursive "u"))
       WS
       "+"
       WS
@@ -31,5 +17,19 @@
         WS
         "+"
         WS
-        #3#)))
+        #3=(NullableRecursive "u")))
+    (NullableRecursive
+      (NullableOperand
+        #2#
+        WS
+        (NullableRecursive
+          #1#
+          WS
+          "+"
+          WS
+          (NullableRecursive "u")))
+      WS
+      "+"
+      WS
+      #3#))
   WS)

@@ -100,6 +100,8 @@ pub trait AlternativeSet: Copy + Default {
     fn is_empty(&self) -> bool;
     /// The alternatives from the last to the first.
     fn iter_descending(&self) -> impl Iterator<Item = usize>;
+    /// The alternatives from the first to the last.
+    fn iter_ascending(&self) -> impl Iterator<Item = usize>;
 }
 
 impl<const W: usize> AlternativeSet for BitSet<W> {
@@ -117,5 +119,9 @@ impl<const W: usize> AlternativeSet for BitSet<W> {
 
     fn iter_descending(&self) -> impl Iterator<Item = usize> {
         BitSet::iter_descending(self)
+    }
+
+    fn iter_ascending(&self) -> impl Iterator<Item = usize> {
+        BitSet::iter_ascending(self)
     }
 }
