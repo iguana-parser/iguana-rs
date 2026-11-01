@@ -98,31 +98,35 @@ impl<T: Debug + Clone> OneOrMany<T> {
     }
 }
 
+/// The initial capacity of the tree walkers' stacks in the parser's arena.
+const STACK_CAPACITY: usize = 256;
+
 /// True iff the SPPF rooted at `root_id` contains at least one reachable
-/// ambiguous node. Entries in the parser's side maps record GLL machinery
-/// state and can include ambiguous nodes that the accepted parse never
-/// reaches, so an `is_empty` check on the maps is too coarse: it must be
-/// followed by an actual DFS from the root. The empty-maps case is a fast
-/// out covering most parses.
+/// ambiguous node.
+///
+/// The parser records the extra children of an ambiguous node it creates in a
+/// side map, `ambiguity_node_added` returns true if such nodes were recorded. However, these nodes can
+/// be unreachable from the final parse tree root, so if `ambiguity_node_added` returns true, we
+///  still need a walk from the root.
 pub fn is_ambiguous<'i, 'arena, P: Parser<'i, 'arena>>(parser: &P, root_id: SPPFNodeId) -> bool {
     // The first-parse mode records no ambiguity, so the answer is known at
     // compile time and the walk below is dead code.
     if P::FIRST_PARSE {
         return false;
     }
-    if parser.nonterminal_nodes_children_map().is_empty()
-        && parser.intermediate_nodes_children_map().is_empty()
-    {
+    if !parser.ambiguity_node_added() {
         return false;
     }
     // Before the walk reaches an ambiguous node, only empty nodes can be
     // shared, so only they are recorded as visited. Every SPPF cycle contains
     // an ambiguous node, where the walk stops.
-    let mut visited_empty = FxHashSet::default();
-    let mut stack = vec![root_id];
+    let arena = parser.vec_arena();
+    let mut visited_empty = arena.map_with_capacity::<SPPFNodeId, ()>(0);
+    let mut stack = arena.vec_with_capacity(STACK_CAPACITY);
+    stack.push(root_id);
     while let Some(id) = stack.pop() {
         let node = parser.sppf_node(id);
-        if node.left_extent() == node.right_extent() && !visited_empty.insert(id) {
+        if node.left_extent() == node.right_extent() && visited_empty.insert(id, ()).is_some() {
             continue;
         }
         if node.is_ambiguous() {
@@ -190,8 +194,11 @@ fn visit_sppf_unambiguous<'i, 'arena, T: Debug + Clone, P: Parser<'i, 'arena>>(
     parser: &P,
     builder: &impl ParseTreeBuilder<T>,
 ) -> T {
-    let mut work: Vec<UnambiguousFrame> = Vec::new();
-    let mut values: Vec<T> = Vec::new();
+    // Both stacks live in the parser's arena. Their size follows the depth of
+    // the tree, not its number of nodes.
+    let arena = parser.vec_arena();
+    let mut work = arena.vec_with_capacity::<UnambiguousFrame>(STACK_CAPACITY);
+    let mut values = arena.vec_with_capacity::<T>(STACK_CAPACITY);
     // The next node to visit
     let mut next = Some(root_id);
     loop {
