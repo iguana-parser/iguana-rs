@@ -1,8 +1,9 @@
+use indexmap::IndexMap;
 use proc_macro2::{Literal, TokenStream};
 use quote::{format_ident, quote};
 
 use crate::{
-    dfa::{Dfa, Nfa},
+    dfa::{Dfa, Nfa, dfa::State},
     generator::{
         GenConfig, grammar_utils::scanner_ident, id::TerminalIds, terminal_sets::TerminalSet,
     },
@@ -26,7 +27,6 @@ pub fn generate(
 
     let imports = gen_imports(config);
     let memo_words = gen_memo_words_const(terminal_ids, config);
-    let dfa_statics = gen_dfa_statics(grammar, terminal_ids);
     let first_chars_statics =
         gen_first_chars_statics(terminal_ids, first_chars, terminal_sets, match_any_count);
     let match_any_masks_static =
@@ -38,7 +38,6 @@ pub fn generate(
     quote! {
         #imports
         #memo_words
-        #dfa_statics
         #first_chars_statics
         #match_any_masks_static
         #first_char_masks_static
@@ -64,7 +63,6 @@ fn gen_imports(config: &GenConfig) -> TokenStream {
         use iguana_runtime::{
             #arena_import
             char_set::{CharRange, CharSet},
-            dfa::{Dfa, State},
             ids::TerminalId,
             input::Input,
             #prediction_import
@@ -136,11 +134,11 @@ fn gen_scanner_struct(grammar_name: &str, config: &GenConfig) -> TokenStream {
     }
 }
 
-fn gen_dfa_statics(grammar: &Grammar, terminal_ids: &TerminalIds) -> TokenStream {
-    let statics: Vec<_> = terminal_ids
+/// The DFA of each terminal, indexed by terminal id.
+fn terminal_dfas(grammar: &Grammar, terminal_ids: &TerminalIds) -> Vec<Dfa> {
+    terminal_ids
         .terminals()
-        .enumerate()
-        .map(|(id, terminal)| {
+        .map(|terminal| {
             let rule = grammar
                 .lexical_rule(terminal)
                 .unwrap_or_else(|| panic!("Terminal {} is not defined", terminal.name));
@@ -158,12 +156,9 @@ fn gen_dfa_statics(grammar: &Grammar, terminal_ids: &TerminalIds) -> TokenStream
                     .collect();
                 Nfa::with_excepts(&rule.regex, terminal_id, &excepts)
             };
-            gen_dfa_static(id as u16, &Dfa::from_nfa(&nfa))
+            Dfa::from_nfa(&nfa)
         })
-        .collect();
-    quote! {
-        #(#statics)*
-    }
+        .collect()
 }
 
 /// Emits `TERMINAL_FIRST_CHARS`, the characters that can begin a match of
@@ -292,48 +287,6 @@ fn gen_char_set(ranges: &[CharRange]) -> TokenStream {
     quote! { CharSet::new(#ascii, &[#(#non_ascii),*]) }
 }
 
-fn gen_dfa_static(id: u16, dfa: &Dfa) -> TokenStream {
-    assert_eq!(
-        dfa.start, 0,
-        "subset construction always emits start state 0"
-    );
-    let const_name = format_ident!("DFA_{}", id);
-    let states: Vec<TokenStream> = dfa
-        .states
-        .iter()
-        .map(|state| {
-            let transitions: Vec<TokenStream> = state
-                .transitions
-                .iter()
-                .map(|(range, target)| {
-                    let start = range.start;
-                    let end = range.end;
-                    let target_lit = Literal::u32_unsuffixed(*target as u32);
-                    quote! { (#start, #end, #target_lit) }
-                })
-                .collect();
-            let accept = match state.accept {
-                Some(t) => {
-                    let id_lit = Literal::u16_unsuffixed(t.0);
-                    quote! { Some(TerminalId(#id_lit)) }
-                }
-                None => quote! { None },
-            };
-            let constructor = if state.excluded {
-                quote! { State::new_excluded }
-            } else {
-                quote! { State::new }
-            };
-            quote! {
-                #constructor(&[#(#transitions),*], #accept)
-            }
-        })
-        .collect();
-    quote! {
-        static #const_name: Dfa = Dfa::new(&[#(#states),*]);
-    }
-}
-
 fn gen_scanner_imp(
     grammar: &Grammar,
     terminal_ids: &TerminalIds,
@@ -345,6 +298,11 @@ fn gen_scanner_imp(
         .terminals()
         .enumerate()
         .map(|(id, terminal)| gen_match_terminal_method(id as u16, terminal, grammar, terminal_ids))
+        .collect();
+    let scan_dfas: Vec<_> = terminal_dfas(grammar, terminal_ids)
+        .iter()
+        .enumerate()
+        .map(|(id, dfa)| gen_scan_dfa_method(id as u16, dfa))
         .collect();
     let (impl_generics, ty_generics, new_params, new_body) = if config.match_memo {
         (
@@ -373,6 +331,7 @@ fn gen_scanner_imp(
                 #new_body
             }
             #(#match_terminals)*
+            #(#scan_dfas)*
             #match_any_method
             #match_token_and_memoize_method
             #match_exact_method
@@ -407,9 +366,9 @@ fn gen_match_exact_method(grammar: &Grammar, terminal_ids: &TerminalIds) -> Toke
     let arms: Vec<_> = except_ids
         .iter()
         .map(|id| {
-            let dfa_name = format_ident!("DFA_{}", id.index());
+            let scan_fn = format_ident!("scan_dfa_{}", id.index());
             quote! {
-                #id => self.scan_exact(&#dfa_name, start, end),
+                #id => self.#scan_fn(start, end) == Some(end),
             }
         })
         .collect();
@@ -709,7 +668,7 @@ fn gen_match_terminal_method(
     terminal_ids: &TerminalIds,
 ) -> TokenStream {
     let fn_name = format_ident!("match_terminal_{}", id);
-    let dfa_name = format_ident!("DFA_{}", id);
+    let scan_fn = format_ident!("scan_dfa_{}", id);
     let rule = grammar
         .lexical_rule(terminal)
         .unwrap_or_else(|| panic!("Terminal {} is not defined", terminal.name));
@@ -758,10 +717,175 @@ fn gen_match_terminal_method(
         #[comment = #comment]
         pub fn #fn_name(&self, input_index: u32) -> Option<u32> {
             #precede_restriction_check
-            self.scan(&#dfa_name, input_index)
+            self.#scan_fn(input_index, self.input.len())
             #(#follow_restriction_checks)*
         }
     }
+}
+
+/// Emits `scan_dfa_<id>`, which runs the terminal's DFA from `start` and
+/// returns the end of the longest prefix of `[start, end)` that the DFA
+/// accepts. The method returns `None` if the DFA does not accept any prefix,
+/// or if one of the terminal's excepts also matches the longest prefix.
+///
+/// `match_terminal_<id>` passes the length of the input as `end`, which makes
+/// the scan an unbounded longest match. `match_exact` passes the end of a span
+/// to check whether the terminal matches exactly that span. The scan does not
+/// read past `end`, so it returns `Some(end)` if the terminal matches the whole
+/// span. An unbounded scan could return a longer match and miss the exact one.
+fn gen_scan_dfa_method(id: u16, dfa: &Dfa) -> TokenStream {
+    assert_eq!(
+        dfa.start, 0,
+        "subset construction always emits start state 0"
+    );
+    let fn_name = format_ident!("scan_dfa_{}", id);
+    // A DFA whose accept states are all excluded, or that does not have
+    // transitions, gets a body without the loop. In such a DFA, the variables
+    // of the loop would be unused or never reassigned, which the compiler
+    // warns about.
+    if !dfa
+        .states
+        .iter()
+        .any(|state| state.accept.is_some() && !state.excluded)
+    {
+        return quote! {
+            fn #fn_name(&self, _start: u32, _end: u32) -> Option<u32> {
+                None
+            }
+        };
+    }
+    if dfa.states.iter().all(|state| state.transitions.is_empty()) {
+        // The start state is the only state, and it accepts the empty string.
+        return quote! {
+            fn #fn_name(&self, start: u32, _end: u32) -> Option<u32> {
+                Some(start)
+            }
+        };
+    }
+    let has_excluded = dfa
+        .states
+        .iter()
+        .any(|state| state.accept.is_some() && state.excluded);
+    let arms = dfa.states.iter().enumerate().map(|(index, state)| {
+        let index = Literal::u32_unsuffixed(index as u32);
+        let record_accept = match state.accept {
+            None => quote! {},
+            Some(_) if has_excluded => {
+                let excluded = state.excluded;
+                quote! {
+                    last_accept = Some(position);
+                    excluded = #excluded;
+                }
+            }
+            Some(_) => quote! { last_accept = Some(position); },
+        };
+        let transition = gen_dfa_transition(state);
+        quote! {
+            #index => {
+                #record_accept
+                #transition
+            }
+        }
+    });
+    // If every state accepts, every arm assigns the variables before the loop
+    // can end, and the compiler warns that an initial value is never read.
+    let (last_accept_init, excluded_init) = if dfa.states.iter().all(|state| state.accept.is_some())
+    {
+        (quote! {}, quote! {})
+    } else {
+        (quote! { = None }, quote! { = false })
+    };
+    let (excluded_decl, result) = if has_excluded {
+        (
+            quote! { let mut excluded #excluded_init; },
+            quote! { if excluded { None } else { last_accept } },
+        )
+    } else {
+        (quote! {}, quote! { last_accept })
+    };
+    // Inlined into its callers: `match_terminal_<id>`, and `match_exact` for a
+    // terminal used as a syntax-level except.
+    quote! {
+        #[inline(always)]
+        fn #fn_name(&self, start: u32, end: u32) -> Option<u32> {
+            let mut state: u32 = 0;
+            let mut position = start;
+            let mut last_accept #last_accept_init;
+            #excluded_decl
+            loop {
+                match state {
+                    #(#arms)*
+                    _ => unreachable!(),
+                }
+                position += 1;
+            }
+            #result
+        }
+    }
+}
+
+/// Emits the code that computes the next state from `state` and the character
+/// at `position`. The code breaks out of the loop at `end`, at the end of the
+/// input, and at a character without a transition from `state`.
+fn gen_dfa_transition(state: &State) -> TokenStream {
+    if state.transitions.is_empty() {
+        return quote! { break; };
+    }
+    let mut targets: IndexMap<usize, Vec<TokenStream>> = IndexMap::new();
+    for (range, target) in &state.transitions {
+        let (start, end) = (range.start, range.end);
+        let pattern = if start == end {
+            quote! { #start }
+        } else {
+            quote! { #start..=#end }
+        };
+        targets.entry(*target).or_default().push(pattern);
+    }
+    let arms = targets.iter().map(|(target, patterns)| {
+        let target = Literal::u32_unsuffixed(*target as u32);
+        quote! { #(#patterns)|* => #target, }
+    });
+    // If the transitions of `state` cover the whole Unicode range, the `match`
+    // on the character is exhaustive without the fallback arm, and the
+    // compiler would warn that the fallback arm is unreachable.
+    let ranges: Vec<CharRange> = state.transitions.iter().map(|(range, _)| *range).collect();
+    let fallback = if covers_every_char(&ranges) {
+        quote! {}
+    } else {
+        quote! { _ => break, }
+    };
+    quote! {
+        if position == end {
+            break;
+        }
+        let Some(ch) = self.input.char_at(position) else {
+            break;
+        };
+        state = match ch {
+            #(#arms)*
+            #fallback
+        };
+    }
+}
+
+/// True if `ranges`, which are sorted and disjoint, cover the whole Unicode
+/// range of `char`: U+0000 to U+10FFFF without the surrogates U+D800 to
+/// U+DFFF.
+fn covers_every_char(ranges: &[CharRange]) -> bool {
+    let mut next = Some('\0');
+    for range in ranges {
+        match next {
+            Some(c) if range.start <= c => {
+                next = match range.end as u32 + 1 {
+                    // The surrogates are not chars.
+                    0xD800 => Some('\u{E000}'),
+                    after => char::from_u32(after),
+                };
+            }
+            _ => return false,
+        }
+    }
+    next.is_none()
 }
 
 #[cfg(test)]
@@ -770,6 +894,24 @@ mod tests {
 
     fn char_range(start: char, end: char) -> CharRange {
         CharRange { start, end }
+    }
+
+    #[test]
+    fn ranges_around_the_surrogates_cover_every_char() {
+        let ranges = [
+            char_range('\0', 'a'),
+            char_range('b', '\u{D7FF}'),
+            char_range('\u{E000}', char::MAX),
+        ];
+        assert!(covers_every_char(&ranges));
+    }
+
+    #[test]
+    fn ranges_with_a_gap_do_not_cover_every_char() {
+        let ranges = [char_range('\0', 'a'), char_range('c', char::MAX)];
+        assert!(!covers_every_char(&ranges));
+        assert!(!covers_every_char(&[char_range('\u{1}', char::MAX)]));
+        assert!(!covers_every_char(&[char_range('\0', 'z')]));
     }
 
     #[test]

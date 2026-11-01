@@ -2,7 +2,6 @@ pub mod arena;
 pub mod char_set;
 pub mod cli;
 pub mod descriptor;
-pub mod dfa;
 pub mod env;
 pub mod grammar;
 pub mod gss;
