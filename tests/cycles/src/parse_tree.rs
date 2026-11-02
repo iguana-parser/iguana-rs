@@ -3406,7 +3406,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
             }
             // SharedS = SharedA SharedB
             SlotId(20) => {
-                let &[shared_a, shared_b] = children else {
+                let &[shared_b, shared_a] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::SharedS(self.arena.alloc(SharedS::Alt0 {
@@ -3536,7 +3536,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
             }
             // Nullable = Nullable Nullable #C1
             SlotId(46) => {
-                let &[nullable_0, nullable_1] = children else {
+                let &[nullable_1, nullable_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Nullable(self.arena.alloc(Nullable::C1 {
@@ -3566,7 +3566,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
             }
             // SiblingC = SiblingC SiblingD #C1
             SlotId(52) => {
-                let &[sibling_c, sibling_d] = children else {
+                let &[sibling_d, sibling_c] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::SiblingC(self.arena.alloc(SiblingC::C1 {
@@ -3625,7 +3625,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
             }
             // ParentC = ParentD "b" #C1
             SlotId(63) => {
-                let &[parent_d, lit_1] = children else {
+                let &[lit_1, parent_d] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::ParentC(self.arena.alloc(ParentC::C1 {
@@ -3696,7 +3696,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
             }
             // IntermediateY = IntermediateA IntermediateY IntermediateB #Y1
             SlotId(79) => {
-                let &[intermediate_a, intermediate_y, intermediate_b] = children else {
+                let &[intermediate_b, intermediate_y, intermediate_a] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::IntermediateY(self.arena.alloc(IntermediateY::Y1 {
@@ -3746,7 +3746,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
             }
             // MidInput = Direct "b" #S1
             SlotId(88) => {
-                let &[direct, lit_1] = children else {
+                let &[lit_1, direct] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::MidInput(self.arena.alloc(MidInput::S1 {
@@ -3757,7 +3757,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
             }
             // Consuming = Consuming "b" #C1
             SlotId(91) => {
-                let &[consuming, lit_1] = children else {
+                let &[lit_1, consuming] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Consuming(self.arena.alloc(Consuming::C1 {
@@ -3858,7 +3858,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
             }
             // Plus_0 = EmptyE+ EmptyE
             SlotId(112) => {
-                let &[empty_es_0, empty_e_1] = children else {
+                let &[empty_e_1, empty_es_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Plus0(self.arena.alloc(Plus0::Alt0 {
@@ -3898,7 +3898,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for CyclesParseTreeBuilder<'a> {
             }
             // Plus_1 = {EmptyE EmptyF}+ EmptyF EmptyE
             SlotId(121) => {
-                let &[empty_es_0, empty_f, empty_e_2] = children else {
+                let &[empty_e_2, empty_f, empty_es_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Plus1(self.arena.alloc(Plus1::Alt0 {

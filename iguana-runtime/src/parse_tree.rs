@@ -6,6 +6,7 @@ use std::{
 use rustc_hash::{FxHashMap, FxHashSet};
 
 use crate::{
+    arena::{Arena, ArenaVec},
     grammar::Grammar,
     ids::{NonterminalId, SPPFNodeId},
     input::Span,
@@ -55,45 +56,57 @@ impl DisplayOptions {
 }
 
 /// The children of a node under construction in the general walker.
-#[derive(Debug, Clone)]
-enum OneOrMany<T: Debug> {
+#[derive(Debug, Clone, Copy)]
+enum VisitResult<'s, T: Debug> {
+    /// Epsilon node
     Zero,
+    /// A single node: terminal or nonterminal
     One(T),
-    Many(Vec<T>),
-    /// Multiple derivations under an ambiguous intermediate node, one child sequence
-    /// per derivation.
-    Multi(Vec<OneOrMany<T>>),
+    /// The list of nodes corresponding to an alternative, or a prefix of it.
+    /// SPPF is binarized, by having intermediate nodes. `prefix` corresponds
+    /// to the result of the intermediate node, while `last` to the last node.
+    List {
+        prefix: &'s VisitResult<'s, T>,
+        last: T,
+    },
+    /// The lists of an ambiguous intermediate node.
+    ListOfLists(&'s [VisitResult<'s, T>]),
 }
 
-impl<T: Debug + Clone> OneOrMany<T> {
-    fn merge(self, other: OneOrMany<T>) -> OneOrMany<T> {
+impl<'s, T: Debug + Copy> VisitResult<'s, T> {
+    fn merge(self, other: VisitResult<'s, T>, arena: &'s Arena) -> VisitResult<'s, T> {
         match (self, other) {
-            (OneOrMany::One(l), OneOrMany::One(r)) => OneOrMany::Many(vec![l, r]),
-            (OneOrMany::Many(mut l), OneOrMany::One(r)) => {
-                l.push(r);
-                OneOrMany::Many(l)
-            }
-            // Fan `r` across every alternative sequence. The right side of
-            // an intermediate node is always a single grammar symbol, so
-            // `r` is a `One` (never `Multi`) and the result stays flat.
-            (OneOrMany::Multi(seqs), OneOrMany::One(r)) => OneOrMany::Multi(
-                seqs.into_iter()
-                    .map(|seq| seq.merge(OneOrMany::One(r.clone())))
-                    .collect(),
-            ),
-            (OneOrMany::Zero, rhs) => rhs,
-            (lhs, OneOrMany::Zero) => lhs,
-            _ => unreachable!(""),
+            (VisitResult::Zero, r) => r,
+            (l, VisitResult::Zero) => l,
+            // The right side of an intermediate node is always a single
+            // node, so `r` is a `One`.
+            (prefix, VisitResult::One(r)) => VisitResult::List {
+                prefix: arena.alloc(prefix),
+                last: r,
+            },
+            _ => unreachable!("the right side of an intermediate node is a single node"),
         }
     }
 
-    /// The children of one derivation, in order.
-    fn as_slice(&self) -> &[T] {
-        match self {
-            OneOrMany::Zero => &[],
-            OneOrMany::One(item) => std::slice::from_ref(item),
-            OneOrMany::Many(items) => items,
-            OneOrMany::Multi(_) => unreachable!("a derivation is a flat child sequence"),
+    /// Pushes the children of this list onto `reversed`, last first. Returns
+    /// the lists of the ambiguous intermediate node the list starts with, if
+    /// any.
+    #[inline(always)]
+    fn push_children(&self, reversed: &mut ArenaVec<'_, T>) -> Option<&'s [VisitResult<'s, T>]> {
+        let mut list = self;
+        loop {
+            match list {
+                VisitResult::List { prefix, last } => {
+                    reversed.push(*last);
+                    list = prefix;
+                }
+                VisitResult::One(first) => {
+                    reversed.push(*first);
+                    return None;
+                }
+                VisitResult::Zero => return None,
+                VisitResult::ListOfLists(lists) => return Some(lists),
+            }
         }
     }
 }
@@ -144,7 +157,10 @@ pub fn is_ambiguous<'i, 'arena, P: Parser<'i, 'arena>>(parser: &P, root_id: SPPF
     false
 }
 
-pub fn visit_sppf<'i, 'arena, T: Debug + Clone, P: Parser<'i, 'arena>>(
+/// Builds the parse tree of the SPPF rooted at `node_id`.
+/// `T` is `Copy` because the general walker keeps values in the parser's
+/// arena, which does not run destructors.
+pub fn visit_sppf<'i, 'arena, T: Debug + Copy, P: Parser<'i, 'arena>>(
     node_id: SPPFNodeId,
     parser: &P,
     builder: &impl ParseTreeBuilder<T>,
@@ -159,23 +175,20 @@ pub fn visit_sppf<'i, 'arena, T: Debug + Clone, P: Parser<'i, 'arena>>(
     if P::FIRST_PARSE || !is_ambiguous(parser, node_id) {
         return visit_sppf_unambiguous(node_id, parser, builder);
     }
-    match visit_sppf_impl(node_id, parser, builder) {
-        OneOrMany::One(tree) => tree,
-        _ => unreachable!("the root is a single nonterminal value"),
-    }
+    visit_sppf_impl(node_id, parser, builder)
 }
 
 /// A frame in the unambiguous walker: `Pre` visits a node, `Post` builds a
 /// nonterminal node from its children. A nonterminal node's visit pushes the
 /// node's `Post` and continues with the child, so the `Post` runs once the
-/// whole subtree is done. An intermediate node's visit pushes the right
-/// child's `Pre` and continues with the left child. Tokens are built at their
+/// whole subtree is done. An intermediate node's visit pushes the left
+/// child's `Pre` and continues with the right child. Tokens are built at their
 /// visit and need no `Post`.
 enum UnambiguousFrame<'p> {
     Pre(SPPFNodeId),
     /// `mark` is `values.len()` at the moment a `Post` frame is pushed. Everything
     /// the subtree pushes is placed above it, so at build time `values[mark..]` is
-    /// exactly the node's children, in order.
+    /// exactly the node's children, last first.
     Post {
         node: &'p NonterminalNode,
         mark: usize,
@@ -185,11 +198,11 @@ enum UnambiguousFrame<'p> {
 /// Builds the parse tree for an unambiguous SPPF, where every node has
 /// exactly one derivation. The walk keeps two explicit stacks, work frames
 /// and finished values. A token pushes one value, an intermediate node
-/// contributes no value of its own (it only pushes a `Pre` frame for its right
+/// contributes no value of its own (it only pushes a `Pre` frame for its left
 /// child), and a nonterminal node records the value-stack depth on entry
 /// (the `Post` frame's `mark`), so on completion the values above the mark
 /// are exactly its children, handed to the builder as a slice.
-fn visit_sppf_unambiguous<'i, 'arena, T: Debug + Clone, P: Parser<'i, 'arena>>(
+fn visit_sppf_unambiguous<'i, 'arena, T: Debug + Copy, P: Parser<'i, 'arena>>(
     root_id: SPPFNodeId,
     parser: &P,
     builder: &impl ParseTreeBuilder<T>,
@@ -218,10 +231,10 @@ fn visit_sppf_unambiguous<'i, 'arena, T: Debug + Clone, P: Parser<'i, 'arena>>(
                     Some(n.child)
                 }
                 SPPFNode::Intermediate(i) => {
-                    // The right child waits on `work` while the left child is
-                    // visited, so the values land in source order.
-                    work.push(UnambiguousFrame::Pre(i.child.1));
-                    Some(i.child.0)
+                    // The left child waits on `work` while the right child is
+                    // visited, so the values land last first.
+                    work.push(UnambiguousFrame::Pre(i.child.0));
+                    Some(i.child.1)
                 }
             };
         }
@@ -240,27 +253,27 @@ fn visit_sppf_unambiguous<'i, 'arena, T: Debug + Clone, P: Parser<'i, 'arena>>(
 }
 
 /// A frame in the explicit stack that replaces recursion in `visit_sppf_impl`.
-struct Frame<'arena, T: Debug> {
+struct Frame<'arena, 's, T: Debug> {
     node_id: SPPFNodeId,
     children: InlineVec<'arena, SPPFNodeId>,
     next: usize, // index of the next child to visit
-    results: InlineVec<'arena, OneOrMany<T>>,
+    results: InlineVec<'arena, VisitResult<'s, T>>,
 }
 
 /// A nonterminal under construction or a completed SPPF node's result.
-enum MemoEntry<T: Debug> {
+enum MemoEntry<'s, T: Debug> {
     /// The nonterminal's frame is still on the stack. The Cycle node is
     /// allocated on the first back-edge and shared by later references.
     Active(Option<T>),
     /// The finished result, available for reuse.
-    Done(OneOrMany<T>),
+    Done(VisitResult<'s, T>),
 }
 
-impl<'arena, T: Debug> Frame<'arena, T> {
+impl<'arena, 's, T: Debug> Frame<'arena, 's, T> {
     fn enter<'i>(
         node_id: SPPFNodeId,
         parser: &impl Parser<'i, 'arena>,
-        memo: &mut FxHashMap<SPPFNodeId, MemoEntry<T>>,
+        memo: &mut FxHashMap<SPPFNodeId, MemoEntry<'s, T>>,
     ) -> Self {
         // Only nonterminals are marked active. An intermediate node produces
         // a child sequence rather than a typed value, so a re-entered
@@ -278,15 +291,17 @@ impl<'arena, T: Debug> Frame<'arena, T> {
     }
 }
 
-fn visit_sppf_impl<'i, 'arena, T: Debug + Clone, P: Parser<'i, 'arena>>(
+fn visit_sppf_impl<'i, 'arena, T: Debug + Copy, P: Parser<'i, 'arena>>(
     root_id: SPPFNodeId,
     parser: &P,
     builder: &impl ParseTreeBuilder<T>,
-) -> OneOrMany<T> {
+) -> T {
     // A child frame is fully built before its parent visits the next child,
     // so results arrive in source order. Completed nodes are reused;
     // re-entering an active nonterminal produces a Cycle reference.
     let arena = parser.vec_arena();
+    // The children of the node being built, last first.
+    let mut reversed = arena.vec();
     let mut memo = FxHashMap::default();
     let mut stack = vec![Frame::enter(root_id, parser, &mut memo)];
     loop {
@@ -295,7 +310,7 @@ fn visit_sppf_impl<'i, 'arena, T: Debug + Clone, P: Parser<'i, 'arena>>(
             Some(child) => {
                 stack[top].next += 1;
                 match memo.get_mut(&child) {
-                    Some(MemoEntry::Done(cached)) => stack[top].results.push(cached.clone(), arena),
+                    Some(MemoEntry::Done(cached)) => stack[top].results.push(*cached, arena),
                     Some(MemoEntry::Active(cycle)) => {
                         let cycle = cycle.get_or_insert_with(|| {
                             let SPPFNode::Nonterminal(node) = parser.sppf_node(child) else {
@@ -303,46 +318,57 @@ fn visit_sppf_impl<'i, 'arena, T: Debug + Clone, P: Parser<'i, 'arena>>(
                             };
                             builder.new_cycle_node(node)
                         });
-                        stack[top]
-                            .results
-                            .push(OneOrMany::One(cycle.clone()), arena);
+                        stack[top].results.push(VisitResult::One(*cycle), arena);
                     }
                     None => stack.push(Frame::enter(child, parser, &mut memo)),
                 }
             }
             None => {
                 let frame = stack.pop().unwrap();
-                let result = build_node(parser, builder, frame.node_id, frame.results);
+                let result = build_node(
+                    parser,
+                    builder,
+                    frame.node_id,
+                    frame.results,
+                    arena,
+                    &mut reversed,
+                );
                 if let Some(MemoEntry::Active(Some(cycle))) =
-                    memo.insert(frame.node_id, MemoEntry::Done(result.clone()))
+                    memo.insert(frame.node_id, MemoEntry::Done(result))
                 {
-                    let OneOrMany::One(target) = &result else {
+                    let VisitResult::One(target) = &result else {
                         unreachable!("a cycle target must be a single nonterminal value")
                     };
                     builder.set_cycle_target(&cycle, target);
                 }
                 match stack.last_mut() {
                     Some(parent) => parent.results.push(result, arena),
-                    None => return result,
+                    None => match result {
+                        VisitResult::One(tree) => return tree,
+                        _ => unreachable!("the root is a single nonterminal value"),
+                    },
                 }
             }
         }
     }
 }
 
-/// Builds a node's result from its children's results.
-fn build_node<'i, 'arena, T: Debug + Clone, P: Parser<'i, 'arena>>(
+/// Builds a node's result from its children's results. `reversed` is empty on
+/// entry and on return.
+fn build_node<'i, 'arena, 's, T: Debug + Copy, P: Parser<'i, 'arena>>(
     parser: &P,
     builder: &impl ParseTreeBuilder<T>,
     node_id: SPPFNodeId,
-    results: InlineVec<'arena, OneOrMany<T>>,
-) -> OneOrMany<T> {
+    results: InlineVec<'arena, VisitResult<'s, T>>,
+    arena: &'s Arena,
+    reversed: &mut ArenaVec<'_, T>,
+) -> VisitResult<'s, T> {
     match parser.sppf_node(node_id) {
         SPPFNode::Terminal(t) => {
             if t.terminal_id == P::Grammar::epsilon() {
-                OneOrMany::Zero
+                VisitResult::Zero
             } else {
-                OneOrMany::One(builder.new_token(t))
+                VisitResult::One(builder.new_token(t))
             }
         }
         SPPFNode::Nonterminal(n) => {
@@ -351,7 +377,8 @@ fn build_node<'i, 'arena, T: Debug + Clone, P: Parser<'i, 'arena>>(
             if n.ambiguous {
                 // Each remaining result is a separate derivation of this
                 // nonterminal; collect one alternative per derivation.
-                let mut alternatives = create_nonterminal_nodes(children, n, builder);
+                let mut alternatives = Vec::new();
+                create_nonterminal_nodes(&children, n, builder, reversed, &mut alternatives);
                 let extras = parser
                     .nonterminal_nodes_children_map()
                     .get(&node_id)
@@ -364,16 +391,30 @@ fn build_node<'i, 'arena, T: Debug + Clone, P: Parser<'i, 'arena>>(
                         child: *child,
                         ambiguous: false,
                     };
-                    alternatives.extend(create_nonterminal_nodes(derivation, &synthetic, builder));
+                    create_nonterminal_nodes(
+                        &derivation,
+                        &synthetic,
+                        builder,
+                        reversed,
+                        &mut alternatives,
+                    );
                 }
-                OneOrMany::One(builder.new_ambiguity_node(n.nonterminal_id, alternatives))
-            } else if matches!(children, OneOrMany::Multi(_)) {
-                // `Multi` means derivations from an ambiguous intermediate node
-                // below bubbled up and need the same `Amb` wrapping.
-                let alternatives = create_nonterminal_nodes(children, n, builder);
-                OneOrMany::One(builder.new_ambiguity_node(n.nonterminal_id, alternatives))
+                VisitResult::One(builder.new_ambiguity_node(n.nonterminal_id, alternatives))
             } else {
-                OneOrMany::One(builder.new_nonterminal_node(n, children.as_slice()))
+                let node = match children.push_children(reversed) {
+                    None => builder.new_nonterminal_node(n, reversed),
+                    Some(lists) => {
+                        // An ambiguous intermediate node below gives several
+                        // derivations, which need the same `Amb` wrapping.
+                        let mut alternatives = Vec::new();
+                        for list in lists {
+                            create_nonterminal_nodes(list, n, builder, reversed, &mut alternatives);
+                        }
+                        builder.new_ambiguity_node(n.nonterminal_id, alternatives)
+                    }
+                };
+                reversed.clear();
+                VisitResult::One(node)
             }
         }
         SPPFNode::Intermediate(i) => {
@@ -381,60 +422,66 @@ fn build_node<'i, 'arena, T: Debug + Clone, P: Parser<'i, 'arena>>(
                 let mut results = results.into_iter();
                 let left = results.next().unwrap();
                 let right = results.next().unwrap();
-                left.merge(right)
+                left.merge(right, arena)
             } else {
-                // The flattened results re-pair into one derivation per
+                // The flattened results re-pair into one list per
                 // `(left, right)`. A deeper ambiguity may already have produced a
-                // `Multi`, so flatten to keep the outer `Multi` one level deep.
-                let mut derivations: Vec<OneOrMany<T>> = Vec::with_capacity(results.len() / 2);
+                // `ListOfLists`, which stays the prefix of its pair's list.
+                let mut lists = arena.vec_with_capacity(results.len() / 2);
                 let mut results = results.into_iter();
                 while let (Some(left), Some(right)) = (results.next(), results.next()) {
-                    match left.merge(right) {
-                        OneOrMany::Multi(inner) => derivations.extend(inner),
-                        flat => derivations.push(flat),
-                    }
+                    lists.push(left.merge(right, arena));
                 }
-                OneOrMany::Multi(derivations)
+                VisitResult::ListOfLists(lists.leak())
             }
         }
     }
 }
 
-/// Builds one parse-tree node per derivation. When the children arrive
-/// as a `Multi` from an ambiguous intermediate node, there are several
-/// derivations of the same alternative and the resulting nodes go into
-/// an `Amb`.
-fn create_nonterminal_nodes<T: Debug + Clone>(
-    children: OneOrMany<T>,
+/// Builds the parse-tree nodes of `node`, one per child list of `children`,
+/// and appends them to `nodes`. More than one list comes from an ambiguous
+/// intermediate node below, and the caller puts the nodes into an `Amb`.
+/// `reversed` holds the children that follow `children` in each list, last
+/// first, and has the same contents on return.
+fn create_nonterminal_nodes<T: Debug + Copy>(
+    children: &VisitResult<'_, T>,
     node: &NonterminalNode,
     builder: &impl ParseTreeBuilder<T>,
-) -> Vec<T> {
-    match children {
-        OneOrMany::Multi(derivations) => derivations
-            .iter()
-            .map(|d| builder.new_nonterminal_node(node, d.as_slice()))
-            .collect(),
-        single => vec![builder.new_nonterminal_node(node, single.as_slice())],
+    reversed: &mut ArenaVec<'_, T>,
+    nodes: &mut Vec<T>,
+) {
+    let depth = reversed.len();
+    match children.push_children(reversed) {
+        None => nodes.push(builder.new_nonterminal_node(node, reversed)),
+        Some(lists) => {
+            for list in lists {
+                create_nonterminal_nodes(list, node, builder, reversed, nodes);
+            }
+        }
     }
+    reversed.truncate(depth);
 }
 
 pub trait ParseTreeBuilder<T: Debug> {
     fn new_token(&self, terminal_node: &TerminalNode) -> T;
-    /// Builds a nonterminal node from the children of one derivation, in order.
+    /// Builds a nonterminal node from the children of one derivation, last
+    /// first: for `A B C`, `children` is `[c, b, a]`. A binarized SPPF holds
+    /// the last child of an alternative directly and the others behind it, so
+    /// the walkers collect the children in this order.
     fn new_nonterminal_node(&self, nonterminal_node: &NonterminalNode, children: &[T]) -> T;
     fn new_ambiguity_node(&self, parent: NonterminalId, alternatives: Vec<T>) -> T {
         let _ = (parent, alternatives);
         unimplemented!("ambiguity handling not yet implemented for this builder")
     }
 
-    /// Creates an uninitialized cycle reference. Clones of the returned value
+    /// Creates an uninitialized cycle reference. Copies of the returned value
     /// must share the target later initialized by `set_cycle_target`.
     fn new_cycle_node(&self, node: &NonterminalNode) -> T {
         let _ = node;
         unimplemented!("cycle handling requires regenerating this parser")
     }
 
-    /// Initializes the cycle reference and all its clones with the completed
+    /// Initializes the cycle reference and all its copies with the completed
     /// nonterminal result, including its `Amb` node when present.
     fn set_cycle_target(&self, cycle: &T, target: &T) {
         let _ = (cycle, target);

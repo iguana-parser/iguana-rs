@@ -240,7 +240,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LeftRecursiveListParseTreeBuilder<'
         match nonterminal_node.return_slot {
             // A = A "a"
             SlotId(2) => {
-                let &[a, lit_1] = children else {
+                let &[lit_1, a] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::A(self.arena.alloc(A::Alt0 {

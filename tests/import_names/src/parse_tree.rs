@@ -1112,17 +1112,17 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ImportNamesParseTreeBuilder<'a> {
             // TerminalSet
             SlotId(11) => {
                 let &[
-                    parse,
-                    parser,
-                    sppf_node,
-                    input,
-                    parse_error,
-                    parse_success,
-                    grammar,
-                    nonterminal,
-                    terminal,
-                    slot,
                     terminal_set,
+                    slot,
+                    terminal,
+                    nonterminal,
+                    grammar,
+                    parse_success,
+                    parse_error,
+                    input,
+                    sppf_node,
+                    parser,
+                    parse,
                 ] = children
                 else {
                     ParseTree::unexpected_node()

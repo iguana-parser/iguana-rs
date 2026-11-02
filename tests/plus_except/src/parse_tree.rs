@@ -509,7 +509,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for PlusExceptParseTreeBuilder<'a> {
             }
             // Plus_0 = {Number Identifier}+ Identifier Number
             SlotId(7) => {
-                let &[numbers_0, identifier, number_2] = children else {
+                let &[number_2, identifier, numbers_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Plus0(self.arena.alloc(Plus0::Alt0 {
@@ -531,7 +531,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for PlusExceptParseTreeBuilder<'a> {
             }
             // Plus_1 = {Identifier ","}+ "," Identifier
             SlotId(13) => {
-                let &[plus_1, lit_1, identifier] = children else {
+                let &[identifier, lit_1, plus_1] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Plus1(self.arena.alloc(Plus1::Alt0 {

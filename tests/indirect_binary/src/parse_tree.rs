@@ -8682,15 +8682,15 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             // Ternary = Cascade WS "?" WS Cascade WS ":" WS Cascade
             SlotId(11) => {
                 let &[
-                    cascade_0,
-                    ws_1,
-                    lit_2,
-                    ws_3,
-                    cascade_4,
-                    ws_5,
-                    lit_6,
-                    ws_7,
                     cascade_8,
+                    ws_7,
+                    lit_6,
+                    ws_5,
+                    cascade_4,
+                    ws_3,
+                    lit_2,
+                    ws_1,
+                    cascade_0,
                 ] = children
                 else {
                     ParseTree::unexpected_node()
@@ -8710,7 +8710,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // NullableLeft = "x"? WS Nullable
             SlotId(15) => {
-                let &[opt_0, ws, nullable] = children else {
+                let &[nullable, ws, opt_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::NullableLeft(self.arena.alloc(NullableLeft::Alt0 {
@@ -8732,7 +8732,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // LexNullableLeft = Digits WS LexNullable
             SlotId(22) => {
-                let &[digits, ws, lex_nullable] = children else {
+                let &[lex_nullable, ws, digits] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::LexNullableLeft(self.arena.alloc(LexNullableLeft::Alt0 {
@@ -8814,7 +8814,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // NullableBoundaryRight = NullableBoundaryPrefix WS NullableBoundaryOpt
             SlotId(47) => {
-                let &[nullable_boundary_prefix, ws, nullable_boundary_opt] = children else {
+                let &[nullable_boundary_opt, ws, nullable_boundary_prefix] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::NullableBoundaryRight(self.arena.alloc(NullableBoundaryRight::Alt0 {
@@ -8846,7 +8846,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // NullableBoundaryLeft = NullableBoundaryOpt WS NullableBoundaryPostfix
             SlotId(54) => {
-                let &[nullable_boundary_opt, ws, nullable_boundary_postfix] = children else {
+                let &[nullable_boundary_postfix, ws, nullable_boundary_opt] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::NullableBoundaryLeft(self.arena.alloc(NullableBoundaryLeft::Alt0 {
@@ -8859,7 +8859,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // NullableBoundaryOperand = NullableBoundaryBinary WS NullableBoundaryOpt
             SlotId(58) => {
-                let &[nullable_boundary_binary, ws, nullable_boundary_opt] = children else {
+                let &[nullable_boundary_opt, ws, nullable_boundary_binary] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::NullableBoundaryOperand(self.arena.alloc(
@@ -8916,7 +8916,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // E = L WS "*" WS L
             SlotId(408) => {
-                let &[l_0, ws_1, lit_2, ws_3, l_4] = children else {
+                let &[l_4, ws_3, lit_2, ws_1, l_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::E(self.arena.alloc(E::Alt1 {
@@ -8930,7 +8930,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // E = E WS "+" WS L
             SlotId(417) => {
-                let &[e, ws_1, lit_2, ws_3, l] = children else {
+                let &[l, ws_3, lit_2, ws_1, e] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::E(self.arena.alloc(E::Alt2 {
@@ -8944,7 +8944,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // E = L WS "-" WS E
             SlotId(426) => {
-                let &[l, ws_1, lit_2, ws_3, e] = children else {
+                let &[e, ws_3, lit_2, ws_1, l] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::E(self.arena.alloc(E::Alt3 {
@@ -8978,7 +8978,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // Only = OnlyOperand WS "^" WS OnlyOperand
             SlotId(441) => {
-                let &[only_operand_0, ws_1, lit_2, ws_3, only_operand_4] = children else {
+                let &[only_operand_4, ws_3, lit_2, ws_1, only_operand_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Only(self.arena.alloc(Only::Alt1 {
@@ -9012,7 +9012,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // Cross = Cross WS "-" WS Foreign
             SlotId(456) => {
-                let &[cross, ws_1, lit_2, ws_3, foreign] = children else {
+                let &[foreign, ws_3, lit_2, ws_1, cross] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Cross(self.arena.alloc(Cross::Alt1 {
@@ -9026,7 +9026,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // Cross = Cross WS "+" WS Foreign
             SlotId(465) => {
-                let &[cross, ws_1, lit_2, ws_3, foreign] = children else {
+                let &[foreign, ws_3, lit_2, ws_1, cross] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Cross(self.arena.alloc(Cross::Alt2 {
@@ -9050,7 +9050,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // Foreign = Foreign WS "*" WS Foreign
             SlotId(477) => {
-                let &[foreign_0, ws_1, lit_2, ws_3, foreign_4] = children else {
+                let &[foreign_4, ws_3, lit_2, ws_1, foreign_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Foreign(self.arena.alloc(Foreign::Alt1 {
@@ -9084,7 +9084,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // Cascade = Cascade WS "+" WS Cascade
             SlotId(492) => {
-                let &[cascade_0, ws_1, lit_2, ws_3, cascade_4] = children else {
+                let &[cascade_4, ws_3, lit_2, ws_1, cascade_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Cascade(self.arena.alloc(Cascade::Alt1 {
@@ -9118,7 +9118,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // Nullable = NullableLeft WS "%" WS NullableRight
             SlotId(505) => {
-                let &[nullable_left, ws_1, lit_2, ws_3, nullable_right] = children else {
+                let &[nullable_right, ws_3, lit_2, ws_1, nullable_left] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Nullable(self.arena.alloc(Nullable::Alt1 {
@@ -9152,7 +9152,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // RightExpr = RightOperand WS ">" WS RightOperand
             SlotId(520) => {
-                let &[right_operand_0, ws_1, lit_2, ws_3, right_operand_4] = children else {
+                let &[right_operand_4, ws_3, lit_2, ws_1, right_operand_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::RightExpr(self.arena.alloc(RightExpr::Alt1 {
@@ -9186,7 +9186,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // NoneExpr = NoneOperand WS "=" WS NoneOperand
             SlotId(535) => {
-                let &[none_operand_0, ws_1, lit_2, ws_3, none_operand_4] = children else {
+                let &[none_operand_4, ws_3, lit_2, ws_1, none_operand_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::NoneExpr(self.arena.alloc(NoneExpr::Alt1 {
@@ -9220,7 +9220,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // Excluded = ExcludedOperand WS "&" WS ExcludedOperand
             SlotId(550) => {
-                let &[excluded_operand_0, ws_1, lit_2, ws_3, excluded_operand_4] = children else {
+                let &[excluded_operand_4, ws_3, lit_2, ws_1, excluded_operand_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Excluded(self.arena.alloc(Excluded::Alt1 {
@@ -9244,7 +9244,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // ExcludedOperand = "(" WS ExcludedOperand WS ")" #paren
             SlotId(560) => {
-                let &[lit_0, ws_1, excluded_operand, ws_3, lit_4] = children else {
+                let &[lit_4, ws_3, excluded_operand, ws_1, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::ExcludedOperand(self.arena.alloc(ExcludedOperand::Paren {
@@ -9268,7 +9268,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // LexNullable = LexNullableLeft WS "/" WS LexNullableRight
             SlotId(570) => {
-                let &[lex_nullable_left, ws_1, lit_2, ws_3, lex_nullable_right] = children else {
+                let &[lex_nullable_right, ws_3, lit_2, ws_1, lex_nullable_left] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::LexNullable(self.arena.alloc(LexNullable::Alt1 {
@@ -9302,7 +9302,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // MixedScale = MixedOperand WS "~" WS MixedRight
             SlotId(585) => {
-                let &[mixed_operand, ws_1, lit_2, ws_3, mixed_right] = children else {
+                let &[mixed_right, ws_3, lit_2, ws_1, mixed_operand] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::MixedScale(self.arena.alloc(MixedScale::Alt1 {
@@ -9356,7 +9356,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // MixedForeign = MixedForeign WS "!" WS MixedForeign
             SlotId(606) => {
-                let &[mixed_foreign_0, ws_1, lit_2, ws_3, mixed_foreign_4] = children else {
+                let &[mixed_foreign_4, ws_3, lit_2, ws_1, mixed_foreign_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::MixedForeign(self.arena.alloc(MixedForeign::Alt1 {
@@ -9380,7 +9380,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // Packed = PackedOperand WS "+" WS PackedOperand
             SlotId(618) => {
-                let &[packed_operand_0, ws_1, lit_2, ws_3, packed_operand_4] = children else {
+                let &[packed_operand_4, ws_3, lit_2, ws_1, packed_operand_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Packed(self.arena.alloc(Packed::Alt1 {
@@ -9414,7 +9414,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // PackedMiddle = "(" WS Packed WS ")" #paren
             SlotId(631) => {
-                let &[lit_0, ws_1, packed, ws_3, lit_4] = children else {
+                let &[lit_4, ws_3, packed, ws_1, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::PackedMiddle(self.arena.alloc(PackedMiddle::Paren {
@@ -9438,7 +9438,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // NullableRecursive = NullableOperand WS "+" WS NullableRecursive
             SlotId(643) => {
-                let &[nullable_operand, ws_1, lit_2, ws_3, nullable_recursive] = children else {
+                let &[nullable_recursive, ws_3, lit_2, ws_1, nullable_operand] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::NullableRecursive(self.arena.alloc(NullableRecursive::Alt1 {
@@ -9452,7 +9452,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // NullableOperand = NullableMaybe WS NullableRecursive
             SlotId(648) => {
-                let &[nullable_maybe, ws, nullable_recursive] = children else {
+                let &[nullable_recursive, ws, nullable_maybe] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::NullableOperand(self.arena.alloc(NullableOperand::Alt0 {
@@ -9485,11 +9485,11 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             // NullableLexRecursive = NullableLexOperand WS "+" WS NullableLexRecursive
             SlotId(663) => {
                 let &[
-                    nullable_lex_operand,
-                    ws_1,
-                    lit_2,
-                    ws_3,
                     nullable_lex_recursive,
+                    ws_3,
+                    lit_2,
+                    ws_1,
+                    nullable_lex_operand,
                 ] = children
                 else {
                     ParseTree::unexpected_node()
@@ -9505,7 +9505,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // NullableLexOperand = NullableLexMaybe WS NullableLexRecursive
             SlotId(668) => {
-                let &[nullable_lex_maybe, ws, nullable_lex_recursive] = children else {
+                let &[nullable_lex_recursive, ws, nullable_lex_maybe] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::NullableLexOperand(self.arena.alloc(NullableLexOperand::Alt0 {
@@ -9547,7 +9547,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // NullableSuffix = NullableSuffix WS "+" WS NullableSuffixOperand
             SlotId(687) => {
-                let &[nullable_suffix, ws_1, lit_2, ws_3, nullable_suffix_operand] = children
+                let &[nullable_suffix_operand, ws_3, lit_2, ws_1, nullable_suffix] = children
                 else {
                     ParseTree::unexpected_node()
                 };
@@ -9563,7 +9563,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // NullableSuffixOperand = NullableSuffix WS NullableSuffixMaybe
             SlotId(692) => {
-                let &[nullable_suffix, ws, nullable_suffix_maybe] = children else {
+                let &[nullable_suffix_maybe, ws, nullable_suffix] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::NullableSuffixOperand(self.arena.alloc(NullableSuffixOperand::Alt0 {
@@ -9596,11 +9596,11 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             // NullableShared = NullableSharedOperand WS "+" WS NullableSharedOperand
             SlotId(707) => {
                 let &[
-                    nullable_shared_operand_0,
-                    ws_1,
-                    lit_2,
-                    ws_3,
                     nullable_shared_operand_4,
+                    ws_3,
+                    lit_2,
+                    ws_1,
+                    nullable_shared_operand_0,
                 ] = children
                 else {
                     ParseTree::unexpected_node()
@@ -9619,11 +9619,11 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             // NullableSharedOperand = NullableSharedMaybe WS NullableShared WS NullableSharedMaybe
             SlotId(714) => {
                 let &[
-                    nullable_shared_maybe_0,
-                    ws_1,
-                    nullable_shared,
-                    ws_3,
                     nullable_shared_maybe_4,
+                    ws_3,
+                    nullable_shared,
+                    ws_1,
+                    nullable_shared_maybe_0,
                 ] = children
                 else {
                     ParseTree::unexpected_node()
@@ -9659,7 +9659,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // OwnLabel = OwnOperand WS "+" WS OwnOperand #binary
             SlotId(730) => {
-                let &[own_operand_0, ws_1, lit_2, ws_3, own_operand_4] = children else {
+                let &[own_operand_4, ws_3, lit_2, ws_1, own_operand_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::OwnLabel(self.arena.alloc(OwnLabel::Binary {
@@ -9683,7 +9683,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // OwnOperand = "(" WS OwnLabel WS ")" #blocked
             SlotId(740) => {
-                let &[lit_0, ws_1, own_label, ws_3, lit_4] = children else {
+                let &[lit_4, ws_3, own_label, ws_1, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::OwnOperand(self.arena.alloc(OwnOperand::Blocked {
@@ -9707,7 +9707,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // Absent = Absent WS "*" WS Absent
             SlotId(752) => {
-                let &[absent_0, ws_1, lit_2, ws_3, absent_4] = children else {
+                let &[absent_4, ws_3, lit_2, ws_1, absent_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Absent(self.arena.alloc(Absent::Alt1 {
@@ -9721,7 +9721,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // Absent = AbsentOperand WS "+" WS AbsentOperand
             SlotId(760) => {
-                let &[absent_operand_0, ws_1, lit_2, ws_3, absent_operand_4] = children else {
+                let &[absent_operand_4, ws_3, lit_2, ws_1, absent_operand_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Absent(self.arena.alloc(Absent::Alt2 {
@@ -9765,7 +9765,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // ClosedPrefix = ClosedPrefix WS "+" WS ClosedPrefix
             SlotId(778) => {
-                let &[closed_prefix_0, ws_1, lit_2, ws_3, closed_prefix_4] = children else {
+                let &[closed_prefix_4, ws_3, lit_2, ws_1, closed_prefix_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::ClosedPrefix(self.arena.alloc(ClosedPrefix::Alt1 {
@@ -9779,7 +9779,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // ClosedPrefix = "pre" WS ClosedPrefixBody
             SlotId(783) => {
-                let &[lit_0, ws, closed_prefix_body] = children else {
+                let &[closed_prefix_body, ws, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::ClosedPrefix(self.arena.alloc(ClosedPrefix::Alt2 {
@@ -9821,7 +9821,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // ClosedPostfix = "pre" WS ClosedPostfix
             SlotId(797) => {
-                let &[lit_0, ws, closed_postfix] = children else {
+                let &[closed_postfix, ws, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::ClosedPostfix(self.arena.alloc(ClosedPostfix::Alt1 {
@@ -9833,7 +9833,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // ClosedPostfix = ClosedPostfixBody WS "!"
             SlotId(803) => {
-                let &[closed_postfix_body, ws, lit_2] = children else {
+                let &[lit_2, ws, closed_postfix_body] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::ClosedPostfix(self.arena.alloc(ClosedPostfix::Alt2 {
@@ -9875,7 +9875,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // HeadChoice = HeadOperand WS "+" WS HeadOperand
             SlotId(821) => {
-                let &[head_operand_0, ws_1, lit_2, ws_3, head_operand_4] = children else {
+                let &[head_operand_4, ws_3, lit_2, ws_1, head_operand_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::HeadChoice(self.arena.alloc(HeadChoice::Alt1 {
@@ -9919,7 +9919,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // Inner = Inner WS "*" WS Inner
             SlotId(839) => {
-                let &[inner_0, ws_1, lit_2, ws_3, inner_4] = children else {
+                let &[inner_4, ws_3, lit_2, ws_1, inner_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Inner(self.arena.alloc(Inner::Alt1 {
@@ -9933,7 +9933,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // UnaryMixedLeft = UnaryMixedLeft WS "+" WS UnaryMixedLeft
             SlotId(849) => {
-                let &[unary_mixed_left_0, ws_1, lit_2, ws_3, unary_mixed_left_4] = children else {
+                let &[unary_mixed_left_4, ws_3, lit_2, ws_1, unary_mixed_left_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::UnaryMixedLeft(self.arena.alloc(UnaryMixedLeft::Alt0 {
@@ -9947,7 +9947,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // UnaryMixedLeft = "-" WS UnaryMixedLeft
             SlotId(854) => {
-                let &[lit_0, ws, unary_mixed_left] = children else {
+                let &[unary_mixed_left, ws, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::UnaryMixedLeft(self.arena.alloc(UnaryMixedLeft::Alt1 {
@@ -9959,7 +9959,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // UnaryMixedLeft = UnaryMixedLeft WS "!"
             SlotId(861) => {
-                let &[unary_mixed_left, ws, lit_2] = children else {
+                let &[lit_2, ws, unary_mixed_left] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::UnaryMixedLeft(self.arena.alloc(UnaryMixedLeft::Alt2 {
@@ -9981,7 +9981,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // UnaryMixedRight = UnaryMixedRight WS "+" WS UnaryMixedRight
             SlotId(874) => {
-                let &[unary_mixed_right_0, ws_1, lit_2, ws_3, unary_mixed_right_4] = children
+                let &[unary_mixed_right_4, ws_3, lit_2, ws_1, unary_mixed_right_0] = children
                 else {
                     ParseTree::unexpected_node()
                 };
@@ -9996,7 +9996,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // UnaryMixedRight = "-" WS UnaryMixedRight
             SlotId(879) => {
-                let &[lit_0, ws, unary_mixed_right] = children else {
+                let &[unary_mixed_right, ws, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::UnaryMixedRight(self.arena.alloc(UnaryMixedRight::Alt1 {
@@ -10008,7 +10008,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // UnaryMixedRight = UnaryMixedRight WS "!"
             SlotId(886) => {
-                let &[unary_mixed_right, ws, lit_2] = children else {
+                let &[lit_2, ws, unary_mixed_right] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::UnaryMixedRight(self.arena.alloc(UnaryMixedRight::Alt2 {
@@ -10030,7 +10030,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // UnaryMixedNone = UnaryMixedNone WS "+" WS UnaryMixedNone
             SlotId(900) => {
-                let &[unary_mixed_none_0, ws_1, lit_2, ws_3, unary_mixed_none_4] = children else {
+                let &[unary_mixed_none_4, ws_3, lit_2, ws_1, unary_mixed_none_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::UnaryMixedNone(self.arena.alloc(UnaryMixedNone::Alt0 {
@@ -10044,7 +10044,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // UnaryMixedNone = "-" WS UnaryMixedNone
             SlotId(905) => {
-                let &[lit_0, ws, unary_mixed_none] = children else {
+                let &[unary_mixed_none, ws, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::UnaryMixedNone(self.arena.alloc(UnaryMixedNone::Alt1 {
@@ -10056,7 +10056,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // UnaryMixedNone = UnaryMixedNone WS "!"
             SlotId(912) => {
-                let &[unary_mixed_none, ws, lit_2] = children else {
+                let &[lit_2, ws, unary_mixed_none] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::UnaryMixedNone(self.arena.alloc(UnaryMixedNone::Alt2 {
@@ -10078,7 +10078,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // Dynamic = DynamicOperand WS "+" WS DynamicOperand #binary
             SlotId(925) => {
-                let &[dynamic_operand_0, ws_1, lit_2, ws_3, dynamic_operand_4] = children else {
+                let &[dynamic_operand_4, ws_3, lit_2, ws_1, dynamic_operand_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Dynamic(self.arena.alloc(Dynamic::Binary {
@@ -10092,7 +10092,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // Dynamic = "-" WS DynamicOperand #prefix
             SlotId(930) => {
-                let &[lit_0, ws, dynamic_operand] = children else {
+                let &[dynamic_operand, ws, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Dynamic(self.arena.alloc(Dynamic::Prefix {
@@ -10104,7 +10104,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // Dynamic = DynamicOperand WS "!" #postfix
             SlotId(936) => {
-                let &[dynamic_operand, ws, lit_2] = children else {
+                let &[lit_2, ws, dynamic_operand] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Dynamic(self.arena.alloc(Dynamic::Postfix {
@@ -10147,11 +10147,11 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             // DynamicMulti = DynamicMultiOperand WS "+" WS DynamicMultiOperand
             SlotId(954) => {
                 let &[
-                    dynamic_multi_operand_0,
-                    ws_1,
-                    lit_2,
-                    ws_3,
                     dynamic_multi_operand_4,
+                    ws_3,
+                    lit_2,
+                    ws_1,
+                    dynamic_multi_operand_0,
                 ] = children
                 else {
                     ParseTree::unexpected_node()
@@ -10167,7 +10167,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // DynamicMulti = "-" WS DynamicMultiOperand
             SlotId(959) => {
-                let &[lit_0, ws, dynamic_multi_operand] = children else {
+                let &[dynamic_multi_operand, ws, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::DynamicMulti(self.arena.alloc(DynamicMulti::Alt1 {
@@ -10179,7 +10179,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // DynamicMulti = DynamicMultiOperand WS "!"
             SlotId(965) => {
-                let &[dynamic_multi_operand, ws, lit_2] = children else {
+                let &[lit_2, ws, dynamic_multi_operand] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::DynamicMulti(self.arena.alloc(DynamicMulti::Alt2 {
@@ -10192,11 +10192,11 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             // DynamicMulti = DynamicMultiOperand WS ";" WS DynamicMultiOperand
             SlotId(974) => {
                 let &[
-                    dynamic_multi_operand_0,
-                    ws_1,
-                    lit_2,
-                    ws_3,
                     dynamic_multi_operand_4,
+                    ws_3,
+                    lit_2,
+                    ws_1,
+                    dynamic_multi_operand_0,
                 ] = children
                 else {
                     ParseTree::unexpected_node()
@@ -10252,7 +10252,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // NullableBoundaryPrefix = "-" WS NullableBoundaryRight
             SlotId(991) => {
-                let &[lit_0, ws, nullable_boundary_right] = children else {
+                let &[nullable_boundary_right, ws, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::NullableBoundaryPrefix(self.arena.alloc(NullableBoundaryPrefix::Alt1 {
@@ -10266,11 +10266,11 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             // NullableBoundaryPrefix = NullableBoundaryPrefix WS "+" WS NullableBoundaryPrefix
             SlotId(1000) => {
                 let &[
-                    nullable_boundary_prefix_0,
-                    ws_1,
-                    lit_2,
-                    ws_3,
                     nullable_boundary_prefix_4,
+                    ws_3,
+                    lit_2,
+                    ws_1,
+                    nullable_boundary_prefix_0,
                 ] = children
                 else {
                     ParseTree::unexpected_node()
@@ -10300,7 +10300,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // NullableBoundaryPostfix = NullableBoundaryLeft WS "-"
             SlotId(1008) => {
-                let &[nullable_boundary_left, ws, lit_2] = children else {
+                let &[lit_2, ws, nullable_boundary_left] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::NullableBoundaryPostfix(self.arena.alloc(
@@ -10316,11 +10316,11 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             // NullableBoundaryPostfix = NullableBoundaryPostfix WS "+" WS NullableBoundaryPostfix
             SlotId(1017) => {
                 let &[
-                    nullable_boundary_postfix_0,
-                    ws_1,
-                    lit_2,
-                    ws_3,
                     nullable_boundary_postfix_4,
+                    ws_3,
+                    lit_2,
+                    ws_1,
+                    nullable_boundary_postfix_0,
                 ] = children
                 else {
                     ParseTree::unexpected_node()
@@ -10351,11 +10351,11 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             // NullableBoundaryBinary = NullableBoundaryBinary WS "*" WS NullableBoundaryOperand
             SlotId(1029) => {
                 let &[
-                    nullable_boundary_binary,
-                    ws_1,
-                    lit_2,
-                    ws_3,
                     nullable_boundary_operand,
+                    ws_3,
+                    lit_2,
+                    ws_1,
+                    nullable_boundary_binary,
                 ] = children
                 else {
                     ParseTree::unexpected_node()
@@ -10374,11 +10374,11 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             // NullableBoundaryBinary = NullableBoundaryBinary WS "+" WS NullableBoundaryBinary
             SlotId(1038) => {
                 let &[
-                    nullable_boundary_binary_0,
-                    ws_1,
-                    lit_2,
-                    ws_3,
                     nullable_boundary_binary_4,
+                    ws_3,
+                    lit_2,
+                    ws_1,
+                    nullable_boundary_binary_0,
                 ] = children
                 else {
                     ParseTree::unexpected_node()
@@ -10406,7 +10406,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // ClosedLeftAssoc = ClosedLeftOperand WS "+" WS ClosedLeftAssoc
             SlotId(1050) => {
-                let &[closed_left_operand, ws_1, lit_2, ws_3, closed_left_assoc] = children else {
+                let &[closed_left_assoc, ws_3, lit_2, ws_1, closed_left_operand] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::ClosedLeftAssoc(self.arena.alloc(ClosedLeftAssoc::Alt1 {
@@ -10450,7 +10450,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // ClosedRightAssoc = ClosedRightAssoc WS "+" WS ClosedRightOperand
             SlotId(1069) => {
-                let &[closed_right_assoc, ws_1, lit_2, ws_3, closed_right_operand] = children
+                let &[closed_right_operand, ws_3, lit_2, ws_1, closed_right_assoc] = children
                 else {
                     ParseTree::unexpected_node()
                 };
@@ -10496,11 +10496,11 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             // IndirectExclude = IndirectExcludeOperand WS "+" WS IndirectExcludeOperand #binary
             SlotId(1087) => {
                 let &[
-                    indirect_exclude_operand_0,
-                    ws_1,
-                    lit_2,
-                    ws_3,
                     indirect_exclude_operand_4,
+                    ws_3,
+                    lit_2,
+                    ws_1,
+                    indirect_exclude_operand_0,
                 ] = children
                 else {
                     ParseTree::unexpected_node()
@@ -10551,11 +10551,11 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             // OperandLiteral = OperandLiteralEnd WS "*" WS OperandLiteralEnd
             SlotId(1106) => {
                 let &[
-                    operand_literal_end_0,
-                    ws_1,
-                    lit_2,
-                    ws_3,
                     operand_literal_end_4,
+                    ws_3,
+                    lit_2,
+                    ws_1,
+                    operand_literal_end_0,
                 ] = children
                 else {
                     ParseTree::unexpected_node()
@@ -10572,11 +10572,11 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             // OperandLiteral = OperandLiteralEnd WS "+" WS OperandLiteralEnd
             SlotId(1115) => {
                 let &[
-                    operand_literal_end_0,
-                    ws_1,
-                    lit_2,
-                    ws_3,
                     operand_literal_end_4,
+                    ws_3,
+                    lit_2,
+                    ws_1,
+                    operand_literal_end_0,
                 ] = children
                 else {
                     ParseTree::unexpected_node()
@@ -10632,7 +10632,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // HeadLiteral = HeadLiteralEnd WS "*" WS HeadLiteralEnd
             SlotId(1136) => {
-                let &[head_literal_end_0, ws_1, lit_2, ws_3, head_literal_end_4] = children else {
+                let &[head_literal_end_4, ws_3, lit_2, ws_1, head_literal_end_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::HeadLiteral(self.arena.alloc(HeadLiteral::Alt2 {
@@ -10646,7 +10646,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             }
             // HeadLiteral = HeadLiteralEnd WS "+" WS HeadLiteralEnd
             SlotId(1145) => {
-                let &[head_literal_end_0, ws_1, lit_2, ws_3, head_literal_end_4] = children else {
+                let &[head_literal_end_4, ws_3, lit_2, ws_1, head_literal_end_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::HeadLiteral(self.arena.alloc(HeadLiteral::Alt3 {
@@ -10740,7 +10740,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectBinaryParseTreeBuilder<'a> 
             | SlotId(332) | SlotId(336) | SlotId(340) | SlotId(344) | SlotId(348) | SlotId(352)
             | SlotId(356) | SlotId(360) | SlotId(364) | SlotId(368) | SlotId(372) | SlotId(376)
             | SlotId(380) | SlotId(384) | SlotId(388) | SlotId(392) | SlotId(396) => {
-                let &[before, node, after] = children else {
+                let &[after, node, before] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Start(self.arena.alloc(Start {

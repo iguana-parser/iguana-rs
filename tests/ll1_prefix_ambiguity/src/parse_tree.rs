@@ -332,7 +332,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for Ll1PrefixAmbiguityParseTreeBuilder<
             }
             // Expr = Int "." Id
             SlotId(5) => {
-                let &[int, lit_1, id] = children else {
+                let &[id, lit_1, int] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Expr(self.arena.alloc(Expr::Alt0 {

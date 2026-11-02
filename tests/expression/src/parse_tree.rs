@@ -271,7 +271,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExpressionParseTreeBuilder<'a> {
         match nonterminal_node.return_slot {
             // E = E "*" E #Mul
             SlotId(3) => {
-                let &[e_0, lit_1, e_2] = children else {
+                let &[e_2, lit_1, e_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::E(self.arena.alloc(E::Mul {
@@ -283,7 +283,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExpressionParseTreeBuilder<'a> {
             }
             // E = E "+" E #Add
             SlotId(7) => {
-                let &[e_0, lit_1, e_2] = children else {
+                let &[e_2, lit_1, e_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::E(self.arena.alloc(E::Add {

@@ -347,17 +347,17 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for EscapedLitParseTreeBuilder<'a> {
             // S = "\"" WS Id WS "\"" WS "\\" WS Id WS "\f'"
             SlotId(11) => {
                 let &[
-                    lit_0,
-                    ws_1,
-                    id_2,
-                    ws_3,
-                    lit_4,
-                    ws_5,
-                    lit_6,
-                    ws_7,
-                    id_8,
-                    ws_9,
                     lit_10,
+                    ws_9,
+                    id_8,
+                    ws_7,
+                    lit_6,
+                    ws_5,
+                    lit_4,
+                    ws_3,
+                    id_2,
+                    ws_1,
+                    lit_0,
                 ] = children
                 else {
                     ParseTree::unexpected_node()
@@ -379,7 +379,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for EscapedLitParseTreeBuilder<'a> {
             }
             // The start nonterminals with layout
             SlotId(15) => {
-                let &[before, node, after] = children else {
+                let &[after, node, before] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Start(self.arena.alloc(Start {

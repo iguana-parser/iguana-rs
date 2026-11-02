@@ -592,7 +592,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprFirstParseParseTreeBui
             }
             // E = E WS "." WS "f"
             SlotId(7) => {
-                let &[e, ws_1, lit_2, ws_3, lit_4] = children else {
+                let &[lit_4, ws_3, lit_2, ws_1, e] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::E(self.arena.alloc(E::Alt0 {
@@ -606,7 +606,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprFirstParseParseTreeBui
             }
             // E = E WS E
             SlotId(11) => {
-                let &[e_0, ws, e_2] = children else {
+                let &[e_2, ws, e_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::E(self.arena.alloc(E::Alt1 {
@@ -618,7 +618,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprFirstParseParseTreeBui
             }
             // E = E WS "*" WS E
             SlotId(17) => {
-                let &[e_0, ws_1, lit_2, ws_3, e_4] = children else {
+                let &[e_4, ws_3, lit_2, ws_1, e_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::E(self.arena.alloc(E::Alt2 {
@@ -632,7 +632,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprFirstParseParseTreeBui
             }
             // E = E WS "+" WS E
             SlotId(23) => {
-                let &[e_0, ws_1, lit_2, ws_3, e_4] = children else {
+                let &[e_4, ws_3, lit_2, ws_1, e_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::E(self.arena.alloc(E::Alt3 {
@@ -646,7 +646,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprFirstParseParseTreeBui
             }
             // E = E WS "-" WS E
             SlotId(29) => {
-                let &[e_0, ws_1, lit_2, ws_3, e_4] = children else {
+                let &[e_4, ws_3, lit_2, ws_1, e_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::E(self.arena.alloc(E::Alt4 {
@@ -660,7 +660,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprFirstParseParseTreeBui
             }
             // E = "-" WS E
             SlotId(33) => {
-                let &[lit_0, ws, e] = children else {
+                let &[e, ws, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::E(self.arena.alloc(E::Alt5 {
@@ -673,17 +673,17 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprFirstParseParseTreeBui
             // E = "if" WS E WS "then" WS E WS "else" WS E
             SlotId(45) => {
                 let &[
-                    lit_0,
-                    ws_1,
-                    e_2,
-                    ws_3,
-                    lit_4,
-                    ws_5,
-                    e_6,
-                    ws_7,
-                    lit_8,
-                    ws_9,
                     e_10,
+                    ws_9,
+                    lit_8,
+                    ws_7,
+                    e_6,
+                    ws_5,
+                    lit_4,
+                    ws_3,
+                    e_2,
+                    ws_1,
+                    lit_0,
                 ] = children
                 else {
                     ParseTree::unexpected_node()
@@ -705,7 +705,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprFirstParseParseTreeBui
             }
             // E = E WS ";" WS E
             SlotId(51) => {
-                let &[e_0, ws_1, lit_2, ws_3, e_4] = children else {
+                let &[e_4, ws_3, lit_2, ws_1, e_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::E(self.arena.alloc(E::Alt7 {
@@ -719,7 +719,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprFirstParseParseTreeBui
             }
             // E = "(" WS E WS ")"
             SlotId(57) => {
-                let &[lit_0, ws_1, e, ws_3, lit_4] = children else {
+                let &[lit_4, ws_3, e, ws_1, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::E(self.arena.alloc(E::Alt8 {
@@ -743,7 +743,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbiguousExprFirstParseParseTreeBui
             }
             // The start nonterminals with layout
             SlotId(63) | SlotId(67) => {
-                let &[before, node, after] = children else {
+                let &[after, node, before] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Start(self.arena.alloc(Start {

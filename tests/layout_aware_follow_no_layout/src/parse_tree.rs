@@ -503,7 +503,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LayoutAwareFollowNoLayoutParseTreeB
             }
             // Plus_0 = Word+ WS Word
             SlotId(7) => {
-                let &[words_0, ws, word_2] = children else {
+                let &[word_2, ws, words_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Plus0(self.arena.alloc(Plus0::Alt0 {
@@ -525,7 +525,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LayoutAwareFollowNoLayoutParseTreeB
             }
             // Plus_1 = Char+ Char
             SlotId(12) => {
-                let &[chars_0, char_1] = children else {
+                let &[char_1, chars_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Plus1(self.arena.alloc(Plus1::Alt0 {
@@ -546,7 +546,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LayoutAwareFollowNoLayoutParseTreeB
             }
             // The start nonterminals with layout
             SlotId(18) | SlotId(22) => {
-                let &[before, node, after] = children else {
+                let &[after, node, before] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Start(self.arena.alloc(Start {

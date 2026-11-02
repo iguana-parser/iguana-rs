@@ -398,7 +398,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for GroupSingleElementParseTreeBuilder<
             }
             // Group_0 = "!" Num
             SlotId(6) => {
-                let &[lit_0, num] = children else {
+                let &[num, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Group0(self.arena.alloc(Group0::Alt0 {

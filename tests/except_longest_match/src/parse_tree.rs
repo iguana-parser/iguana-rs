@@ -246,7 +246,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExceptLongestMatchParseTreeBuilder<
         match nonterminal_node.return_slot {
             // S = Id Id
             SlotId(2) => {
-                let &[id_0, id_1] = children else {
+                let &[id_1, id_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::S(self.arena.alloc(S::Alt0 {

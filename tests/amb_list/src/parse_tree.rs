@@ -468,7 +468,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbListParseTreeBuilder<'a> {
         match nonterminal_node.return_slot {
             // S = A* A*
             SlotId(2) => {
-                let &[as_0, as_1] = children else {
+                let &[as_1, as_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::S(self.arena.alloc(S::Alt0 {
@@ -489,7 +489,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbListParseTreeBuilder<'a> {
             }
             // Plus_0 = A+ A
             SlotId(7) => {
-                let &[as_0, a_1] = children else {
+                let &[a_1, as_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Plus0(self.arena.alloc(Plus0::Alt0 {

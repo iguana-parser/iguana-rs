@@ -607,7 +607,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for PlusAltParseTreeBuilder<'a> {
             }
             // Plus_0 = (A | Num)+ (A | Num)
             SlotId(12) => {
-                let &[plus_0, alt_0] = children else {
+                let &[alt_0, plus_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Plus0(self.arena.alloc(Plus0::Alt0 {

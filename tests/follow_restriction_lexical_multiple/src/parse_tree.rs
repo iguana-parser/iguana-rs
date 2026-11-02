@@ -479,7 +479,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for FollowRestrictionLexicalMultiplePar
             }
             // Plus_0 = Element+ WS Element
             SlotId(11) => {
-                let &[elements_0, ws, element_2] = children else {
+                let &[element_2, ws, elements_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Plus0(self.arena.alloc(Plus0::Alt0 {
@@ -501,7 +501,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for FollowRestrictionLexicalMultiplePar
             }
             // The start nonterminals with layout
             SlotId(17) | SlotId(21) => {
-                let &[before, node, after] = children else {
+                let &[after, node, before] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Start(self.arena.alloc(Start {

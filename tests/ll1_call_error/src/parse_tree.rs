@@ -604,7 +604,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for Ll1CallErrorParseTreeBuilder<'a> {
         match nonterminal_node.return_slot {
             // S = Word Layout Word
             SlotId(3) => {
-                let &[word_0, layout, word_2] = children else {
+                let &[word_2, layout, word_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::S(self.arena.alloc(S::Alt0 {
@@ -646,7 +646,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for Ll1CallErrorParseTreeBuilder<'a> {
             }
             // Plus_0 = (WS | LineComment)+ (WS | LineComment)
             SlotId(12) => {
-                let &[plus_0, alt_0] = children else {
+                let &[alt_0, plus_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Plus0(self.arena.alloc(Plus0::Alt0 {
@@ -686,7 +686,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for Ll1CallErrorParseTreeBuilder<'a> {
             }
             // The start nonterminals with layout
             SlotId(21) => {
-                let &[before, node, after] = children else {
+                let &[after, node, before] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Start(self.arena.alloc(Start {

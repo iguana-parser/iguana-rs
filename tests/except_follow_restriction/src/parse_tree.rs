@@ -252,7 +252,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExceptFollowRestrictionParseTreeBui
         match nonterminal_node.return_slot {
             // S = Id Tail
             SlotId(2) => {
-                let &[id, tail] = children else {
+                let &[tail, id] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::S(self.arena.alloc(S::Alt0 {

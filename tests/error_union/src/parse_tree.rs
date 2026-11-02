@@ -2163,7 +2163,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
         match nonterminal_node.return_slot {
             // T = "[" BeforeP Layout P Layout "]"
             SlotId(6) => {
-                let &[lit_0, before_p, layout_2, p, layout_4, lit_5] = children else {
+                let &[lit_5, layout_4, p, layout_2, before_p, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::T(self.arena.alloc(T::Alt0 {
@@ -2178,7 +2178,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             }
             // T = "[" BeforeQ Layout Q Layout "]"
             SlotId(13) => {
-                let &[lit_0, before_q, layout_2, q, layout_4, lit_5] = children else {
+                let &[lit_5, layout_4, q, layout_2, before_q, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::T(self.arena.alloc(T::Alt1 {
@@ -2193,7 +2193,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             }
             // U = "[" BeforeQ Layout Q Layout "]"
             SlotId(20) => {
-                let &[lit_0, before_q, layout_2, q, layout_4, lit_5] = children else {
+                let &[lit_5, layout_4, q, layout_2, before_q, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::U(self.arena.alloc(U::Alt0 {
@@ -2208,7 +2208,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             }
             // U = "[" BeforeP Layout P Layout "]"
             SlotId(27) => {
-                let &[lit_0, before_p, layout_2, p, layout_4, lit_5] = children else {
+                let &[lit_5, layout_4, p, layout_2, before_p, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::U(self.arena.alloc(U::Alt1 {
@@ -2263,7 +2263,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             }
             // BeforeP = "x" Layout "y"
             SlotId(39) => {
-                let &[lit_0, layout, lit_2] = children else {
+                let &[lit_2, layout, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::BeforeP(self.arena.alloc(BeforeP::Alt1 {
@@ -2285,7 +2285,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             }
             // BeforeQ = "x" Layout "z"
             SlotId(45) => {
-                let &[lit_0, layout, lit_2] = children else {
+                let &[lit_2, layout, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::BeforeQ(self.arena.alloc(BeforeQ::Alt1 {
@@ -2297,7 +2297,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             }
             // UnexpectedFirst = Identifier "!"
             SlotId(48) => {
-                let &[identifier, lit_1] = children else {
+                let &[lit_1, identifier] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::UnexpectedFirst(self.arena.alloc(UnexpectedFirst::Alt0 {
@@ -2328,7 +2328,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             }
             // ExcludedFirst = Identifier "!"
             SlotId(55) => {
-                let &[identifier, lit_1] = children else {
+                let &[lit_1, identifier] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::ExcludedFirst(self.arena.alloc(ExcludedFirst::Alt1 {
@@ -2339,7 +2339,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             }
             // PredictionBeforeExcept = Identifier MissingSuffix
             SlotId(58) => {
-                let &[identifier, missing_suffix] = children else {
+                let &[missing_suffix, identifier] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::PredictionBeforeExcept(self.arena.alloc(PredictionBeforeExcept::Alt0 {
@@ -2370,7 +2370,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             }
             // ExceptBeforePrediction = Identifier MissingSuffix
             SlotId(65) => {
-                let &[identifier, missing_suffix] = children else {
+                let &[missing_suffix, identifier] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::ExceptBeforePrediction(self.arena.alloc(ExceptBeforePrediction::Alt1 {
@@ -2381,7 +2381,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             }
             // PredictionBeforeFollow = Identifier MissingSuffix
             SlotId(68) => {
-                let &[identifier, missing_suffix] = children else {
+                let &[missing_suffix, identifier] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::PredictionBeforeFollow(self.arena.alloc(PredictionBeforeFollow::Alt0 {
@@ -2392,7 +2392,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             }
             // PredictionBeforeFollow = Identifier Question
             SlotId(71) => {
-                let &[identifier, question] = children else {
+                let &[question, identifier] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::PredictionBeforeFollow(self.arena.alloc(PredictionBeforeFollow::Alt1 {
@@ -2403,7 +2403,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             }
             // FollowBeforePrediction = Identifier Question
             SlotId(74) => {
-                let &[identifier, question] = children else {
+                let &[question, identifier] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::FollowBeforePrediction(self.arena.alloc(FollowBeforePrediction::Alt0 {
@@ -2414,7 +2414,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             }
             // FollowBeforePrediction = Identifier MissingSuffix
             SlotId(77) => {
-                let &[identifier, missing_suffix] = children else {
+                let &[missing_suffix, identifier] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::FollowBeforePrediction(self.arena.alloc(FollowBeforePrediction::Alt1 {
@@ -2445,7 +2445,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             }
             // SuffixChoice = "!" "!"
             SlotId(84) => {
-                let &[lit_0, lit_1] = children else {
+                let &[lit_1, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::SuffixChoice(self.arena.alloc(SuffixChoice::Alt1 {
@@ -2456,7 +2456,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             }
             // CallPrediction = "1" PrefixX
             SlotId(87) => {
-                let &[lit_0, prefix_x] = children else {
+                let &[prefix_x, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::CallPrediction(self.arena.alloc(CallPrediction::Alt0 {
@@ -2467,7 +2467,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             }
             // CallPrediction = "2" PrefixW
             SlotId(90) => {
-                let &[lit_0, prefix_w] = children else {
+                let &[prefix_w, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::CallPrediction(self.arena.alloc(CallPrediction::Alt1 {
@@ -2478,7 +2478,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             }
             // PrefixX = NullablePrefix "x"
             SlotId(93) => {
-                let &[nullable_prefix, lit_1] = children else {
+                let &[lit_1, nullable_prefix] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::PrefixX(self.arena.alloc(PrefixX::Alt0 {
@@ -2489,7 +2489,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             }
             // PrefixW = NullablePrefix "w"
             SlotId(96) => {
-                let &[nullable_prefix, lit_1] = children else {
+                let &[lit_1, nullable_prefix] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::PrefixW(self.arena.alloc(PrefixW::Alt0 {
@@ -2510,7 +2510,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             }
             // NullablePrefix = "y" "y"
             SlotId(101) => {
-                let &[lit_0, lit_1] = children else {
+                let &[lit_1, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::NullablePrefix(self.arena.alloc(NullablePrefix::Alt1 {
@@ -2560,7 +2560,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             }
             // Plus_0 = (WS | Newline)+ (WS | Newline)
             SlotId(111) => {
-                let &[plus_0, alt_0] = children else {
+                let &[alt_0, plus_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Plus0(self.arena.alloc(Plus0::Alt0 {
@@ -2602,7 +2602,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ErrorUnionParseTreeBuilder<'a> {
             SlotId(120) | SlotId(124) | SlotId(128) | SlotId(132) | SlotId(136) | SlotId(140)
             | SlotId(144) | SlotId(148) | SlotId(152) | SlotId(156) | SlotId(160) | SlotId(164)
             | SlotId(168) | SlotId(172) | SlotId(176) | SlotId(180) | SlotId(184) | SlotId(188) => {
-                let &[before, node, after] = children else {
+                let &[after, node, before] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Start(self.arena.alloc(Start {

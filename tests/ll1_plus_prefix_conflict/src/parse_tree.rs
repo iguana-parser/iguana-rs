@@ -324,7 +324,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for Ll1PlusPrefixConflictParseTreeBuild
         match nonterminal_node.return_slot {
             // S = "a"+ "ab"
             SlotId(2) => {
-                let &[plus_0, lit_1] = children else {
+                let &[lit_1, plus_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::S(self.arena.alloc(S::Alt0 {
@@ -335,7 +335,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for Ll1PlusPrefixConflictParseTreeBuild
             }
             // Plus_0 = "a"+ "a"
             SlotId(5) => {
-                let &[plus_0, lit_1] = children else {
+                let &[lit_1, plus_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Plus0(self.arena.alloc(Plus0::Alt0 {

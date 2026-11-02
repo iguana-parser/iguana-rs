@@ -599,7 +599,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for FollowRestrictionMultipleParseTreeB
             }
             // Plus_0 = Id+ Id
             SlotId(6) => {
-                let &[ids_0, id_1] = children else {
+                let &[id_1, ids_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Plus0(self.arena.alloc(Plus0::Alt0 {
@@ -640,7 +640,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for FollowRestrictionMultipleParseTreeB
             }
             // Plus_1 = (Alpha | Digit)+ (Alpha | Digit)
             SlotId(15) => {
-                let &[plus_1, alt_0] = children else {
+                let &[alt_0, plus_1] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Plus1(self.arena.alloc(Plus1::Alt0 {

@@ -383,7 +383,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordGenericsParseTreeBuilde
         match nonterminal_node.return_slot {
             // S = Type WS ";" #Type
             SlotId(3) => {
-                let &[r#type, ws, lit_2] = children else {
+                let &[lit_2, ws, r#type] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::S(self.arena.alloc(S::Type {
@@ -395,7 +395,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordGenericsParseTreeBuilde
             }
             // S = "new" WS Type WS ";" #New
             SlotId(9) => {
-                let &[lit_0, ws_1, r#type, ws_3, lit_4] = children else {
+                let &[lit_4, ws_3, r#type, ws_1, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::S(self.arena.alloc(S::New {
@@ -419,7 +419,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordGenericsParseTreeBuilde
             }
             // Type = Id WS "<" WS Type WS ">" #Generic
             SlotId(19) => {
-                let &[id, ws_1, lit_2, ws_3, r#type, ws_5, lit_6] = children else {
+                let &[lit_6, ws_5, r#type, ws_3, lit_2, ws_1, id] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Type(self.arena.alloc(Type::Generic {
@@ -435,7 +435,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordGenericsParseTreeBuilde
             }
             // The start nonterminals with layout
             SlotId(23) | SlotId(27) => {
-                let &[before, node, after] = children else {
+                let &[after, node, before] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Start(self.arena.alloc(Start {

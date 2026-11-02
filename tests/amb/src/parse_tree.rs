@@ -356,7 +356,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbParseTreeBuilder<'a> {
             }
             // E = lhs:E "*" rhs:E #Mul
             SlotId(15) => {
-                let &[lhs, lit_1, rhs] = children else {
+                let &[rhs, lit_1, lhs] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::E(self.arena.alloc(E::Mul {
@@ -368,7 +368,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AmbParseTreeBuilder<'a> {
             }
             // E = lhs:E "+" rhs:E #Add
             SlotId(22) => {
-                let &[lhs, lit_1, rhs] = children else {
+                let &[rhs, lit_1, lhs] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::E(self.arena.alloc(E::Add {

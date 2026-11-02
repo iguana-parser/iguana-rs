@@ -855,7 +855,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AltSeqParseTreeBuilder<'a> {
         match nonterminal_node.return_slot {
             // S = (A B | C) (D | E F) Hex
             SlotId(3) => {
-                let &[alt_0, alt_1, hex] = children else {
+                let &[hex, alt_1, alt_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::S(self.arena.alloc(S::Alt0 {
@@ -927,7 +927,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AltSeqParseTreeBuilder<'a> {
             }
             // Alt_0 = A B
             SlotId(18) => {
-                let &[a, b] = children else {
+                let &[b, a] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Alt0(self.arena.alloc(Alt0::Alt0 {
@@ -958,7 +958,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AltSeqParseTreeBuilder<'a> {
             }
             // Alt_1 = E F
             SlotId(25) => {
-                let &[e, f] = children else {
+                let &[f, e] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Alt1(self.arena.alloc(Alt1::Alt1 {

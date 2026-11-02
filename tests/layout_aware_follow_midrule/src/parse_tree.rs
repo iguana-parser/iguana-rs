@@ -259,7 +259,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LayoutAwareFollowMidruleParseTreeBu
         match nonterminal_node.return_slot {
             // S = Id WS Id
             SlotId(3) => {
-                let &[id_0, ws, id_2] = children else {
+                let &[id_2, ws, id_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::S(self.arena.alloc(S::Alt0 {
@@ -271,7 +271,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LayoutAwareFollowMidruleParseTreeBu
             }
             // The start nonterminals with layout
             SlotId(7) => {
-                let &[before, node, after] = children else {
+                let &[after, node, before] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Start(self.arena.alloc(Start {

@@ -665,7 +665,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ReturnSlotLookaheadGllLayoutParseTr
         match nonterminal_node.return_slot {
             // S = A Layout B Layout "x"
             SlotId(5) => {
-                let &[a, layout_1, b, layout_3, lit_4] = children else {
+                let &[lit_4, layout_3, b, layout_1, a] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::S(self.arena.alloc(S::Alt0 {
@@ -689,7 +689,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ReturnSlotLookaheadGllLayoutParseTr
             }
             // A = "a" Layout "b"
             SlotId(11) => {
-                let &[lit_0, layout, lit_2] = children else {
+                let &[lit_2, layout, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::A(self.arena.alloc(A::Alt1 {
@@ -730,7 +730,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ReturnSlotLookaheadGllLayoutParseTr
             }
             // Plus_0 = WS+ WS
             SlotId(19) => {
-                let &[wses_0, ws_1] = children else {
+                let &[ws_1, wses_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Plus0(self.arena.alloc(Plus0::Alt0 {
@@ -770,7 +770,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ReturnSlotLookaheadGllLayoutParseTr
             }
             // The start nonterminals with layout
             SlotId(28) | SlotId(32) | SlotId(36) => {
-                let &[before, node, after] = children else {
+                let &[after, node, before] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Start(self.arena.alloc(Start {

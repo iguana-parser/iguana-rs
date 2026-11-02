@@ -882,15 +882,15 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for DanglingElseParseTreeBuilder<'a> {
             // Statement = "if" Layout "(" Layout Cond Layout ")" Layout Statement #If
             SlotId(11) => {
                 let &[
-                    lit_0,
-                    layout_1,
-                    lit_2,
-                    layout_3,
-                    cond,
-                    layout_5,
-                    lit_6,
-                    layout_7,
                     statement,
+                    layout_7,
+                    lit_6,
+                    layout_5,
+                    cond,
+                    layout_3,
+                    lit_2,
+                    layout_1,
+                    lit_0,
                 ] = children
                 else {
                     ParseTree::unexpected_node()
@@ -912,19 +912,19 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for DanglingElseParseTreeBuilder<'a> {
             // Statement #IfElse
             SlotId(25) => {
                 let &[
-                    lit_0,
-                    layout_1,
-                    lit_2,
-                    layout_3,
-                    cond,
-                    layout_5,
-                    lit_6,
-                    layout_7,
-                    statement_8,
-                    layout_9,
-                    r#else,
-                    layout_11,
                     statement_12,
+                    layout_11,
+                    r#else,
+                    layout_9,
+                    statement_8,
+                    layout_7,
+                    lit_6,
+                    layout_5,
+                    cond,
+                    layout_3,
+                    lit_2,
+                    layout_1,
+                    lit_0,
                 ] = children
                 else {
                     ParseTree::unexpected_node()
@@ -948,7 +948,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for DanglingElseParseTreeBuilder<'a> {
             }
             // Statement = Id Layout ";" #Simple
             SlotId(29) => {
-                let &[id, layout, lit_2] = children else {
+                let &[lit_2, layout, id] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Statement(self.arena.alloc(Statement::Simple {
@@ -970,7 +970,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for DanglingElseParseTreeBuilder<'a> {
             }
             // Plus_0 = Statement+ Layout Statement
             SlotId(35) => {
-                let &[statements_0, layout, statement_2] = children else {
+                let &[statement_2, layout, statements_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Plus0(self.arena.alloc(Plus0::Alt0 {
@@ -1012,7 +1012,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for DanglingElseParseTreeBuilder<'a> {
             }
             // Plus_1 = (WhiteSpace | Comment)+ (WhiteSpace | Comment)
             SlotId(44) => {
-                let &[plus_1, alt_0] = children else {
+                let &[alt_0, plus_1] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Plus1(self.arena.alloc(Plus1::Alt0 {
@@ -1052,7 +1052,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for DanglingElseParseTreeBuilder<'a> {
             }
             // The start nonterminals with layout
             SlotId(53) | SlotId(57) => {
-                let &[before, node, after] = children else {
+                let &[after, node, before] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Start(self.arena.alloc(Start {

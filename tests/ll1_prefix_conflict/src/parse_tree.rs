@@ -332,7 +332,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for Ll1PrefixConflictParseTreeBuilder<'
             }
             // S = "ab" "x"
             SlotId(4) => {
-                let &[lit_0, lit_1] = children else {
+                let &[lit_1, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::S(self.arena.alloc(S::Alt0 {
@@ -343,7 +343,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for Ll1PrefixConflictParseTreeBuilder<'
             }
             // S = "a" "by"
             SlotId(7) => {
-                let &[lit_0, lit_1] = children else {
+                let &[lit_1, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::S(self.arena.alloc(S::Alt1 {

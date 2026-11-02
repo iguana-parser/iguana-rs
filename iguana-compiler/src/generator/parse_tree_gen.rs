@@ -785,10 +785,12 @@ impl<'a> ParseTreeGen<'a> {
                             &to_pascal_case(&alternative_label(alternative, index)),
                             Span::call_site()
                         );
+                        // The children arrive last first.
+                        let reversed_field_names = field_names.iter().rev();
                         quote! {
                             #[comment = #rule_comment]
                             #end_slot_id => {
-                                let &[#(#field_names),*] = children else { ParseTree::unexpected_node() };
+                                let &[#(#reversed_field_names),*] = children else { ParseTree::unexpected_node() };
                                 ParseTree::#nonterminal_type(self.arena.alloc(#nonterminal_type::#variant {
                                     #(#field_names: #method_calls,)*
                                     span: nonterminal_node.span,
@@ -819,7 +821,7 @@ impl<'a> ParseTreeGen<'a> {
             nonterminal_cases.push(quote! {
                 #[comment = "The start nonterminals with layout"]
                 #(#slots)|* => {
-                    let &[before, node, after] = children else { ParseTree::unexpected_node() };
+                    let &[after, node, before] = children else { ParseTree::unexpected_node() };
                     ParseTree::Start(self.arena.alloc(Start {
                         before: Some(before),
                         node,

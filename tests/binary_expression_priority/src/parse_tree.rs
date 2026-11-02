@@ -378,7 +378,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for BinaryExpressionPriorityParseTreeBu
             }
             // E = E "*" E
             SlotId(15) => {
-                let &[e_0, lit_1, e_2] = children else {
+                let &[e_2, lit_1, e_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::E(self.arena.alloc(E::Alt1 {
@@ -390,7 +390,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for BinaryExpressionPriorityParseTreeBu
             }
             // E = E "+" E
             SlotId(22) => {
-                let &[e_0, lit_1, e_2] = children else {
+                let &[e_2, lit_1, e_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::E(self.arena.alloc(E::Alt2 {
@@ -402,7 +402,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for BinaryExpressionPriorityParseTreeBu
             }
             // E = E "-" E
             SlotId(29) => {
-                let &[e_0, lit_1, e_2] = children else {
+                let &[e_2, lit_1, e_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::E(self.arena.alloc(E::Alt3 {

@@ -697,7 +697,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordParseTreeBuilder<'a> {
             }
             // Stmt = Expr WS ";" #Expr
             SlotId(5) => {
-                let &[expr, ws, lit_2] = children else {
+                let &[lit_2, ws, expr] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Stmt(self.arena.alloc(Stmt::Expr {
@@ -710,17 +710,17 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordParseTreeBuilder<'a> {
             // Stmt = "if" WS "(" WS Expr WS ")" WS Stmt WS ("else" Stmt)? #If
             SlotId(17) => {
                 let &[
-                    lit_0,
-                    ws_1,
-                    lit_2,
-                    ws_3,
-                    expr,
-                    ws_5,
-                    lit_6,
-                    ws_7,
-                    stmt,
-                    ws_9,
                     opt_0,
+                    ws_9,
+                    stmt,
+                    ws_7,
+                    lit_6,
+                    ws_5,
+                    expr,
+                    ws_3,
+                    lit_2,
+                    ws_1,
+                    lit_0,
                 ] = children
                 else {
                     ParseTree::unexpected_node()
@@ -742,7 +742,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordParseTreeBuilder<'a> {
             }
             // Stmt = "assert" WS Expr WS ";" #Assert
             SlotId(23) => {
-                let &[lit_0, ws_1, expr, ws_3, lit_4] = children else {
+                let &[lit_4, ws_3, expr, ws_1, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Stmt(self.arena.alloc(Stmt::Assert {
@@ -776,7 +776,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordParseTreeBuilder<'a> {
             }
             // Plus_0 = Stmt+ WS Stmt
             SlotId(31) => {
-                let &[stmts_0, ws, stmt_2] = children else {
+                let &[stmt_2, ws, stmts_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Plus0(self.arena.alloc(Plus0::Alt0 {
@@ -798,7 +798,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordParseTreeBuilder<'a> {
             }
             // Opt_0 = "else" WS Stmt
             SlotId(37) => {
-                let &[lit_0, ws, stmt] = children else {
+                let &[stmt, ws, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Opt0(self.arena.alloc(Opt0::Alt0 {
@@ -819,7 +819,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordParseTreeBuilder<'a> {
             }
             // The start nonterminals with layout
             SlotId(42) | SlotId(46) | SlotId(50) => {
-                let &[before, node, after] = children else {
+                let &[after, node, before] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Start(self.arena.alloc(Start {

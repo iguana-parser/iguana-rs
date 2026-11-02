@@ -255,7 +255,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LayoutAwareFollowSamePositionParseT
             }
             // The start nonterminals with layout
             SlotId(5) => {
-                let &[before, node, after] = children else {
+                let &[after, node, before] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Start(self.arena.alloc(Start {

@@ -477,7 +477,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for StarParseTreeBuilder<'a> {
             }
             // Plus_0 = A+ A
             SlotId(6) => {
-                let &[as_0, a_1] = children else {
+                let &[a_1, as_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Plus0(self.arena.alloc(Plus0::Alt0 {

@@ -514,7 +514,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for RegexCompositionParseTreeBuilder<'a
             }
             // Id = Letter LetterOrDigit*
             SlotId(4) => {
-                let &[letter, letter_or_digits] = children else {
+                let &[letter_or_digits, letter] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Id(self.arena.alloc(Id::Alt0 {
@@ -525,7 +525,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for RegexCompositionParseTreeBuilder<'a
             }
             // Plus_0 = LetterOrDigit+ LetterOrDigit
             SlotId(7) => {
-                let &[letter_or_digits_0, letter_or_digit_1] = children else {
+                let &[letter_or_digit_1, letter_or_digits_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Plus0(self.arena.alloc(Plus0::Alt0 {
@@ -565,7 +565,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for RegexCompositionParseTreeBuilder<'a
             }
             // The start nonterminals with layout
             SlotId(16) | SlotId(20) => {
-                let &[before, node, after] = children else {
+                let &[after, node, before] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Start(self.arena.alloc(Start {

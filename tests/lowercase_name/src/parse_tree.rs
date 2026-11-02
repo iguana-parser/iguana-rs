@@ -311,7 +311,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for LowercaseNameParseTreeBuilder<'a> {
         match nonterminal_node.return_slot {
             // S = "a" B
             SlotId(2) => {
-                let &[lit_0, b] = children else {
+                let &[b, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::S(self.arena.alloc(S::Alt0 {

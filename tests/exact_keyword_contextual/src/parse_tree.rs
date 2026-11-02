@@ -299,7 +299,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordContextualParseTreeBuil
         match nonterminal_node.return_slot {
             // Decl = "var" WS Id WS ";" #Var
             SlotId(5) => {
-                let &[lit_0, ws_1, id, ws_3, lit_4] = children else {
+                let &[lit_4, ws_3, id, ws_1, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Decl(self.arena.alloc(Decl::Var {
@@ -313,7 +313,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordContextualParseTreeBuil
             }
             // Decl = Id WS "=" WS Id WS ";" #Assign
             SlotId(13) => {
-                let &[id_0, ws_1, lit_2, ws_3, id_4, ws_5, lit_6] = children else {
+                let &[lit_6, ws_5, id_4, ws_3, lit_2, ws_1, id_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Decl(self.arena.alloc(Decl::Assign {
@@ -329,7 +329,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordContextualParseTreeBuil
             }
             // The start nonterminals with layout
             SlotId(17) => {
-                let &[before, node, after] = children else {
+                let &[after, node, before] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Start(self.arena.alloc(Start {

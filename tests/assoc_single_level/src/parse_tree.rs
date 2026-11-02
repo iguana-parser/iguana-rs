@@ -407,7 +407,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AssocSingleLevelParseTreeBuilder<'a
         match nonterminal_node.return_slot {
             // E = E "<" E
             SlotId(12) => {
-                let &[e_0, lit_1, e_2] = children else {
+                let &[e_2, lit_1, e_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::E(self.arena.alloc(E::Alt0 {
@@ -429,7 +429,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AssocSingleLevelParseTreeBuilder<'a
             }
             // F = F "<" F
             SlotId(22) => {
-                let &[f_0, lit_1, f_2] = children else {
+                let &[f_2, lit_1, f_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::F(self.arena.alloc(F::Alt0 {
@@ -451,7 +451,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for AssocSingleLevelParseTreeBuilder<'a
             }
             // G = G "<" G
             SlotId(32) => {
-                let &[g_0, lit_1, g_2] = children else {
+                let &[g_2, lit_1, g_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::G(self.arena.alloc(G::Alt0 {

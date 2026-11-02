@@ -530,7 +530,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for SimpleAltParseTreeBuilder<'a> {
         match nonterminal_node.return_slot {
             // A = B (C | D)
             SlotId(2) => {
-                let &[b, alt_0] = children else {
+                let &[alt_0, b] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::A(self.arena.alloc(A::Alt0 {

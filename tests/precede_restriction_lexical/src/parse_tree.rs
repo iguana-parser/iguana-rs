@@ -262,7 +262,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for PrecedeRestrictionLexicalParseTreeB
         match nonterminal_node.return_slot {
             // S = "for" WS Id
             SlotId(3) => {
-                let &[lit_0, ws, id] = children else {
+                let &[id, ws, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::S(self.arena.alloc(S::Alt0 {
@@ -284,7 +284,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for PrecedeRestrictionLexicalParseTreeB
             }
             // The start nonterminals with layout
             SlotId(9) => {
-                let &[before, node, after] = children else {
+                let &[after, node, before] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Start(self.arena.alloc(Start {

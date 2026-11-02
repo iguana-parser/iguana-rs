@@ -494,7 +494,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPrecedenceParseTreeBuilder<
             }
             // E = "-" E
             SlotId(13) => {
-                let &[lit_0, e] = children else {
+                let &[e, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::E(self.arena.alloc(E::Alt0 {
@@ -505,7 +505,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPrecedenceParseTreeBuilder<
             }
             // E = E "*" F
             SlotId(20) => {
-                let &[e, lit_1, f] = children else {
+                let &[f, lit_1, e] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::E(self.arena.alloc(E::Alt1 {
@@ -527,7 +527,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPrecedenceParseTreeBuilder<
             }
             // F = E "/" K
             SlotId(28) => {
-                let &[e, lit_1, k] = children else {
+                let &[k, lit_1, e] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::F(self.arena.alloc(F::Alt0 {

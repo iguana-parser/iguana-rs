@@ -264,7 +264,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for KeywordLabelsParseTreeBuilder<'a> {
         match nonterminal_node.return_slot {
             // S = do:"a" type:"b" gen:"c"
             SlotId(3) => {
-                let &[r#do, r#type, r#gen] = children else {
+                let &[r#gen, r#type, r#do] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::S(self.arena.alloc(S::Alt0 {

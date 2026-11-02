@@ -447,7 +447,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExcludeByLabelParseTreeBuilder<'a> 
             }
             // Expr = Expr "(" {Expr ","}* ")" #call
             SlotId(8) => {
-                let &[expr, lit_1, star_0, lit_3] = children else {
+                let &[lit_3, star_0, lit_1, expr] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Expr(self.arena.alloc(Expr::Call {
@@ -460,7 +460,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExcludeByLabelParseTreeBuilder<'a> 
             }
             // Expr = Expr "," Expr #comma
             SlotId(13) => {
-                let &[expr_0, lit_1, expr_2] = children else {
+                let &[expr_2, lit_1, expr_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Expr(self.arena.alloc(Expr::Comma {
@@ -472,7 +472,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExcludeByLabelParseTreeBuilder<'a> 
             }
             // Plus_0 = {Expr ","}+ "," Expr
             SlotId(18) => {
-                let &[plus_0, lit_1, expr] = children else {
+                let &[expr, lit_1, plus_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Plus0(self.arena.alloc(Plus0::Alt0 {

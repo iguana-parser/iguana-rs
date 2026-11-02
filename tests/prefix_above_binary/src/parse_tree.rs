@@ -368,7 +368,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for PrefixAboveBinaryParseTreeBuilder<'
             }
             // E = "-" WS E
             SlotId(17) => {
-                let &[lit_0, ws, e] = children else {
+                let &[e, ws, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::E(self.arena.alloc(E::Alt1 {
@@ -380,7 +380,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for PrefixAboveBinaryParseTreeBuilder<'
             }
             // E = E WS "+" WS E
             SlotId(26) => {
-                let &[e_0, ws_1, lit_2, ws_3, e_4] = children else {
+                let &[e_4, ws_3, lit_2, ws_1, e_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::E(self.arena.alloc(E::Alt2 {
@@ -394,7 +394,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for PrefixAboveBinaryParseTreeBuilder<'
             }
             // The start nonterminals with layout
             SlotId(5) | SlotId(9) => {
-                let &[before, node, after] = children else {
+                let &[after, node, before] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Start(self.arena.alloc(Start {

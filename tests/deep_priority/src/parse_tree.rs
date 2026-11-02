@@ -407,7 +407,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for DeepPriorityParseTreeBuilder<'a> {
             }
             // E = E WS "+" WS E
             SlotId(21) => {
-                let &[e_0, ws_1, lit_2, ws_3, e_4] = children else {
+                let &[e_4, ws_3, lit_2, ws_1, e_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::E(self.arena.alloc(E::Alt1 {
@@ -422,17 +422,17 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for DeepPriorityParseTreeBuilder<'a> {
             // E = "if" WS E WS "then" WS E WS "else" WS E
             SlotId(34) => {
                 let &[
-                    lit_0,
-                    ws_1,
-                    e_2,
-                    ws_3,
-                    lit_4,
-                    ws_5,
-                    e_6,
-                    ws_7,
-                    lit_8,
-                    ws_9,
                     e_10,
+                    ws_9,
+                    lit_8,
+                    ws_7,
+                    e_6,
+                    ws_5,
+                    lit_4,
+                    ws_3,
+                    e_2,
+                    ws_1,
+                    lit_0,
                 ] = children
                 else {
                     ParseTree::unexpected_node()
@@ -454,7 +454,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for DeepPriorityParseTreeBuilder<'a> {
             }
             // The start nonterminals with layout
             SlotId(5) | SlotId(9) => {
-                let &[before, node, after] = children else {
+                let &[after, node, before] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Start(self.arena.alloc(Start {

@@ -515,7 +515,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPostfixParseTreeBuilder<'a>
             }
             // E = E WS "+" WS E
             SlotId(29) => {
-                let &[e_0, ws_1, lit_2, ws_3, e_4] = children else {
+                let &[e_4, ws_3, lit_2, ws_1, e_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::E(self.arena.alloc(E::Alt1 {
@@ -539,7 +539,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPostfixParseTreeBuilder<'a>
             }
             // Postfix = Body WS "!"
             SlotId(39) => {
-                let &[body, ws, lit_2] = children else {
+                let &[lit_2, ws, body] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Postfix(self.arena.alloc(Postfix::Alt0 {
@@ -561,7 +561,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for IndirectPostfixParseTreeBuilder<'a>
             }
             // The start nonterminals with layout
             SlotId(5) | SlotId(9) | SlotId(13) | SlotId(17) => {
-                let &[before, node, after] = children else {
+                let &[after, node, before] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Start(self.arena.alloc(Start {

@@ -453,7 +453,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordNoLayoutParseTreeBuilde
         match nonterminal_node.return_slot {
             // S = Word WS ";" #Word
             SlotId(3) => {
-                let &[word, ws, lit_2] = children else {
+                let &[lit_2, ws, word] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::S(self.arena.alloc(S::Word {
@@ -465,7 +465,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordNoLayoutParseTreeBuilde
             }
             // S = Id WS ";" #Id
             SlotId(7) => {
-                let &[id, ws, lit_2] = children else {
+                let &[lit_2, ws, id] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::S(self.arena.alloc(S::Id {
@@ -477,7 +477,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordNoLayoutParseTreeBuilde
             }
             // Word = "@" "go" Letter+
             SlotId(11) => {
-                let &[lit_0, lit_1, letters] = children else {
+                let &[letters, lit_1, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Word(self.arena.alloc(Word::Alt0 {
@@ -489,7 +489,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordNoLayoutParseTreeBuilde
             }
             // Plus_0 = Letter+ Letter
             SlotId(14) => {
-                let &[letters_0, letter_1] = children else {
+                let &[letter_1, letters_0] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Plus0(self.arena.alloc(Plus0::Alt0 {
@@ -510,7 +510,7 @@ impl<'a> ParseTreeBuilder<ParseTree<'a>> for ExactKeywordNoLayoutParseTreeBuilde
             }
             // The start nonterminals with layout
             SlotId(20) | SlotId(24) => {
-                let &[before, node, after] = children else {
+                let &[after, node, before] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Start(self.arena.alloc(Start {
