@@ -854,9 +854,9 @@ pub trait Parser<'i, 'arena>: Sized {
     ///   - When there is no existing intermediate node for `(slot_id, span, env)`,
     ///     `merge` creates it with `(left_child, right_child)` and returns it.
     ///   - When the intermediate node exists, the pair `(left_child, right_child)`
-    ///     is added as another child and the node is marked ambiguous if the pair
-    ///     differs from the existing child. `merge` returns `None` so that the
-    ///     caller does not schedule a descriptor for continuing after the return.
+    ///     is added as another child and the node is marked ambiguous. `merge`
+    ///     returns `None` so that the caller does not schedule a descriptor for
+    ///     continuing after the return.
     fn merge(
         &mut self,
         left_child: Option<(SPPFNodeId, u32)>,
@@ -973,10 +973,12 @@ pub trait Parser<'i, 'arena>: Sized {
     /// Returns `Some(new_id)` on a miss. Returns `None` on a hit, which
     /// signals the caller to skip scheduling a descriptor: an earlier
     /// descriptor with the same key already drove the continuation forward.
-    /// When the new `(left_child, right_child)` pair differs from the
-    /// existing one, the new pair is appended and the node is marked
-    /// ambiguous, recording genuine intermediate-level ambiguity. The
-    /// first-parse mode skips the lookup and always returns `Some`.
+    /// On a hit, the new `(left_child, right_child)` pair is appended and the
+    /// node is marked ambiguous. A pair reaches an existing node at most once,
+    /// because the parser handles each pairing of a GSS edge with a popped
+    /// element once and never adds the same GSS edge twice. A hit is therefore
+    /// always another derivation of the node. The first-parse mode skips the
+    /// lookup and always returns `Some`.
     fn get_or_create_intermediate_node(
         &mut self,
         slot_id: SlotId,
@@ -991,17 +993,16 @@ pub trait Parser<'i, 'arena>: Sized {
                 self.lookup_intermediate_node(slot_id, left_extent, right_extent, env)
             {
                 record!(self, IntermediateNodeFound, existing_node_id);
-                let SPPFNode::Intermediate(existing) = self.sppf_node(existing_node_id) else {
+                let SPPFNode::Intermediate(existing) = self.sppf_node_mut(existing_node_id) else {
                     unreachable!("expected intermediate node");
                 };
-                if existing.child != (left_child, right_child) {
-                    self.add_intermediate_node_child(existing_node_id, left_child, right_child);
-                    let SPPFNode::Intermediate(existing) = self.sppf_node_mut(existing_node_id)
-                    else {
-                        unreachable!("expected intermediate node");
-                    };
-                    existing.ambiguous = true;
-                }
+                debug_assert_ne!(
+                    existing.child,
+                    (left_child, right_child),
+                    "the same pair reached an existing intermediate node twice"
+                );
+                existing.ambiguous = true;
+                self.add_intermediate_node_child(existing_node_id, left_child, right_child);
                 return None;
             }
         }
