@@ -376,6 +376,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionLexicalParser<'i, 'aren
             })
             .count()
     }
+    #[inline]
     fn lookup_intermediate_node(
         &self,
         slot_id: SlotId,
@@ -407,6 +408,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for FollowRestrictionLexicalParser<'i, 'aren
     {
         self.gss_nodes.iter()
     }
+    #[inline]
     fn add_intermediate_node_child(
         &mut self,
         node: SPPFNodeId,

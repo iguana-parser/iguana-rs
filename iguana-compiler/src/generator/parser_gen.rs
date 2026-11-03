@@ -2636,6 +2636,10 @@ impl<'a> ParserGen<'a> {
             }
         };
         quote! {
+            // Inline into get_or_create_intermediate_node, which runs for every
+            // return to a caller. Without the hint, LLVM does not inline the
+            // lookup.
+            #[inline]
             fn lookup_intermediate_node(
                 &self,
                 slot_id: SlotId,
@@ -2722,6 +2726,9 @@ impl<'a> ParserGen<'a> {
             return quote! {};
         }
         quote! {
+            // Inline into get_or_create_intermediate_node, which calls it for
+            // every new child of an ambiguous intermediate node.
+            #[inline]
             fn add_intermediate_node_child(
                 &mut self,
                 node: SPPFNodeId,

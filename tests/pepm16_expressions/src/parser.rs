@@ -750,6 +750,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for Pepm16ExpressionsParser<'i, 'arena> {
             })
             .count()
     }
+    #[inline]
     fn lookup_intermediate_node(
         &self,
         slot_id: SlotId,
@@ -781,6 +782,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for Pepm16ExpressionsParser<'i, 'arena> {
     {
         self.gss_nodes.iter()
     }
+    #[inline]
     fn add_intermediate_node_child(
         &mut self,
         node: SPPFNodeId,

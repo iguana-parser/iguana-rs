@@ -680,32 +680,34 @@ pub trait Parser<'i, 'arena>: Sized {
             self.gss_node_mut(existing_gss_node_id)
                 .popped_elements_mut(),
         );
-
-        for (&(right_extent, return_value), &nonterminal_node_id) in popped_elements.iter() {
-            if !self.return_conditions(
-                return_slot,
-                left_extent,
-                right_extent,
-                gss_node_id,
-                env,
-                return_value,
-            ) {
-                continue;
-            }
-            let right_child = (nonterminal_node_id, right_extent);
-            // The caller's continuation binds the value in its saved environment.
-            let env = match return_value {
-                Some(value) => self.bind_return_value(return_slot, env, value),
-                None => env,
-            };
-            if let Some(new_node) = self.merge(left_child, right_child, return_slot, env) {
-                self.add_descriptor(Descriptor::new(
-                    right_extent,
+        if !popped_elements.is_empty() {
+            let left_child = left_child.map(|id| (id, self.sppf_node(id).left_extent()));
+            for (&(right_extent, return_value), &nonterminal_node_id) in popped_elements.iter() {
+                if !self.return_conditions(
                     return_slot,
-                    Some(new_node),
+                    left_extent,
+                    right_extent,
                     gss_node_id,
                     env,
-                ));
+                    return_value,
+                ) {
+                    continue;
+                }
+                let right_child = (nonterminal_node_id, right_extent);
+                // The caller's continuation binds the value in its saved environment.
+                let env = match return_value {
+                    Some(value) => self.bind_return_value(return_slot, env, value),
+                    None => env,
+                };
+                if let Some(new_node) = self.merge(left_child, right_child, return_slot, env) {
+                    self.add_descriptor(Descriptor::new(
+                        right_extent,
+                        return_slot,
+                        Some(new_node),
+                        gss_node_id,
+                        env,
+                    ));
+                }
             }
         }
         *self
@@ -811,7 +813,9 @@ pub trait Parser<'i, 'arena>: Sized {
             ) {
                 continue;
             }
-            let left_child = edge.sppf_node_id;
+            let left_child = edge
+                .sppf_node_id
+                .map(|id| (id, self.sppf_node(id).left_extent()));
             let env = match return_value {
                 Some(value) => self.bind_return_value(edge.return_slot, edge.env_id, value),
                 None => edge.env_id,
@@ -837,19 +841,31 @@ pub trait Parser<'i, 'arena>: Sized {
         }
     }
 
-    /// Returns the node id to drive the caller's continuation with. Returns
-    /// `None` when the intermediate already exists at `(slot, span, env)`;
-    /// the caller skips its `add_descriptor` call.
+    /// Merges the current SPPF node (`left_child`) with the result of calling
+    /// a nonterminal (`right_child`). `left_child` comes with its left extent
+    /// and `right_child` with its right extent. The two extents are the span
+    /// of the intermediate node of `slot_id` that `merge` creates or finds.
+    ///
+    /// - At the beginning of the alternative, there is no current node, so the
+    ///   result of the call becomes the current node of the alternative. In this
+    ///   case, `merge` does not create an intermediate node and returns the right
+    ///   child.
+    /// - When the left child exists, `get_or_create_intermediate_node` is called:
+    ///   - When there is no existing intermediate node for `(slot_id, span, env)`,
+    ///     `merge` creates it with `(left_child, right_child)` and returns it.
+    ///   - When the intermediate node exists, the pair `(left_child, right_child)`
+    ///     is added as another child and the node is marked ambiguous if the pair
+    ///     differs from the existing child. `merge` returns `None` so that the
+    ///     caller does not schedule a descriptor for continuing after the return.
     fn merge(
         &mut self,
-        left_child: Option<SPPFNodeId>,
+        left_child: Option<(SPPFNodeId, u32)>,
         right_child: (SPPFNodeId, u32),
         slot_id: SlotId,
         env: Option<EnvId>,
     ) -> Option<SPPFNodeId> {
         let (right_child_id, right_extent) = right_child;
-        if let Some(left_child_id) = left_child {
-            let left_extent = self.sppf_node(left_child_id).left_extent();
+        if let Some((left_child_id, left_extent)) = left_child {
             self.get_or_create_intermediate_node(
                 slot_id,
                 left_extent,

@@ -196,8 +196,8 @@ impl Input {
             self.line_and_caret(input_index, 1),
         )
     }
-    /// Returns a vector v, where v[i] is the start offset (inclusive) of line
-    /// i. A line ends where the next one starts, and the last line ends at
+    /// Returns a vector `v`, where `v[i]` is the start offset (inclusive) of line
+    /// `i`. A line ends where the next one starts, and the last line ends at
     /// the end of the input, so the end offsets are not stored. Empty input
     /// has no lines.
     fn calc_line_starts(chars: &[char]) -> Vec<u32> {
