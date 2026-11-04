@@ -11,7 +11,7 @@ use iguana_runtime::input::Span;
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;
 use iguana_runtime::{
-    arena::{Arena, ArenaIdVec, ArenaMap, ArenaVec},
+    arena::{Arena, ArenaIdVec, ArenaMap, ArenaVec, ChunkedArenaVec},
     descriptor::Descriptor,
     env::Env,
     gss::{GSSIndex, GSSNode},
@@ -773,18 +773,18 @@ pub struct AssocSingleLevelParser<'i, 'arena> {
     // An intermediate node keeps its first child inline. Children of intermediate nodes are
     // pairs: (left_child, right_child). Extra children, when there is ambiguity, are stored here
     // as (parent node, (left child, right child)).
-    intermediate_nodes_children: ArenaVec<'arena, (SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
+    intermediate_nodes_children: ChunkedArenaVec<'arena, (SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
     // intermediate_nodes_children grouped by parent node, built lazily for tree construction.
     intermediate_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>>,
     // Extra children of ambiguous nonterminal nodes, the counterpart to
     // intermediate_nodes_children: each entry is (parent node, (child, return slot)), a single
     // child plus its return slot rather than a pair.
-    nonterminal_nodes_children: ArenaVec<'arena, (SPPFNodeId, (SPPFNodeId, SlotId))>,
+    nonterminal_nodes_children: ChunkedArenaVec<'arena, (SPPFNodeId, (SPPFNodeId, SlotId))>,
     // nonterminal_nodes_children grouped by parent node, built lazily like
     // intermediate_nodes_children_map.
     nonterminal_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SlotId)>>>,
     envs: ArenaIdVec<'arena, EnvId, Env<'arena>>,
-    failures: ArenaVec<'arena, GLLFailure>,
+    failures: ChunkedArenaVec<'arena, GLLFailure>,
     // The input index of the failures in `failures`, the farthest input index at which a failure
     // is recorded, or 0 before the first failure.
     failures_index: u32,
@@ -829,12 +829,12 @@ impl<'i, 'arena> AssocSingleLevelParser<'i, 'arena> {
             descriptors_peak: 0,
             #[cfg(feature = "instrument")]
             ll1_call_log: vec![],
-            intermediate_nodes_children: vec_arena.vec(),
+            intermediate_nodes_children: ChunkedArenaVec::new(vec_arena),
             intermediate_nodes_children_map: OnceCell::new(),
-            nonterminal_nodes_children: vec_arena.vec(),
+            nonterminal_nodes_children: ChunkedArenaVec::new(vec_arena),
             nonterminal_nodes_children_map: OnceCell::new(),
             envs: vec_arena.id_vec_with_capacity(input.len() as usize * ENVS_CAPACITY_MULTIPLIER),
-            failures: vec_arena.vec(),
+            failures: ChunkedArenaVec::new(vec_arena),
             failures_index: 0,
             suppress_failures: false,
             #[cfg(feature = "debug-trace")]

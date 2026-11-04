@@ -11,7 +11,7 @@ use iguana_runtime::input::Span;
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;
 use iguana_runtime::{
-    arena::{Arena, ArenaIdVec, ArenaVec},
+    arena::{Arena, ArenaIdVec, ArenaVec, ChunkedArenaVec},
     descriptor::Descriptor,
     env::Env,
     gss::{GSSIndex, GSSNode},
@@ -746,7 +746,7 @@ pub struct AmbiguousExprFirstParseParser<'i, 'arena> {
     #[cfg(feature = "instrument")]
     ll1_call_log: Vec<(NonterminalId, u32)>,
     envs: ArenaIdVec<'arena, EnvId, Env<'arena>>,
-    failures: ArenaVec<'arena, GLLFailure>,
+    failures: ChunkedArenaVec<'arena, GLLFailure>,
     // The input index of the failures in `failures`, the farthest input index at which a failure
     // is recorded, or 0 before the first failure.
     failures_index: u32,
@@ -783,7 +783,7 @@ impl<'i, 'arena> AmbiguousExprFirstParseParser<'i, 'arena> {
             #[cfg(feature = "instrument")]
             ll1_call_log: vec![],
             envs: vec_arena.id_vec(),
-            failures: vec_arena.vec(),
+            failures: ChunkedArenaVec::new(vec_arena),
             failures_index: 0,
             suppress_failures: false,
             #[cfg(feature = "debug-trace")]

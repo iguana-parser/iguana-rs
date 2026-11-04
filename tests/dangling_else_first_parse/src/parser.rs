@@ -11,7 +11,7 @@ use iguana_runtime::input::Span;
 #[cfg(feature = "debug-trace")]
 use iguana_runtime::trace::TraceEvent;
 use iguana_runtime::{
-    arena::{Arena, ArenaIdVec, ArenaVec},
+    arena::{Arena, ArenaIdVec, ArenaVec, ChunkedArenaVec},
     descriptor::Descriptor,
     env::Env,
     gss::{GSSIndex, GSSNode},
@@ -682,7 +682,7 @@ pub struct DanglingElseFirstParseParser<'i, 'arena> {
     // Epsilon nodes keyed by input position; `None` until the node at that position is created.
     epsilon_nodes: ArenaVec<'arena, Option<SPPFNodeId>>,
     envs: ArenaIdVec<'arena, EnvId, Env<'arena>>,
-    failures: ArenaVec<'arena, GLLFailure>,
+    failures: ChunkedArenaVec<'arena, GLLFailure>,
     // The input index of the failures in `failures`, the farthest input index at which a failure
     // is recorded, or 0 before the first failure.
     failures_index: u32,
@@ -725,7 +725,7 @@ impl<'i, 'arena> DanglingElseFirstParseParser<'i, 'arena> {
             #[cfg(feature = "instrument")]
             ll1_call_log: vec![],
             envs: vec_arena.id_vec(),
-            failures: vec_arena.vec(),
+            failures: ChunkedArenaVec::new(vec_arena),
             failures_index: 0,
             suppress_failures: false,
             layout_memo: {

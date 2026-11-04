@@ -348,7 +348,7 @@ impl<'a> ParserGen<'a> {
                 env::Env,
                 gss::{GSSIndex, GSSNode},
                 ids::{BindingId, EnvId, GssNodeId, NonterminalId, SPPFNodeId, SlotId, TerminalId},
-                arena::{Arena, ArenaIdVec, #arena_map_import ArenaVec},
+                arena::{Arena, ArenaIdVec, #arena_map_import ArenaVec, ChunkedArenaVec},
                 input::Input,
                 parser::{Parser, GLLFailure, GLLFailureKind, init_logger, DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, #parameters_capacity_imports GSS_CAPACITY_MULTIPLIER, SPPF_CAPACITY_MULTIPLIER},
                 record,
@@ -1475,9 +1475,9 @@ impl<'a> ParserGen<'a> {
             quote! {}
         } else {
             quote! {
-                intermediate_nodes_children: vec_arena.vec(),
+                intermediate_nodes_children: ChunkedArenaVec::new(vec_arena),
                 intermediate_nodes_children_map: OnceCell::new(),
-                nonterminal_nodes_children: vec_arena.vec(),
+                nonterminal_nodes_children: ChunkedArenaVec::new(vec_arena),
                 nonterminal_nodes_children_map: OnceCell::new(),
             }
         };
@@ -1516,7 +1516,7 @@ impl<'a> ParserGen<'a> {
                     ll1_call_log: vec![],
                     #children_init
                     #envs_init
-                    failures: vec_arena.vec(),
+                    failures: ChunkedArenaVec::new(vec_arena),
                     failures_index: 0,
                     suppress_failures: false,
                     #layout_memo_init
@@ -1592,13 +1592,13 @@ impl<'a> ParserGen<'a> {
                 #[comment = "An intermediate node keeps its first child inline. Children of intermediate
                              nodes are pairs: (left_child, right_child). Extra children, when there is
                              ambiguity, are stored here as (parent node, (left child, right child))."]
-                intermediate_nodes_children: ArenaVec<'arena, (SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
+                intermediate_nodes_children: ChunkedArenaVec<'arena, (SPPFNodeId, (SPPFNodeId, SPPFNodeId))>,
                 #[comment = "intermediate_nodes_children grouped by parent node, built lazily for tree construction."]
                 intermediate_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SPPFNodeId)>>>,
                 #[comment = "Extra children of ambiguous nonterminal nodes, the counterpart to
                              intermediate_nodes_children: each entry is (parent node, (child, return slot)), a single
                              child plus its return slot rather than a pair."]
-                nonterminal_nodes_children: ArenaVec<'arena, (SPPFNodeId, (SPPFNodeId, SlotId))>,
+                nonterminal_nodes_children: ChunkedArenaVec<'arena, (SPPFNodeId, (SPPFNodeId, SlotId))>,
                 #[comment = "nonterminal_nodes_children grouped by parent node, built lazily like
                              intermediate_nodes_children_map."]
                 nonterminal_nodes_children_map: OnceCell<FxHashMap<SPPFNodeId, Vec<(SPPFNodeId, SlotId)>>>,
@@ -1627,7 +1627,7 @@ impl<'a> ParserGen<'a> {
                 #epsilon_nodes_field
                 #children_fields
                 envs: ArenaIdVec<'arena, EnvId, Env<'arena>>,
-                failures: ArenaVec<'arena, GLLFailure>,
+                failures: ChunkedArenaVec<'arena, GLLFailure>,
                 #[comment = "The input index of the failures in `failures`, the farthest input index
                              at which a failure is recorded, or 0 before the first failure."]
                 failures_index: u32,
