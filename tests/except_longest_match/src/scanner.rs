@@ -2,11 +2,12 @@
 
 use iguana_runtime::{
     arena::Arena,
-    char_set::{CharRange, CharSet},
+    char_set::{Alphabet, CharRange, CharSet},
     ids::TerminalId,
     input::Input,
     prediction::{AlternativeSet, Prediction},
-    scanner::{Lookup, MatchMemo, Scanner, TerminalSet},
+    scanner::{LiteralTrie, Lookup, MatchMemo, Scanner, TerminalSet},
+    utils::bit_set::BitSet,
 };
 const MATCH_MEMO_WORDS: usize = 1;
 // Indexed by terminal id. `TERMINAL_FIRST_CHARS[t]` holds the characters that can begin a
@@ -162,6 +163,15 @@ static FIRST_CHAR_MASKS: [[u64; MATCH_MEMO_WORDS]; 128] = [
     [0],
     [0],
 ];
+// 0: if
+// 1: iffy
+static LITERAL_TRIE: LiteralTrie = LiteralTrie {
+    max_len: 4,
+    alphabet: Alphabet::from_chars(b"fiy"),
+    transitions: &[0, 1, 0, 2, 0, 0, 3, 0, 0, 0, 0, 4, 0, 0, 0],
+    accepts: &[None, None, Some(0), None, Some(1)],
+};
+static LITERAL_SET_1: BitSet<1> = BitSet::from_members(&[0, 1]);
 pub struct ExceptLongestMatchScanner<'i, 'arena> {
     pub input: &'i Input,
     memo: MatchMemo<'arena, MATCH_MEMO_WORDS>,
@@ -173,18 +183,23 @@ impl<'i, 'arena> ExceptLongestMatchScanner<'i, 'arena> {
     }
     // Id = [a-z][a-z]? \ Keyword
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
-        self.scan_dfa_0(input_index, self.input.len())
+        let end = self.scan_dfa_0(input_index, self.input.len())?;
+        if let Some(index) = LITERAL_TRIE.index_of(self.input, input_index, end)
+            && (LITERAL_SET_1.contains(index))
+        {
+            return None;
+        }
+        Some(end)
     }
     // Keyword = (if|iffy)
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
-        self.scan_dfa_1(input_index, self.input.len())
+        LITERAL_TRIE.longest_match(self.input, input_index, &LITERAL_SET_1)
     }
     #[inline(always)]
     fn scan_dfa_0(&self, start: u32, end: u32) -> Option<u32> {
         let mut state: u32 = 0;
         let mut position = start;
         let mut last_accept = None;
-        let mut excluded = false;
         loop {
             match state {
                 0 => {
@@ -195,14 +210,12 @@ impl<'i, 'arena> ExceptLongestMatchScanner<'i, 'arena> {
                         break;
                     };
                     state = match ch {
-                        'a'..='h' | 'j'..='z' => 1,
-                        'i' => 2,
+                        'a'..='z' => 1,
                         _ => break,
                     };
                 }
                 1 => {
                     last_accept = Some(position);
-                    excluded = false;
                     if position == end {
                         break;
                     }
@@ -210,98 +223,11 @@ impl<'i, 'arena> ExceptLongestMatchScanner<'i, 'arena> {
                         break;
                     };
                     state = match ch {
-                        'a'..='z' => 3,
+                        'a'..='z' => 2,
                         _ => break,
                     };
                 }
                 2 => {
-                    last_accept = Some(position);
-                    excluded = false;
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'a'..='e' | 'g'..='z' => 3,
-                        'f' => 4,
-                        _ => break,
-                    };
-                }
-                3 => {
-                    last_accept = Some(position);
-                    excluded = false;
-                    break;
-                }
-                4 => {
-                    last_accept = Some(position);
-                    excluded = true;
-                    break;
-                }
-                _ => unreachable!(),
-            }
-            position += 1;
-        }
-        if excluded { None } else { last_accept }
-    }
-    #[inline(always)]
-    fn scan_dfa_1(&self, start: u32, end: u32) -> Option<u32> {
-        let mut state: u32 = 0;
-        let mut position = start;
-        let mut last_accept = None;
-        loop {
-            match state {
-                0 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'i' => 1,
-                        _ => break,
-                    };
-                }
-                1 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'f' => 2,
-                        _ => break,
-                    };
-                }
-                2 => {
-                    last_accept = Some(position);
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'f' => 3,
-                        _ => break,
-                    };
-                }
-                3 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'y' => 4,
-                        _ => break,
-                    };
-                }
-                4 => {
                     last_accept = Some(position);
                     break;
                 }
@@ -372,11 +298,11 @@ impl<'i, 'arena> ExceptLongestMatchScanner<'i, 'arena> {
         }
         false
     }
-    // Matches `terminal_id` at `input_index` with its DFA and records the result in the memo.
-    // `match_token` looks up the memo and calls this method on a miss.
+    // Matches `terminal_id` at `input_index` and records the result in the memo. `match_token`
+    // looks up the memo and calls this method on a miss.
     // Not inlined into `match_token`. The parser calls `match_token` very often, and most calls
     // return after the first-character test or a memo hit. This method needs its arguments again
-    // after the DFA returns, for the memo insert, and the compiler handles that with extra
+    // after the match returns, for the memo insert, and the compiler handles that with extra
     // instructions at the start and end of the function. Kept separate, those instructions run
     // only on a memo miss instead of on every call.
     #[inline(never)]

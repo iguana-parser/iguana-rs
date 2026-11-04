@@ -42,12 +42,70 @@ impl<'a> CharSet<'a> {
     }
 }
 
+/// A list of distinct ASCII characters, in which the index of a character is
+/// its position.
+#[derive(Debug, Clone, Copy)]
+pub struct Alphabet {
+    /// The index of each ASCII character, or `None` if the character is not
+    /// in the alphabet.
+    indices: [Option<u8>; 128],
+    len: usize,
+}
+
+impl Alphabet {
+    /// Returns the alphabet of `chars`.
+    ///
+    /// # Panics
+    /// Panics if a character of `chars` is not ASCII.
+    pub const fn from_chars(chars: &[u8]) -> Self {
+        let mut indices = [None; 128];
+        let mut i = 0;
+        while i < chars.len() {
+            indices[chars[i] as usize] = Some(i as u8);
+            i += 1;
+        }
+        Self {
+            indices,
+            len: chars.len(),
+        }
+    }
+
+    /// Returns the index of `c`, or `None` if `c` is not in the alphabet.
+    #[inline]
+    pub fn index(&self, c: char) -> Option<usize> {
+        if !c.is_ascii() {
+            return None;
+        }
+        let index = self.indices[c as usize]?;
+        Some(usize::from(index))
+    }
+
+    pub fn len(&self) -> usize {
+        self.len
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len == 0
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     fn char_range(start: char, end: char) -> CharRange {
         CharRange { start, end }
+    }
+
+    #[test]
+    fn an_alphabet_indexes_its_characters_by_position() {
+        const ALPHABET: Alphabet = Alphabet::from_chars(b"acde");
+        assert_eq!(ALPHABET.len(), 4);
+        assert_eq!(ALPHABET.index('a'), Some(0));
+        assert_eq!(ALPHABET.index('c'), Some(1));
+        assert_eq!(ALPHABET.index('b'), None);
+        assert_eq!(ALPHABET.index('C'), None);
+        assert_eq!(ALPHABET.index('é'), None);
     }
 
     #[test]

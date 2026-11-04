@@ -171,15 +171,16 @@ impl LexicalRule {
 
 impl Display for LexicalRule {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} = {}", self.head, self.regex)?;
+        write!(f, "{} = ", self.head)?;
+        if let Some(restriction) = &self.precede_restriction {
+            write!(f, "{} !<< ", restriction)?;
+        }
+        write!(f, "{}", self.regex)?;
         for except in &self.except {
             write!(f, " \\ {}", except)?;
         }
         for restriction in &self.follow_restriction {
             write!(f, " !>> {}", restriction)?;
-        }
-        if let Some(restriction) = &self.precede_restriction {
-            write!(f, " !<< {}", restriction)?;
         }
         Ok(())
     }

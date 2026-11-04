@@ -2,11 +2,12 @@
 
 use iguana_runtime::{
     arena::Arena,
-    char_set::{CharRange, CharSet},
+    char_set::{Alphabet, CharRange, CharSet},
     ids::TerminalId,
     input::Input,
     prediction::{AlternativeSet, Prediction},
-    scanner::{Lookup, MatchMemo, Scanner, TerminalSet},
+    scanner::{LiteralTrie, Lookup, MatchMemo, Scanner, TerminalSet},
+    utils::bit_set::BitSet,
 };
 const MATCH_MEMO_WORDS: usize = 1;
 // Indexed by terminal id. `TERMINAL_FIRST_CHARS[t]` holds the characters that can begin a
@@ -162,6 +163,33 @@ static FIRST_CHAR_MASKS: [[u64; MATCH_MEMO_WORDS]; 128] = [
     [0],
     [0],
 ];
+// 0: else
+// 1: if
+// 2: while
+static LITERAL_TRIE: LiteralTrie = LiteralTrie {
+    max_len: 5,
+    alphabet: Alphabet::from_chars(b"efhilsw"),
+    transitions: &[
+        1, 0, 0, 5, 0, 0, 7, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 3, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 9,
+        0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    ],
+    accepts: &[
+        None,
+        None,
+        None,
+        None,
+        Some(0),
+        None,
+        Some(1),
+        None,
+        None,
+        None,
+        None,
+        Some(2),
+    ],
+};
+static LITERAL_SET_1: BitSet<1> = BitSet::from_members(&[0, 1, 2]);
 pub struct ExceptNonterminalScanner<'i, 'arena> {
     pub input: &'i Input,
     memo: MatchMemo<'arena, MATCH_MEMO_WORDS>,
@@ -177,7 +205,7 @@ impl<'i, 'arena> ExceptNonterminalScanner<'i, 'arena> {
     }
     // Keyword = (if|else|while)
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
-        self.scan_dfa_1(input_index, self.input.len())
+        LITERAL_TRIE.longest_match(self.input, input_index, &LITERAL_SET_1)
     }
     #[inline(always)]
     fn scan_dfa_0(&self, start: u32, end: u32) -> Option<u32> {
@@ -210,141 +238,6 @@ impl<'i, 'arena> ExceptNonterminalScanner<'i, 'arena> {
                         'A'..='Z' | 'a'..='z' => 1,
                         _ => break,
                     };
-                }
-                _ => unreachable!(),
-            }
-            position += 1;
-        }
-        last_accept
-    }
-    #[inline(always)]
-    fn scan_dfa_1(&self, start: u32, end: u32) -> Option<u32> {
-        let mut state: u32 = 0;
-        let mut position = start;
-        let mut last_accept = None;
-        loop {
-            match state {
-                0 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'e' => 1,
-                        'i' => 2,
-                        'w' => 3,
-                        _ => break,
-                    };
-                }
-                1 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'l' => 4,
-                        _ => break,
-                    };
-                }
-                2 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'f' => 5,
-                        _ => break,
-                    };
-                }
-                3 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'h' => 6,
-                        _ => break,
-                    };
-                }
-                4 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        's' => 7,
-                        _ => break,
-                    };
-                }
-                5 => {
-                    last_accept = Some(position);
-                    break;
-                }
-                6 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'i' => 8,
-                        _ => break,
-                    };
-                }
-                7 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'e' => 9,
-                        _ => break,
-                    };
-                }
-                8 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'l' => 10,
-                        _ => break,
-                    };
-                }
-                9 => {
-                    last_accept = Some(position);
-                    break;
-                }
-                10 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'e' => 11,
-                        _ => break,
-                    };
-                }
-                11 => {
-                    last_accept = Some(position);
-                    break;
                 }
                 _ => unreachable!(),
             }
@@ -413,11 +306,11 @@ impl<'i, 'arena> ExceptNonterminalScanner<'i, 'arena> {
         }
         false
     }
-    // Matches `terminal_id` at `input_index` with its DFA and records the result in the memo.
-    // `match_token` looks up the memo and calls this method on a miss.
+    // Matches `terminal_id` at `input_index` and records the result in the memo. `match_token`
+    // looks up the memo and calls this method on a miss.
     // Not inlined into `match_token`. The parser calls `match_token` very often, and most calls
     // return after the first-character test or a memo hit. This method needs its arguments again
-    // after the DFA returns, for the memo insert, and the compiler handles that with extra
+    // after the match returns, for the memo insert, and the compiler handles that with extra
     // instructions at the start and end of the function. Kept separate, those instructions run
     // only on a memo miss instead of on every call.
     #[inline(never)]
@@ -450,7 +343,10 @@ impl<'i, 'arena> ExceptNonterminalScanner<'i, 'arena> {
     // terminals used as syntax-level excepts.
     pub fn match_exact(&self, terminal_id: TerminalId, start: u32, end: u32) -> bool {
         match terminal_id {
-            TerminalId(1) => self.scan_dfa_1(start, end) == Some(end),
+            TerminalId(1) => match LITERAL_TRIE.index_of(self.input, start, end) {
+                Some(index) => LITERAL_SET_1.contains(index),
+                None => false,
+            },
             _ => unreachable!("match_exact called for {terminal_id}, which is not an except"),
         }
     }

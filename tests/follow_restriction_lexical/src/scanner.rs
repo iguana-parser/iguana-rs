@@ -198,8 +198,11 @@ impl<'i, 'arena> FollowRestrictionLexicalScanner<'i, 'arena> {
     }
     // Num = [0-9]+ !>> Alpha
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
-        self.scan_dfa_0(input_index, self.input.len())
-            .filter(|&end| self.match_terminal_1(end).is_none())
+        let end = self.scan_dfa_0(input_index, self.input.len())?;
+        if self.match_terminal_1(end).is_some() {
+            return None;
+        }
+        Some(end)
     }
     // Alpha = [a-z A-Z]
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
@@ -418,11 +421,11 @@ impl<'i, 'arena> FollowRestrictionLexicalScanner<'i, 'arena> {
         }
         false
     }
-    // Matches `terminal_id` at `input_index` with its DFA and records the result in the memo.
-    // `match_token` looks up the memo and calls this method on a miss.
+    // Matches `terminal_id` at `input_index` and records the result in the memo. `match_token`
+    // looks up the memo and calls this method on a miss.
     // Not inlined into `match_token`. The parser calls `match_token` very often, and most calls
     // return after the first-character test or a memo hit. This method needs its arguments again
-    // after the DFA returns, for the memo insert, and the compiler handles that with extra
+    // after the match returns, for the memo insert, and the compiler handles that with extra
     // instructions at the start and end of the function. Kept separate, those instructions run
     // only on a memo miss instead of on every call.
     #[inline(never)]

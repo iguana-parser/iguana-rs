@@ -2,11 +2,12 @@
 
 use iguana_runtime::{
     arena::Arena,
-    char_set::{CharRange, CharSet},
+    char_set::{Alphabet, CharRange, CharSet},
     ids::TerminalId,
     input::Input,
     prediction::{AlternativeSet, Prediction},
-    scanner::{Lookup, MatchMemo, Scanner, TerminalSet},
+    scanner::{LiteralTrie, Lookup, MatchMemo, Scanner, TerminalSet},
+    utils::bit_set::BitSet,
 };
 const MATCH_MEMO_WORDS: usize = 1;
 // Indexed by terminal id. `TERMINAL_FIRST_CHARS[t]` holds the characters that can begin a
@@ -209,6 +210,33 @@ static FIRST_CHAR_MASKS: [[u64; MATCH_MEMO_WORDS]; 128] = [
     [0],
     [0],
 ];
+// 0: else
+// 1: if
+// 2: while
+static LITERAL_TRIE: LiteralTrie = LiteralTrie {
+    max_len: 5,
+    alphabet: Alphabet::from_chars(b"efhilsw"),
+    transitions: &[
+        1, 0, 0, 5, 0, 0, 7, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 3, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 9,
+        0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    ],
+    accepts: &[
+        None,
+        None,
+        None,
+        None,
+        Some(0),
+        None,
+        Some(1),
+        None,
+        None,
+        None,
+        None,
+        Some(2),
+    ],
+};
+static LITERAL_SET_3: BitSet<1> = BitSet::from_members(&[0, 1, 2]);
 pub struct ErrorUnionScanner<'i, 'arena> {
     pub input: &'i Input,
     memo: MatchMemo<'arena, MATCH_MEMO_WORDS>,
@@ -220,7 +248,7 @@ impl<'i, 'arena> ErrorUnionScanner<'i, 'arena> {
     }
     // Question = ?
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
-        self.scan_dfa_0(input_index, self.input.len())
+        self.input.match_literal(input_index, b"?")
     }
     // Word = [a-z]+
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
@@ -232,7 +260,7 @@ impl<'i, 'arena> ErrorUnionScanner<'i, 'arena> {
     }
     // Keyword = (if|else|while)
     pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
-        self.scan_dfa_3(input_index, self.input.len())
+        LITERAL_TRIE.longest_match(self.input, input_index, &LITERAL_SET_3)
     }
     // WS = [ ]+
     pub fn match_terminal_4(&self, input_index: u32) -> Option<u32> {
@@ -244,76 +272,47 @@ impl<'i, 'arena> ErrorUnionScanner<'i, 'arena> {
     }
     // "[" = [
     pub fn match_terminal_6(&self, input_index: u32) -> Option<u32> {
-        self.scan_dfa_6(input_index, self.input.len())
+        self.input.match_literal(input_index, b"[")
     }
     // "]" = ]
     pub fn match_terminal_7(&self, input_index: u32) -> Option<u32> {
-        self.scan_dfa_7(input_index, self.input.len())
+        self.input.match_literal(input_index, b"]")
     }
     // "p" = p
     pub fn match_terminal_8(&self, input_index: u32) -> Option<u32> {
-        self.scan_dfa_8(input_index, self.input.len())
+        self.input.match_literal(input_index, b"p")
     }
     // "q" = q
     pub fn match_terminal_9(&self, input_index: u32) -> Option<u32> {
-        self.scan_dfa_9(input_index, self.input.len())
+        self.input.match_literal(input_index, b"q")
     }
     // "x" = x
     pub fn match_terminal_10(&self, input_index: u32) -> Option<u32> {
-        self.scan_dfa_10(input_index, self.input.len())
+        self.input.match_literal(input_index, b"x")
     }
     // "y" = y
     pub fn match_terminal_11(&self, input_index: u32) -> Option<u32> {
-        self.scan_dfa_11(input_index, self.input.len())
+        self.input.match_literal(input_index, b"y")
     }
     // "z" = z
     pub fn match_terminal_12(&self, input_index: u32) -> Option<u32> {
-        self.scan_dfa_12(input_index, self.input.len())
+        self.input.match_literal(input_index, b"z")
     }
     // "!" = !
     pub fn match_terminal_13(&self, input_index: u32) -> Option<u32> {
-        self.scan_dfa_13(input_index, self.input.len())
+        self.input.match_literal(input_index, b"!")
     }
     // "1" = 1
     pub fn match_terminal_14(&self, input_index: u32) -> Option<u32> {
-        self.scan_dfa_14(input_index, self.input.len())
+        self.input.match_literal(input_index, b"1")
     }
     // "2" = 2
     pub fn match_terminal_15(&self, input_index: u32) -> Option<u32> {
-        self.scan_dfa_15(input_index, self.input.len())
+        self.input.match_literal(input_index, b"2")
     }
     // "w" = w
     pub fn match_terminal_16(&self, input_index: u32) -> Option<u32> {
-        self.scan_dfa_16(input_index, self.input.len())
-    }
-    #[inline(always)]
-    fn scan_dfa_0(&self, start: u32, end: u32) -> Option<u32> {
-        let mut state: u32 = 0;
-        let mut position = start;
-        let mut last_accept = None;
-        loop {
-            match state {
-                0 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        '?' => 1,
-                        _ => break,
-                    };
-                }
-                1 => {
-                    last_accept = Some(position);
-                    break;
-                }
-                _ => unreachable!(),
-            }
-            position += 1;
-        }
-        last_accept
+        self.input.match_literal(input_index, b"w")
     }
     #[inline(always)]
     fn scan_dfa_1(&self, start: u32, end: u32) -> Option<u32> {
@@ -384,141 +383,6 @@ impl<'i, 'arena> ErrorUnionScanner<'i, 'arena> {
                         'A'..='Z' | 'a'..='z' => 1,
                         _ => break,
                     };
-                }
-                _ => unreachable!(),
-            }
-            position += 1;
-        }
-        last_accept
-    }
-    #[inline(always)]
-    fn scan_dfa_3(&self, start: u32, end: u32) -> Option<u32> {
-        let mut state: u32 = 0;
-        let mut position = start;
-        let mut last_accept = None;
-        loop {
-            match state {
-                0 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'e' => 1,
-                        'i' => 2,
-                        'w' => 3,
-                        _ => break,
-                    };
-                }
-                1 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'l' => 4,
-                        _ => break,
-                    };
-                }
-                2 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'f' => 5,
-                        _ => break,
-                    };
-                }
-                3 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'h' => 6,
-                        _ => break,
-                    };
-                }
-                4 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        's' => 7,
-                        _ => break,
-                    };
-                }
-                5 => {
-                    last_accept = Some(position);
-                    break;
-                }
-                6 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'i' => 8,
-                        _ => break,
-                    };
-                }
-                7 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'e' => 9,
-                        _ => break,
-                    };
-                }
-                8 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'l' => 10,
-                        _ => break,
-                    };
-                }
-                9 => {
-                    last_accept = Some(position);
-                    break;
-                }
-                10 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'e' => 11,
-                        _ => break,
-                    };
-                }
-                11 => {
-                    last_accept = Some(position);
-                    break;
                 }
                 _ => unreachable!(),
             }
@@ -602,325 +466,6 @@ impl<'i, 'arena> ErrorUnionScanner<'i, 'arena> {
         }
         last_accept
     }
-    #[inline(always)]
-    fn scan_dfa_6(&self, start: u32, end: u32) -> Option<u32> {
-        let mut state: u32 = 0;
-        let mut position = start;
-        let mut last_accept = None;
-        loop {
-            match state {
-                0 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        '[' => 1,
-                        _ => break,
-                    };
-                }
-                1 => {
-                    last_accept = Some(position);
-                    break;
-                }
-                _ => unreachable!(),
-            }
-            position += 1;
-        }
-        last_accept
-    }
-    #[inline(always)]
-    fn scan_dfa_7(&self, start: u32, end: u32) -> Option<u32> {
-        let mut state: u32 = 0;
-        let mut position = start;
-        let mut last_accept = None;
-        loop {
-            match state {
-                0 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        ']' => 1,
-                        _ => break,
-                    };
-                }
-                1 => {
-                    last_accept = Some(position);
-                    break;
-                }
-                _ => unreachable!(),
-            }
-            position += 1;
-        }
-        last_accept
-    }
-    #[inline(always)]
-    fn scan_dfa_8(&self, start: u32, end: u32) -> Option<u32> {
-        let mut state: u32 = 0;
-        let mut position = start;
-        let mut last_accept = None;
-        loop {
-            match state {
-                0 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'p' => 1,
-                        _ => break,
-                    };
-                }
-                1 => {
-                    last_accept = Some(position);
-                    break;
-                }
-                _ => unreachable!(),
-            }
-            position += 1;
-        }
-        last_accept
-    }
-    #[inline(always)]
-    fn scan_dfa_9(&self, start: u32, end: u32) -> Option<u32> {
-        let mut state: u32 = 0;
-        let mut position = start;
-        let mut last_accept = None;
-        loop {
-            match state {
-                0 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'q' => 1,
-                        _ => break,
-                    };
-                }
-                1 => {
-                    last_accept = Some(position);
-                    break;
-                }
-                _ => unreachable!(),
-            }
-            position += 1;
-        }
-        last_accept
-    }
-    #[inline(always)]
-    fn scan_dfa_10(&self, start: u32, end: u32) -> Option<u32> {
-        let mut state: u32 = 0;
-        let mut position = start;
-        let mut last_accept = None;
-        loop {
-            match state {
-                0 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'x' => 1,
-                        _ => break,
-                    };
-                }
-                1 => {
-                    last_accept = Some(position);
-                    break;
-                }
-                _ => unreachable!(),
-            }
-            position += 1;
-        }
-        last_accept
-    }
-    #[inline(always)]
-    fn scan_dfa_11(&self, start: u32, end: u32) -> Option<u32> {
-        let mut state: u32 = 0;
-        let mut position = start;
-        let mut last_accept = None;
-        loop {
-            match state {
-                0 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'y' => 1,
-                        _ => break,
-                    };
-                }
-                1 => {
-                    last_accept = Some(position);
-                    break;
-                }
-                _ => unreachable!(),
-            }
-            position += 1;
-        }
-        last_accept
-    }
-    #[inline(always)]
-    fn scan_dfa_12(&self, start: u32, end: u32) -> Option<u32> {
-        let mut state: u32 = 0;
-        let mut position = start;
-        let mut last_accept = None;
-        loop {
-            match state {
-                0 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'z' => 1,
-                        _ => break,
-                    };
-                }
-                1 => {
-                    last_accept = Some(position);
-                    break;
-                }
-                _ => unreachable!(),
-            }
-            position += 1;
-        }
-        last_accept
-    }
-    #[inline(always)]
-    fn scan_dfa_13(&self, start: u32, end: u32) -> Option<u32> {
-        let mut state: u32 = 0;
-        let mut position = start;
-        let mut last_accept = None;
-        loop {
-            match state {
-                0 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        '!' => 1,
-                        _ => break,
-                    };
-                }
-                1 => {
-                    last_accept = Some(position);
-                    break;
-                }
-                _ => unreachable!(),
-            }
-            position += 1;
-        }
-        last_accept
-    }
-    #[inline(always)]
-    fn scan_dfa_14(&self, start: u32, end: u32) -> Option<u32> {
-        let mut state: u32 = 0;
-        let mut position = start;
-        let mut last_accept = None;
-        loop {
-            match state {
-                0 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        '1' => 1,
-                        _ => break,
-                    };
-                }
-                1 => {
-                    last_accept = Some(position);
-                    break;
-                }
-                _ => unreachable!(),
-            }
-            position += 1;
-        }
-        last_accept
-    }
-    #[inline(always)]
-    fn scan_dfa_15(&self, start: u32, end: u32) -> Option<u32> {
-        let mut state: u32 = 0;
-        let mut position = start;
-        let mut last_accept = None;
-        loop {
-            match state {
-                0 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        '2' => 1,
-                        _ => break,
-                    };
-                }
-                1 => {
-                    last_accept = Some(position);
-                    break;
-                }
-                _ => unreachable!(),
-            }
-            position += 1;
-        }
-        last_accept
-    }
-    #[inline(always)]
-    fn scan_dfa_16(&self, start: u32, end: u32) -> Option<u32> {
-        let mut state: u32 = 0;
-        let mut position = start;
-        let mut last_accept = None;
-        loop {
-            match state {
-                0 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'w' => 1,
-                        _ => break,
-                    };
-                }
-                1 => {
-                    last_accept = Some(position);
-                    break;
-                }
-                _ => unreachable!(),
-            }
-            position += 1;
-        }
-        last_accept
-    }
     // Returns true if any terminal in `set` matches at `input_index`. The memo of `match_token`
     // answers for the terminals of `set` already tried at `input_index`, and only the other
     // terminals are matched.
@@ -982,11 +527,11 @@ impl<'i, 'arena> ErrorUnionScanner<'i, 'arena> {
         }
         false
     }
-    // Matches `terminal_id` at `input_index` with its DFA and records the result in the memo.
-    // `match_token` looks up the memo and calls this method on a miss.
+    // Matches `terminal_id` at `input_index` and records the result in the memo. `match_token`
+    // looks up the memo and calls this method on a miss.
     // Not inlined into `match_token`. The parser calls `match_token` very often, and most calls
     // return after the first-character test or a memo hit. This method needs its arguments again
-    // after the DFA returns, for the memo insert, and the compiler handles that with extra
+    // after the match returns, for the memo insert, and the compiler handles that with extra
     // instructions at the start and end of the function. Kept separate, those instructions run
     // only on a memo miss instead of on every call.
     #[inline(never)]
@@ -1034,7 +579,10 @@ impl<'i, 'arena> ErrorUnionScanner<'i, 'arena> {
     // terminals used as syntax-level excepts.
     pub fn match_exact(&self, terminal_id: TerminalId, start: u32, end: u32) -> bool {
         match terminal_id {
-            TerminalId(3) => self.scan_dfa_3(start, end) == Some(end),
+            TerminalId(3) => match LITERAL_TRIE.index_of(self.input, start, end) {
+                Some(index) => LITERAL_SET_3.contains(index),
+                None => false,
+            },
             _ => unreachable!("match_exact called for {terminal_id}, which is not an except"),
         }
     }

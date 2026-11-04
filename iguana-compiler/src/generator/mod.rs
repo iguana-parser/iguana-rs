@@ -11,6 +11,7 @@ use crate::{
         id::{BindingIds, EndSlot, NonterminalIds, SlotIds, TerminalIds},
         parse_tree_gen::ParseTreeGen,
         parser_gen::ParserGen,
+        scanner_gen::ScannerGen,
         terminal_sets::terminal_sets,
     },
     grammar::{
@@ -168,6 +169,7 @@ mod grammar_gen;
 pub(crate) mod grammar_utils;
 mod id;
 mod lib_gen;
+mod literal_set;
 mod main_gen;
 mod manifest_gen;
 mod parse_tree_gen;
@@ -303,14 +305,15 @@ pub fn generate_sources(
 
     write_rust_file(
         post_process(
-            &scanner_gen::generate(
+            &ScannerGen::new(
                 grammar,
                 &terminal_ids,
                 &first_chars,
                 &terminal_sets,
                 match_any_count,
-                &config,
+                config,
             )
+            .generate()
             .to_string(),
         ),
         &scanner_path,

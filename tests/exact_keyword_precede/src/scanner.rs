@@ -205,11 +205,11 @@ impl<'i, 'arena> ExactKeywordPrecedeScanner<'i, 'arena> {
     }
     // "else" = else
     pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
-        self.scan_dfa_3(input_index, self.input.len())
+        self.input.match_literal(input_index, b"else")
     }
     // ";" = ;
     pub fn match_terminal_4(&self, input_index: u32) -> Option<u32> {
-        self.scan_dfa_4(input_index, self.input.len())
+        self.input.match_literal(input_index, b";")
     }
     // [0-9 A-Z _ a-z] = [0-9 A-Z _ a-z]
     pub fn match_terminal_5(&self, input_index: u32) -> Option<u32> {
@@ -344,100 +344,6 @@ impl<'i, 'arena> ExactKeywordPrecedeScanner<'i, 'arena> {
         last_accept
     }
     #[inline(always)]
-    fn scan_dfa_3(&self, start: u32, end: u32) -> Option<u32> {
-        let mut state: u32 = 0;
-        let mut position = start;
-        let mut last_accept = None;
-        loop {
-            match state {
-                0 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'e' => 1,
-                        _ => break,
-                    };
-                }
-                1 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'l' => 2,
-                        _ => break,
-                    };
-                }
-                2 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        's' => 3,
-                        _ => break,
-                    };
-                }
-                3 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'e' => 4,
-                        _ => break,
-                    };
-                }
-                4 => {
-                    last_accept = Some(position);
-                    break;
-                }
-                _ => unreachable!(),
-            }
-            position += 1;
-        }
-        last_accept
-    }
-    #[inline(always)]
-    fn scan_dfa_4(&self, start: u32, end: u32) -> Option<u32> {
-        let mut state: u32 = 0;
-        let mut position = start;
-        let mut last_accept = None;
-        loop {
-            match state {
-                0 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        ';' => 1,
-                        _ => break,
-                    };
-                }
-                1 => {
-                    last_accept = Some(position);
-                    break;
-                }
-                _ => unreachable!(),
-            }
-            position += 1;
-        }
-        last_accept
-    }
-    #[inline(always)]
     fn scan_dfa_5(&self, start: u32, end: u32) -> Option<u32> {
         let mut state: u32 = 0;
         let mut position = start;
@@ -527,11 +433,11 @@ impl<'i, 'arena> ExactKeywordPrecedeScanner<'i, 'arena> {
         }
         false
     }
-    // Matches `terminal_id` at `input_index` with its DFA and records the result in the memo.
-    // `match_token` looks up the memo and calls this method on a miss.
+    // Matches `terminal_id` at `input_index` and records the result in the memo. `match_token`
+    // looks up the memo and calls this method on a miss.
     // Not inlined into `match_token`. The parser calls `match_token` very often, and most calls
     // return after the first-character test or a memo hit. This method needs its arguments again
-    // after the DFA returns, for the memo insert, and the compiler handles that with extra
+    // after the match returns, for the memo insert, and the compiler handles that with extra
     // instructions at the start and end of the function. Kept separate, those instructions run
     // only on a memo miss instead of on every call.
     #[inline(never)]

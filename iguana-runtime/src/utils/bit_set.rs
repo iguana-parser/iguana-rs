@@ -11,6 +11,20 @@ impl<const W: usize> Default for BitSet<W> {
 }
 
 impl<const W: usize> BitSet<W> {
+    /// Returns a bit set containing the given members.
+    ///
+    /// # Panics
+    /// Panics if a member is not in `[0, 64 * W)`.
+    pub const fn from_members(members: &[usize]) -> Self {
+        let mut words = [0; W];
+        let mut i = 0;
+        while i < members.len() {
+            words[members[i] / 64] |= 1 << (members[i] % 64);
+            i += 1;
+        }
+        Self(words)
+    }
+
     pub fn contains(&self, i: usize) -> bool {
         self.0[i / 64] & (1 << (i % 64)) != 0
     }
@@ -59,6 +73,16 @@ impl<const W: usize> BitSet<W> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn from_members_sets_the_bits_of_the_members() {
+        const SET: BitSet<2> = BitSet::from_members(&[0, 3, 64, 127]);
+        let mut expected = BitSet::<2>::default();
+        for i in [0, 3, 64, 127] {
+            expected.insert(i);
+        }
+        assert_eq!(SET, expected);
+    }
 
     #[test]
     fn members_iterate_from_the_largest_across_words() {

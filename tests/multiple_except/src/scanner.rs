@@ -2,11 +2,12 @@
 
 use iguana_runtime::{
     arena::Arena,
-    char_set::{CharRange, CharSet},
+    char_set::{Alphabet, CharRange, CharSet},
     ids::TerminalId,
     input::Input,
     prediction::{AlternativeSet, Prediction},
-    scanner::{Lookup, MatchMemo, Scanner, TerminalSet},
+    scanner::{LiteralTrie, Lookup, MatchMemo, Scanner, TerminalSet},
+    utils::bit_set::BitSet,
 };
 const MATCH_MEMO_WORDS: usize = 1;
 // Indexed by terminal id. `TERMINAL_FIRST_CHARS[t]` holds the characters that can begin a
@@ -165,6 +166,55 @@ static FIRST_CHAR_MASKS: [[u64; MATCH_MEMO_WORDS]; 128] = [
     [0],
     [0],
 ];
+// 0: else
+// 1: false
+// 2: for
+// 3: if
+// 4: true
+// 5: while
+static LITERAL_TRIE: LiteralTrie = LiteralTrie {
+    max_len: 5,
+    alphabet: Alphabet::from_chars(b"aefhilorstuw"),
+    transitions: &[
+        0, 1, 5, 0, 12, 0, 0, 0, 0, 14, 0, 18, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 3, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 6, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 8, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16, 0, 0, 17, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 19, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 21, 0, 0, 0, 0, 0, 0, 0, 22, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0,
+    ],
+    accepts: &[
+        None,
+        None,
+        None,
+        None,
+        Some(0),
+        None,
+        None,
+        None,
+        None,
+        Some(1),
+        None,
+        Some(2),
+        None,
+        Some(3),
+        None,
+        None,
+        None,
+        Some(4),
+        None,
+        None,
+        None,
+        None,
+        Some(5),
+    ],
+};
+static LITERAL_SET_1: BitSet<1> = BitSet::from_members(&[0, 2, 3, 5]);
+static LITERAL_SET_2: BitSet<1> = BitSet::from_members(&[1, 4]);
 pub struct MultipleExceptScanner<'i, 'arena> {
     pub input: &'i Input,
     memo: MatchMemo<'arena, MATCH_MEMO_WORDS>,
@@ -176,465 +226,38 @@ impl<'i, 'arena> MultipleExceptScanner<'i, 'arena> {
     }
     // Identifier = [a-z A-Z]+ \ Keyword \ BooleanLiteral \ NullLiteral
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
-        self.scan_dfa_0(input_index, self.input.len())
+        let end = self.scan_dfa_0(input_index, self.input.len())?;
+        if self.input.match_literal(input_index, b"null") == Some(end) {
+            return None;
+        }
+        if let Some(index) = LITERAL_TRIE.index_of(self.input, input_index, end)
+            && (LITERAL_SET_1.contains(index) || LITERAL_SET_2.contains(index))
+        {
+            return None;
+        }
+        Some(end)
     }
     // IdentifierChars = [a-z A-Z]+
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
-        self.scan_dfa_1(input_index, self.input.len())
+        self.scan_dfa_0(input_index, self.input.len())
     }
     // Keyword = (if|else|while|for)
     pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
-        self.scan_dfa_2(input_index, self.input.len())
+        LITERAL_TRIE.longest_match(self.input, input_index, &LITERAL_SET_1)
     }
     // BooleanLiteral = (true|false)
     pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
-        self.scan_dfa_3(input_index, self.input.len())
+        LITERAL_TRIE.longest_match(self.input, input_index, &LITERAL_SET_2)
     }
     // NullLiteral = null
     pub fn match_terminal_4(&self, input_index: u32) -> Option<u32> {
-        self.scan_dfa_4(input_index, self.input.len())
+        self.input.match_literal(input_index, b"null")
     }
     #[inline(always)]
     fn scan_dfa_0(&self, start: u32, end: u32) -> Option<u32> {
         let mut state: u32 = 0;
         let mut position = start;
         let mut last_accept = None;
-        let mut excluded = false;
-        loop {
-            match state {
-                0 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'A'..='Z'
-                        | 'a'..='d'
-                        | 'g'..='h'
-                        | 'j'..='m'
-                        | 'o'..='s'
-                        | 'u'..='v'
-                        | 'x'..='z' => 1,
-                        'e' => 2,
-                        'f' => 3,
-                        'i' => 4,
-                        'n' => 5,
-                        't' => 6,
-                        'w' => 7,
-                        _ => break,
-                    };
-                }
-                1 => {
-                    last_accept = Some(position);
-                    excluded = false;
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'A'..='Z' | 'a'..='z' => 1,
-                        _ => break,
-                    };
-                }
-                2 => {
-                    last_accept = Some(position);
-                    excluded = false;
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'A'..='Z' | 'a'..='k' | 'm'..='z' => 1,
-                        'l' => 8,
-                        _ => break,
-                    };
-                }
-                3 => {
-                    last_accept = Some(position);
-                    excluded = false;
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'A'..='Z' | 'b'..='n' | 'p'..='z' => 1,
-                        'a' => 9,
-                        'o' => 10,
-                        _ => break,
-                    };
-                }
-                4 => {
-                    last_accept = Some(position);
-                    excluded = false;
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'A'..='Z' | 'a'..='e' | 'g'..='z' => 1,
-                        'f' => 11,
-                        _ => break,
-                    };
-                }
-                5 => {
-                    last_accept = Some(position);
-                    excluded = false;
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'A'..='Z' | 'a'..='t' | 'v'..='z' => 1,
-                        'u' => 12,
-                        _ => break,
-                    };
-                }
-                6 => {
-                    last_accept = Some(position);
-                    excluded = false;
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'A'..='Z' | 'a'..='q' | 's'..='z' => 1,
-                        'r' => 13,
-                        _ => break,
-                    };
-                }
-                7 => {
-                    last_accept = Some(position);
-                    excluded = false;
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'A'..='Z' | 'a'..='g' | 'i'..='z' => 1,
-                        'h' => 14,
-                        _ => break,
-                    };
-                }
-                8 => {
-                    last_accept = Some(position);
-                    excluded = false;
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'A'..='Z' | 'a'..='r' | 't'..='z' => 1,
-                        's' => 15,
-                        _ => break,
-                    };
-                }
-                9 => {
-                    last_accept = Some(position);
-                    excluded = false;
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'A'..='Z' | 'a'..='k' | 'm'..='z' => 1,
-                        'l' => 16,
-                        _ => break,
-                    };
-                }
-                10 => {
-                    last_accept = Some(position);
-                    excluded = false;
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'A'..='Z' | 'a'..='q' | 's'..='z' => 1,
-                        'r' => 17,
-                        _ => break,
-                    };
-                }
-                11 => {
-                    last_accept = Some(position);
-                    excluded = true;
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'A'..='Z' | 'a'..='z' => 1,
-                        _ => break,
-                    };
-                }
-                12 => {
-                    last_accept = Some(position);
-                    excluded = false;
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'A'..='Z' | 'a'..='k' | 'm'..='z' => 1,
-                        'l' => 18,
-                        _ => break,
-                    };
-                }
-                13 => {
-                    last_accept = Some(position);
-                    excluded = false;
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'A'..='Z' | 'a'..='t' | 'v'..='z' => 1,
-                        'u' => 19,
-                        _ => break,
-                    };
-                }
-                14 => {
-                    last_accept = Some(position);
-                    excluded = false;
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'A'..='Z' | 'a'..='h' | 'j'..='z' => 1,
-                        'i' => 20,
-                        _ => break,
-                    };
-                }
-                15 => {
-                    last_accept = Some(position);
-                    excluded = false;
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'A'..='Z' | 'a'..='d' | 'f'..='z' => 1,
-                        'e' => 21,
-                        _ => break,
-                    };
-                }
-                16 => {
-                    last_accept = Some(position);
-                    excluded = false;
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'A'..='Z' | 'a'..='r' | 't'..='z' => 1,
-                        's' => 22,
-                        _ => break,
-                    };
-                }
-                17 => {
-                    last_accept = Some(position);
-                    excluded = true;
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'A'..='Z' | 'a'..='z' => 1,
-                        _ => break,
-                    };
-                }
-                18 => {
-                    last_accept = Some(position);
-                    excluded = false;
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'A'..='Z' | 'a'..='k' | 'm'..='z' => 1,
-                        'l' => 23,
-                        _ => break,
-                    };
-                }
-                19 => {
-                    last_accept = Some(position);
-                    excluded = false;
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'A'..='Z' | 'a'..='d' | 'f'..='z' => 1,
-                        'e' => 24,
-                        _ => break,
-                    };
-                }
-                20 => {
-                    last_accept = Some(position);
-                    excluded = false;
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'A'..='Z' | 'a'..='k' | 'm'..='z' => 1,
-                        'l' => 25,
-                        _ => break,
-                    };
-                }
-                21 => {
-                    last_accept = Some(position);
-                    excluded = true;
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'A'..='Z' | 'a'..='z' => 1,
-                        _ => break,
-                    };
-                }
-                22 => {
-                    last_accept = Some(position);
-                    excluded = false;
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'A'..='Z' | 'a'..='d' | 'f'..='z' => 1,
-                        'e' => 26,
-                        _ => break,
-                    };
-                }
-                23 => {
-                    last_accept = Some(position);
-                    excluded = true;
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'A'..='Z' | 'a'..='z' => 1,
-                        _ => break,
-                    };
-                }
-                24 => {
-                    last_accept = Some(position);
-                    excluded = true;
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'A'..='Z' | 'a'..='z' => 1,
-                        _ => break,
-                    };
-                }
-                25 => {
-                    last_accept = Some(position);
-                    excluded = false;
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'A'..='Z' | 'a'..='d' | 'f'..='z' => 1,
-                        'e' => 27,
-                        _ => break,
-                    };
-                }
-                26 => {
-                    last_accept = Some(position);
-                    excluded = true;
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'A'..='Z' | 'a'..='z' => 1,
-                        _ => break,
-                    };
-                }
-                27 => {
-                    last_accept = Some(position);
-                    excluded = true;
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'A'..='Z' | 'a'..='z' => 1,
-                        _ => break,
-                    };
-                }
-                _ => unreachable!(),
-            }
-            position += 1;
-        }
-        if excluded { None } else { last_accept }
-    }
-    #[inline(always)]
-    fn scan_dfa_1(&self, start: u32, end: u32) -> Option<u32> {
-        let mut state: u32 = 0;
-        let mut position = start;
-        let mut last_accept = None;
         loop {
             match state {
                 0 => {
@@ -661,353 +284,6 @@ impl<'i, 'arena> MultipleExceptScanner<'i, 'arena> {
                         'A'..='Z' | 'a'..='z' => 1,
                         _ => break,
                     };
-                }
-                _ => unreachable!(),
-            }
-            position += 1;
-        }
-        last_accept
-    }
-    #[inline(always)]
-    fn scan_dfa_2(&self, start: u32, end: u32) -> Option<u32> {
-        let mut state: u32 = 0;
-        let mut position = start;
-        let mut last_accept = None;
-        loop {
-            match state {
-                0 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'e' => 1,
-                        'f' => 2,
-                        'i' => 3,
-                        'w' => 4,
-                        _ => break,
-                    };
-                }
-                1 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'l' => 5,
-                        _ => break,
-                    };
-                }
-                2 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'o' => 6,
-                        _ => break,
-                    };
-                }
-                3 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'f' => 7,
-                        _ => break,
-                    };
-                }
-                4 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'h' => 8,
-                        _ => break,
-                    };
-                }
-                5 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        's' => 9,
-                        _ => break,
-                    };
-                }
-                6 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'r' => 10,
-                        _ => break,
-                    };
-                }
-                7 => {
-                    last_accept = Some(position);
-                    break;
-                }
-                8 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'i' => 11,
-                        _ => break,
-                    };
-                }
-                9 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'e' => 12,
-                        _ => break,
-                    };
-                }
-                10 => {
-                    last_accept = Some(position);
-                    break;
-                }
-                11 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'l' => 13,
-                        _ => break,
-                    };
-                }
-                12 => {
-                    last_accept = Some(position);
-                    break;
-                }
-                13 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'e' => 14,
-                        _ => break,
-                    };
-                }
-                14 => {
-                    last_accept = Some(position);
-                    break;
-                }
-                _ => unreachable!(),
-            }
-            position += 1;
-        }
-        last_accept
-    }
-    #[inline(always)]
-    fn scan_dfa_3(&self, start: u32, end: u32) -> Option<u32> {
-        let mut state: u32 = 0;
-        let mut position = start;
-        let mut last_accept = None;
-        loop {
-            match state {
-                0 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'f' => 1,
-                        't' => 2,
-                        _ => break,
-                    };
-                }
-                1 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'a' => 3,
-                        _ => break,
-                    };
-                }
-                2 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'r' => 4,
-                        _ => break,
-                    };
-                }
-                3 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'l' => 5,
-                        _ => break,
-                    };
-                }
-                4 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'u' => 6,
-                        _ => break,
-                    };
-                }
-                5 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        's' => 7,
-                        _ => break,
-                    };
-                }
-                6 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'e' => 8,
-                        _ => break,
-                    };
-                }
-                7 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'e' => 9,
-                        _ => break,
-                    };
-                }
-                8 => {
-                    last_accept = Some(position);
-                    break;
-                }
-                9 => {
-                    last_accept = Some(position);
-                    break;
-                }
-                _ => unreachable!(),
-            }
-            position += 1;
-        }
-        last_accept
-    }
-    #[inline(always)]
-    fn scan_dfa_4(&self, start: u32, end: u32) -> Option<u32> {
-        let mut state: u32 = 0;
-        let mut position = start;
-        let mut last_accept = None;
-        loop {
-            match state {
-                0 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'n' => 1,
-                        _ => break,
-                    };
-                }
-                1 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'u' => 2,
-                        _ => break,
-                    };
-                }
-                2 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'l' => 3,
-                        _ => break,
-                    };
-                }
-                3 => {
-                    if position == end {
-                        break;
-                    }
-                    let Some(ch) = self.input.char_at(position) else {
-                        break;
-                    };
-                    state = match ch {
-                        'l' => 4,
-                        _ => break,
-                    };
-                }
-                4 => {
-                    last_accept = Some(position);
-                    break;
                 }
                 _ => unreachable!(),
             }
@@ -1076,11 +352,11 @@ impl<'i, 'arena> MultipleExceptScanner<'i, 'arena> {
         }
         false
     }
-    // Matches `terminal_id` at `input_index` with its DFA and records the result in the memo.
-    // `match_token` looks up the memo and calls this method on a miss.
+    // Matches `terminal_id` at `input_index` and records the result in the memo. `match_token`
+    // looks up the memo and calls this method on a miss.
     // Not inlined into `match_token`. The parser calls `match_token` very often, and most calls
     // return after the first-character test or a memo hit. This method needs its arguments again
-    // after the DFA returns, for the memo insert, and the compiler handles that with extra
+    // after the match returns, for the memo insert, and the compiler handles that with extra
     // instructions at the start and end of the function. Kept separate, those instructions run
     // only on a memo miss instead of on every call.
     #[inline(never)]
@@ -1116,9 +392,15 @@ impl<'i, 'arena> MultipleExceptScanner<'i, 'arena> {
     // terminals used as syntax-level excepts.
     pub fn match_exact(&self, terminal_id: TerminalId, start: u32, end: u32) -> bool {
         match terminal_id {
-            TerminalId(2) => self.scan_dfa_2(start, end) == Some(end),
-            TerminalId(3) => self.scan_dfa_3(start, end) == Some(end),
-            TerminalId(4) => self.scan_dfa_4(start, end) == Some(end),
+            TerminalId(2) => match LITERAL_TRIE.index_of(self.input, start, end) {
+                Some(index) => LITERAL_SET_1.contains(index),
+                None => false,
+            },
+            TerminalId(3) => match LITERAL_TRIE.index_of(self.input, start, end) {
+                Some(index) => LITERAL_SET_2.contains(index),
+                None => false,
+            },
+            TerminalId(4) => self.input.match_literal(start, b"null") == Some(end),
             _ => unreachable!("match_exact called for {terminal_id}, which is not an except"),
         }
     }

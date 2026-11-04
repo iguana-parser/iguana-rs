@@ -101,6 +101,40 @@ impl Input {
             None
         }
     }
+    /// Returns the end of `literal`, a string of ASCII characters, if the
+    /// input has it at `index`, or `None`.
+    #[inline(always)]
+    pub fn match_literal(&self, index: u32, literal: &[u8]) -> Option<u32> {
+        self.match_literal_with_case(index, literal, false)
+    }
+    /// Returns the end of `literal`, a string of ASCII characters, if the
+    /// input has it at `index` with ASCII letters in either case, or `None`.
+    #[inline(always)]
+    pub fn match_literal_ignore_ascii_case(&self, index: u32, literal: &[u8]) -> Option<u32> {
+        self.match_literal_with_case(index, literal, true)
+    }
+    #[inline(always)]
+    fn match_literal_with_case(
+        &self,
+        index: u32,
+        literal: &[u8],
+        ignore_ascii_case: bool,
+    ) -> Option<u32> {
+        let mut position = index;
+        for &byte in literal {
+            let c = self.char_at(position)?;
+            let matches = if ignore_ascii_case {
+                c.eq_ignore_ascii_case(&(byte as char))
+            } else {
+                c == byte as char
+            };
+            if !matches {
+                return None;
+            }
+            position += 1;
+        }
+        Some(position)
+    }
     /// Returns the text covered by `span`.
     ///
     /// # Panics
@@ -219,6 +253,17 @@ impl Input {
 #[cfg(test)]
 mod tests {
     use crate::input::Input;
+
+    #[test]
+    fn test_match_literal() {
+        let input = Input::from("while While");
+        assert_eq!(input.match_literal(0, b"while"), Some(5));
+        assert_eq!(input.match_literal(0, b"whale"), None);
+        assert_eq!(input.match_literal(6, b"while"), None);
+        assert_eq!(input.match_literal_ignore_ascii_case(6, b"while"), Some(11));
+        assert_eq!(input.match_literal(8, b"ileX"), None);
+        assert_eq!(input.match_literal(3, b""), Some(3));
+    }
 
     #[test]
     fn test_byte_len_counts_utf8_bytes() {

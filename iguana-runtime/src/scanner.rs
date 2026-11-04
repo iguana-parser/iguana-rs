@@ -1,7 +1,10 @@
 use crate::{
     arena::{Arena, ArenaVec},
+    char_set::Alphabet,
     ids::TerminalId,
+    input::Input,
     prediction::{AlternativeSet, Prediction},
+    utils::bit_set::BitSet,
 };
 
 pub struct Token {
@@ -241,6 +244,129 @@ pub struct TerminalSet {
     pub terminals: &'static [TerminalId],
 }
 
+/// A trie of the literals of a grammar's literal sets, which gives each literal
+/// an index. A literal whose letters match in both cases is in the trie in
+/// lowercase, and a lookup that ignores ASCII case reads the input in
+/// lowercase.
+///
+/// The trie is a state machine. State 0 is the start state, and a state at
+/// which a literal ends accepts the literal.
+pub struct LiteralTrie {
+    /// The length of the longest literal.
+    pub max_len: u32,
+    pub alphabet: Alphabet,
+    /// The transition table, a two-dimensional array with one row per state
+    /// and one column per character of `alphabet`, stored row after row. The
+    /// transition of state `s` on character `c` is
+    /// `transitions[s * alphabet.len() + alphabet.index(c)]`, or 0 if `s` does
+    /// not have a transition on `c`. No transition leads to state 0.
+    pub transitions: &'static [u16],
+    /// The index of the literal that each state accepts, or `None` if no
+    /// literal ends at the state.
+    pub accepts: &'static [Option<u16>],
+}
+
+impl LiteralTrie {
+    /// Returns the literal index of the span `[start, end)` if the span
+    /// corresponds to a literal in the trie, and `None` otherwise.
+    #[inline]
+    pub fn index_of(&self, input: &Input, start: u32, end: u32) -> Option<usize> {
+        self.index_of_with_case(input, start, end, false)
+    }
+
+    /// Like `index_of`, but reads the ASCII letters of the span in lowercase.
+    #[inline]
+    pub fn index_of_ignore_ascii_case(&self, input: &Input, start: u32, end: u32) -> Option<usize> {
+        self.index_of_with_case(input, start, end, true)
+    }
+
+    /// Returns the end of the longest literal of `set` that begins at `start`,
+    /// or `None` if no literal of `set` begins there.
+    #[inline]
+    pub fn longest_match<const W: usize>(
+        &self,
+        input: &Input,
+        start: u32,
+        set: &BitSet<W>,
+    ) -> Option<u32> {
+        self.longest_match_with_case(input, start, set, false)
+    }
+
+    /// Like `longest_match`, but reads the ASCII letters of the input in
+    /// lowercase.
+    #[inline]
+    pub fn longest_match_ignore_ascii_case<const W: usize>(
+        &self,
+        input: &Input,
+        start: u32,
+        set: &BitSet<W>,
+    ) -> Option<u32> {
+        self.longest_match_with_case(input, start, set, true)
+    }
+
+    #[inline(always)]
+    fn index_of_with_case(
+        &self,
+        input: &Input,
+        start: u32,
+        end: u32,
+        ignore_ascii_case: bool,
+    ) -> Option<usize> {
+        if start == end || end - start > self.max_len {
+            return None;
+        }
+        let mut state = 0;
+        for position in start..end {
+            state = self.transition(state, input.char_at(position)?, ignore_ascii_case)?;
+        }
+        let index = self.accepts[state]?;
+        Some(usize::from(index))
+    }
+
+    #[inline(always)]
+    fn longest_match_with_case<const W: usize>(
+        &self,
+        input: &Input,
+        start: u32,
+        set: &BitSet<W>,
+        ignore_ascii_case: bool,
+    ) -> Option<u32> {
+        let mut longest = None;
+        let mut state = 0;
+        let mut position = start;
+        while let Some(c) = input.char_at(position) {
+            let Some(next) = self.transition(state, c, ignore_ascii_case) else {
+                break;
+            };
+            state = next;
+            position += 1;
+            if let Some(index) = self.accepts[state]
+                && set.contains(usize::from(index))
+            {
+                longest = Some(position);
+            }
+        }
+        longest
+    }
+
+    /// Returns the state that `state` goes to on `c`, or `None` if `state`
+    /// does not have a transition on `c`.
+    #[inline(always)]
+    fn transition(&self, state: usize, c: char, ignore_ascii_case: bool) -> Option<usize> {
+        let c = if ignore_ascii_case {
+            c.to_ascii_lowercase()
+        } else {
+            c
+        };
+        let index = self.alphabet.index(c)?;
+        let next = self.transitions[state * self.alphabet.len() + index];
+        if next == 0 {
+            return None;
+        }
+        Some(usize::from(next))
+    }
+}
+
 pub trait Scanner {
     fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32>;
     /// Returns the terminal in `set` that produces the longest match at
@@ -283,6 +409,41 @@ pub trait Scanner {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The trie of the literals `ab` (index 0) and `b` (index 1).
+    fn ab_b_trie() -> LiteralTrie {
+        LiteralTrie {
+            max_len: 2,
+            alphabet: Alphabet::from_chars(b"ab"),
+            // State 0 goes to 1 on `a` and to 3 on `b`, and state 1 goes to 2
+            // on `b`.
+            transitions: &[1, 3, 0, 2, 0, 0, 0, 0],
+            accepts: &[None, None, Some(0), Some(1)],
+        }
+    }
+
+    #[test]
+    fn a_literal_trie_finds_the_index_of_a_span() {
+        let trie = ab_b_trie();
+        let input = Input::from("abAB".to_string());
+        assert_eq!(trie.index_of(&input, 0, 2), Some(0));
+        assert_eq!(trie.index_of(&input, 1, 2), Some(1));
+        assert_eq!(trie.index_of(&input, 0, 1), None);
+        assert_eq!(trie.index_of(&input, 2, 4), None);
+        assert_eq!(trie.index_of_ignore_ascii_case(&input, 2, 4), Some(0));
+    }
+
+    #[test]
+    fn a_literal_trie_finds_the_longest_literal_of_a_set() {
+        let trie = ab_b_trie();
+        let input = Input::from("abx".to_string());
+        let both = BitSet::<1>::from_members(&[0, 1]);
+        let b_only = BitSet::<1>::from_members(&[1]);
+        assert_eq!(trie.longest_match(&input, 0, &both), Some(2));
+        assert_eq!(trie.longest_match(&input, 0, &b_only), None);
+        assert_eq!(trie.longest_match(&input, 1, &b_only), Some(2));
+        assert_eq!(trie.longest_match(&input, 2, &both), None);
+    }
 
     #[test]
     fn records_matches_and_failures() {
