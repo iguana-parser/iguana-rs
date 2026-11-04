@@ -52,12 +52,10 @@ const FIRST_SEGMENT_LEN: usize = 4;
 /// - `spill_start` is the offset in `MatchMemo::spilled_ends` where the
 ///   segment that holds the ends of further matches starts.
 /// - `end_count` is the number of matches.
-///
-/// A terminal's bit sits at word `id / 64`, bit `id % 64`.
 #[derive(Clone, Copy)]
 pub struct MatchMemoEntry<const W: usize> {
-    tried: [u64; W],
-    matched: [u64; W],
+    tried: BitSet<W>,
+    matched: BitSet<W>,
     ends: [u32; INLINE_ENDS],
     end_terminals: [TerminalId; INLINE_ENDS],
     spill_start: u32,
@@ -67,8 +65,8 @@ pub struct MatchMemoEntry<const W: usize> {
 impl<const W: usize> Default for MatchMemoEntry<W> {
     fn default() -> Self {
         Self {
-            tried: [0; W],
-            matched: [0; W],
+            tried: BitSet::default(),
+            matched: BitSet::default(),
             ends: [0; INLINE_ENDS],
             end_terminals: [TerminalId(0); INLINE_ENDS],
             spill_start: 0,
@@ -78,21 +76,11 @@ impl<const W: usize> Default for MatchMemoEntry<W> {
 }
 
 impl<const W: usize> MatchMemoEntry<W> {
-    fn set_tried(&mut self, terminal: TerminalId) {
-        let i = terminal.index();
-        self.tried[i / 64] |= 1u64 << (i % 64);
-    }
-
-    fn set_matched(&mut self, terminal: TerminalId) {
-        let i = terminal.index();
-        self.matched[i / 64] |= 1u64 << (i % 64);
-    }
-
     #[inline]
     fn lookup(&self, terminal: TerminalId, spilled_ends: &[(TerminalId, u32)]) -> Option<Lookup> {
-        let (word, bit) = (terminal.index() / 64, terminal.index() % 64);
-        let tried = (self.tried[word] >> bit) & 1;
-        let matched = (self.matched[word] >> bit) & 1;
+        let i = terminal.index();
+        let tried = u8::from(self.tried.contains(i));
+        let matched = u8::from(self.matched.contains(i));
         match (tried << 1) | matched {
             0b00 => None,
             0b10 => Some(Lookup::Fail),
@@ -116,8 +104,8 @@ impl<const W: usize> MatchMemoEntry<W> {
         end: u32,
         spilled_ends: &mut ArenaVec<'_, (TerminalId, u32)>,
     ) {
-        self.set_tried(terminal);
-        self.set_matched(terminal);
+        self.tried.insert(terminal.index());
+        self.matched.insert(terminal.index());
         let k = usize::from(self.end_count);
         if k < INLINE_ENDS {
             self.end_terminals[k] = terminal;
@@ -221,13 +209,15 @@ impl<'arena, const W: usize> MatchMemo<'arena, W> {
     }
 
     pub fn insert_fail(&mut self, terminal: TerminalId, position: u32) {
-        self.entries[position as usize].set_tried(terminal);
+        self.entries[position as usize]
+            .tried
+            .insert(terminal.index());
     }
 
     /// The `tried` and the `matched` bitsets at `position`, indexed by terminal
     /// id.
     #[inline]
-    pub fn bits(&self, position: u32) -> (&[u64; W], &[u64; W]) {
+    pub fn bits(&self, position: u32) -> (&BitSet<W>, &BitSet<W>) {
         let entry = &self.entries[position as usize];
         (&entry.tried, &entry.matched)
     }
@@ -458,8 +448,8 @@ mod tests {
         assert!(memo.get(c, 2).is_none());
         assert!(memo.get(a, 1).is_none());
         let (tried, matched) = memo.bits(2);
-        assert_eq!(*tried, [1 << 1, 1 << 6]);
-        assert_eq!(*matched, [1 << 1, 0]);
+        assert_eq!(*tried, BitSet::from_members(&[1, 70]));
+        assert_eq!(*matched, BitSet::from_members(&[1]));
     }
 
     #[test]

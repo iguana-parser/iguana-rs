@@ -7,6 +7,7 @@ use iguana_runtime::{
     input::Input,
     prediction::{AlternativeSet, Prediction},
     scanner::{Lookup, MatchMemo, Scanner, TerminalSet},
+    utils::bit_set::BitSet,
 };
 const MATCH_MEMO_WORDS: usize = 1;
 // Indexed by terminal id. `TERMINAL_FIRST_CHARS[t]` holds the characters that can begin a
@@ -32,141 +33,146 @@ static MATCH_ANY_FIRST_CHARS: [CharSet; 4] = [
     CharSet::new(0x2000000000000000000000000, &[]),
     CharSet::new(0x2000000000000000000000000, &[]),
 ];
-static MATCH_ANY_MASKS: [[u64; MATCH_MEMO_WORDS]; 4] = [[16], [19], [2], [1]];
+static MATCH_ANY_MASKS: [BitSet<MATCH_MEMO_WORDS>; 4] = [
+    BitSet::from_members(&[4]),
+    BitSet::from_members(&[0, 1, 4]),
+    BitSet::from_members(&[1]),
+    BitSet::from_members(&[0]),
+];
 // Indexed by ASCII character. `FIRST_CHAR_MASKS[c]` is a bitset indexed by terminal id, and
 // the bit of a terminal is set if the terminal can begin with the character `c`. It holds
 // the same information as `TERMINAL_FIRST_CHARS`, inverted. `match_any` clears the bits of
 // the terminals of a set that cannot begin with the character at a position, so
 // `match_any_untried` visits only the terminals that can match there.
-static FIRST_CHAR_MASKS: [[u64; MATCH_MEMO_WORDS]; 128] = [
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [3],
-    [4],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
-    [0],
+static FIRST_CHAR_MASKS: [BitSet<MATCH_MEMO_WORDS>; 128] = [
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[0, 1]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
 ];
 pub struct Ll1PlusFollowPrefixScanner<'i, 'arena> {
     pub input: &'i Input,
@@ -205,25 +211,16 @@ impl<'i, 'arena> Ll1PlusFollowPrefixScanner<'i, 'arena> {
         }
         let mask = &MATCH_ANY_MASKS[set.id];
         let (tried, matched) = self.memo.bits(input_index);
-        if mask
-            .iter()
-            .zip(matched)
-            .any(|(mask, matched)| mask & matched != 0)
-        {
+        if !mask.is_disjoint(matched) {
             return true;
         }
-        let mut untried = *mask;
-        for (word, tried) in untried.iter_mut().zip(tried) {
-            *word &= !tried;
-        }
+        let mut untried = mask.difference(tried);
         // A terminal that cannot begin with an ASCII character `c` does not match, and its bit is
         // cleared without matching it.
         if let Some(c) = c.filter(char::is_ascii) {
-            for (word, first) in untried.iter_mut().zip(&FIRST_CHAR_MASKS[c as usize]) {
-                *word &= first;
-            }
+            untried = untried.intersection(&FIRST_CHAR_MASKS[c as usize]);
         }
-        if untried.iter().all(|&word| word == 0) {
+        if untried.is_empty() {
             return false;
         }
         self.match_any_untried(untried, input_index)
@@ -237,18 +234,11 @@ impl<'i, 'arena> Ll1PlusFollowPrefixScanner<'i, 'arena> {
     // instructions at the start and end of the function. Kept separate, those instructions run
     // only when a terminal of the set was not tried yet.
     #[inline(never)]
-    fn match_any_untried(&mut self, untried: [u64; MATCH_MEMO_WORDS], input_index: u32) -> bool {
-        for (word, &bits) in untried.iter().enumerate() {
-            let mut bits = bits;
-            while bits != 0 {
-                let id = TerminalId((word * 64) as u16 + bits.trailing_zeros() as u16);
-                bits &= bits - 1;
-                if self.match_token(id, input_index).is_some() {
-                    return true;
-                }
-            }
-        }
-        false
+    fn match_any_untried(&mut self, untried: BitSet<MATCH_MEMO_WORDS>, input_index: u32) -> bool {
+        untried.iter_ascending().any(|id| {
+            self.match_token(TerminalId(id as u16), input_index)
+                .is_some()
+        })
     }
     // Matches `terminal_id` at `input_index` and records the result in the memo. `match_token`
     // looks up the memo and calls this method on a miss.
@@ -320,10 +310,9 @@ impl Scanner for Ll1PlusFollowPrefixScanner<'_, '_> {
             if alternatives.contains(alternative) {
                 continue;
             }
-            let (word, bit) = (terminal.index() / 64, 1u64 << (terminal.index() % 64));
-            let matches = if matched[word] & bit != 0 {
+            let matches = if matched.contains(terminal.index()) {
                 true
-            } else if tried[word] & bit != 0 {
+            } else if tried.contains(terminal.index()) {
                 false
             } else {
                 self.match_token(terminal, input_index).is_some()

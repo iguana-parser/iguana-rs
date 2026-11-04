@@ -37,6 +37,21 @@ impl<const W: usize> BitSet<W> {
         self.0.iter().all(|&word| word == 0)
     }
 
+    /// Returns true if `self` and `other` do not have a member in common.
+    pub fn is_disjoint(&self, other: &Self) -> bool {
+        self.0.iter().zip(&other.0).all(|(a, b)| a & b == 0)
+    }
+
+    /// Returns the members of `self` that are not in `other`.
+    pub fn difference(&self, other: &Self) -> Self {
+        Self(std::array::from_fn(|i| self.0[i] & !other.0[i]))
+    }
+
+    /// Returns the members of `self` that are also in `other`.
+    pub fn intersection(&self, other: &Self) -> Self {
+        Self(std::array::from_fn(|i| self.0[i] & other.0[i]))
+    }
+
     /// The members from the largest to the smallest.
     pub fn iter_descending(&self) -> impl Iterator<Item = usize> {
         let words = self.0;
@@ -82,6 +97,16 @@ mod tests {
             expected.insert(i);
         }
         assert_eq!(SET, expected);
+    }
+
+    #[test]
+    fn set_operations_combine_the_words() {
+        let a = BitSet::<2>::from_members(&[0, 3, 64, 127]);
+        let b = BitSet::<2>::from_members(&[3, 65, 127]);
+        assert_eq!(a.difference(&b), BitSet::from_members(&[0, 64]));
+        assert_eq!(a.intersection(&b), BitSet::from_members(&[3, 127]));
+        assert!(!a.is_disjoint(&b));
+        assert!(a.is_disjoint(&BitSet::from_members(&[1, 65])));
     }
 
     #[test]

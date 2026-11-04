@@ -157,7 +157,8 @@ impl<'a> ScannerGen<'a> {
         } else {
             (quote! {}, quote! {})
         };
-        let bit_set_import = literal_sets.then(|| quote! { utils::bit_set::BitSet, });
+        let bit_set_import =
+            (literal_sets || self.config.match_memo).then(|| quote! { utils::bit_set::BitSet, });
         let mut char_set_imports = vec![quote! { CharRange }, quote! { CharSet }];
         if literal_sets {
             char_set_imports.insert(0, quote! { Alphabet });
@@ -190,7 +191,6 @@ impl<'a> ScannerGen<'a> {
     fn memo_words(&self) -> usize {
         (self.terminal_ids.len() + 2).div_ceil(64)
     }
-
     /// Emits `MATCH_ANY_MASKS`, which holds for each `match_any` set the set's
     /// terminals as a bitset indexed by terminal id. `match_any` tests a set's mask
     /// against the memo's bitsets at a position.
@@ -198,24 +198,22 @@ impl<'a> ScannerGen<'a> {
         if !self.config.match_memo {
             return quote! {};
         }
-        let mut masks = vec![vec![0u64; self.memo_words()]; self.match_any_count];
+        let mut masks = vec![Vec::new(); self.match_any_count];
         for set in self
             .terminal_sets
             .iter()
             .filter(|set| set.id < self.match_any_count)
         {
-            for terminal in &set.terminals {
-                let i = self.terminal_ids.get_id(terminal).index();
-                masks[set.id][i / 64] |= 1u64 << (i % 64);
-            }
+            masks[set.id] = set
+                .terminals
+                .iter()
+                .map(|terminal| self.terminal_ids.get_id(terminal).index())
+                .collect();
         }
         let set_count = Literal::usize_unsuffixed(self.match_any_count);
-        let masks = masks.iter().map(|mask| {
-            let words = mask.iter().map(|&word| Literal::u64_unsuffixed(word));
-            quote! { [#(#words),*] }
-        });
+        let masks = masks.into_iter().map(gen_bit_set);
         quote! {
-            static MATCH_ANY_MASKS: [[u64; MATCH_MEMO_WORDS]; #set_count] = [#(#masks),*];
+            static MATCH_ANY_MASKS: [BitSet<MATCH_MEMO_WORDS>; #set_count] = [#(#masks),*];
         }
     }
 
@@ -427,18 +425,18 @@ impl<'a> ScannerGen<'a> {
         let terminals = self.terminal_first_chars();
         let epsilon = self.terminal_ids.len();
         let masks = (0..128u32).map(|c| {
-            let mut mask = vec![0u64; self.memo_words()];
-            for (i, ranges) in terminals.iter().enumerate() {
-                if i != epsilon
-                    && ranges
-                        .iter()
-                        .any(|range| range.start as u32 <= c && c <= range.end as u32)
-                {
-                    mask[i / 64] |= 1u64 << (i % 64);
-                }
-            }
-            let words = mask.into_iter().map(Literal::u64_unsuffixed);
-            quote! { [#(#words),*] }
+            let members = terminals
+                .iter()
+                .enumerate()
+                .filter(|&(i, ranges)| {
+                    i != epsilon
+                        && ranges
+                            .iter()
+                            .any(|range| range.start as u32 <= c && c <= range.end as u32)
+                })
+                .map(|(i, _)| i)
+                .collect();
+            gen_bit_set(members)
         });
         quote! {
             #[comment = "Indexed by ASCII character. `FIRST_CHAR_MASKS[c]` is a bitset indexed by terminal id, and the
@@ -446,7 +444,7 @@ impl<'a> ScannerGen<'a> {
                          information as `TERMINAL_FIRST_CHARS`, inverted. `match_any` clears the bits of the terminals
                          of a set that cannot begin with the character at a position, so `match_any_untried` visits
                          only the terminals that can match there."]
-            static FIRST_CHAR_MASKS: [[u64; MATCH_MEMO_WORDS]; 128] = [#(#masks),*];
+            static FIRST_CHAR_MASKS: [BitSet<MATCH_MEMO_WORDS>; 128] = [#(#masks),*];
         }
     }
 
@@ -585,21 +583,16 @@ impl<'a> ScannerGen<'a> {
                     #first_char_test
                     let mask = &MATCH_ANY_MASKS[set.id];
                     let (tried, matched) = self.memo.bits(input_index);
-                    if mask.iter().zip(matched).any(|(mask, matched)| mask & matched != 0) {
+                    if !mask.is_disjoint(matched) {
                         return true;
                     }
-                    let mut untried = *mask;
-                    for (word, tried) in untried.iter_mut().zip(tried) {
-                        *word &= !tried;
-                    }
+                    let mut untried = mask.difference(tried);
                     #[comment = "A terminal that cannot begin with an ASCII character `c` does not match, and its
                                  bit is cleared without matching it."]
                     if let Some(c) = c.filter(char::is_ascii) {
-                        for (word, first) in untried.iter_mut().zip(&FIRST_CHAR_MASKS[c as usize]) {
-                            *word &= first;
-                        }
+                        untried = untried.intersection(&FIRST_CHAR_MASKS[c as usize]);
                     }
-                    if untried.iter().all(|&word| word == 0) {
+                    if untried.is_empty() {
                         return false;
                     }
                     self.match_any_untried(untried, input_index)
@@ -613,18 +606,10 @@ impl<'a> ScannerGen<'a> {
                              extra instructions at the start and end of the function. Kept separate, those
                              instructions run only when a terminal of the set was not tried yet."]
                 #[inline(never)]
-                fn match_any_untried(&mut self, untried: [u64; MATCH_MEMO_WORDS], input_index: u32) -> bool {
-                    for (word, &bits) in untried.iter().enumerate() {
-                        let mut bits = bits;
-                        while bits != 0 {
-                            let id = TerminalId((word * 64) as u16 + bits.trailing_zeros() as u16);
-                            bits &= bits - 1;
-                            if self.match_token(id, input_index).is_some() {
-                                return true;
-                            }
-                        }
-                    }
-                    false
+                fn match_any_untried(&mut self, untried: BitSet<MATCH_MEMO_WORDS>, input_index: u32) -> bool {
+                    untried
+                        .iter_ascending()
+                        .any(|id| self.match_token(TerminalId(id as u16), input_index).is_some())
                 }
             }
         } else {
@@ -683,10 +668,9 @@ impl<'a> ScannerGen<'a> {
                     if alternatives.contains(alternative) {
                         continue;
                     }
-                    let (word, bit) = (terminal.index() / 64, 1u64 << (terminal.index() % 64));
-                    let matches = if matched[word] & bit != 0 {
+                    let matches = if matched.contains(terminal.index()) {
                         true
-                    } else if tried[word] & bit != 0 {
+                    } else if tried.contains(terminal.index()) {
                         false
                     } else {
                         self.match_token(terminal, input_index).is_some()
@@ -915,6 +899,13 @@ fn trie_method(name: &str, ignore_ascii_case: bool) -> Ident {
 
 fn literal_set_ident(scan_id: usize) -> Ident {
     format_ident!("LITERAL_SET_{}", scan_id)
+}
+
+/// Emits the `BitSet` of the terminal ids `members`.
+fn gen_bit_set(mut members: Vec<usize>) -> TokenStream {
+    members.sort_unstable();
+    let members = members.into_iter().map(Literal::usize_unsuffixed);
+    quote! { BitSet::from_members(&[#(#members),*]) }
 }
 
 /// Emits the `CharSet` of `ranges`, which are sorted and disjoint. The ASCII

@@ -161,179 +161,191 @@ static MATCH_ANY_FIRST_CHARS: [CharSet; 37] = [
         ],
     ),
 ];
-static MATCH_ANY_MASKS: [[u64; MATCH_MEMO_WORDS]; 37] = [
-    [549755815168],
-    [549756060932],
-    [549755815172],
-    [601328977180],
-    [549759206660],
-    [549756069124],
-    [549923841292],
-    [549756331268],
-    [579790693772],
-    [549923587340],
-    [605157836060],
-    [618475291968],
-    [824633720284],
-    [1280],
-    [549756011776],
-    [549755946240],
-    [601399739676],
-    [549826577668],
-    [549991212428],
-    [549823186176],
-    [584115553536],
-    [824633719004],
-    [549755813888],
-    [51573163292],
-    [67108864],
-    [167772172],
-    [268435456],
-    [536870912],
-    [1073741824],
-    [2147483648],
-    [25772949504],
-    [68719476736],
-    [247044],
-    [8192],
-    [262144],
-    [4],
-    [64],
+static MATCH_ANY_MASKS: [BitSet<MATCH_MEMO_WORDS>; 37] = [
+    BitSet::from_members(&[8, 10, 39]),
+    BitSet::from_members(&[2, 8, 10, 14, 15, 16, 17, 39]),
+    BitSet::from_members(&[2, 8, 10, 39]),
+    BitSet::from_members(&[2, 3, 4, 8, 10, 25, 34, 35, 39]),
+    BitSet::from_members(&[2, 8, 10, 14, 15, 16, 17, 20, 21, 39]),
+    BitSet::from_members(&[2, 8, 10, 13, 14, 15, 16, 17, 39]),
+    BitSet::from_members(&[2, 3, 8, 10, 13, 14, 15, 16, 17, 25, 27, 39]),
+    BitSet::from_members(&[2, 8, 10, 13, 14, 15, 16, 17, 18, 39]),
+    BitSet::from_members(&[
+        2, 3, 7, 8, 10, 13, 14, 15, 16, 17, 18, 20, 21, 25, 26, 27, 28, 29, 30, 31, 33, 34, 39,
+    ]),
+    BitSet::from_members(&[2, 3, 8, 10, 25, 27, 39]),
+    BitSet::from_members(&[
+        2, 3, 4, 8, 10, 14, 15, 16, 17, 18, 20, 21, 25, 26, 29, 30, 31, 34, 35, 39,
+    ]),
+    BitSet::from_members(&[6, 8, 10, 36, 39]),
+    BitSet::from_members(&[
+        2, 3, 4, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27,
+        28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 39,
+    ]),
+    BitSet::from_members(&[8, 10]),
+    BitSet::from_members(&[8, 10, 16, 17, 39]),
+    BitSet::from_members(&[8, 10, 17, 39]),
+    BitSet::from_members(&[
+        2, 3, 4, 8, 10, 14, 15, 16, 17, 18, 20, 21, 25, 26, 34, 35, 39,
+    ]),
+    BitSet::from_members(&[2, 8, 10, 14, 15, 16, 17, 18, 20, 21, 26, 39]),
+    BitSet::from_members(&[2, 3, 7, 8, 10, 13, 14, 15, 16, 17, 18, 25, 26, 27, 39]),
+    BitSet::from_members(&[8, 10, 18, 26, 39]),
+    BitSet::from_members(&[8, 10, 35, 39]),
+    BitSet::from_members(&[
+        2, 3, 4, 6, 7, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
+        30, 31, 32, 33, 34, 35, 36, 37, 39,
+    ]),
+    BitSet::from_members(&[39]),
+    BitSet::from_members(&[2, 3, 4, 8, 10, 25, 34, 35]),
+    BitSet::from_members(&[26]),
+    BitSet::from_members(&[2, 3, 25, 27]),
+    BitSet::from_members(&[28]),
+    BitSet::from_members(&[29]),
+    BitSet::from_members(&[30]),
+    BitSet::from_members(&[31]),
+    BitSet::from_members(&[20, 21, 33, 34]),
+    BitSet::from_members(&[36]),
+    BitSet::from_members(&[2, 8, 10, 14, 15, 16, 17]),
+    BitSet::from_members(&[13]),
+    BitSet::from_members(&[18]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[6]),
 ];
 // Indexed by ASCII character. `FIRST_CHAR_MASKS[c]` is a bitset indexed by terminal id, and
 // the bit of a terminal is set if the terminal can begin with the character `c`. It holds
 // the same information as `TERMINAL_FIRST_CHARS`, inverted. `match_any` clears the bits of
 // the terminals of a set that cannot begin with the character at a position, so
 // `match_any_untried` visits only the terminals that can match there.
-static FIRST_CHAR_MASKS: [[u64; MATCH_MEMO_WORDS]; 128] = [
-    [64],
-    [64],
-    [64],
-    [64],
-    [64],
-    [64],
-    [64],
-    [64],
-    [64],
-    [768],
-    [768],
-    [64],
-    [0],
-    [0],
-    [64],
-    [64],
-    [64],
-    [64],
-    [64],
-    [64],
-    [64],
-    [64],
-    [64],
-    [64],
-    [64],
-    [64],
-    [64],
-    [64],
-    [64],
-    [64],
-    [64],
-    [64],
-    [768],
-    [25772425280],
-    [72],
-    [192],
-    [64],
-    [64],
-    [64],
-    [80],
-    [33554496],
-    [67108928],
-    [536870976],
-    [1073741888],
-    [64],
-    [137438953472],
-    [64],
-    [1088],
-    [66],
-    [66],
-    [66],
-    [66],
-    [66],
-    [66],
-    [66],
-    [66],
-    [66],
-    [66],
-    [4294967360],
-    [64],
-    [64],
-    [4160],
-    [8256],
-    [2147483712],
-    [245824],
-    [70],
-    [70],
-    [70],
-    [70],
-    [70],
-    [70],
-    [70],
-    [70],
-    [70],
-    [70],
-    [70],
-    [70],
-    [70],
-    [70],
-    [70],
-    [70],
-    [70],
-    [70],
-    [70],
-    [70],
-    [70],
-    [70],
-    [70],
-    [70],
-    [70],
-    [70],
-    [34359738368],
-    [1048672],
-    [68719476736],
-    [64],
-    [66],
-    [64],
-    [70],
-    [70],
-    [70],
-    [70],
-    [70],
-    [70],
-    [2119],
-    [70],
-    [70],
-    [70],
-    [70],
-    [4194375],
-    [70],
-    [16777287],
-    [70],
-    [70],
-    [70],
-    [8388679],
-    [70],
-    [70],
-    [70],
-    [70],
-    [70],
-    [70],
-    [70],
-    [70],
-    [134217792],
-    [262208],
-    [268435520],
-    [64],
-    [64],
+static FIRST_CHAR_MASKS: [BitSet<MATCH_MEMO_WORDS>; 128] = [
+    BitSet::from_members(&[6]),
+    BitSet::from_members(&[6]),
+    BitSet::from_members(&[6]),
+    BitSet::from_members(&[6]),
+    BitSet::from_members(&[6]),
+    BitSet::from_members(&[6]),
+    BitSet::from_members(&[6]),
+    BitSet::from_members(&[6]),
+    BitSet::from_members(&[6]),
+    BitSet::from_members(&[8, 9]),
+    BitSet::from_members(&[8, 9]),
+    BitSet::from_members(&[6]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[]),
+    BitSet::from_members(&[6]),
+    BitSet::from_members(&[6]),
+    BitSet::from_members(&[6]),
+    BitSet::from_members(&[6]),
+    BitSet::from_members(&[6]),
+    BitSet::from_members(&[6]),
+    BitSet::from_members(&[6]),
+    BitSet::from_members(&[6]),
+    BitSet::from_members(&[6]),
+    BitSet::from_members(&[6]),
+    BitSet::from_members(&[6]),
+    BitSet::from_members(&[6]),
+    BitSet::from_members(&[6]),
+    BitSet::from_members(&[6]),
+    BitSet::from_members(&[6]),
+    BitSet::from_members(&[6]),
+    BitSet::from_members(&[6]),
+    BitSet::from_members(&[6]),
+    BitSet::from_members(&[8, 9]),
+    BitSet::from_members(&[6, 19, 21, 33, 34]),
+    BitSet::from_members(&[3, 6]),
+    BitSet::from_members(&[6, 7]),
+    BitSet::from_members(&[6]),
+    BitSet::from_members(&[6]),
+    BitSet::from_members(&[6]),
+    BitSet::from_members(&[4, 6]),
+    BitSet::from_members(&[6, 25]),
+    BitSet::from_members(&[6, 26]),
+    BitSet::from_members(&[6, 29]),
+    BitSet::from_members(&[6, 30]),
+    BitSet::from_members(&[6]),
+    BitSet::from_members(&[37]),
+    BitSet::from_members(&[6]),
+    BitSet::from_members(&[6, 10]),
+    BitSet::from_members(&[1, 6]),
+    BitSet::from_members(&[1, 6]),
+    BitSet::from_members(&[1, 6]),
+    BitSet::from_members(&[1, 6]),
+    BitSet::from_members(&[1, 6]),
+    BitSet::from_members(&[1, 6]),
+    BitSet::from_members(&[1, 6]),
+    BitSet::from_members(&[1, 6]),
+    BitSet::from_members(&[1, 6]),
+    BitSet::from_members(&[1, 6]),
+    BitSet::from_members(&[6, 32]),
+    BitSet::from_members(&[6]),
+    BitSet::from_members(&[6]),
+    BitSet::from_members(&[6, 12]),
+    BitSet::from_members(&[6, 13]),
+    BitSet::from_members(&[6, 31]),
+    BitSet::from_members(&[6, 14, 15, 16, 17]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[35]),
+    BitSet::from_members(&[5, 6, 20]),
+    BitSet::from_members(&[36]),
+    BitSet::from_members(&[6]),
+    BitSet::from_members(&[1, 6]),
+    BitSet::from_members(&[6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[0, 1, 2, 6, 11]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[0, 1, 2, 6, 22]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[0, 1, 2, 6, 24]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[0, 1, 2, 6, 23]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[6, 27]),
+    BitSet::from_members(&[6, 18]),
+    BitSet::from_members(&[6, 28]),
+    BitSet::from_members(&[6]),
+    BitSet::from_members(&[6]),
 ];
 // 0: grammar
 // 1: left
@@ -1088,25 +1100,16 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
         }
         let mask = &MATCH_ANY_MASKS[set.id];
         let (tried, matched) = self.memo.bits(input_index);
-        if mask
-            .iter()
-            .zip(matched)
-            .any(|(mask, matched)| mask & matched != 0)
-        {
+        if !mask.is_disjoint(matched) {
             return true;
         }
-        let mut untried = *mask;
-        for (word, tried) in untried.iter_mut().zip(tried) {
-            *word &= !tried;
-        }
+        let mut untried = mask.difference(tried);
         // A terminal that cannot begin with an ASCII character `c` does not match, and its bit is
         // cleared without matching it.
         if let Some(c) = c.filter(char::is_ascii) {
-            for (word, first) in untried.iter_mut().zip(&FIRST_CHAR_MASKS[c as usize]) {
-                *word &= first;
-            }
+            untried = untried.intersection(&FIRST_CHAR_MASKS[c as usize]);
         }
-        if untried.iter().all(|&word| word == 0) {
+        if untried.is_empty() {
             return false;
         }
         self.match_any_untried(untried, input_index)
@@ -1120,18 +1123,11 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
     // instructions at the start and end of the function. Kept separate, those instructions run
     // only when a terminal of the set was not tried yet.
     #[inline(never)]
-    fn match_any_untried(&mut self, untried: [u64; MATCH_MEMO_WORDS], input_index: u32) -> bool {
-        for (word, &bits) in untried.iter().enumerate() {
-            let mut bits = bits;
-            while bits != 0 {
-                let id = TerminalId((word * 64) as u16 + bits.trailing_zeros() as u16);
-                bits &= bits - 1;
-                if self.match_token(id, input_index).is_some() {
-                    return true;
-                }
-            }
-        }
-        false
+    fn match_any_untried(&mut self, untried: BitSet<MATCH_MEMO_WORDS>, input_index: u32) -> bool {
+        untried.iter_ascending().any(|id| {
+            self.match_token(TerminalId(id as u16), input_index)
+                .is_some()
+        })
     }
     // Matches `terminal_id` at `input_index` and records the result in the memo. `match_token`
     // looks up the memo and calls this method on a miss.
@@ -1238,10 +1234,9 @@ impl Scanner for IggyScanner<'_, '_> {
             if alternatives.contains(alternative) {
                 continue;
             }
-            let (word, bit) = (terminal.index() / 64, 1u64 << (terminal.index() % 64));
-            let matches = if matched[word] & bit != 0 {
+            let matches = if matched.contains(terminal.index()) {
                 true
-            } else if tried[word] & bit != 0 {
+            } else if tried.contains(terminal.index()) {
                 false
             } else {
                 self.match_token(terminal, input_index).is_some()
