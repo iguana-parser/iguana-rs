@@ -399,7 +399,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for DanglingElseFirstParseParser<'i, 'arena>
     fn add_intermediate_node(
         &mut self,
         intermediate_node: IntermediateNode,
-        _env: Option<EnvId>,
         _add_to_index: bool,
     ) -> SPPFNodeId {
         record!(

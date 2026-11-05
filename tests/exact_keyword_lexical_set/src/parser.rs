@@ -25,8 +25,10 @@ use iguana_runtime::{
     record,
     result::{ParseError, ParseSuccess},
     scanner::{Scanner, TerminalSet},
-    sppf::{IntermediateNode, NonterminalNode, SPPFNode, TerminalNode},
-    utils::lazy_inline_maps::LazyInlineMaps,
+    sppf::{
+        IntermediateNode, IntermediateNodeIndex, NonterminalNode, SPPFNode, TerminalNode,
+        TerminalNodeIndex,
+    },
 };
 use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
@@ -260,9 +262,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordLexicalSetParser<'i, 'arena>
         let terminal_id = terminal_node.terminal_id;
         let span = terminal_node.span;
         let terminal_node_id = self.sppf_nodes.push(SPPFNode::Terminal(terminal_node));
-        let arena = self.vec_arena;
         self.terminal_nodes_index
-            .insert(terminal_id.index(), span, terminal_node_id, arena);
+            .insert(&self.sppf_nodes, terminal_id, span, terminal_node_id);
         terminal_node_id
     }
     fn add_nonterminal_node(&mut self, nonterminal_node: NonterminalNode) -> SPPFNodeId {
@@ -280,7 +281,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordLexicalSetParser<'i, 'arena>
     fn add_intermediate_node(
         &mut self,
         intermediate_node: IntermediateNode,
-        env: Option<EnvId>,
         add_to_index: bool,
     ) -> SPPFNodeId {
         record!(
@@ -291,25 +291,20 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordLexicalSetParser<'i, 'arena>
             intermediate_node.child.0,
             intermediate_node.child.1
         );
-        let slot_idx = intermediate_node.slot_id.index();
+        let slot_id = intermediate_node.slot_id;
         let span = intermediate_node.span;
+        let env = intermediate_node.env;
         let intermediate_node_id = self
             .sppf_nodes
             .push(SPPFNode::Intermediate(intermediate_node));
         if add_to_index {
-            let arena = self.vec_arena;
-            if slot_idx < 12 {
-                self.intermediate_nodes_index
-                    .insert(slot_idx, span, intermediate_node_id, arena);
-            } else {
-                let idx = slot_idx - 12;
-                self.dd_intermediate_nodes_index.insert(
-                    idx,
-                    (span, env),
-                    intermediate_node_id,
-                    arena,
-                );
-            }
+            self.intermediate_nodes_index.insert(
+                &self.sppf_nodes,
+                slot_id,
+                span,
+                env,
+                intermediate_node_id,
+            );
         }
         intermediate_node_id
     }
@@ -375,14 +370,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordLexicalSetParser<'i, 'arena>
         right_extent: u32,
         env: Option<EnvId>,
     ) -> Option<SPPFNodeId> {
-        let slot_idx = slot_id.index();
         let span = Span::new(left_extent, right_extent);
-        if slot_idx < 12 {
-            self.intermediate_nodes_index.get(slot_idx, &span)
-        } else {
-            let idx = slot_idx - 12;
-            self.dd_intermediate_nodes_index.get(idx, &(span, env))
-        }
+        self.intermediate_nodes_index
+            .get(&self.sppf_nodes, slot_id, span, env)
     }
     fn lookup_terminal_node(
         &self,
@@ -390,8 +380,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordLexicalSetParser<'i, 'arena>
         left_extent: u32,
         right_extent: u32,
     ) -> Option<SPPFNodeId> {
-        self.terminal_nodes_index
-            .get(terminal_id.index(), &Span::new(left_extent, right_extent))
+        self.terminal_nodes_index.get(
+            &self.sppf_nodes,
+            terminal_id,
+            Span::new(left_extent, right_extent),
+        )
     }
     fn gss_nodes<'p>(&'p self) -> impl Iterator<Item = (GssNodeId, &'p GSSNode<'arena>)>
     where
@@ -511,15 +504,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for ExactKeywordLexicalSetParser<'i, 'arena>
         for env in self.envs() {
             stats.record("Env::bindings: Bindings", env.bindings.len());
         }
-        for len in self.intermediate_nodes_index.map_lens() {
-            stats.record("Parser::intermediate_nodes_index: InlineMap", len);
-        }
-        for len in self.dd_intermediate_nodes_index.map_lens() {
-            stats.record("Parser::dd_intermediate_nodes_index: InlineMap", len);
-        }
-        for len in self.terminal_nodes_index.map_lens() {
-            stats.record("Parser::terminal_nodes_index: InlineMap", len);
-        }
+        stats.record(
+            "Parser::intermediate_nodes_index",
+            self.intermediate_nodes_index.len(),
+        );
+        stats.record(
+            "Parser::terminal_nodes_index",
+            self.terminal_nodes_index.len(),
+        );
         stats.record("Parser::gss_nodes_index", self.gss_nodes_index.len());
         for (nt_id, pos) in &self.ll1_call_log {
             let name = Self::Grammar::nonterminal_display_name(*nt_id);
@@ -599,12 +591,8 @@ pub struct ExactKeywordLexicalSetParser<'i, 'arena> {
     descriptors_peak: usize,
     #[cfg(feature = "instrument")]
     ll1_call_log: Vec<(NonterminalId, u32)>,
-    // Per-slot Span-keyed intermediate-node index, for slots in non-parameterized nonterminals.
-    intermediate_nodes_index: LazyInlineMaps<'arena, Span, SPPFNodeId>,
-    // Per-slot (Span, env)-keyed intermediate-node index, for slots in parameterized
-    // nonterminals; env separates calls made with different parameter values.
-    dd_intermediate_nodes_index: LazyInlineMaps<'arena, (Span, Option<EnvId>), SPPFNodeId>,
-    terminal_nodes_index: LazyInlineMaps<'arena, Span, SPPFNodeId>,
+    intermediate_nodes_index: IntermediateNodeIndex<'arena>,
+    terminal_nodes_index: TerminalNodeIndex<'arena>,
     // An intermediate node keeps its first child inline. Children of intermediate nodes are
     // pairs: (left_child, right_child). Extra children, when there is ambiguity, are stored here
     // as (parent node, (left child, right child)).
@@ -649,9 +637,8 @@ impl<'i, 'arena> ExactKeywordLexicalSetParser<'i, 'arena> {
             start_gss_node_id: None,
             sppf_nodes: vec_arena
                 .id_vec_with_capacity(input.len() as usize * SPPF_CAPACITY_MULTIPLIER),
-            intermediate_nodes_index: LazyInlineMaps::new(12, vec_arena),
-            dd_intermediate_nodes_index: LazyInlineMaps::new(0, vec_arena),
-            terminal_nodes_index: LazyInlineMaps::new(7, vec_arena),
+            intermediate_nodes_index: IntermediateNodeIndex::new(input.len() as usize, vec_arena),
+            terminal_nodes_index: TerminalNodeIndex::new(input.len() as usize, vec_arena),
             #[cfg(feature = "instrument")]
             descriptors_count: 0,
             #[cfg(feature = "instrument")]

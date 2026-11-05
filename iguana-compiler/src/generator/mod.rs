@@ -191,9 +191,7 @@ fn assign_slot_ids<'a>(grammar: &'a Grammar, nonterminal_ids: &mut NonterminalId
     // non-parameterized nonterminals first (sorted at construction in
     // `NonterminalIds::new`). Iterating in that order means all slots of
     // non-parameterized nonterminals get lower ids than slots of
-    // parameterized ones. The intermediate-node index uses this partition to
-    // dispatch between a `Span`-keyed array (non-parameterized) and a
-    // `(Span, Option<EnvId>)`-keyed array (parameterized).
+    // parameterized ones.
     //
     // The slots of one alternative take consecutive ids in position order. The
     // runtime relies on this to find the slot a call was made from, one id

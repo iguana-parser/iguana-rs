@@ -1013,9 +1013,10 @@ pub trait Parser<'i, 'arena>: Sized {
                 right_extent,
             },
             child: (left_child, right_child),
+            env,
             ambiguous: false,
         };
-        Some(self.add_intermediate_node(intermediate_node, env, !Self::FIRST_PARSE))
+        Some(self.add_intermediate_node(intermediate_node, !Self::FIRST_PARSE))
     }
 
     /// LL(1)-path intermediate-node creation. Skips the lookup and the index
@@ -1038,9 +1039,10 @@ pub trait Parser<'i, 'arena>: Sized {
                 right_extent,
             },
             child: (left_child, right_child),
+            env: None,
             ambiguous: false,
         };
-        self.add_intermediate_node(intermediate_node, None, false)
+        self.add_intermediate_node(intermediate_node, false)
     }
 
     /// Combines the left child (result from previous slots) and a right child
@@ -1103,7 +1105,6 @@ pub trait Parser<'i, 'arena>: Sized {
     fn add_intermediate_node(
         &mut self,
         intermediate_node: IntermediateNode,
-        env: Option<EnvId>,
         add_to_index: bool,
     ) -> SPPFNodeId;
 

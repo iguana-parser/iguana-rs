@@ -312,18 +312,17 @@ impl<'a> ParserGen<'a> {
     fn gen_imports(&self) -> TokenStream {
         let scanner_name = scanner_ident(&self.grammar.name);
         let parse_tree_builder_name = parse_tree_builder_ident(&self.grammar.name);
-        // The first-parse mode omits the side maps, the only users of OnceCell and
-        // FxHashMap, and the SPPF indexes, the only users of LazyInlineMaps.
-        let (once_cell_import, fx_hashmap_import, lazy_inline_maps_import) =
-            if self.config.first_parse {
-                (quote! {}, quote! {}, quote! {})
-            } else {
-                (
-                    quote! { use std::cell::OnceCell; },
-                    quote! { use rustc_hash::FxHashMap; },
-                    quote! { utils::lazy_inline_maps::LazyInlineMaps, },
-                )
-            };
+        // The first-parse mode does not have the side maps, the only users of
+        // OnceCell and FxHashMap, or the SPPF-node indexes.
+        let (once_cell_import, fx_hashmap_import, sppf_index_imports) = if self.config.first_parse {
+            (quote! {}, quote! {}, quote! {})
+        } else {
+            (
+                quote! { use std::cell::OnceCell; },
+                quote! { use rustc_hash::FxHashMap; },
+                quote! { IntermediateNodeIndex, TerminalNodeIndex, },
+            )
+        };
         let has_parameters = self.nonterminal_ids.dd_nonterminals().next().is_some();
         let parameters_capacity_imports = if has_parameters {
             quote! { DD_GSS_INDEX_CAPACITY_DIVISOR, ENVS_CAPACITY_MULTIPLIER, }
@@ -355,8 +354,7 @@ impl<'a> ParserGen<'a> {
                 result::{ParseError, ParseSuccess},
                 prediction::Prediction,
                 scanner::{Scanner, TerminalSet},
-                sppf::{IntermediateNode, NonterminalNode, SPPFNode, TerminalNode},
-                #lazy_inline_maps_import
+                sppf::{IntermediateNode, NonterminalNode, SPPFNode, TerminalNode, #sppf_index_imports},
             };
             // In the first-parse mode Span is used only by LL(1) node construction; checking whether the
             // grammar has any here is expensive, so allow the unused import instead.
@@ -1534,7 +1532,6 @@ impl<'a> ParserGen<'a> {
             .dd_nonterminals()
             .map(Self::gen_gss_nodes_index_field_for_data_dependent_nt)
             .collect();
-        let dd_slot_start = self.slot_ids.dd_slot_start();
         let parser_name_ident = parser_ident(grammar_name);
         let scanner_name_ident = scanner_ident(grammar_name);
         let scanner_ty = if self.config.match_memo {
@@ -1559,29 +1556,13 @@ impl<'a> ParserGen<'a> {
         } else {
             quote! {}
         };
-        // intermediate_nodes_index serves the slots of nonterminals that are
-        // not data-dependent. When every nonterminal is data-dependent, the
-        // insert and lookup methods use dd_intermediate_nodes_index
-        // unconditionally (see gen_add_intermediate_node_method) and this
-        // field would be dead code. Skip it.
-        let intermediate_nodes_index_field = if dd_slot_start == 0 {
-            quote! {}
-        } else {
-            quote! {
-                #[comment = "Per-slot Span-keyed intermediate-node index, for slots in non-parameterized nonterminals."]
-                intermediate_nodes_index: LazyInlineMaps<'arena, Span, SPPFNodeId>,
-            }
-        };
         // The first-parse mode never shares SPPF nodes, so it does not have the lookup indexes.
         let sppf_nodes_index_fields = if self.config.first_parse {
             quote! {}
         } else {
             quote! {
-                #intermediate_nodes_index_field
-                #[comment = "Per-slot (Span, env)-keyed intermediate-node index, for slots in parameterized
-                             nonterminals; env separates calls made with different parameter values."]
-                dd_intermediate_nodes_index: LazyInlineMaps<'arena, (Span, Option<EnvId>), SPPFNodeId>,
-                terminal_nodes_index: LazyInlineMaps<'arena, Span, SPPFNodeId>,
+                intermediate_nodes_index: IntermediateNodeIndex<'arena>,
+                terminal_nodes_index: TerminalNodeIndex<'arena>,
             }
         };
         // The first-parse mode produces no ambiguity, so it does not have the extra-children side tables.
@@ -1652,18 +1633,8 @@ impl<'a> ParserGen<'a> {
         if self.config.first_parse {
             return quote! {};
         }
-        let dd_slot_start = self.slot_ids.dd_slot_start();
-        let dd_intermediate_nodes_index = lazy_inline_maps(self.slot_ids.len() - dd_slot_start);
-        // When every nonterminal is data-dependent, the intermediate_nodes_index field does not exist.
-        if dd_slot_start == 0 {
-            return quote! {
-                dd_intermediate_nodes_index: #dd_intermediate_nodes_index,
-            };
-        }
-        let intermediate_nodes_index = lazy_inline_maps(dd_slot_start);
         quote! {
-            intermediate_nodes_index: #intermediate_nodes_index,
-            dd_intermediate_nodes_index: #dd_intermediate_nodes_index,
+            intermediate_nodes_index: IntermediateNodeIndex::new(input.len() as usize, vec_arena),
         }
     }
 
@@ -1671,9 +1642,8 @@ impl<'a> ParserGen<'a> {
         if self.config.first_parse {
             return quote! {};
         }
-        let terminal_nodes_index = lazy_inline_maps(self.terminal_ids.len() + 2);
         quote! {
-            terminal_nodes_index: #terminal_nodes_index,
+            terminal_nodes_index: TerminalNodeIndex::new(input.len() as usize, vec_arena),
         }
     }
 
@@ -2448,9 +2418,8 @@ impl<'a> ParserGen<'a> {
                 let terminal_id = terminal_node.terminal_id;
                 let span = terminal_node.span;
                 let terminal_node_id = #push;
-                let arena = self.vec_arena;
                 self.terminal_nodes_index
-                    .insert(terminal_id.index(), span, terminal_node_id, arena);
+                    .insert(&self.sppf_nodes, terminal_id, span, terminal_node_id);
                 terminal_node_id
             }
         };
@@ -2478,43 +2447,21 @@ impl<'a> ParserGen<'a> {
     }
 
     fn gen_add_intermediate_node_method(&self) -> TokenStream {
-        let dd_slot_start = self.slot_ids.dd_slot_start();
-        let dd_slot_start_lit = Literal::usize_unsuffixed(dd_slot_start);
-        // When every nonterminal is data-dependent, the split below would
-        // compile to `slot_idx < 0`, an unused comparison on usize that
-        // deny-warnings builds reject. Emit the data-dependent arm alone.
-        let index_dispatch = if dd_slot_start == 0 {
-            quote! {
-                self.dd_intermediate_nodes_index
-                    .insert(slot_idx, (span, env), intermediate_node_id, arena);
-            }
-        } else {
-            quote! {
-                if slot_idx < #dd_slot_start_lit {
-                    self.intermediate_nodes_index
-                        .insert(slot_idx, span, intermediate_node_id, arena);
-                } else {
-                    let idx = slot_idx - #dd_slot_start_lit;
-                    self.dd_intermediate_nodes_index
-                        .insert(idx, (span, env), intermediate_node_id, arena);
-                }
-            }
-        };
         let push = quote! { self.sppf_nodes.push(SPPFNode::Intermediate(intermediate_node)) };
         // The first-parse mode keeps no intermediate node index, so the new id is returned directly.
-        let (env_param, add_to_index_param, push_and_index) = if self.config.first_parse {
-            (quote! { _env }, quote! { _add_to_index }, push)
+        let (add_to_index_param, push_and_index) = if self.config.first_parse {
+            (quote! { _add_to_index }, push)
         } else {
             (
-                quote! { env },
                 quote! { add_to_index },
                 quote! {
-                    let slot_idx = intermediate_node.slot_id.index();
+                    let slot_id = intermediate_node.slot_id;
                     let span = intermediate_node.span;
+                    let env = intermediate_node.env;
                     let intermediate_node_id = #push;
                     if add_to_index {
-                        let arena = self.vec_arena;
-                        #index_dispatch
+                        self.intermediate_nodes_index
+                            .insert(&self.sppf_nodes, slot_id, span, env, intermediate_node_id);
                     }
                     intermediate_node_id
                 },
@@ -2528,7 +2475,6 @@ impl<'a> ParserGen<'a> {
             fn add_intermediate_node(
                 &mut self,
                 intermediate_node: IntermediateNode,
-                #env_param: Option<EnvId>,
                 #add_to_index_param: bool,
             ) -> SPPFNodeId {
                 record!(
@@ -2618,23 +2564,6 @@ impl<'a> ParserGen<'a> {
         if self.config.first_parse {
             return quote! {};
         }
-        let dd_slot_start = self.slot_ids.dd_slot_start();
-        let dd_slot_start_lit = Literal::usize_unsuffixed(dd_slot_start);
-        // Same special case as in add_intermediate_node.
-        let index_dispatch = if dd_slot_start == 0 {
-            quote! {
-                self.dd_intermediate_nodes_index.get(slot_idx, &(span, env))
-            }
-        } else {
-            quote! {
-                if slot_idx < #dd_slot_start_lit {
-                    self.intermediate_nodes_index.get(slot_idx, &span)
-                } else {
-                    let idx = slot_idx - #dd_slot_start_lit;
-                    self.dd_intermediate_nodes_index.get(idx, &(span, env))
-                }
-            }
-        };
         quote! {
             // Inline into get_or_create_intermediate_node, which runs for every
             // return to a caller. Without the hint, LLVM does not inline the
@@ -2647,9 +2576,8 @@ impl<'a> ParserGen<'a> {
                 right_extent: u32,
                 env: Option<EnvId>,
             ) -> Option<SPPFNodeId> {
-                let slot_idx = slot_id.index();
                 let span = Span::new(left_extent, right_extent);
-                #index_dispatch
+                self.intermediate_nodes_index.get(&self.sppf_nodes, slot_id, span, env)
             }
         }
     }
@@ -2668,7 +2596,7 @@ impl<'a> ParserGen<'a> {
                 right_extent: u32,
             ) -> Option<SPPFNodeId> {
                 self.terminal_nodes_index
-                    .get(terminal_id.index(), &Span::new(left_extent, right_extent))
+                    .get(&self.sppf_nodes, terminal_id, Span::new(left_extent, right_extent))
             }
         }
     }
@@ -3106,28 +3034,13 @@ impl<'a> ParserGen<'a> {
                 quote! { stats.record(#label, self.#field_name.len()); }
             })
             .collect();
-        // When every nonterminal is data-dependent, the intermediate_nodes_index field does not exist.
-        let intermediate_index_record = if self.slot_ids.dd_slot_start() == 0 {
-            quote! {}
-        } else {
-            quote! {
-                for len in self.intermediate_nodes_index.map_lens() {
-                    stats.record("Parser::intermediate_nodes_index: InlineMap", len);
-                }
-            }
-        };
         // The first-parse mode does not have the SPPF lookup indexes, so there is nothing to record.
         let sppf_index_records = if self.config.first_parse {
             quote! {}
         } else {
             quote! {
-                #intermediate_index_record
-                for len in self.dd_intermediate_nodes_index.map_lens() {
-                    stats.record("Parser::dd_intermediate_nodes_index: InlineMap", len);
-                }
-                for len in self.terminal_nodes_index.map_lens() {
-                    stats.record("Parser::terminal_nodes_index: InlineMap", len);
-                }
+                stats.record("Parser::intermediate_nodes_index", self.intermediate_nodes_index.len());
+                stats.record("Parser::terminal_nodes_index", self.terminal_nodes_index.len());
             }
         };
         quote! {
@@ -3252,12 +3165,6 @@ fn binding_const_ident(name: &str) -> proc_macro2::Ident {
         .map(|c| if c.is_alphanumeric() { c } else { '_' })
         .collect();
     format_ident!("BINDING_{}", sanitized.to_uppercase())
-}
-
-/// Generates `LazyInlineMaps::new(count, vec_arena)`.
-fn lazy_inline_maps(count: usize) -> TokenStream {
-    let count = Literal::usize_unsuffixed(count);
-    quote! { LazyInlineMaps::new(#count, vec_arena) }
 }
 
 /// Whether `name` occurs as an identifier anywhere in the token stream,
