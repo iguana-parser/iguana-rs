@@ -14,9 +14,13 @@ use iguana_runtime::{
     arena::{Arena, ArenaIdVec, ArenaVec, ChunkedArenaVec},
     descriptor::Descriptor,
     env::Env,
-    gss::{GSSIndex, GSSNode},
+    gss::GSSNode,
     ids::{BindingId, EnvId, GssNodeId, NonterminalId, SPPFNodeId, SlotId, TerminalId},
     input::Input,
+    node_index::{
+        GSSNodeIndex, GSSNodeKey, IntermediateNodeIndex, IntermediateNodeKey, TerminalNodeIndex,
+        TerminalNodeKey,
+    },
     parser::{
         DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, GLLFailure, GLLFailureKind,
         GSS_CAPACITY_MULTIPLIER, Parser, SPPF_CAPACITY_MULTIPLIER, init_logger,
@@ -25,10 +29,7 @@ use iguana_runtime::{
     record,
     result::{ParseError, ParseSuccess},
     scanner::{Scanner, TerminalSet},
-    sppf::{
-        IntermediateNode, IntermediateNodeIndex, NonterminalNode, SPPFNode, TerminalNode,
-        TerminalNodeIndex,
-    },
+    sppf::{IntermediateNode, NonterminalNode, SPPFNode, TerminalNode},
 };
 use rustc_hash::FxHashMap;
 use std::cell::OnceCell;
@@ -136,8 +137,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for EscapedLitParser<'i, 'arena> {
         }
     }
     fn get_gss_node(&self, nonterminal_id: NonterminalId, input_index: u32) -> Option<GssNodeId> {
-        self.gss_nodes_index
-            .get(&self.gss_nodes, nonterminal_id, input_index)
+        self.gss_nodes_index.get(
+            &self.gss_nodes,
+            GSSNodeKey {
+                nonterminal_id,
+                input_index,
+            },
+        )
     }
     fn add_gss_node(
         &mut self,
@@ -145,8 +151,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for EscapedLitParser<'i, 'arena> {
         input_index: u32,
         gss_node_id: GssNodeId,
     ) {
+        let key = GSSNodeKey {
+            nonterminal_id,
+            input_index,
+        };
         self.gss_nodes_index
-            .insert(&self.gss_nodes, nonterminal_id, input_index, gss_node_id);
+            .insert(&self.gss_nodes, key, gss_node_id);
     }
     fn new_gss_node(&mut self, nonterminal_id: NonterminalId, input_index: u32) -> GssNodeId {
         record!(self, GSSNodeCreated, nonterminal_id, input_index);
@@ -203,11 +213,13 @@ impl<'i, 'arena> Parser<'i, 'arena> for EscapedLitParser<'i, 'arena> {
             terminal_node.terminal_id,
             terminal_node.span
         );
-        let terminal_id = terminal_node.terminal_id;
-        let span = terminal_node.span;
+        let key = TerminalNodeKey {
+            terminal_id: terminal_node.terminal_id,
+            span: terminal_node.span,
+        };
         let terminal_node_id = self.sppf_nodes.push(SPPFNode::Terminal(terminal_node));
         self.terminal_nodes_index
-            .insert(&self.sppf_nodes, terminal_id, span, terminal_node_id);
+            .insert(&self.sppf_nodes, key, terminal_node_id);
         terminal_node_id
     }
     fn add_nonterminal_node(&mut self, nonterminal_node: NonterminalNode) -> SPPFNodeId {
@@ -235,20 +247,17 @@ impl<'i, 'arena> Parser<'i, 'arena> for EscapedLitParser<'i, 'arena> {
             intermediate_node.child.0,
             intermediate_node.child.1
         );
-        let slot_id = intermediate_node.slot_id;
-        let span = intermediate_node.span;
-        let env = intermediate_node.env;
+        let key = IntermediateNodeKey {
+            slot_id: intermediate_node.slot_id,
+            span: intermediate_node.span,
+            env: intermediate_node.env,
+        };
         let intermediate_node_id = self
             .sppf_nodes
             .push(SPPFNode::Intermediate(intermediate_node));
         if add_to_index {
-            self.intermediate_nodes_index.insert(
-                &self.sppf_nodes,
-                slot_id,
-                span,
-                env,
-                intermediate_node_id,
-            );
+            self.intermediate_nodes_index
+                .insert(&self.sppf_nodes, key, intermediate_node_id);
         }
         intermediate_node_id
     }
@@ -316,7 +325,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for EscapedLitParser<'i, 'arena> {
     ) -> Option<SPPFNodeId> {
         let span = Span::new(left_extent, right_extent);
         self.intermediate_nodes_index
-            .get(&self.sppf_nodes, slot_id, span, env)
+            .get(&self.sppf_nodes, IntermediateNodeKey { slot_id, span, env })
     }
     fn lookup_terminal_node(
         &self,
@@ -324,11 +333,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for EscapedLitParser<'i, 'arena> {
         left_extent: u32,
         right_extent: u32,
     ) -> Option<SPPFNodeId> {
-        self.terminal_nodes_index.get(
-            &self.sppf_nodes,
-            terminal_id,
-            Span::new(left_extent, right_extent),
-        )
+        let span = Span::new(left_extent, right_extent);
+        self.terminal_nodes_index
+            .get(&self.sppf_nodes, TerminalNodeKey { terminal_id, span })
     }
     fn gss_nodes<'p>(&'p self) -> impl Iterator<Item = (GssNodeId, &'p GSSNode<'arena>)>
     where
@@ -513,7 +520,7 @@ pub struct EscapedLitParser<'i, 'arena> {
     // The start nonterminal's GSS node at input position 0, set by `run`.
     start_gss_node_id: Option<GssNodeId>,
     // GSS-node index for the nonterminals without parameters.
-    gss_nodes_index: GSSIndex<'arena>,
+    gss_nodes_index: GSSNodeIndex<'arena>,
     sppf_nodes: ArenaIdVec<'arena, SPPFNodeId, SPPFNode>,
     #[cfg(feature = "instrument")]
     descriptors_count: usize,
@@ -558,7 +565,7 @@ impl<'i, 'arena> EscapedLitParser<'i, 'arena> {
         Self {
             vec_arena,
             scanner: EscapedLitScanner::new(input, vec_arena),
-            gss_nodes_index: GSSIndex::new(input.len() as usize, vec_arena),
+            gss_nodes_index: GSSNodeIndex::new(input.len() as usize, vec_arena),
             descriptors: vec_arena.vec_with_capacity(
                 input.len() as usize / DESCRIPTORS_CAPACITY_DIVISOR + DESCRIPTORS_CAPACITY_FLOOR,
             ),

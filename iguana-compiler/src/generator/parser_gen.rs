@@ -320,7 +320,7 @@ impl<'a> ParserGen<'a> {
             (
                 quote! { use std::cell::OnceCell; },
                 quote! { use rustc_hash::FxHashMap; },
-                quote! { IntermediateNodeIndex, TerminalNodeIndex, },
+                quote! { IntermediateNodeIndex, IntermediateNodeKey, TerminalNodeIndex, TerminalNodeKey, },
             )
         };
         let has_parameters = self.nonterminal_ids.dd_nonterminals().next().is_some();
@@ -345,16 +345,17 @@ impl<'a> ParserGen<'a> {
             use iguana_runtime::{
                 descriptor::Descriptor,
                 env::Env,
-                gss::{GSSIndex, GSSNode},
+                gss::GSSNode,
                 ids::{BindingId, EnvId, GssNodeId, NonterminalId, SPPFNodeId, SlotId, TerminalId},
                 arena::{Arena, ArenaIdVec, #arena_map_import ArenaVec, ChunkedArenaVec},
                 input::Input,
+                node_index::{GSSNodeIndex, GSSNodeKey, #sppf_index_imports},
                 parser::{Parser, GLLFailure, GLLFailureKind, init_logger, DESCRIPTORS_CAPACITY_DIVISOR, DESCRIPTORS_CAPACITY_FLOOR, #parameters_capacity_imports GSS_CAPACITY_MULTIPLIER, SPPF_CAPACITY_MULTIPLIER},
                 record,
                 result::{ParseError, ParseSuccess},
                 prediction::Prediction,
                 scanner::{Scanner, TerminalSet},
-                sppf::{IntermediateNode, NonterminalNode, SPPFNode, TerminalNode, #sppf_index_imports},
+                sppf::{IntermediateNode, NonterminalNode, SPPFNode, TerminalNode},
             };
             // In the first-parse mode Span is used only by LL(1) node construction; checking whether the
             // grammar has any here is expensive, so allow the unused import instead.
@@ -1595,7 +1596,7 @@ impl<'a> ParserGen<'a> {
                 #[comment = "The start nonterminal's GSS node at input position 0, set by `run`."]
                 start_gss_node_id: Option<GssNodeId>,
                 #[comment = "GSS-node index for the nonterminals without parameters."]
-                gss_nodes_index: GSSIndex<'arena>,
+                gss_nodes_index: GSSNodeIndex<'arena>,
                 #(#gss_nodes_index_fields,)*
                 sppf_nodes: ArenaIdVec<'arena, SPPFNodeId, SPPFNode>,
                 #[cfg(feature = "instrument")]
@@ -1625,7 +1626,7 @@ impl<'a> ParserGen<'a> {
 
     fn gen_gss_nodes_index_field(&self) -> TokenStream {
         quote! {
-            gss_nodes_index: GSSIndex::new(input.len() as usize, vec_arena)
+            gss_nodes_index: GSSNodeIndex::new(input.len() as usize, vec_arena)
         }
     }
 
@@ -2245,7 +2246,8 @@ impl<'a> ParserGen<'a> {
     fn gen_get_gss_node_method() -> TokenStream {
         quote! {
             fn get_gss_node(&self, nonterminal_id: NonterminalId, input_index: u32) -> Option<GssNodeId> {
-                self.gss_nodes_index.get(&self.gss_nodes, nonterminal_id, input_index)
+                self.gss_nodes_index
+                    .get(&self.gss_nodes, GSSNodeKey { nonterminal_id, input_index })
             }
         }
     }
@@ -2276,7 +2278,8 @@ impl<'a> ParserGen<'a> {
     fn gen_add_gss_node_method() -> TokenStream {
         quote! {
             fn add_gss_node(&mut self, nonterminal_id: NonterminalId, input_index: u32, gss_node_id: GssNodeId) {
-                self.gss_nodes_index.insert(&self.gss_nodes, nonterminal_id, input_index, gss_node_id);
+                let key = GSSNodeKey { nonterminal_id, input_index };
+                self.gss_nodes_index.insert(&self.gss_nodes, key, gss_node_id);
             }
         }
     }
@@ -2415,11 +2418,12 @@ impl<'a> ParserGen<'a> {
             push
         } else {
             quote! {
-                let terminal_id = terminal_node.terminal_id;
-                let span = terminal_node.span;
+                let key = TerminalNodeKey {
+                    terminal_id: terminal_node.terminal_id,
+                    span: terminal_node.span,
+                };
                 let terminal_node_id = #push;
-                self.terminal_nodes_index
-                    .insert(&self.sppf_nodes, terminal_id, span, terminal_node_id);
+                self.terminal_nodes_index.insert(&self.sppf_nodes, key, terminal_node_id);
                 terminal_node_id
             }
         };
@@ -2455,13 +2459,14 @@ impl<'a> ParserGen<'a> {
             (
                 quote! { add_to_index },
                 quote! {
-                    let slot_id = intermediate_node.slot_id;
-                    let span = intermediate_node.span;
-                    let env = intermediate_node.env;
+                    let key = IntermediateNodeKey {
+                        slot_id: intermediate_node.slot_id,
+                        span: intermediate_node.span,
+                        env: intermediate_node.env,
+                    };
                     let intermediate_node_id = #push;
                     if add_to_index {
-                        self.intermediate_nodes_index
-                            .insert(&self.sppf_nodes, slot_id, span, env, intermediate_node_id);
+                        self.intermediate_nodes_index.insert(&self.sppf_nodes, key, intermediate_node_id);
                     }
                     intermediate_node_id
                 },
@@ -2577,7 +2582,8 @@ impl<'a> ParserGen<'a> {
                 env: Option<EnvId>,
             ) -> Option<SPPFNodeId> {
                 let span = Span::new(left_extent, right_extent);
-                self.intermediate_nodes_index.get(&self.sppf_nodes, slot_id, span, env)
+                self.intermediate_nodes_index
+                    .get(&self.sppf_nodes, IntermediateNodeKey { slot_id, span, env })
             }
         }
     }
@@ -2595,8 +2601,9 @@ impl<'a> ParserGen<'a> {
                 left_extent: u32,
                 right_extent: u32,
             ) -> Option<SPPFNodeId> {
+                let span = Span::new(left_extent, right_extent);
                 self.terminal_nodes_index
-                    .get(&self.sppf_nodes, terminal_id, Span::new(left_extent, right_extent))
+                    .get(&self.sppf_nodes, TerminalNodeKey { terminal_id, span })
             }
         }
     }
