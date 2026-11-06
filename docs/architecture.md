@@ -115,9 +115,13 @@ trait dispatch in the runtime therefore require measurement and justification.
 
 ## Tooling
 
-The standalone language server wraps stateless `iguana-lsp` analysis functions
-in LSP protocol handlers. Terrarium calls the same functions through Tauri
-commands, and the design viewer calls their WebAssembly exports in the browser.
+`iguana-lsp` analyzes a grammar source once and stores the answers to
+language-feature requests. Formatting is the one request that parses again. The
+standalone language server keeps one analysis per open document and exposes the
+answers through LSP protocol handlers. Terrarium reads the answers through Tauri
+commands, and the design viewer reads the answers through the WebAssembly
+exports in the browser. Terrarium and the WebAssembly module keep only the
+analysis of the most recent source.
 
 Terrarium runs generated parsers as subprocesses rather than linking them as
 libraries. It communicates with each parser through command-line flags and

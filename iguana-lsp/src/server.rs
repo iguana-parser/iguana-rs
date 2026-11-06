@@ -1,14 +1,8 @@
 use std::error::Error;
 
 use crate::documents::{DocumentStore, end_position};
-use iguana_lsp::diagnostics::{diagnostics, to_diagnostic};
-use iguana_lsp::document_symbols::document_symbols;
-use iguana_lsp::folding::folding_ranges;
-use iguana_lsp::format::format;
-use iguana_lsp::references::{definition, references};
-use iguana_lsp::semantic_tokens::semantic_tokens;
-use iguana_lsp::{BuildResult, build, build_grammar_def, build_spans};
-use iguana_runtime::{arena::Arena, input::Input};
+use iguana_lsp::analysis::Analysis;
+use iguana_lsp::format::format_source;
 use lsp_server::{Connection, Message, Notification, Request, RequestId, Response};
 use lsp_types::notification::Notification as LspNotification;
 use lsp_types::request::{
@@ -16,9 +10,10 @@ use lsp_types::request::{
     Request as LspRequest, SemanticTokensFullRequest,
 };
 use lsp_types::{
-    DocumentSymbolResponse, Position, PublishDiagnosticsParams, Range, SemanticTokens,
-    SemanticTokensResult, TextEdit, Uri,
+    Diagnostic, DocumentSymbolResponse, GotoDefinitionResponse, Location, Position,
+    PublishDiagnosticsParams, Range, SemanticTokens, SemanticTokensResult, TextEdit, Uri,
 };
+use serde::Serialize;
 
 pub fn main_loop(
     connection: Connection,
@@ -37,178 +32,56 @@ pub fn main_loop(
                     SemanticTokensFullRequest::METHOD => {
                         let (id, params) = cast::<SemanticTokensFullRequest>(req);
                         let uri = &params.text_document.uri;
-                        let source = match documents.source(uri) {
-                            Ok(s) => s,
-                            Err(e) => {
-                                eprintln!("failed to read {}: {}", uri.path().as_str(), e);
-                                continue;
-                            }
-                        };
-                        let input = Input::from(source.as_ref());
-                        let tree_arena = Arena::new();
-                        let tokens = match build(&input, &tree_arena) {
-                            BuildResult::Success { tree, .. } => semantic_tokens(tree, &input),
-                            BuildResult::Error(_) | BuildResult::Ambiguous => vec![],
-                        };
-                        let result = SemanticTokensResult::Tokens(SemanticTokens {
-                            result_id: None,
-                            data: tokens,
-                        });
-                        let result = serde_json::to_value(&result).unwrap();
-                        let resp = Response::new_ok(id, result);
-                        connection.sender.send(Message::Response(resp))?;
+                        respond(&connection, &documents, id, uri, |analysis| {
+                            SemanticTokensResult::Tokens(SemanticTokens {
+                                result_id: None,
+                                data: analysis.semantic_tokens().to_vec(),
+                            })
+                        })?;
                     }
                     Formatting::METHOD => {
                         let (id, params) = cast::<Formatting>(req);
                         let uri = &params.text_document.uri;
-                        let source = match documents.source(uri) {
-                            Ok(s) => s,
-                            Err(e) => {
-                                eprintln!("failed to read {}: {}", uri.path().as_str(), e);
-                                continue;
-                            }
-                        };
-                        let input = Input::from(source.as_ref());
-                        let tree_arena = Arena::new();
-                        let edits = match build(&input, &tree_arena) {
-                            BuildResult::Success { tree, .. } => {
-                                let formatted = format(tree, &input);
-                                if formatted == source.as_ref() {
-                                    Some(Vec::new())
-                                } else {
-                                    Some(vec![TextEdit {
-                                        range: Range {
-                                            start: Position::new(0, 0),
-                                            end: end_position(source.as_ref()),
-                                        },
-                                        new_text: formatted,
-                                    }])
-                                }
-                            }
-                            BuildResult::Error(_) | BuildResult::Ambiguous => None,
-                        };
-                        let result = serde_json::to_value(&edits).unwrap();
-                        let resp = Response::new_ok(id, result);
-                        connection.sender.send(Message::Response(resp))?;
+                        respond(&connection, &documents, id, uri, |analysis| {
+                            formatting_edits(analysis.source())
+                        })?;
                     }
                     References::METHOD => {
                         let (id, params) = cast::<References>(req);
                         let uri = &params.text_document_position.text_document.uri;
-                        let source = match documents.source(uri) {
-                            Ok(s) => s,
-                            Err(e) => {
-                                eprintln!("failed to read {}: {}", uri.path().as_str(), e);
-                                continue;
-                            }
-                        };
-                        let input = Input::from(source.as_ref());
-                        let tree_arena = Arena::new();
-                        let locations = (|| {
-                            let BuildResult::Success { tree, .. } = build(&input, &tree_arena)
-                            else {
-                                return None;
-                            };
-                            let grammar_def = build_grammar_def(tree, &input);
-                            let spans = build_spans(&grammar_def, tree, &input);
-                            let pos = params.text_document_position.position;
-                            let offset = input.offset(pos.line, pos.character);
-                            let include_declaration = params.context.include_declaration;
-                            Some(references(
-                                &grammar_def,
-                                &spans,
-                                &input,
-                                uri,
-                                offset,
-                                include_declaration,
-                            ))
-                        })()
-                        .unwrap_or_default();
-                        let result = serde_json::to_value(&locations).unwrap();
-                        let resp = Response::new_ok(id, result);
-                        connection.sender.send(Message::Response(resp))?;
+                        let position = params.text_document_position.position;
+                        let include_declaration = params.context.include_declaration;
+                        respond(&connection, &documents, id, uri, |analysis| {
+                            analysis
+                                .references(position, include_declaration)
+                                .into_iter()
+                                .map(|range| Location::new(uri.clone(), range))
+                                .collect::<Vec<_>>()
+                        })?;
                     }
                     GotoDefinition::METHOD => {
                         let (id, params) = cast::<GotoDefinition>(req);
                         let uri = &params.text_document_position_params.text_document.uri;
-                        let source = match documents.source(uri) {
-                            Ok(s) => s,
-                            Err(e) => {
-                                eprintln!("failed to read {}: {}", uri.path().as_str(), e);
-                                continue;
-                            }
-                        };
-                        let input = Input::from(source.as_ref());
-                        let tree_arena = Arena::new();
-                        let loc = (|| {
-                            let BuildResult::Success { tree, .. } = build(&input, &tree_arena)
-                            else {
-                                return None;
-                            };
-                            let grammar_def = build_grammar_def(tree, &input);
-                            let spans = build_spans(&grammar_def, tree, &input);
-                            let pos = params.text_document_position_params.position;
-                            let offset = input.offset(pos.line, pos.character);
-                            definition(&grammar_def, &spans, &input, uri, offset)
-                        })();
-                        let result = serde_json::to_value(
-                            loc.map(lsp_types::GotoDefinitionResponse::Scalar),
-                        )
-                        .unwrap();
-                        let resp = Response::new_ok(id, result);
-                        connection.sender.send(Message::Response(resp))?;
+                        let position = params.text_document_position_params.position;
+                        respond(&connection, &documents, id, uri, |analysis| {
+                            analysis.definition(position).map(|range| {
+                                GotoDefinitionResponse::Scalar(Location::new(uri.clone(), range))
+                            })
+                        })?;
                     }
                     DocumentSymbolRequest::METHOD => {
                         let (id, params) = cast::<DocumentSymbolRequest>(req);
                         let uri = &params.text_document.uri;
-                        let source = match documents.source(uri) {
-                            Ok(s) => s,
-                            Err(e) => {
-                                eprintln!("failed to read {}: {}", uri.path().as_str(), e);
-                                continue;
-                            }
-                        };
-                        let input = Input::from(source.as_ref());
-                        let tree_arena = Arena::new();
-                        let symbols = (|| {
-                            let BuildResult::Success { tree, .. } = build(&input, &tree_arena)
-                            else {
-                                return None;
-                            };
-                            let grammar_def = build_grammar_def(tree, &input);
-                            let spans = build_spans(&grammar_def, tree, &input);
-                            Some(document_symbols(&grammar_def, &spans, &input))
-                        })()
-                        .unwrap_or_default();
-                        let result =
-                            serde_json::to_value(DocumentSymbolResponse::Nested(symbols)).unwrap();
-                        let resp = Response::new_ok(id, result);
-                        connection.sender.send(Message::Response(resp))?;
+                        respond(&connection, &documents, id, uri, |analysis| {
+                            DocumentSymbolResponse::Nested(analysis.document_symbols().to_vec())
+                        })?;
                     }
                     FoldingRangeRequest::METHOD => {
                         let (id, params) = cast::<FoldingRangeRequest>(req);
                         let uri = &params.text_document.uri;
-                        let source = match documents.source(uri) {
-                            Ok(s) => s,
-                            Err(e) => {
-                                eprintln!("failed to read {}: {}", uri.path().as_str(), e);
-                                continue;
-                            }
-                        };
-                        let input = Input::from(source.as_ref());
-                        let tree_arena = Arena::new();
-                        let ranges = (|| {
-                            let BuildResult::Success { tree, .. } = build(&input, &tree_arena)
-                            else {
-                                return None;
-                            };
-                            let grammar_def = build_grammar_def(tree, &input);
-                            let spans = build_spans(&grammar_def, tree, &input);
-                            Some(folding_ranges(&grammar_def, &spans, &input))
-                        })()
-                        .unwrap_or_default();
-                        let result = serde_json::to_value(&ranges).unwrap();
-                        let resp = Response::new_ok(id, result);
-                        connection.sender.send(Message::Response(resp))?;
+                        respond(&connection, &documents, id, uri, |analysis| {
+                            analysis.folding_ranges().to_vec()
+                        })?;
                     }
                     _ => {}
                 }
@@ -221,17 +94,18 @@ pub fn main_loop(
                     let params: lsp_types::DidOpenTextDocumentParams =
                         serde_json::from_value(notif.params).unwrap();
                     let uri = params.text_document.uri;
-                    let source = params.text_document.text;
-                    publish_diagnostics(&connection, uri.clone(), &source)?;
-                    documents.set(uri, source);
+                    let analysis = Analysis::new(&params.text_document.text);
+                    publish_diagnostics(&connection, uri.clone(), analysis.diagnostics())?;
+                    documents.set(uri, analysis);
                 }
                 lsp_types::notification::DidChangeTextDocument::METHOD => {
                     let params: lsp_types::DidChangeTextDocumentParams =
                         serde_json::from_value(notif.params).unwrap();
                     if let Some(change) = params.content_changes.into_iter().last() {
                         let uri = params.text_document.uri;
-                        publish_diagnostics(&connection, uri.clone(), &change.text)?;
-                        documents.set(uri, change.text);
+                        let analysis = Analysis::new(&change.text);
+                        publish_diagnostics(&connection, uri.clone(), analysis.diagnostics())?;
+                        documents.set(uri, analysis);
                     }
                 }
                 lsp_types::notification::DidCloseTextDocument::METHOD => {
@@ -246,25 +120,51 @@ pub fn main_loop(
     Ok(())
 }
 
+/// Sends the answer computed from the analysis of `uri`. The server does not
+/// respond to a request for a file it cannot read.
+fn respond<T: Serialize>(
+    connection: &Connection,
+    documents: &DocumentStore,
+    id: RequestId,
+    uri: &Uri,
+    answer: impl FnOnce(&Analysis) -> T,
+) -> Result<(), Box<dyn Error + Sync + Send>> {
+    match documents.with_analysis(uri, answer) {
+        Ok(result) => {
+            let result = serde_json::to_value(&result).unwrap();
+            let resp = Response::new_ok(id, result);
+            connection.sender.send(Message::Response(resp))?;
+        }
+        Err(e) => eprintln!("failed to read {}: {}", uri.path().as_str(), e),
+    }
+    Ok(())
+}
+
+/// The edits that replace `source` with its formatted text. The list is empty
+/// when the formatted text equals `source`, and the result is `None` when
+/// `source` does not parse or is ambiguous.
+fn formatting_edits(source: &str) -> Option<Vec<TextEdit>> {
+    let formatted = format_source(source)?;
+    if formatted == source {
+        return Some(Vec::new());
+    }
+    Some(vec![TextEdit {
+        range: Range {
+            start: Position::new(0, 0),
+            end: end_position(source),
+        },
+        new_text: formatted,
+    }])
+}
+
 fn publish_diagnostics(
     connection: &Connection,
     uri: Uri,
-    source: &str,
-) -> Result<(), Box<dyn std::error::Error + Sync + Send>> {
-    let input = Input::from(source);
-    let tree_arena = Arena::new();
-    let diagnostics = match build(&input, &tree_arena) {
-        BuildResult::Success { tree, .. } => {
-            let grammar_def = build_grammar_def(tree, &input);
-            let spans = build_spans(&grammar_def, tree, &input);
-            diagnostics(&grammar_def, &spans, &input)
-        }
-        BuildResult::Ambiguous => vec![],
-        BuildResult::Error(error) => vec![to_diagnostic(error, &input)],
-    };
+    diagnostics: &[Diagnostic],
+) -> Result<(), Box<dyn Error + Sync + Send>> {
     let params = PublishDiagnosticsParams {
         uri,
-        diagnostics,
+        diagnostics: diagnostics.to_vec(),
         version: None,
     };
     let notif = Notification {

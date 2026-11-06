@@ -161,9 +161,10 @@ impl Input {
     }
 
     /// Returns the offset (index from the beginning of input) for the given
-    /// line/column.
-    pub fn offset(&self, line: u32, column: u32) -> u32 {
-        self.line_starts()[line as usize] + column
+    /// line/column, or `None` when the input does not have that position.
+    pub fn offset(&self, line: u32, column: u32) -> Option<u32> {
+        let offset = self.line_starts().get(line as usize)?.checked_add(column)?;
+        (offset < self.line_end_offset(line as usize)).then_some(offset)
     }
 
     /// Returns the line and column corresponding to the given input index.
@@ -219,17 +220,6 @@ impl Input {
         )
     }
 
-    /// Formats a parse error message with line/column info and a caret pointing to the error position.
-    pub fn format_error(&self, terminal_name: &str, input_index: u32) -> String {
-        let (line, column) = self.line_column(input_index);
-        format!(
-            "Parse error: failed to match {} at line {}, column {}\n{}\n",
-            terminal_name,
-            line + 1,
-            column + 1,
-            self.line_and_caret(input_index, 1),
-        )
-    }
     /// Returns a vector `v`, where `v[i]` is the start offset (inclusive) of line
     /// `i`. A line ends where the next one starts, and the last line ends at
     /// the end of the input, so the end offsets are not stored. Empty input
@@ -253,6 +243,19 @@ impl Input {
 #[cfg(test)]
 mod tests {
     use crate::input::Input;
+
+    #[test]
+    fn test_offset_is_none_outside_the_input() {
+        let input = Input::from("ab\nc\n");
+        assert_eq!(input.offset(0, 1), Some(1));
+        assert_eq!(input.offset(0, 2), Some(2));
+        assert_eq!(input.offset(1, 0), Some(3));
+        assert_eq!(input.offset(0, 3), None);
+        assert_eq!(input.offset(1, 2), None);
+        assert_eq!(input.offset(2, 0), None);
+        assert_eq!(input.offset(0, u32::MAX), None);
+        assert_eq!(Input::from("").offset(0, 0), None);
+    }
 
     #[test]
     fn test_match_literal() {
@@ -338,53 +341,5 @@ mod tests {
     fn test_line_column_single_newline() {
         let input = Input::from("\n");
         assert_eq!(input.line_column(0), (0, 0));
-    }
-
-    #[test]
-    fn test_format_error_middle_of_line() {
-        let input = Input::from("let x = 42;");
-        let result = input.format_error("Identifier", 4);
-        let expected = "\
-Parse error: failed to match Identifier at line 1, column 5
-let x = 42;
-    ^
-";
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn test_format_error_start_of_line() {
-        let input = Input::from("foo bar");
-        let result = input.format_error("Identifier", 0);
-        let expected = "\
-Parse error: failed to match Identifier at line 1, column 1
-foo bar
-^
-";
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn test_format_error_second_line() {
-        let input = Input::from("first\nsecond");
-        let result = input.format_error("Identifier", 8);
-        let expected = "\
-Parse error: failed to match Identifier at line 2, column 3
-second
-  ^
-";
-        assert_eq!(result, expected);
-    }
-
-    #[test]
-    fn test_format_error_end_of_line() {
-        let input = Input::from("abcd\nefgh");
-        let result = input.format_error("Identifier", 3);
-        let expected = "\
-Parse error: failed to match Identifier at line 1, column 4
-abcd
-   ^
-";
-        assert_eq!(result, expected);
     }
 }

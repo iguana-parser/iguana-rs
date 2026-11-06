@@ -331,7 +331,6 @@ name = "iguana-lsp-wasm"
 version = "0.1.0"
 dependencies = [
  "iguana-lsp",
- "iguana-runtime",
  "lsp-types",
  "serde_json",
  "wasm-bindgen",

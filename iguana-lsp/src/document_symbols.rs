@@ -9,10 +9,11 @@
 // Skipped: layout def, field labels (left:, right:), symbol references in bodies.
 
 use iguana_compiler::grammar::def::{GrammarDef, LayoutStrategy};
-use iguana_runtime::input::{Input, Span};
-use lsp_types::{DocumentSymbol, Position, Range, SymbolKind};
+use iguana_compiler::spans::GrammarSpans;
+use iguana_runtime::input::Input;
+use lsp_types::{DocumentSymbol, Position, SymbolKind};
 
-use crate::spans::GrammarSpans;
+use crate::to_range;
 
 pub fn document_symbols(
     grammar_def: &GrammarDef,
@@ -112,18 +113,10 @@ pub fn document_symbols(
     out
 }
 
-fn to_range(span: Span, input: &Input) -> Range {
-    let (sl, sc) = input.line_column(span.left_extent);
-    let (el, ec) = input.line_column(span.right_extent);
-    Range {
-        start: Position::new(sl, sc),
-        end: Position::new(el, ec),
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use iguana_compiler::spans::build_spans;
 
     fn symbols(source: &str) -> Vec<DocumentSymbol> {
         use iguana_runtime::input::Input;
@@ -134,7 +127,7 @@ mod tests {
             return vec![];
         };
         let grammar_def = crate::build_grammar_def(tree, &input);
-        let spans = crate::build_spans(&grammar_def, tree, &input);
+        let spans = build_spans(&grammar_def, tree, &input);
         document_symbols(&grammar_def, &spans, &input)
     }
 

@@ -26,10 +26,13 @@
 use iggy::parse_tree::*;
 use iguana_compiler::comments::is_same_line;
 use iguana_runtime::{
+    arena::Arena,
     input::{Input, Span},
     parse_tree::ParseTreeNode,
 };
 use rustc_hash::FxHashSet;
+
+use crate::{BuildResult, build};
 
 const MAX_LINE_WIDTH: usize = 80;
 const RULE_PREFIX: &str = "  = ";
@@ -37,11 +40,19 @@ const ALT_PREFIX: &str = "  | ";
 const PRIO_PREFIX: &str = "  > ";
 const CONT_INDENT: &str = "      "; // 6 spaces for continuation lines
 
-/// Format an Iggy grammar from its parse tree.
-///
-/// The formatter returns the original source unchanged when it cannot preserve
+/// The formatted text of `source`, or `None` when `source` does not parse or is
+/// ambiguous. The text is `source` unchanged when the formatter cannot preserve
 /// a comment's position.
-pub fn format(tree: &Start<&Grammar<'_>, &Layout<'_>>, input: &Input) -> String {
+pub fn format_source(source: &str) -> Option<String> {
+    let input = Input::from(source);
+    let tree_arena = Arena::new();
+    let BuildResult::Success { tree, .. } = build(&input, &tree_arena) else {
+        return None;
+    };
+    Some(format(tree, &input))
+}
+
+fn format(tree: &Start<&Grammar<'_>, &Layout<'_>>, input: &Input) -> String {
     let mut formatter = Formatter::new(tree, input);
     let formatted = formatter.format_grammar(tree);
     if formatter.all_comments_emitted() {
@@ -960,16 +971,6 @@ fn wrap_chunks(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{BuildResult, build};
-
-    fn format_source(source: &str) -> Option<String> {
-        let input = Input::from(source);
-        let tree_arena = iguana_runtime::arena::Arena::new();
-        match build(&input, &tree_arena) {
-            BuildResult::Success { tree, .. } => Some(format(tree, &input)),
-            BuildResult::Error(_) | BuildResult::Ambiguous => None,
-        }
-    }
 
     #[test]
     fn test_simple_grammar() {

@@ -1,54 +1,47 @@
-pub mod diagnostics;
-pub mod document_symbols;
-pub mod folding;
+pub mod analysis;
+mod diagnostics;
+mod document_symbols;
+mod folding;
 pub mod format;
-pub mod name_resolution;
-pub mod references;
+mod name_resolution;
 pub mod semantic_tokens;
-pub mod symbols;
 
 use iggy::IggyParser;
 use iggy::parse_tree::{Grammar, Layout, Start};
-pub use iguana_compiler::grammar::def::GrammarDef;
-pub use iguana_compiler::validation::GrammarError;
-pub use iguana_compiler::{comments, spans};
+use iguana_compiler::grammar::def::GrammarDef;
+use iguana_compiler::validation::GrammarError;
 use iguana_runtime::{
     arena::Arena,
     input::{Input, Span},
     parse_tree::ParseTreeNode,
 };
-use spans::GrammarSpans;
+use lsp_types::{Position, Range};
 use std::time::Duration;
 
-pub enum BuildResult<'a> {
+pub(crate) enum BuildResult<'a> {
     Success {
         tree: &'a Start<&'a Grammar<'a>, &'a Layout<'a>>,
         parse_duration: Duration,
         tree_construction_duration: Duration,
     },
-    /// The grammar parsed but is ambiguous, so it cannot be analyzed. Callers
-    /// treat this like a parse failure and skip the rest of the pipeline, but
-    /// without a location to mark, so it surfaces no diagnostic.
+    /// The grammar parsed but is ambiguous. The variant does not have a span,
+    /// so the analysis does not report a diagnostic.
     Ambiguous,
     Error(GrammarError),
 }
 
 /// Build a GrammarDef from a successful parse tree.
-pub fn build_grammar_def(tree: &Start<&Grammar<'_>, &Layout<'_>>, input: &Input) -> GrammarDef {
+pub(crate) fn build_grammar_def(
+    tree: &Start<&Grammar<'_>, &Layout<'_>>,
+    input: &Input,
+) -> GrammarDef {
     iguana_compiler::iggy::build_grammar(tree, input).resolve()
 }
 
-/// Build the side table from a GrammarDef and its parse tree.
-pub fn build_spans<'a>(
-    grammar_def: &'a GrammarDef,
-    tree: &Start<&Grammar<'_>, &Layout<'_>>,
-    input: &Input,
-) -> GrammarSpans<'a> {
-    spans::build_spans(grammar_def, tree, input)
-}
-
-/// Parse the grammar source and build the result.
-pub fn build<'a>(input: &Input, tree_arena: &'a Arena) -> BuildResult<'a> {
+/// Parse the grammar source and build the result. A panic in the parser becomes
+/// `BuildResult::Error` on native targets. `catch_unwind` does not catch a
+/// panic on `wasm32-unknown-unknown`, where the panic traps.
+pub(crate) fn build<'a>(input: &Input, tree_arena: &'a Arena) -> BuildResult<'a> {
     let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         let parser_arena = Arena::new();
         IggyParser::new(input, &parser_arena).parse_grammar(tree_arena)
@@ -78,5 +71,14 @@ pub fn build<'a>(input: &Input, tree_arena: &'a Arena) -> BuildResult<'a> {
             message: "Internal error during parsing".to_string(),
             span: Span::new(0, 0),
         }),
+    }
+}
+
+pub(crate) fn to_range(span: Span, input: &Input) -> Range {
+    let (start_line, start_column) = input.line_column(span.left_extent);
+    let (end_line, end_column) = input.line_column(span.right_extent);
+    Range {
+        start: Position::new(start_line, start_column),
+        end: Position::new(end_line, end_column),
     }
 }

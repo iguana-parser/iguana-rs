@@ -6,10 +6,9 @@
 // etc.) stay visible above the fold.
 
 use iguana_compiler::grammar::def::GrammarDef;
+use iguana_compiler::spans::GrammarSpans;
 use iguana_runtime::input::Input;
 use lsp_types::{FoldingRange, FoldingRangeKind};
-
-use crate::spans::GrammarSpans;
 
 pub fn folding_ranges(
     grammar_def: &GrammarDef,
@@ -73,6 +72,7 @@ pub fn folding_ranges(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use iguana_compiler::spans::build_spans;
 
     fn ranges(source: &str) -> Vec<FoldingRange> {
         use iguana_runtime::input::Input;
@@ -83,7 +83,7 @@ mod tests {
             return vec![];
         };
         let grammar_def = crate::build_grammar_def(tree, &input);
-        let spans = crate::build_spans(&grammar_def, tree, &input);
+        let spans = build_spans(&grammar_def, tree, &input);
         folding_ranges(&grammar_def, &spans, &input)
     }
 

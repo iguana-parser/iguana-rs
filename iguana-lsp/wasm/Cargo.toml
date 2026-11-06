@@ -1,5 +1,5 @@
-# A self-contained workspace, so the crate stays off the main workspace's build
-# graph and out of rust-analyzer: it only builds for wasm, via wasm-pack.
+# The crate ships for wasm through wasm-pack. A self-contained workspace keeps
+# the crate off the main workspace's build graph and out of rust-analyzer.
 [workspace]
 
 # Mirrors the root workspace lint policy (see the root Cargo.toml).
@@ -30,7 +30,6 @@ wasm-bindgen = "0.2"
 serde_json = "1.0"
 lsp-types = "0.97"
 iguana-lsp = { path = ".." }
-iguana-runtime = { path = "../../iguana-runtime" }
 
 # Optimize for size and let the linker drop the codegen/syn subtree, which the
 # LSP entry points never reach.

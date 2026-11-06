@@ -49,24 +49,17 @@ export const commands = {
 	debugPrevError: () => typedError<DebugInfo, string>(__TAURI_INVOKE("debug_prev_error")),
 	getDebugErrors: () => typedError<ErrorInfo[], string>(__TAURI_INVOKE("get_debug_errors")),
 	getEventLog: () => typedError<EventLogEntry[], string>(__TAURI_INVOKE("get_event_log")),
-	/**
-	 *  Parse the grammar source and cache the result. Re-parses only if the source
-	 *  text has changed since the last parse.
-	 */
+	/**  Analyze the grammar source and return its parse durations. */
 	analyzeGrammar: (source: string) => __TAURI_INVOKE<AnalyzeResult>("analyze_grammar", { source }),
 	/**
-	 *  Format the grammar using the cached parse result.
-	 *  Falls back to parsing the source if no cached result exists.
-	 *  Returns None if parsing fails (grammar cannot be formatted).
+	 *  Format the grammar. Returns None if the grammar does not parse or is
+	 *  ambiguous.
 	 */
 	formatGrammar: (source: string) => __TAURI_INVOKE<string | null>("format_grammar", { source }),
-	/**  Return semantic tokens from the cached parse result. */
+	/**  Return semantic tokens from the most recent analysis. */
 	getSemanticTokens: () => __TAURI_INVOKE<SemanticTokenData[]>("get_semantic_tokens"),
 	getSemanticTokensLegend: () => __TAURI_INVOKE<SemanticTokensLegendData>("get_semantic_tokens_legend"),
-	/**
-	 *  Return document symbols (rule heads + alternative labels).
-	 *  Ensures the parse result is fresh for the given source.
-	 */
+	/**  Return document symbols (rule heads + alternative labels). */
 	getDocumentSymbols: (source: string) => __TAURI_INVOKE<DocumentSymbolData[]>("get_document_symbols", { source }),
 	/**  Return the definition location of the symbol at the given position. */
 	getDefinition: (source: string, line: number, column: number) => __TAURI_INVOKE<{

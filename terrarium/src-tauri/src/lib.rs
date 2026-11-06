@@ -11,11 +11,12 @@ use std::{
     thread,
 };
 
-use iguana_runtime::arena::Arena;
+use iguana_lsp::analysis::Analysis;
+use iguana_lsp::format::format_source;
 use iguana_runtime::cli;
 use iguana_runtime::ids::SPPFNodeId;
-use iguana_runtime::input::Input;
 use iguana_runtime::visualization::{gss::GSS, sppf::SPPF};
+use lsp_types::{DiagnosticSeverity, DocumentSymbol, Position, Range, SymbolKind};
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use tauri::{Emitter, Manager};
@@ -77,6 +78,17 @@ struct RangeData {
     start_char: u32,
     end_line: u32,
     end_char: u32,
+}
+
+impl From<Range> for RangeData {
+    fn from(range: Range) -> Self {
+        RangeData {
+            start_line: range.start.line,
+            start_char: range.start.character,
+            end_line: range.end.line,
+            end_char: range.end.character,
+        }
+    }
 }
 
 /// Specta-compatible wrapper for lsp_types::DocumentSymbol.
@@ -165,61 +177,18 @@ struct AnalyzeResult {
     tree_construction_duration_ms: u32,
 }
 
-/// Cached grammar state. Each command that needs the parse tree re-parses
-/// (iggy grammars parse in a few milliseconds). `grammar_def` is cached
-/// and rebuilt only when the source text changes.
+/// The analysis of the most recent grammar source.
+#[derive(Default)]
 struct GrammarState {
-    source: Option<String>,
-    input: Option<Input>,
-    grammar_def: Option<iguana_lsp::GrammarDef>,
-    /// Cached timings from the last parse.
-    parse_ms: u32,
-    tree_ms: u32,
-    /// Whether the last parse succeeded.
-    success: bool,
+    latest: Option<Analysis>,
 }
 
 impl GrammarState {
-    /// Ensure `grammar_def` is up-to-date for `source`. Re-parses only when
-    /// the source text has changed. Returns the parse timings.
-    fn ensure_built(&mut self, source: &str) -> (u32, u32) {
-        if self.source.as_deref() == Some(source) {
-            return (self.parse_ms, self.tree_ms);
-        }
-        let input = Input::from(source);
-        let tree_arena = Arena::new();
-        let result = iguana_lsp::build(&input, &tree_arena);
-        match &result {
-            iguana_lsp::BuildResult::Success {
-                tree,
-                parse_duration,
-                tree_construction_duration,
-            } => {
-                self.grammar_def = Some(iguana_lsp::build_grammar_def(tree, &input));
-                self.parse_ms = parse_duration.as_millis() as u32;
-                self.tree_ms = tree_construction_duration.as_millis() as u32;
-                self.success = true;
-            }
-            iguana_lsp::BuildResult::Error(_) | iguana_lsp::BuildResult::Ambiguous => {
-                self.grammar_def = None;
-                self.parse_ms = 0;
-                self.tree_ms = 0;
-                self.success = false;
-            }
-        };
-        self.source = Some(source.to_string());
-        self.input = Some(input);
-        (self.parse_ms, self.tree_ms)
-    }
-
-    /// Parse the current source and return the tree. Returns None if no source
-    /// is set or parsing fails.
-    fn parse<'a>(&self, tree_arena: &'a Arena) -> Option<iguana_lsp::BuildResult<'a>> {
-        let input = self.input.as_ref()?;
-        match iguana_lsp::build(input, tree_arena) {
-            result @ iguana_lsp::BuildResult::Success { .. } => Some(result),
-            _ => None,
-        }
+    /// The analysis of `source`, built only when `source` differs from the most
+    /// recent source.
+    fn analysis(&mut self, source: &str) -> &Analysis {
+        self.latest.take_if(|latest| latest.source() != source);
+        self.latest.get_or_insert_with(|| Analysis::new(source))
     }
 }
 
@@ -1008,56 +977,43 @@ fn lock_state<T>(state: &Mutex<T>) -> MutexGuard<'_, T> {
         .unwrap_or_else(|poisoned| poisoned.into_inner())
 }
 
-/// Parse the grammar source and cache the result. Re-parses only if the source
-/// text has changed since the last parse.
+/// Analyze the grammar source and return its parse durations.
 #[tauri::command]
 #[specta::specta]
 fn analyze_grammar(source: String, state: tauri::State<Mutex<GrammarState>>) -> AnalyzeResult {
     lsp_guard(|| {
         let mut st = lock_state(&state);
-        let (parse_duration_ms, tree_construction_duration_ms) = st.ensure_built(&source);
-
+        let Some(durations) = st.analysis(&source).parse_durations() else {
+            return AnalyzeResult::default();
+        };
         AnalyzeResult {
-            success: st.success,
-            parse_duration_ms,
-            tree_construction_duration_ms,
+            success: true,
+            parse_duration_ms: durations.parse.as_millis() as u32,
+            tree_construction_duration_ms: durations.tree_construction.as_millis() as u32,
         }
     })
 }
 
-/// Format the grammar using the cached parse result.
-/// Falls back to parsing the source if no cached result exists.
-/// Returns None if parsing fails (grammar cannot be formatted).
+/// Format the grammar. Returns None if the grammar does not parse or is
+/// ambiguous.
 #[tauri::command]
 #[specta::specta]
-fn format_grammar(source: String, state: tauri::State<Mutex<GrammarState>>) -> Option<String> {
-    lsp_guard(|| {
-        let mut st = lock_state(&state);
-        st.ensure_built(&source);
-        let tree_arena = Arena::new();
-        let iguana_lsp::BuildResult::Success { tree, .. } = st.parse(&tree_arena)? else {
-            return None;
-        };
-        let input = st.input.as_ref()?;
-        Some(iguana_lsp::format::format(tree, input))
-    })
+fn format_grammar(source: String) -> Option<String> {
+    lsp_guard(|| format_source(&source))
 }
 
-/// Return semantic tokens from the cached parse result.
+/// Return semantic tokens from the most recent analysis.
 #[tauri::command]
 #[specta::specta]
 fn get_semantic_tokens(state: tauri::State<Mutex<GrammarState>>) -> Vec<SemanticTokenData> {
     lsp_guard(|| {
         let st = lock_state(&state);
-        let tree_arena = Arena::new();
-        let Some(iguana_lsp::BuildResult::Success { tree, .. }) = st.parse(&tree_arena) else {
+        let Some(analysis) = &st.latest else {
             return vec![];
         };
-        let Some(ref input) = st.input else {
-            return vec![];
-        };
-        iguana_lsp::semantic_tokens::semantic_tokens(tree, input)
-            .into_iter()
+        analysis
+            .semantic_tokens()
+            .iter()
             .map(|t| SemanticTokenData {
                 delta_line: t.delta_line,
                 delta_start: t.delta_start,
@@ -1070,7 +1026,6 @@ fn get_semantic_tokens(state: tauri::State<Mutex<GrammarState>>) -> Vec<Semantic
 }
 
 /// Return document symbols (rule heads + alternative labels).
-/// Ensures the parse result is fresh for the given source.
 #[tauri::command]
 #[specta::specta]
 fn get_document_symbols(
@@ -1079,20 +1034,10 @@ fn get_document_symbols(
 ) -> Vec<DocumentSymbolData> {
     lsp_guard(|| {
         let mut st = lock_state(&state);
-        st.ensure_built(&source);
-        let tree_arena = Arena::new();
-        let Some(iguana_lsp::BuildResult::Success { tree, .. }) = st.parse(&tree_arena) else {
-            return vec![];
-        };
-        let Some(ref input) = st.input else {
-            return vec![];
-        };
-        let Some(ref grammar_def) = st.grammar_def else {
-            return vec![];
-        };
-        let spans = iguana_lsp::build_spans(grammar_def, tree, input);
-        iguana_lsp::document_symbols::document_symbols(grammar_def, &spans, input)
-            .into_iter()
+        st.analysis(&source)
+            .document_symbols()
+            .iter()
+            .cloned()
             .map(convert_symbol)
             .collect()
     })
@@ -1109,24 +1054,11 @@ fn get_definition(
 ) -> Option<LocationData> {
     lsp_guard(|| {
         let mut st = lock_state(&state);
-        st.ensure_built(&source);
-        let tree_arena = Arena::new();
-        let iguana_lsp::BuildResult::Success { tree, .. } = st.parse(&tree_arena)? else {
-            return None;
-        };
-        let input = st.input.as_ref()?;
-        let grammar_def = st.grammar_def.as_ref()?;
-        let spans = iguana_lsp::build_spans(grammar_def, tree, input);
-        let uri: lsp_types::Uri = "file:///terrarium".parse().unwrap();
-        let offset = input.offset(line, column);
-        let loc = iguana_lsp::references::definition(grammar_def, &spans, input, &uri, offset)?;
+        let range = st
+            .analysis(&source)
+            .definition(Position::new(line, column))?;
         Some(LocationData {
-            range: RangeData {
-                start_line: loc.range.start.line,
-                start_char: loc.range.start.character,
-                end_line: loc.range.end.line,
-                end_char: loc.range.end.character,
-            },
+            range: range.into(),
         })
     })
 }
@@ -1143,38 +1075,13 @@ fn get_references(
 ) -> Vec<LocationData> {
     lsp_guard(|| {
         let mut st = lock_state(&state);
-        st.ensure_built(&source);
-        let tree_arena = Arena::new();
-        let Some(iguana_lsp::BuildResult::Success { tree, .. }) = st.parse(&tree_arena) else {
-            return vec![];
-        };
-        let Some(ref input) = st.input else {
-            return vec![];
-        };
-        let Some(ref grammar_def) = st.grammar_def else {
-            return vec![];
-        };
-        let spans = iguana_lsp::build_spans(grammar_def, tree, input);
-        let uri: lsp_types::Uri = "file:///terrarium".parse().unwrap();
-        let offset = input.offset(line, column);
-        iguana_lsp::references::references(
-            grammar_def,
-            &spans,
-            input,
-            &uri,
-            offset,
-            include_declaration,
-        )
-        .into_iter()
-        .map(|loc| LocationData {
-            range: RangeData {
-                start_line: loc.range.start.line,
-                start_char: loc.range.start.character,
-                end_line: loc.range.end.line,
-                end_char: loc.range.end.character,
-            },
-        })
-        .collect()
+        st.analysis(&source)
+            .references(Position::new(line, column), include_declaration)
+            .into_iter()
+            .map(|range| LocationData {
+                range: range.into(),
+            })
+            .collect()
     })
 }
 
@@ -1187,20 +1094,9 @@ fn get_folding_ranges(
 ) -> Vec<FoldingRangeData> {
     lsp_guard(|| {
         let mut st = lock_state(&state);
-        st.ensure_built(&source);
-        let tree_arena = Arena::new();
-        let Some(iguana_lsp::BuildResult::Success { tree, .. }) = st.parse(&tree_arena) else {
-            return vec![];
-        };
-        let Some(ref input) = st.input else {
-            return vec![];
-        };
-        let Some(ref grammar_def) = st.grammar_def else {
-            return vec![];
-        };
-        let spans = iguana_lsp::build_spans(grammar_def, tree, input);
-        iguana_lsp::folding::folding_ranges(grammar_def, &spans, input)
-            .into_iter()
+        st.analysis(&source)
+            .folding_ranges()
+            .iter()
             .map(|r| FoldingRangeData {
                 start_line: r.start_line,
                 end_line: r.end_line,
@@ -1218,43 +1114,21 @@ fn get_diagnostics(
 ) -> Vec<DiagnosticData> {
     lsp_guard(|| {
         let mut st = lock_state(&state);
-        st.ensure_built(&source);
-        let Some(ref input) = st.input else {
-            return vec![];
-        };
-        let tree_arena = Arena::new();
-        let diagnostics = match iguana_lsp::build(input, &tree_arena) {
-            iguana_lsp::BuildResult::Success { tree, .. } => {
-                let Some(ref grammar_def) = st.grammar_def else {
-                    return vec![];
-                };
-                let spans = iguana_lsp::build_spans(grammar_def, tree, input);
-                iguana_lsp::diagnostics::diagnostics(grammar_def, &spans, input)
-            }
-            iguana_lsp::BuildResult::Ambiguous => vec![],
-            iguana_lsp::BuildResult::Error(error) => {
-                vec![iguana_lsp::diagnostics::to_diagnostic(error, input)]
-            }
-        };
-        diagnostics
-            .into_iter()
+        st.analysis(&source)
+            .diagnostics()
+            .iter()
             .map(|d| {
                 let severity = match d.severity {
-                    Some(lsp_types::DiagnosticSeverity::ERROR) => 8,
-                    Some(lsp_types::DiagnosticSeverity::WARNING) => 4,
-                    Some(lsp_types::DiagnosticSeverity::INFORMATION) => 2,
-                    Some(lsp_types::DiagnosticSeverity::HINT) => 1,
+                    Some(DiagnosticSeverity::ERROR) => 8,
+                    Some(DiagnosticSeverity::WARNING) => 4,
+                    Some(DiagnosticSeverity::INFORMATION) => 2,
+                    Some(DiagnosticSeverity::HINT) => 1,
                     _ => 8,
                 };
                 DiagnosticData {
-                    range: RangeData {
-                        start_line: d.range.start.line,
-                        start_char: d.range.start.character,
-                        end_line: d.range.end.line,
-                        end_char: d.range.end.character,
-                    },
+                    range: d.range.into(),
                     severity,
-                    message: d.message,
+                    message: d.message.clone(),
                 }
             })
             .collect()
@@ -1263,8 +1137,7 @@ fn get_diagnostics(
 
 /// Map the LSP SymbolKind constants we actually use to their numeric codes.
 /// The `.0` field of `lsp_types::SymbolKind` is private, so we match by const.
-fn symbol_kind_code(kind: lsp_types::SymbolKind) -> u32 {
-    use lsp_types::SymbolKind;
+fn symbol_kind_code(kind: SymbolKind) -> u32 {
     match kind {
         SymbolKind::CLASS => 5,
         SymbolKind::CONSTRUCTOR => 9,
@@ -1274,22 +1147,12 @@ fn symbol_kind_code(kind: lsp_types::SymbolKind) -> u32 {
     }
 }
 
-fn convert_symbol(s: lsp_types::DocumentSymbol) -> DocumentSymbolData {
+fn convert_symbol(s: DocumentSymbol) -> DocumentSymbolData {
     DocumentSymbolData {
         name: s.name,
         kind: symbol_kind_code(s.kind),
-        range: RangeData {
-            start_line: s.range.start.line,
-            start_char: s.range.start.character,
-            end_line: s.range.end.line,
-            end_char: s.range.end.character,
-        },
-        selection_range: RangeData {
-            start_line: s.selection_range.start.line,
-            start_char: s.selection_range.start.character,
-            end_line: s.selection_range.end.line,
-            end_char: s.selection_range.end.character,
-        },
+        range: s.range.into(),
+        selection_range: s.selection_range.into(),
         children: s
             .children
             .unwrap_or_default()
@@ -1686,14 +1549,7 @@ pub fn run() {
         .manage(Mutex::new(ParseState::default()))
         .manage(Mutex::new(BuildState::default()))
         .manage(Mutex::new(DebugState::default()))
-        .manage(Mutex::new(GrammarState {
-            source: None,
-            input: None,
-            grammar_def: None,
-            parse_ms: 0,
-            tree_ms: 0,
-            success: false,
-        }))
+        .manage(Mutex::new(GrammarState::default()))
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())

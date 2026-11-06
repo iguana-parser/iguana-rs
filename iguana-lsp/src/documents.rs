@@ -1,30 +1,34 @@
-use std::{borrow::Cow, fs, io};
+use std::{fs, io};
 
+use iguana_lsp::analysis::Analysis;
 use lsp_types::{Position, Uri};
 use rustc_hash::FxHashMap;
 
-/// A map from open document URIs to their current text.
-///
-/// The server uses the live editor text when a document is open and falls back to
-/// the file on disk for URIs the client has not opened.
+/// A map from open document URIs to their analyses.
 #[derive(Default)]
 pub struct DocumentStore {
-    open: FxHashMap<Uri, String>,
+    open: FxHashMap<Uri, Analysis>,
 }
 
 impl DocumentStore {
-    pub fn set(&mut self, uri: Uri, text: String) {
-        self.open.insert(uri, text);
+    pub fn set(&mut self, uri: Uri, analysis: Analysis) {
+        self.open.insert(uri, analysis);
     }
 
     pub fn close(&mut self, uri: &Uri) {
         self.open.remove(uri);
     }
 
-    pub fn source<'a>(&'a self, uri: &Uri) -> io::Result<Cow<'a, str>> {
+    /// Calls `f` with the analysis of `uri`. A file the client has not opened
+    /// is read and analyzed for this call only, because the server does not
+    /// hear about later changes to the file.
+    pub fn with_analysis<T>(&self, uri: &Uri, f: impl FnOnce(&Analysis) -> T) -> io::Result<T> {
         match self.open.get(uri) {
-            Some(source) => Ok(Cow::Borrowed(source)),
-            None => fs::read_to_string(uri.path().as_str()).map(Cow::Owned),
+            Some(analysis) => Ok(f(analysis)),
+            None => {
+                let source = fs::read_to_string(uri.path().as_str())?;
+                Ok(f(&Analysis::new(&source)))
+            }
         }
     }
 }

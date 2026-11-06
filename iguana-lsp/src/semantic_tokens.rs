@@ -1,10 +1,9 @@
-use crate::{BuildResult, build};
 use iggy::parse_tree::{Grammar, Layout, ParseTree, Start, Token};
 use iguana_runtime::{
     input::{Input, Span},
     parse_tree::ParseTreeNode,
 };
-use lsp_types::{Position, Range, SemanticToken, SemanticTokenType, SemanticTokensLegend};
+use lsp_types::{SemanticToken, SemanticTokenType, SemanticTokensLegend};
 
 pub fn legend() -> SemanticTokensLegend {
     SemanticTokensLegend {
@@ -32,7 +31,7 @@ const TOKEN_DECORATOR: u32 = 5;
 const TOKEN_LABEL: u32 = 6;
 
 /// Extract semantic tokens from a parse tree.
-pub fn semantic_tokens(
+pub(crate) fn semantic_tokens(
     tree: &Start<&Grammar<'_>, &Layout<'_>>,
     input: &Input,
 ) -> Vec<SemanticToken> {
@@ -46,7 +45,7 @@ pub fn semantic_tokens(
         visit(child, &mut |node| match node {
             ParseTree::Token(token) => {
                 if let Some(token_type) = classify_token(&token) {
-                    builder.push(to_range(token.span(), input), token_type, 0);
+                    builder.push_span(token.span(), token_type, input);
                 }
                 false
             }
@@ -55,25 +54,6 @@ pub fn semantic_tokens(
     }
 
     builder.build()
-}
-
-/// Convenience: parse and tokenize in one call (for tests and simple consumers).
-pub fn tokenize(source: &str) -> Vec<SemanticToken> {
-    let input = Input::from(source);
-    let tree_arena = iguana_runtime::arena::Arena::new();
-    match build(&input, &tree_arena) {
-        BuildResult::Success { tree, .. } => semantic_tokens(tree, &input),
-        BuildResult::Error(_) | BuildResult::Ambiguous => vec![],
-    }
-}
-
-fn to_range(span: Span, input: &Input) -> Range {
-    let (start_line, start_col) = input.line_column(span.left_extent);
-    let (end_line, end_col) = input.line_column(span.right_extent);
-    Range {
-        start: Position::new(start_line, start_col),
-        end: Position::new(end_line, end_col),
-    }
 }
 
 fn visit<'a, F>(node: ParseTree<'a>, f: &mut F)
@@ -127,29 +107,42 @@ impl SemanticTokensBuilder {
         }
     }
 
-    fn push(&mut self, range: Range, token_type: u32, modifier_bitset: u32) {
-        let mut push_line = range.start.line;
-        let mut push_char = range.start.character;
+    /// Pushes one token per line of `span`, because an LSP client does not have
+    /// to support a token that spans lines. A string literal can contain a
+    /// newline.
+    fn push_span(&mut self, span: Span, token_type: u32, input: &Input) {
+        let mut start = span.left_extent;
+        while start < span.right_extent {
+            let end = input.line_end(start).min(span.right_extent);
+            if start < end {
+                let (line, column) = input.line_column(start);
+                self.push(line, column, end - start, token_type);
+            }
+            start = end + 1;
+        }
+    }
+
+    fn push(&mut self, line: u32, column: u32, length: u32, token_type: u32) {
+        let mut delta_line = line;
+        let mut delta_start = column;
 
         if !self.data.is_empty() {
-            push_line -= self.prev_line;
-            if push_line == 0 {
-                push_char -= self.prev_char;
+            delta_line -= self.prev_line;
+            if delta_line == 0 {
+                delta_start -= self.prev_char;
             }
         }
 
-        let token_len = range.end.character - range.start.character;
-
         self.data.push(SemanticToken {
-            delta_line: push_line,
-            delta_start: push_char,
-            length: token_len,
+            delta_line,
+            delta_start,
+            length,
             token_type,
-            token_modifiers_bitset: modifier_bitset,
+            token_modifiers_bitset: 0,
         });
 
-        self.prev_line = range.start.line;
-        self.prev_char = range.start.character;
+        self.prev_line = line;
+        self.prev_char = column;
     }
 
     fn build(self) -> Vec<SemanticToken> {
@@ -160,6 +153,11 @@ impl SemanticTokensBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::analysis::Analysis;
+
+    fn tokenize(source: &str) -> Vec<SemanticToken> {
+        Analysis::new(source).semantic_tokens().to_vec()
+    }
 
     #[test]
     fn test_simple_grammar() {
@@ -171,6 +169,20 @@ mod tests {
         assert_eq!(tokens[0].delta_start, 0);
         assert_eq!(tokens[0].length, 7); // "grammar"
         assert_eq!(tokens[0].token_type, TOKEN_KEYWORD);
+    }
+
+    #[test]
+    fn multiline_literal_has_one_token_per_line() {
+        let tokens = tokenize("grammar T\nS = \"abc\n\nx\" | \"y\"\n");
+        let strings: Vec<_> = tokens
+            .iter()
+            .filter(|token| token.token_type == TOKEN_STRING)
+            .map(|token| (token.delta_line, token.delta_start, token.length))
+            .collect();
+        // The deltas are relative to the previous token, which is `=` before
+        // `"abc` and `|` before `"y"`. The empty line in the literal does not
+        // have a token.
+        assert_eq!(strings, [(0, 2, 4), (2, 0, 2), (0, 2, 3)]);
     }
 
     #[test]

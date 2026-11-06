@@ -136,9 +136,10 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: iguana-lsp/wasm
-      # The crate builds only for wasm32, through wasm-pack; clippy needs the
-      # same target.
+      # The crate ships for wasm32 through wasm-pack. Clippy checks the same
+      # target.
       - run: cargo clippy --manifest-path iguana-lsp/wasm/Cargo.toml --target wasm32-unknown-unknown --all-targets
+      - run: cargo test --manifest-path iguana-lsp/wasm/Cargo.toml
 
   npm-check:
     name: svelte-check
