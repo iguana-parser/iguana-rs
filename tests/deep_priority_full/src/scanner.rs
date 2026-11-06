@@ -251,7 +251,7 @@ impl<'i, 'arena> DeepPriorityFullScanner<'i, 'arena> {
     pub fn match_terminal_8(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b"a")
     }
-    #[inline(always)]
+    #[inline]
     fn scan_dfa_0(&self, start: u32, end: u32) -> Option<u32> {
         let mut state: u32 = 0;
         let mut position = start;

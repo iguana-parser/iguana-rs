@@ -195,7 +195,7 @@ impl<'i, 'arena> ExceptLongestMatchScanner<'i, 'arena> {
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         LITERAL_TRIE.longest_match(self.input, input_index, &LITERAL_SET_1)
     }
-    #[inline(always)]
+    #[inline]
     fn scan_dfa_0(&self, start: u32, end: u32) -> Option<u32> {
         let mut state: u32 = 0;
         let mut position = start;

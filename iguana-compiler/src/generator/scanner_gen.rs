@@ -990,10 +990,10 @@ fn gen_scan_dfa_method(id: usize, dfa: &Dfa) -> TokenStream {
     } else {
         quote! { = None }
     };
-    // Inlined into its callers: `match_terminal_<id>`, and the exact-match
-    // checks of the terminals used as excepts.
+    // `#[inline]` instead of `#[inline(always)]`, because forcing a large DFA into
+    // its callers can slow down compilation several times.
     quote! {
-        #[inline(always)]
+        #[inline]
         fn #fn_name(&self, start: u32, end: u32) -> Option<u32> {
             let mut state: u32 = 0;
             let mut position = start;

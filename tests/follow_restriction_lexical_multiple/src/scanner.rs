@@ -230,7 +230,7 @@ impl<'i, 'arena> FollowRestrictionLexicalMultipleScanner<'i, 'arena> {
     pub fn match_terminal_4(&self, input_index: u32) -> Option<u32> {
         self.scan_dfa_4(input_index, self.input.len())
     }
-    #[inline(always)]
+    #[inline]
     fn scan_dfa_0(&self, start: u32, end: u32) -> Option<u32> {
         let mut state: u32 = 0;
         let mut position = start;
@@ -268,7 +268,7 @@ impl<'i, 'arena> FollowRestrictionLexicalMultipleScanner<'i, 'arena> {
         }
         last_accept
     }
-    #[inline(always)]
+    #[inline]
     fn scan_dfa_1(&self, start: u32, end: u32) -> Option<u32> {
         let mut state: u32 = 0;
         let mut position = start;
@@ -297,7 +297,7 @@ impl<'i, 'arena> FollowRestrictionLexicalMultipleScanner<'i, 'arena> {
         }
         last_accept
     }
-    #[inline(always)]
+    #[inline]
     fn scan_dfa_3(&self, start: u32, end: u32) -> Option<u32> {
         let mut state: u32 = 0;
         let mut position = start;
@@ -335,7 +335,7 @@ impl<'i, 'arena> FollowRestrictionLexicalMultipleScanner<'i, 'arena> {
         }
         last_accept
     }
-    #[inline(always)]
+    #[inline]
     fn scan_dfa_4(&self, start: u32, end: u32) -> Option<u32> {
         let mut state: u32 = 0;
         let mut position = start;

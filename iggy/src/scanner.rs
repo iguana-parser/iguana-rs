@@ -560,7 +560,7 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
     pub fn match_terminal_37(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b"-")
     }
-    #[inline(always)]
+    #[inline]
     fn scan_dfa_1(&self, start: u32, end: u32) -> Option<u32> {
         let mut state: u32 = 0;
         let mut position = start;
@@ -589,7 +589,7 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
         }
         last_accept
     }
-    #[inline(always)]
+    #[inline]
     fn scan_dfa_2(&self, start: u32, end: u32) -> Option<u32> {
         let mut state: u32 = 0;
         let mut position = start;
@@ -640,7 +640,7 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
         }
         last_accept
     }
-    #[inline(always)]
+    #[inline]
     fn scan_dfa_3(&self, start: u32, end: u32) -> Option<u32> {
         let mut state: u32 = 0;
         let mut position = start;
@@ -720,7 +720,7 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
         }
         last_accept
     }
-    #[inline(always)]
+    #[inline]
     fn scan_dfa_4(&self, start: u32, end: u32) -> Option<u32> {
         let mut state: u32 = 0;
         let mut position = start;
@@ -798,7 +798,7 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
         }
         last_accept
     }
-    #[inline(always)]
+    #[inline]
     fn scan_dfa_5(&self, start: u32, end: u32) -> Option<u32> {
         let mut state: u32 = 0;
         let mut position = start;
@@ -839,7 +839,7 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
         }
         last_accept
     }
-    #[inline(always)]
+    #[inline]
     fn scan_dfa_6(&self, start: u32, end: u32) -> Option<u32> {
         let mut state: u32 = 0;
         let mut position = start;
@@ -891,7 +891,7 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
         }
         last_accept
     }
-    #[inline(always)]
+    #[inline]
     fn scan_dfa_7(&self, start: u32, end: u32) -> Option<u32> {
         let mut state: u32 = 0;
         let mut position = start;
@@ -954,7 +954,7 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
         }
         last_accept
     }
-    #[inline(always)]
+    #[inline]
     fn scan_dfa_8(&self, start: u32, end: u32) -> Option<u32> {
         let mut state: u32 = 0;
         let mut position = start;
@@ -992,7 +992,7 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
         }
         last_accept
     }
-    #[inline(always)]
+    #[inline]
     fn scan_dfa_9(&self, start: u32, end: u32) -> Option<u32> {
         let mut state: u32 = 0;
         let mut position = start;
@@ -1021,7 +1021,7 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
         }
         last_accept
     }
-    #[inline(always)]
+    #[inline]
     fn scan_dfa_10(&self, start: u32, end: u32) -> Option<u32> {
         let mut state: u32 = 0;
         let mut position = start;

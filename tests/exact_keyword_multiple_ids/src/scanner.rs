@@ -225,7 +225,7 @@ impl<'i, 'arena> ExactKeywordMultipleIdsScanner<'i, 'arena> {
     pub fn match_terminal_6(&self, input_index: u32) -> Option<u32> {
         self.scan_dfa_6(input_index, self.input.len())
     }
-    #[inline(always)]
+    #[inline]
     fn scan_dfa_0(&self, start: u32, end: u32) -> Option<u32> {
         let mut state: u32 = 0;
         let mut position = start;
@@ -263,7 +263,7 @@ impl<'i, 'arena> ExactKeywordMultipleIdsScanner<'i, 'arena> {
         }
         last_accept
     }
-    #[inline(always)]
+    #[inline]
     fn scan_dfa_1(&self, start: u32, end: u32) -> Option<u32> {
         let mut state: u32 = 0;
         let mut position = start;
@@ -305,7 +305,7 @@ impl<'i, 'arena> ExactKeywordMultipleIdsScanner<'i, 'arena> {
         }
         last_accept
     }
-    #[inline(always)]
+    #[inline]
     fn scan_dfa_2(&self, start: u32, end: u32) -> Option<u32> {
         let mut state: u32 = 0;
         let mut position = start;
@@ -344,7 +344,7 @@ impl<'i, 'arena> ExactKeywordMultipleIdsScanner<'i, 'arena> {
         }
         last_accept
     }
-    #[inline(always)]
+    #[inline]
     fn scan_dfa_5(&self, start: u32, end: u32) -> Option<u32> {
         let mut state: u32 = 0;
         let mut position = start;
@@ -373,7 +373,7 @@ impl<'i, 'arena> ExactKeywordMultipleIdsScanner<'i, 'arena> {
         }
         last_accept
     }
-    #[inline(always)]
+    #[inline]
     fn scan_dfa_6(&self, start: u32, end: u32) -> Option<u32> {
         let mut state: u32 = 0;
         let mut position = start;

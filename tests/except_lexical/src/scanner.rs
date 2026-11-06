@@ -213,7 +213,7 @@ impl<'i, 'arena> ExceptLexicalScanner<'i, 'arena> {
         }
         Some(end)
     }
-    #[inline(always)]
+    #[inline]
     fn scan_dfa_1(&self, start: u32, end: u32) -> Option<u32> {
         let mut state: u32 = 0;
         let mut position = start;
