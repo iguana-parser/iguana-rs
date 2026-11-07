@@ -4,10 +4,13 @@ use std::{io, path::Path, process::Command};
 ///
 /// Probes for wasm-pack and the `wasm32-unknown-unknown` target first,
 /// reporting an actionable install hint when either is missing, then runs
-/// `wasm-pack build --target web --out-name parser` in `wasm_dir`. wasm-pack
-/// drives cargo build, wasm-bindgen, and wasm-opt, and pins a wasm-bindgen CLI
+/// `wasm-pack build --target web --out-name parser --no-opt` in `wasm_dir`.
+/// wasm-pack drives cargo build and wasm-bindgen, and pins a wasm-bindgen CLI
 /// matching the crate, so the version skew of invoking those tools by hand does
 /// not arise.
+///
+/// `--no-opt` skips wasm-opt. On the MySQL parser, wasm-opt took minutes and
+/// gigabytes of memory and did not reduce the gzipped size.
 ///
 /// The output lands in `<wasm_dir>/pkg/` as `parser.js` and `parser_bg.wasm`,
 /// the fixed module name the grammar-independent viewer loads.
@@ -42,7 +45,14 @@ pub fn build(wasm_dir: &Path) -> io::Result<()> {
     println!("Building wasm module with wasm-pack (target web)...");
     let status = Command::new("wasm-pack")
         .current_dir(wasm_dir)
-        .args(["build", "--target", "web", "--out-name", "parser"])
+        .args([
+            "build",
+            "--target",
+            "web",
+            "--out-name",
+            "parser",
+            "--no-opt",
+        ])
         .status()?;
     if !status.success() {
         return Err(io::Error::other("wasm-pack build failed"));
