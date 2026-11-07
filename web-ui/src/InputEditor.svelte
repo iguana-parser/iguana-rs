@@ -63,7 +63,7 @@
       const link = document.createElement("link");
       link.rel = "stylesheet";
       link.href =
-        "https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1/min/vs/editor/editor.main.css";
+        "https://cdn.jsdelivr.net/npm/monaco-editor@0.56.0/min/vs/editor/editor.main.css";
       link.setAttribute("data-monaco-css", "");
       document.head.appendChild(link);
     }
