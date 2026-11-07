@@ -57,6 +57,7 @@ pub enum Command {
     PrBody {
         version: String,
         java_commit: String,
+        mysql_commit: String,
         candidate_commit: String,
         run_url: String,
     },
@@ -108,12 +109,19 @@ pub fn run(command: Command, root: &Path) -> io::Result<()> {
         Command::PrBody {
             version,
             java_commit,
+            mysql_commit,
             candidate_commit,
             run_url,
         } => {
             println!(
                 "{}",
-                pr_body(&version, &candidate_commit, &java_commit, &run_url)?
+                pr_body(
+                    &version,
+                    &candidate_commit,
+                    &java_commit,
+                    &mysql_commit,
+                    &run_url
+                )?
             );
             Ok(())
         }
@@ -261,11 +269,17 @@ fn plan(root: &Path, version: &str, candidate: Option<&str>) -> io::Result<Value
     }))
 }
 
-fn pr_body(version: &str, candidate: &str, java: &str, run_url: &str) -> io::Result<String> {
+fn pr_body(
+    version: &str,
+    candidate: &str,
+    java: &str,
+    mysql: &str,
+    run_url: &str,
+) -> io::Result<String> {
     parse_version(version)?;
     require(
-        valid_commit(candidate) && valid_commit(java),
-        "Invalid candidate or Java commit",
+        valid_commit(candidate) && valid_commit(java) && valid_commit(mysql),
+        "Invalid candidate, Java or MySQL commit",
     )?;
     require(
         run_url.starts_with("https://github.com/iguana-parser/iguana-rs/actions/runs/")
@@ -283,7 +297,7 @@ fn pr_body(version: &str, candidate: &str, java: &str, run_url: &str) -> io::Res
          Generated parser sources should be unchanged.\n\n\
          CI runs the full test suite and validates the release packages. \
          It checks tool installation and parser generation from those packages. \
-         CI also generates and builds the Java parser, then runs its golden and corpus tests.\n\n\
+         CI also generates and builds the Java and MySQL parsers, then runs their golden and corpus tests.\n\n\
          **To merge:** review the diff and checks, then approve `release-merge` in the \
          [Actions run]({run_url}). Leave this PR as a draft. The workflow marks it ready \
          and fast-forwards `main` to the single `Release {version}` commit.\n\n\
@@ -291,7 +305,8 @@ fn pr_body(version: &str, candidate: &str, java: &str, run_url: &str) -> io::Res
          Save that draft, then approve `release-notes` in Actions. \
          A separate approval of `release-publish` authorizes publication.\n\n\
          Candidate: `{candidate}`.\n\n\
-         Java grammar: `iguana-parser/iguana-java-grammar@{java}`.\n"
+         Java grammar: `iguana-parser/iguana-java-grammar@{java}`.\n\n\
+         MySQL grammar: `iguana-parser/iguana-mysql-grammar@{mysql}`.\n"
     ))
 }
 
@@ -788,10 +803,13 @@ mod tests {
             "0.1.0-alpha.2",
             &"a".repeat(40),
             &"b".repeat(40),
+            &"c".repeat(40),
             "https://github.com/iguana-parser/iguana-rs/actions/runs/200",
         )
         .unwrap();
         assert!(body.contains("five Iguana crate versions"));
+        assert!(body.contains(&format!("iguana-java-grammar@{}", "b".repeat(40))));
+        assert!(body.contains(&format!("iguana-mysql-grammar@{}", "c".repeat(40))));
         assert!(body.contains("lockfiles"));
         assert!(body.contains("README installation commands"));
         assert!(body.contains("approve `release-merge`"));

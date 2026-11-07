@@ -41,6 +41,7 @@ jobs:
       tag: ${{ steps.plan.outputs.tag }}
       previous_tag: ${{ steps.plan.outputs.previous_tag }}
       java_commit: ${{ steps.plan.outputs.java_commit }}
+      mysql_commit: ${{ steps.plan.outputs.mysql_commit }}
       base_commit: ${{ steps.plan.outputs.base_commit }}
       branch: ${{ steps.plan.outputs.branch }}
       resume_commit: ${{ steps.plan.outputs.resume_commit }}
@@ -82,7 +83,7 @@ jobs:
         run: |
           cargo test --locked -p xtask
           cargo build --locked -p xtask
-      - name: Record the candidate base and Java grammar revision
+      - name: Record the candidate base and grammar revisions
         id: plan
         env:
           GH_TOKEN: ${{ github.token }}
@@ -113,10 +114,13 @@ jobs:
           BASE_COMMIT=$(jq -r .base_commit "$RUNNER_TEMP/plan.json")
           JAVA_COMMIT=$(git ls-remote https://github.com/iguana-parser/iguana-java-grammar.git refs/heads/main | cut -f1)
           [[ "$JAVA_COMMIT" =~ ^[0-9a-f]{40}$ ]]
+          MYSQL_COMMIT=$(git ls-remote https://github.com/iguana-parser/iguana-mysql-grammar.git refs/heads/main | cut -f1)
+          [[ "$MYSQL_COMMIT" =~ ^[0-9a-f]{40}$ ]]
           {
             echo "tag=$RELEASE_TAG"
             echo "previous_tag=$PREVIOUS_TAG"
             echo "java_commit=$JAVA_COMMIT"
+            echo "mysql_commit=$MYSQL_COMMIT"
             echo "base_commit=$BASE_COMMIT"
             echo "branch=$RELEASE_BRANCH"
             echo "resume_commit=$CANDIDATE"
@@ -126,7 +130,7 @@ jobs:
             echo "Release **$RELEASE_VERSION**, tag **$RELEASE_TAG**, previous tag **$PREVIOUS_TAG**."
             echo "Candidate base: $BASE_COMMIT. Branch: $RELEASE_BRANCH."
             if [ -n "$CANDIDATE" ]; then echo "Resume PR #$RESUME_PR at $CANDIDATE."; fi
-            echo "Java grammar: $JAVA_COMMIT. Its repository will not be modified."
+            echo "Java grammar: $JAVA_COMMIT. MySQL grammar: $MYSQL_COMMIT. Their repositories will not be modified."
             echo 'Preparation and validation run automatically. The first approval is to merge the tested PR.'
           } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
@@ -211,6 +215,7 @@ jobs:
           CREATE: ${{ steps.resolve.outputs.create }}
           BASE_COMMIT: ${{ needs.plan.outputs.base_commit }}
           JAVA_COMMIT: ${{ needs.plan.outputs.java_commit }}
+          MYSQL_COMMIT: ${{ needs.plan.outputs.mysql_commit }}
         run: |
           if [ "$CREATE" = true ]; then
             "$RELEASE_HELPER" release --root "$GITHUB_WORKSPACE" prepare "$RELEASE_VERSION"
@@ -243,7 +248,7 @@ jobs:
           "$RELEASE_HELPER" release --root "$GITHUB_WORKSPACE" check "$RELEASE_VERSION"
           "$RELEASE_HELPER" release --root "$GITHUB_WORKSPACE" clean
           "$RELEASE_HELPER" release --root "$GITHUB_WORKSPACE" pr-body \
-            "$RELEASE_VERSION" "$JAVA_COMMIT" "$COMMIT" \
+            "$RELEASE_VERSION" "$JAVA_COMMIT" "$MYSQL_COMMIT" "$COMMIT" \
             "https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" > "$RUNNER_TEMP/pr-body.md"
           echo "commit=$COMMIT" >> "$GITHUB_OUTPUT"
       - name: Push the prepared candidate and create or refresh its draft PR
@@ -286,7 +291,7 @@ jobs:
           {
             echo "Review [release PR #$PR]($URL) and its version, lockfile and installation-command changes."
             echo "Candidate: $COMMIT."
-            echo 'The workflow now runs full CI, packaged installation checks and Java golden and corpus tests.'
+            echo 'The workflow now runs full CI, packaged installation checks and Java and MySQL golden and corpus tests.'
             echo 'The merge approval becomes available only after all checks pass.'
             echo 'Leave the PR as a draft. Approve release-merge in Actions. The workflow handles its fast-forward merge.'
             echo 'A failed check leaves the candidate branch and its draft PR in place for inspection and retry.'
@@ -365,7 +370,7 @@ jobs:
         env:
           RELEASE_COMMIT: ${{ needs.prepare.outputs.commit }}
         run: |
-          echo "Package and installation checks passed for $RELEASE_COMMIT. The merge approval also requires full CI and Java validation." >> "$GITHUB_STEP_SUMMARY"
+          echo "Package and installation checks passed for $RELEASE_COMMIT. The merge approval also requires full CI and the Java and MySQL validation." >> "$GITHUB_STEP_SUMMARY"
 
   java:
     name: Validate the Java grammar against the release candidate
@@ -460,12 +465,128 @@ jobs:
           "$RELEASE_HELPER" release --root "$GITHUB_WORKSPACE" clean
           {
             echo "Java golden and corpus checks passed for $RELEASE_COMMIT using grammar commit $JAVA_COMMIT."
-            echo 'The merge approval also requires full CI and package validation.'
+            echo 'The merge approval also requires full CI, package validation and the MySQL validation.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  mysql:
+    name: Validate the MySQL grammar against the release candidate
+    needs: [plan, prepare]
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.commit }}
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+          components: rustfmt
+      - uses: Swatinem/rust-cache@v2
+        with:
+          prefix-key: v1-release-mysql
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.plan.outputs.helper_artifact }}
+          path: ${{ runner.temp }}/release-helper
+      - name: Enable the release helper
+        run: |
+          chmod +x "$RUNNER_TEMP/release-helper/xtask"
+          echo "RELEASE_HELPER=$RUNNER_TEMP/release-helper/xtask" >> "$GITHUB_ENV"
+      - name: Check MySQL candidate release metadata
+        run: '"$RELEASE_HELPER" release --root "$GITHUB_WORKSPACE" check "$RELEASE_VERSION"'
+      - name: Check out the recorded MySQL grammar in temporary storage
+        env:
+          MYSQL_COMMIT: ${{ needs.plan.outputs.mysql_commit }}
+        run: |
+          git init "$RUNNER_TEMP/mysql-source"
+          git -C "$RUNNER_TEMP/mysql-source" remote add origin https://github.com/iguana-parser/iguana-mysql-grammar.git
+          git -C "$RUNNER_TEMP/mysql-source" fetch --depth 1 origin "$MYSQL_COMMIT"
+          git -C "$RUNNER_TEMP/mysql-source" checkout --detach FETCH_HEAD
+          test "$(git -C "$RUNNER_TEMP/mysql-source" rev-parse HEAD)" = "$MYSQL_COMMIT"
+          mkdir "$RUNNER_TEMP/mysql"
+          cp "$RUNNER_TEMP/mysql-source/mysql.iggy" "$RUNNER_TEMP/mysql/"
+          cp -R "$RUNNER_TEMP/mysql-source/tests" "$RUNNER_TEMP/mysql-source/corpus" "$RUNNER_TEMP/mysql/"
+      - name: Require substantive MySQL golden and corpus inputs
+        working-directory: ${{ runner.temp }}/mysql
+        # The grammar currently has 759 golden inputs and 16 corpus entries.
+        # The CLI accepts empty suites, so check coverage before invoking it.
+        run: |
+          GOLDEN_INPUTS=$(find tests -type f -name '*.sql' | wc -l)
+          test "$GOLDEN_INPUTS" -ge 700 || {
+            echo '::error::MySQL validation requires at least 700 .sql golden inputs.'
+            exit 1
+          }
+          if ! test -s corpus/repos.txt || ! awk '
+            NF && $1 !~ /^#/ { count++; if (NF != 5) invalid = 1 }
+            END { exit (invalid || count < 10) }
+          ' corpus/repos.txt; then
+            echo '::error::MySQL validation requires at least ten valid corpus entries in corpus/repos.txt.'
+            exit 1
+          fi
+      - name: Check out the files that the MySQL corpus baselines list
+        working-directory: ${{ runner.temp }}/mysql/corpus
+        # The corpus selects some paths of each repository at a pinned commit.
+        # The corpus harness cannot clone a bare commit and selects files only by
+        # extension, so this step creates the checkouts that the harness then
+        # uses as they are. A sparse checkout fetches the files in one batch,
+        # and it ignores a pattern that matches nothing, so the step compares
+        # the result with the baseline.
+        run: |
+          while read -r CORPUS _ _ REPOSITORY COMMIT || [ -n "$CORPUS" ]; do
+            case "$CORPUS" in ''|\#*) continue ;; esac
+            grep -v '^#' "$CORPUS.txt" | cut -f1 | LC_ALL=C sort > "$RUNNER_TEMP/selected-paths.txt"
+            test -s "$RUNNER_TEMP/selected-paths.txt" || {
+              echo "::error::The baseline of MySQL corpus $CORPUS lists no inputs."
+              exit 1
+            }
+            git init --quiet ".cache/$CORPUS"
+            git -C ".cache/$CORPUS" remote add origin "$REPOSITORY"
+            git -C ".cache/$CORPUS" fetch --quiet --depth 1 --filter=blob:none origin "$COMMIT"
+            sed -E 's/[][*?\\!#]/\\&/g; s|^|/|' "$RUNNER_TEMP/selected-paths.txt" |
+              git -C ".cache/$CORPUS" sparse-checkout set --no-cone --stdin
+            git -C ".cache/$CORPUS" checkout --quiet --detach FETCH_HEAD
+            rm -rf ".cache/$CORPUS/.git"
+            (cd ".cache/$CORPUS" && find . \( -type f -o -type l \) | sed 's|^\./||' | LC_ALL=C sort) |
+              cmp - "$RUNNER_TEMP/selected-paths.txt" || {
+                echo "::error::The checkout of MySQL corpus $CORPUS differs from the files its baseline lists."
+                exit 1
+              }
+          done < repos.txt
+      - name: Generate MySQL with the candidate compiler and runtime
+        run: |
+          cargo run --locked -p iguana -- generate \
+            --grammar "$RUNNER_TEMP/mysql/mysql.iggy" \
+            --output "$RUNNER_TEMP/mysql" \
+            --runtime-path "$GITHUB_WORKSPACE/iguana-runtime" \
+            --bin-name iguana-mysql
+      - name: Build and check MySQL golden files and corpus
+        working-directory: ${{ runner.temp }}/mysql
+        run: |
+          cargo build --release
+          ./target/release/iguana-mysql --dir tests/queries --ext sql --start Queries --check-sexpr
+          ./target/release/iguana-mysql --dir tests/expressions --ext sql --start Expression --check-sexpr
+          ./target/release/iguana-mysql --dir tests/query-expression-parens --ext sql --start QueryExpressionParens --check-sexpr
+          # Each directory of keyword-contexts is named after its start symbol.
+          for DIRECTORY in tests/keyword-contexts/*/; do
+            START=$(basename "$DIRECTORY")
+            ./target/release/iguana-mysql --dir "$DIRECTORY" --ext sql --start "$START" --check-sexpr
+          done
+          ./target/release/iguana-mysql --corpus-test
+      - name: Record MySQL validation result
+        env:
+          RELEASE_COMMIT: ${{ needs.prepare.outputs.commit }}
+          MYSQL_COMMIT: ${{ needs.plan.outputs.mysql_commit }}
+        run: |
+          "$RELEASE_HELPER" release --root "$GITHUB_WORKSPACE" clean
+          {
+            echo "MySQL golden and corpus checks passed for $RELEASE_COMMIT using grammar commit $MYSQL_COMMIT."
+            echo 'The merge approval also requires full CI, package validation and the Java validation.'
           } >> "$GITHUB_STEP_SUMMARY"
 
   review:
     name: Summarize the tested PR for approval
-    needs: [plan, prepare, validate, java, full-ci]
+    needs: [plan, prepare, validate, java, mysql, full-ci]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -475,6 +596,7 @@ jobs:
           RELEASE_PR: ${{ needs.prepare.outputs.pr }}
           PR_URL: ${{ needs.prepare.outputs.url }}
           JAVA_COMMIT: ${{ needs.plan.outputs.java_commit }}
+          MYSQL_COMMIT: ${{ needs.plan.outputs.mysql_commit }}
         run: |
           {
             echo "## Ready to merge $RELEASE_VERSION"
@@ -484,6 +606,7 @@ jobs:
             echo
             echo 'Passed: full CI, release metadata, generated sources, VS Code notices, all five crate packages, offline installation of both packaged tools, and a generated parser smoke test.'
             echo "Java generation, build, golden files and corpus passed using grammar commit $JAVA_COMMIT."
+            echo "MySQL generation, build, golden files and corpus passed using grammar commit $MYSQL_COMMIT."
             echo
             echo '**Approve release-merge here in Actions. Leave the PR as a draft.** The workflow marks it ready and fast-forwards main to this exact candidate, preserving a single release commit.'
             echo 'It stops if main or the candidate branch has changed unexpectedly.'
