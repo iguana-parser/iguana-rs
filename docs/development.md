@@ -64,8 +64,8 @@ root workspace and use the checks in the
 [Terrarium workflow](../terrarium/README.md#development).
 
 The root npm workspace contains `web-ui`, `web-viewer`, `design-viewer`,
-`terrarium`, and `tree-widget`. Check all five packages, or select one while
-iterating:
+`terrarium`, `tree-widget`, and `grammar-view`. Check all six packages, or
+select one while iterating:
 
 ```sh
 npm run check
@@ -73,9 +73,9 @@ npm run check --workspace terrarium
 ```
 
 `npm run check` runs `svelte-check` across `web-ui`, `web-viewer`,
-`design-viewer`, and `terrarium`, and runs `tsc` for `tree-widget`. The VS Code
-extension is not part of the root npm workspace and must be compiled
-separately:
+`design-viewer`, and `terrarium`, and runs `tsc` for `tree-widget` and
+`grammar-view`. The VS Code extension is not part of the root npm workspace and
+must be compiled separately:
 
 ```sh
 npm --prefix editors/vscode run compile
@@ -112,6 +112,7 @@ component needs generated assets or platform setup.
 | Web viewer | Run `npm run dev --workspace web-viewer`. | Run `npm run build --workspace web-viewer`. | [Web viewer workflow](../web-viewer/README.md#development) |
 | Design viewer | Run `npm run dev --workspace design-viewer`. | Run `npm run build --workspace design-viewer`. | [Design viewer workflow](../design-viewer/README.md#development) |
 | Tree widget | Run `npm run check --workspace tree-widget`. | Run `npm run build --workspace tree-widget`. | [Tree widget workflow](../tree-widget/README.md) |
+| Grammar view | Run `npm run check --workspace grammar-view`. | Run `npm run build --workspace grammar-view`. | [Grammar view workflow](../grammar-view/README.md) |
 | VS Code extension | Run `npm --prefix editors/vscode run compile`. | Run `cargo xtask install-vscode-extension`. | [VS Code workflow](../editors/vscode/README.md) |
 
 ## Public documentation

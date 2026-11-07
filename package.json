@@ -1,7 +1,7 @@
 {
   "name": "iguana-rs-workspace",
   "private": true,
-  "description": "JavaScript/TypeScript workspace for iguana-rs: the shared web UI, Terrarium, the parse viewer, the design viewer, and the embeddable tree widget.",
+  "description": "JavaScript/TypeScript workspace for iguana-rs: the shared web UI, Terrarium, the parse viewer, the design viewer, the embeddable tree widget, and the website's grammar view.",
   "engines": {
     "node": ">=22.12.0"
   },
@@ -13,6 +13,7 @@
     "web-viewer",
     "design-viewer",
     "terrarium",
-    "tree-widget"
+    "tree-widget",
+    "grammar-view"
   ]
 }

@@ -1,0 +1,23 @@
+{
+  "name": "@iguana-parser/grammar-view",
+  "version": "0.1.0",
+  "description": "Read-only CodeMirror view of an Iggy grammar for the website, with navigation from the language server.",
+  "license": "MIT OR Apache-2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@codemirror/commands": "^6.11.1",
+    "@codemirror/language": "^6.13.1",
+    "@codemirror/state": "^6.7.6",
+    "@codemirror/view": "^6.43.15",
+    "@lezer/highlight": "^1.2.5"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3",
+    "vite": "^8.0.8"
+  }
+}
