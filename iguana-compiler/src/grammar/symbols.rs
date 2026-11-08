@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 use specta::Type;
 
 use crate::grammar::def::Grammar;
+use crate::grammar::transformations::exact_keyword_match::without_keyword_restrictions;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum Definition {
@@ -24,20 +25,7 @@ impl Definition {
     pub fn display_name(&self) -> String {
         match self {
             Definition::Terminal(terminal) => terminal.name.clone(),
-            Definition::Nonterminal(nonterminal) =>
-            // For normal nonterminals, i.e., the ones that are defined by the user directly,
-            // the display_name is the same the nonterminal name.
-            // For other nonterminals that are generated during grammar transformations,
-            // `display_name` shows a name that reflects the structure, rather than the unique,
-            // synthetic name using for the code generation.
-            // For example, for the rule S : A (B|C)+ C, the display name is (B|C)+, while the
-            // name is S_Plus_0.
-            {
-                match &nonterminal.origin {
-                    Some(symbol) => symbol.to_string(),
-                    None => nonterminal.name.clone(),
-                }
-            }
+            Definition::Nonterminal(nonterminal) => nonterminal.display_name(),
         }
     }
     pub fn as_nonterminal(&self) -> &Nonterminal {
@@ -852,16 +840,14 @@ impl Nonterminal {
         }
     }
 
-    // For normal nonterminals, i.e., the ones that are defined by the user directly,
-    // the display_name is the same the nonterminal name.
-    // For other nonterminals that are generated during grammar transformations,
-    // `display_name` shows a name that reflects the structure, rather than the unique,
-    // synthetic name used for code generation.
-    // For example, for the rule S : A (B|C)+ C, the display name is (B|C)+, while the
-    // name is S_Plus_0.
+    /// The name shown to users, such as the parse tree label. A nonterminal
+    /// the grammar defines shows its name. A derived nonterminal shows the
+    /// symbol it was derived from, as the grammar writes it. For
+    /// `S = A (B | C)+`, the derived `Plus_0` shows `(B | C)+`. The
+    /// restrictions that exact keyword matching inserts are left out.
     pub fn display_name(&self) -> String {
         match &self.origin {
-            Some(symbol) => symbol.to_string(),
+            Some(symbol) => without_keyword_restrictions(symbol.clone()).to_string(),
             None => self.name.clone(),
         }
     }

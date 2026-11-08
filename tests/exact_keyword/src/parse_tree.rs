@@ -554,7 +554,7 @@ impl<'a> Opt0<'a> {
     pub fn display_name(&self) -> &'static str {
         match self {
             Opt0::Amb(_) => "Amb",
-            _ => "([0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] Stmt)?",
+            _ => "(\"else\" Stmt)?",
         }
     }
     pub fn origin(&self) -> Option<Origin> {

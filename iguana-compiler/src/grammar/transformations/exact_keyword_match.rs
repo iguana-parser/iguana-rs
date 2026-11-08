@@ -1,77 +1,110 @@
 //! Exact keyword matching: a keyword must not be directly preceded or
 //! followed by an identifier character.
 //!
-//! The problem is specific to single-phase parsing. Consider the input
-//! `elsea` against a grammar with the keyword `"else"` and an identifier
-//! rule `[a-zA-Z][a-zA-Z_0-9]*`. Both terminals match at the start of the
-//! input: the keyword matches four characters, the identifier all five. A
-//! two-phase parser resolves this in the scanning pass by applying the
-//! longest match. Therefore, `elsea` becomes one identifier token and the
-//! keyword is not reported to the parser.
+//! Keyword matching is a problem specific to single-phase parsing.
+//! Consider the input `elsea` against a grammar with the keyword `"else"`
+//! and an identifier rule `[a-zA-Z][a-zA-Z_0-9]*`. Both terminals match at
+//! the start of the input. The keyword matches four characters, and the
+//! identifier matches all five. A two-phase parser resolves the conflict in
+//! the scanning pass by applying the longest match. Therefore, `elsea`
+//! becomes one identifier token and the keyword is not sent to the parser.
 //!
-//! Iguana does not have a separate scanning phase that globally applies
-//! the longest match. The parser drives the scanner, each position
-//! matches the one terminal the grammar expects there, and no comparison
-//! across terminals takes place. A keyword can therefore match at a
-//! position a scanner would never report, at either end of an identifier:
+//! Iguana's scanner does not apply a global longest match. The parser
+//! drives the scanner and matches the terminals the grammar expects at a
+//! position. Each terminal takes its own longest match, and no comparison
+//! across terminals takes place. A keyword can therefore match where a
+//! scanner with a global longest match would report part of an
+//! identifier. There are two cases:
 //!
-//! - The keyword's end. The literal `"else"` matches the first four
-//!   characters of `elsea`, and when the grammar allows an identifier
-//!   after `else`, the input parses as `else` followed by the identifier
-//!   `a`.
-//! - The keyword's start. The identifier itself can never end directly
-//!   before the keyword, because each terminal takes its own longest
-//!   match: in `aelse`, the identifier matches all five characters, never
-//!   just `a`. Another keyword can end there, though. With `"if"` also in
-//!   the grammar, a scanner reports `ifelse` as one identifier, while
-//!   Iguana matches `"if"` where the grammar expects it, and with
-//!   nullable layout `"else"` then matches directly after, mid-identifier.
+//! - A keyword followed by identifier characters. The literal `"else"`
+//!   matches the first four characters of `elsea`, and when the grammar
+//!   allows an identifier after `else`, the input can parse as `else`
+//!   followed by the identifier `a`.
+//! - Two keywords without layout between them. When the grammar allows
+//!   `"class"` after `"public"` and layout is nullable, the input
+//!   `publicclass` can parse as `public` followed by `class`, although a
+//!   scanner with a global longest match reports one identifier.
 //!
-//! Not having exact keyword matches makes ordinary input ambiguous.
-//! Consider `Stmt = Expr ";" | "if" "(" Expr ")" Stmt ("else" Stmt)?`
-//! and the input `if (c) x; elsewhere;`. The intended parse is two
-//! statements, the second an expression statement:
+//! The first case can lead to ambiguity in ordinary programs. The
+//! following grammar defines a list of statements:
 //!
 //! ```text
-//! (if (c) x;) (elsewhere;)
+//! Program = Stmt+
+//! Stmt = Expr ";" | "if" "(" Expr ")" Stmt ("else" Stmt)?
+//! Expr = Id
+//! @Regex Id = [a-zA-Z][a-zA-Z_0-9]*
+//! @Layout @Regex WS = [\ \n\t]*
 //! ```
 //!
-//! Matching `"else"` inside `elsewhere` produces a second parse, one if
-//! statement whose else branch is carved out of the identifier:
+//! The intended parse tree of the input `if (c) x; elsewhere;` has two
+//! statements, the second the expression statement `elsewhere;`:
 //!
 //! ```text
-//! (if (c) x; else (where;))
+//! (Stmt+
+//!   (Stmt
+//!     "if"
+//!     "("
+//!     (Expr Id)
+//!     ")"
+//!     (Stmt
+//!       (Expr Id)
+//!       ";"))
+//!   (Stmt
+//!     (Expr Id)
+//!     ";"))
 //! ```
 //!
-//! Both parses exist, so the input is ambiguous.
+//! Matching `"else"` inside `elsewhere` produces a second parse tree, one
+//! if statement whose else branch is the statement `where;`:
 //!
-//! The fix is a restriction pair on each keyword,
-//! `[0-9 A-Z _ a-z] !<< "else" !>> [0-9 A-Z _ a-z]`: the keyword must not
-//! be directly preceded or followed by an identifier character. Writing
-//! the pair by hand for every keyword in the grammar is tedious, so
-//! Iguana automates it: the grammar annotates its identifier rules with
-//! `@Identifier`, and the generator derives and inserts the pairs.
+//! ```text
+//! (Stmt+
+//!   (Stmt
+//!     "if"
+//!     "("
+//!     (Expr Id)
+//!     ")"
+//!     (Stmt
+//!       (Expr Id)
+//!       ";")
+//!     "else"
+//!     (Stmt
+//!       (Expr Id)
+//!       ";")))
+//! ```
+//!
+//! Both parse trees exist, so the input is ambiguous.
+//!
+//! The fix is a restriction pair on each keyword, as in
+//! `[a-zA-Z_0-9] !<< "else" !>> [a-zA-Z_0-9]`. The notation is conceptual
+//! and is not valid Iggy syntax, because a restriction operand in Iggy is
+//! the name of a rule, not a character class. Writing the pair by hand for
+//! every keyword in the grammar is tedious, so Iguana automates it. With
+//! `@Identifier` on the identifier rules, the generator derives the pairs
+//! and inserts them.
+//!
+//! # Generating the restrictions from `@Identifier`
 //!
 //! A literal in a syntax rule is *identifier-shaped* when an
 //! identifier-annotated rule accepts its text. Every identifier-shaped
-//! literal gets the restriction pair, with its two operands, one
-//! character class each, derived from the identifier-annotated rules as
-//! described below. The result mimics the longest-match scanner that
-//! most programming languages are designed around.
+//! literal gets the restriction pair. The two operands, one character
+//! class each, are derived from the identifier-annotated rules. The result
+//! mimics the longest-match scanner that most programming languages are
+//! designed around.
 //!
-//! To decide which literals get the precede and follow restrictions, we
-//! answer three questions about each literal, using a DFA built from the
-//! identifier-annotated regex rule. The DFA of the identifier rule
-//! above, `[a-zA-Z][a-zA-Z_0-9]*`, serves as the running example. It has
-//! two states: the start state, with a transition on `[a-zA-Z]`, and an
-//! accepting state, with a transition on `[a-zA-Z_0-9]` that loops back
-//! to itself.
+//! To decide whether a literal gets the restrictions, and with which
+//! character classes, we answer three questions about each literal, using
+//! a DFA built from the identifier-annotated regex rule. The DFA of the
+//! identifier rule above, `[a-zA-Z][a-zA-Z_0-9]*`, serves as the running
+//! example. It has two states: the start state, with a transition on
+//! `[a-zA-Z]`, and an accepting state, with a transition on `[a-zA-Z_0-9]`
+//! that loops back to itself.
 //!
 //! - Is the literal identifier-shaped? The DFA consumes the literal's
 //!   text. For `"else"`, the `e` moves the DFA from the start state to
-//!   the accepting state, and `l`, `s`, `e` follow the loop, so the walk
-//!   ends in an accepting state: `"else"` is identifier-shaped. `"++"` is
-//!   not: the start state does not have a transition on `+`, so the walk
+//!   the accepting state, and `l`, `s`, `e` follow the loop. The walk ends
+//!   in an accepting state, so `"else"` is identifier-shaped. `"++"` is
+//!   not. The start state does not have a transition on `+`, so the walk
 //!   stops at the first character, and no restrictions are inserted for
 //!   the literal.
 //! - Which characters would extend an identifier after the literal's end?
@@ -81,51 +114,52 @@
 //!   ended. The walk over `else` ends in the accepting state, which has
 //!   one outgoing transition, the loop, labeled `[a-zA-Z_0-9]`, so that
 //!   is the follow class.
-//! - Which characters can an identifier end on directly before the
-//!   literal? These form the precede class, the operand of the precede
+//! - Which characters can directly precede the literal inside an
+//!   identifier? These form the precede class, the operand of the precede
 //!   restriction (`!<<`) inserted before the literal. The class is the
 //!   union of the labels of the transitions whose target state has a
 //!   transition on the literal's first character. A character in such a
 //!   label can occur inside an identifier directly before the literal's
 //!   first character. The literal `"else"` starts with `e`. Both
 //!   transitions of the example DFA lead to the accepting state, and the
-//!   accepting state has a transition on `e` (the loop), so both labels
-//!   qualify, and the precede class is their union, again
+//!   accepting state has a transition on `e` (the loop). Both labels
+//!   therefore qualify, and the precede class is their union, again
 //!   `[a-zA-Z_0-9]`.
 //!
 //! The DFA is built from the identifier-annotated rule's regex alone;
 //! the rule's `\` excepts are dropped. Dropping them matters when the
 //! keywords are excluded from the identifier rule, as in
-//! `Identifier = [a-zA-Z][a-zA-Z_0-9]* \ Keyword`: the exclusion removes
-//! `else` from the identifier's language, but `else` still looks like an
-//! identifier, and its boundaries must still be enforced.
+//! `@Regex Identifier = [a-zA-Z][a-zA-Z_0-9]* \ Keyword`. The exclusion
+//! removes `else` from the identifier's language, but `else` still looks
+//! like an identifier, and its boundaries must still be enforced.
 //!
 //! With several identifier-annotated rules, a literal is identifier-shaped
 //! when at least one rule's DFA accepts it, and each class is the union
-//! of the classes over all of them. A rule contributes even when it does
-//! not accept the literal, as long as the literal is a prefix of a
-//! string the rule accepts. With a second annotated rule `[a-z]+[0-9]`,
-//! the walk over `else` ends in a non-accepting state (a digit is still
-//! missing), but `else` is a prefix of the accepted `else1`, so an
-//! identifier can extend across the keyword: the ending state's outgoing
-//! labels, digits included, belong in the follow class.
+//! of the classes of all the rules. A rule contributes to the follow class
+//! even when it does not accept the literal, as long as the literal is a
+//! prefix of a string the rule accepts. With a second annotated rule
+//! `[a-z]+[0-9]`, the walk over `else` ends in a non-accepting state (a
+//! digit is still missing). But `else` is a prefix of the accepted
+//! `else1`, so an identifier can extend across the keyword, and the
+//! ending state's outgoing labels, digits included, belong in the follow
+//! class.
 //!
 //! The restrictions above attach to literal occurrences in syntax
 //! rules, including a syntax rule that is nothing but an alternation of
 //! keywords. A literal can also appear inside a lexical rule, as in
-//! `@Regex Bool = "true" | "false"`. A lexical rule is a single token,
-//! and the literals in its body are parts of the token's regex, not
+//! `@Regex Bool = "true" | "false"`. A lexical rule is a single terminal,
+//! and the literals in its body are parts of the rule's regex, not
 //! occurrences, so no restriction attaches to them individually. A rule
 //! of this shape is still a set of keywords, though, and the pair
-//! belongs on the token as a whole: when the body is an alternation of
+//! belongs on the terminal as a whole. When the body is an alternation of
 //! literals and every literal is identifier-shaped, every reference to
-//! the rule gets the restriction pair, each literal deriving its
-//! classes as described above and the per-literal classes unioned. One
-//! literal that is not identifier-shaped disqualifies the whole rule,
-//! because the pair applies to every match of the rule, and a literal
-//! like `++` must keep matching next to identifier characters.
+//! the rule gets the restriction pair. Each literal derives its classes
+//! in the same way, and the pair uses their union. One literal that is
+//! not identifier-shaped disqualifies the whole rule, because the pair
+//! applies to every match of the rule, and a literal like `++` must keep
+//! matching next to identifier characters.
 //!
-//! Literals in `@NoLayout` rules are left alone: a `@NoLayout` rule is a
+//! Literals in `@NoLayout` rules are left alone. A `@NoLayout` rule is a
 //! character-level composition, and its literals are fragments of a
 //! larger token rather than keywords.
 
@@ -245,6 +279,34 @@ fn restriction_operand(
         name,
         definition: None,
     }]
+}
+
+/// Returns `symbol` without the precede and follow restrictions that were
+/// added for exact keyword matching.
+pub fn without_keyword_restrictions(symbol: Symbol) -> Symbol {
+    // A user-defined precede or follow restriction refers to a rule by an
+    // identifier, which cannot start with `[`. Only the restrictions that
+    // `transform` adds refer to rules whose names start with `[`, because
+    // each name is the `to_string` of its character class.
+    let user_defined = |identifier: &Identifier| !identifier.name.starts_with('[');
+    transform_symbol(symbol, &mut |symbol| match symbol {
+        Symbol::Restricted {
+            symbol,
+            mut restrictions,
+        } => {
+            restrictions.precede.retain(user_defined);
+            restrictions.follow.retain(user_defined);
+            if restrictions.is_empty() {
+                *symbol
+            } else {
+                Symbol::Restricted {
+                    symbol,
+                    restrictions,
+                }
+            }
+        }
+        other => other,
+    })
 }
 
 /// The two restriction sets combined: each list is the concatenation in
@@ -550,6 +612,26 @@ mod tests {
         let restrictions = restrictions(first_symbol(&out));
         assert_eq!(names(&restrictions.follow), ["X", "[0-9 a-z]"]);
         assert_eq!(names(&restrictions.precede), ["[0-9 a-z]"]);
+    }
+
+    #[test]
+    fn removing_keyword_restrictions_keeps_the_written_ones() {
+        let (out, _) = run_transform(
+            |table| {
+                vec![
+                    follow!(refer("\"else\"", table), "X"),
+                    refer("\"if\"", table),
+                ]
+            },
+            vec![identifier_rule(), literal_rule("else"), literal_rule("if")],
+            &id_rules(),
+        );
+        let symbols = &out[0].priority_levels[0].alternatives[0].symbols;
+        let written: Vec<String> = symbols
+            .iter()
+            .map(|symbol| without_keyword_restrictions(symbol.clone()).to_string())
+            .collect();
+        assert_eq!(written, ["\"else\" !>> X", "\"if\""]);
     }
 
     #[test]

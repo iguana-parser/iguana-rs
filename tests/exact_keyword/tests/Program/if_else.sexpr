@@ -16,7 +16,7 @@
           WS
           ";")
         WS
-        (([0-9 A-Z _ a-z] !<< "else" !>> [0-9 A-Z _ a-z] Stmt)?
+        (("else" Stmt)?
           "else"
           WS
           (Stmt
