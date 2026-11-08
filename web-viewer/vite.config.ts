@@ -2,10 +2,10 @@ import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { fileURLToPath } from "node:url";
 
-// The heavy libraries (Monaco, Cytoscape) are not bundled. They load at runtime
-// from a CDN via the importmap in index.html, so the embedded viewer stays
-// small. Keep this list in sync with that importmap.
-const external = ["monaco-editor", "cytoscape", "cytoscape-tidytree"];
+// Monaco is not bundled. It loads at runtime from a CDN via the importmap in
+// index.html, so the embedded viewer stays small. Keep this list in sync with
+// that importmap.
+const external = ["monaco-editor"];
 
 export default defineConfig({
   // A relative base, so the built viewer works at any mount: served at the

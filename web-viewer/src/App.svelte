@@ -1,6 +1,12 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { ParseView, WasmBackend, type ParserBackend, type WasmParse } from "@iguana-parser/web-ui";
+  import {
+    ParseView,
+    WasmBackend,
+    preloadEditor,
+    type ParserBackend,
+    type WasmParse,
+  } from "@iguana-parser/web-ui";
 
   // The grammar-derived data the bundle ships alongside the wasm module. The
   // viewer is grammar-independent and reads it all at runtime.
@@ -163,10 +169,8 @@
     else stopFollowingSystem = followSystemTheme();
   }
 
-  // The editor and graph libraries load from a CDN at runtime (see the
-  // importmap in index.html), so they are fetched on first load and served from
-  // the browser cache after that. Each step logs to the console so a slow first
-  // load is legible rather than a silent blank page.
+  // Each step of the load logs to the console, so a slow first load is legible
+  // rather than a silent blank page.
   const log = (msg: string) => console.info(`[iguana] ${msg}`);
 
   onMount(async () => {
@@ -223,18 +227,25 @@
       // document URL before use.
       const base = new URL(import.meta.env.BASE_URL, document.baseURI).href;
 
-      log("loading manifest...");
-      const manifest: Manifest = await (await fetch(`${base}manifest.json`)).json();
-      log(`grammar: ${manifest.grammar}`);
-
+      // The manifest, the wasm parser, and the input editor do not depend on
+      // one another, so they load in parallel. index.html preloads the manifest
+      // and the wasm parser, which starts their downloads before this script
+      // runs.
+      //
       // The wasm bundle is a static sibling of the viewer, not a source
       // dependency, so it loads at runtime. The viewer is grammar-independent,
       // so the module name is fixed (`iguana generate --wasm` builds it with
       // `wasm-pack --out-name parser`). The @vite-ignore keeps Vite from
       // trying to resolve it at build time.
-      log("loading wasm parser...");
-      const wasm = await import(/* @vite-ignore */ `${base}wasm/pkg/parser.js`);
-      await wasm.default();
+      log("loading manifest, wasm parser, and editor...");
+      preloadEditor(editorMode);
+      const manifestLoad: Promise<Manifest> = fetch(`${base}manifest.json`).then((r) => r.json());
+      const wasmLoad = import(/* @vite-ignore */ `${base}wasm/pkg/parser.js`).then(async (wasm) => {
+        await wasm.default();
+        return wasm;
+      });
+      const [manifest, wasm] = await Promise.all([manifestLoad, wasmLoad]);
+      log(`grammar: ${manifest.grammar}`);
 
       backend = new WasmBackend(wasm.parse as WasmParse);
       grammarName = manifest.grammar;

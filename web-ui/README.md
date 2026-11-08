@@ -25,9 +25,11 @@ Terrarium supplies Tauri-backed implementations of the same interfaces.
 ## Workspace integration
 
 The repository's npm workspace consumes the package as source, so the package
-has no separate build step. A host provides the peer dependencies, registers
-the Cytoscape `tidytree` layout, and configures Monaco's worker before mounting
-the components.
+has no separate build step. A host provides the peer dependencies and
+configures Monaco's worker before mounting the components. `ParseView` loads
+Cytoscape when its Graph tab is first shown and registers the `tidytree` layout
+then. A host that calls `createGraph` with the tree layout registers the layout
+itself.
 
 Install dependencies at the repository root. Run the package check while
 iterating, then check every npm workspace because Terrarium, both viewers, and

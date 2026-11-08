@@ -6,8 +6,8 @@
     <link rel="icon" href="data:," />
     <title>iguana parse viewer</title>
     <!--
-      The heavy libraries load from a CDN at runtime rather than being bundled,
-      so the embedded viewer stays small. Keep these in sync with the `external`
+      Monaco loads from a CDN at runtime rather than being bundled, so the
+      embedded viewer stays small. Keep this map in sync with the `external`
       list in vite.config.ts. The ESM Monaco build does not inject its own styles;
       its stylesheet is loaded on demand by InputEditor.svelte, so a viewer that
       uses the CodeMirror editor (editor="codemirror") never fetches it.
@@ -15,12 +15,22 @@
     <script type="importmap">
       {
         "imports": {
-          "monaco-editor": "https://esm.sh/monaco-editor@0.56.0",
-          "cytoscape": "https://esm.sh/cytoscape@3.33.2",
-          "cytoscape-tidytree": "https://esm.sh/cytoscape-tidytree@0.2.1"
+          "monaco-editor": "https://esm.sh/monaco-editor@0.56.0"
         }
       }
     </script>
+    <!--
+      The grammar's manifest and wasm parser sit next to this page in a
+      generated bundle. App.svelte loads them once the viewer script runs, and
+      these hints start the downloads while that script is still loading. The
+      wasm-bindgen glue and App.svelte fetch with fetch() defaults, a CORS
+      request with same-origin credentials. `crossorigin` gives the preloads
+      the same mode, and the browser reuses a preloaded response only when the
+      modes match.
+    -->
+    <link rel="modulepreload" href="./wasm/pkg/parser.js" vite-ignore />
+    <link rel="preload" href="./wasm/pkg/parser_bg.wasm" as="fetch" crossorigin vite-ignore />
+    <link rel="preload" href="./manifest.json" as="fetch" crossorigin vite-ignore />
     <!-- Host overrides, empty by default; see public/theme.css. -->
     <link rel="stylesheet" href="/theme.css" />
   </head>

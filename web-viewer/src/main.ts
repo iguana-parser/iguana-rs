@@ -1,15 +1,6 @@
 import { mount } from "svelte";
-import cytoscape from "cytoscape";
-import tidytree from "cytoscape-tidytree";
 import App from "./App.svelte";
 import "./app.css";
-
-console.info("[iguana] loading editor and graph libraries from CDN (cached after first load)...");
-
-// The parse view lays the parse-tree graph out with cytoscape-tidytree and edits
-// input in a Monaco editor. Both expect the host to register them, the same setup
-// Terrarium does. Do it once, before any parse view mounts.
-cytoscape.use(tidytree);
 
 // Monaco loads from the CDN (see the importmap), so its editor worker does too.
 // A worker script must be same-origin, so wrap the cross-origin module in a blob

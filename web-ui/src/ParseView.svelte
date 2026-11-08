@@ -1,16 +1,27 @@
+<script module lang="ts">
+  // The Monaco and CodeMirror editors load on demand, so a host downloads only
+  // the editor it uses. ParseView loads its editor when it mounts. A host that
+  // knows the editor earlier calls preloadEditor to start the download sooner.
+  const loadMonaco = () => import("./InputEditor.svelte");
+  const loadCodeMirror = () => import("./CodeMirrorEditor.svelte");
+
+  export function preloadEditor(editor: "monaco" | "codemirror") {
+    void (editor === "monaco" ? loadMonaco() : loadCodeMirror());
+  }
+</script>
+
 <script lang="ts">
   import type { ParseError, ParserBackend } from "./backend";
   import type * as monaco from "monaco-editor";
   import { tick, untrack, type Snippet } from "svelte";
   import { ChevronDown, ChevronRight, CornerRightUp, FoldVertical, UnfoldVertical, SlidersHorizontal, Copy, ClipboardCheck, Play } from "lucide-svelte";
-  import cytoscape from "cytoscape";
+  import type { Core } from "cytoscape";
   import {
     sppfNodeStyles,
     edgeStyles,
     adjustZoomGraph,
     openViewGraph,
     fitViewGraph,
-    createGraph,
     setupGraphTooltip,
     highlightOutgoingEdges,
     clearEdgeHighlights,
@@ -121,7 +132,7 @@
     onPopOut?: () => void;
     // Exports the parse-tree graph as a PNG. Defaults to a browser download;
     // Terrarium injects a native save dialog.
-    onExportPng?: (graph: cytoscape.Core | null, defaultName: string) => void;
+    onExportPng?: (graph: Core | null, defaultName: string) => void;
     // Fired when the visible parse tree changes, so a host that popped the graph
     // out into its own window can re-send the data.
     onParseTreeChange?: () => void;
@@ -282,7 +293,7 @@
   let ambiguityWarnings = $derived(parseTree ? collectOutermostAmbs(parseTree) : []);
   // svelte-ignore non_reactive_update
   let parseTreeContainer: HTMLDivElement;
-  let parseTreeCy: cytoscape.Core | null = null;
+  let parseTreeCy: Core | null = null;
   const parseTreeCollapseManager = new GraphCollapseManager();
   // The Cytoscape instance is kept alive across tab switches and reused on most
   // parses. `graphDirty` marks its elements stale (new parse or a view-options/
@@ -320,15 +331,13 @@
   // svelte-ignore non_reactive_update
   let inputEditorRef: { focus: () => void } | undefined;
 
-  // Load the Monaco and CodeMirror editors on demand: a host then fetches only
-  // the editor it uses.
   let InputEditorComp = $state<typeof import("./InputEditor.svelte").default | null>(null);
   let CodeMirrorEditorComp = $state<typeof import("./CodeMirrorEditor.svelte").default | null>(null);
   $effect(() => {
     if (editor === "monaco" && !InputEditorComp) {
-      import("./InputEditor.svelte").then((m) => (InputEditorComp = m.default));
+      loadMonaco().then((m) => (InputEditorComp = m.default));
     } else if (editor === "codemirror" && !CodeMirrorEditorComp) {
-      import("./CodeMirrorEditor.svelte").then((m) => (CodeMirrorEditorComp = m.default));
+      loadCodeMirror().then((m) => (CodeMirrorEditorComp = m.default));
     }
   });
 
@@ -388,11 +397,35 @@
   // own; restyle it when the theme changes.
   $effect(() => onThemeChange(() => parseTreeCy?.style(graphStyles())));
 
+  // Cytoscape and its tidytree layout load the first time the Graph tab is
+  // shown, so a host that opens on another tab does not download them at
+  // startup. A host that registers tidytree itself is unaffected, because
+  // registering a layout again replaces the earlier registration.
+  let createGraph = $state.raw<typeof import("./create-graph").createGraph | null>(null);
+  let graphLibraryRequested = false;
+  async function loadGraphLibrary() {
+    if (graphLibraryRequested) return;
+    graphLibraryRequested = true;
+    try {
+      const [{ default: cytoscape }, { default: tidytree }, graph] = await Promise.all([
+        import("cytoscape"),
+        import("cytoscape-tidytree"),
+        import("./create-graph"),
+      ]);
+      cytoscape.use(tidytree);
+      createGraph = graph.createGraph;
+    } catch (e) {
+      // The next visit to the Graph tab retries.
+      graphLibraryRequested = false;
+      console.error("[iguana] failed to load the graph library:", e);
+    }
+  }
+
   // Create the Cytoscape instance once and wire its event handlers. The handlers
   // are delegated on the instance (by 'node'/'edge' selector), so they keep
   // working across the element swaps reloadGraph does — no need to re-bind.
   function buildGraph() {
-    if (!parseTree || !parseTreeContainer) return;
+    if (!parseTree || !parseTreeContainer || !createGraph) return;
     parseTreeCollapseManager.reset();
 
     parseTreeCy = createGraph({
@@ -526,6 +559,10 @@
   // was display:none while hidden, so Cytoscape needs to re-read its size).
   $effect(() => {
     if (activeTab === "graph" && parseTree) {
+      if (!createGraph) {
+        loadGraphLibrary();
+        return;
+      }
       tick().then(() => {
         if (!parseTreeContainer) return;
         // Stale elements (new parse or a view toggle) rebuild and re-fit to the
