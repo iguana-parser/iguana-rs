@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use specta::Type;
 
 use crate::grammar::def::Grammar;
-use crate::grammar::transformations::exact_keyword_match::without_keyword_restrictions;
+use crate::grammar::transformations::transform_symbol;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum Definition {
@@ -842,12 +842,12 @@ impl Nonterminal {
 
     /// The name shown to users, such as the parse tree label. A nonterminal
     /// the grammar defines shows its name. A derived nonterminal shows the
-    /// symbol it was derived from, as the grammar writes it. For
-    /// `S = A (B | C)+`, the derived `Plus_0` shows `(B | C)+`. The
-    /// restrictions that exact keyword matching inserts are left out.
+    /// symbol it was derived from, without its restrictions. For
+    /// `S = A (B | C)+`, the derived `Plus_0` shows `(B | C)+`, and for
+    /// `S = ("else" !>> X B)?`, the derived `Opt_0` shows `("else" B)?`.
     pub fn display_name(&self) -> String {
         match &self.origin {
-            Some(symbol) => without_keyword_restrictions(symbol.clone()).to_string(),
+            Some(symbol) => without_restrictions(symbol.clone()).to_string(),
             None => self.name.clone(),
         }
     }
@@ -907,10 +907,33 @@ impl Display for Opt {
     }
 }
 
+/// Returns `symbol` with every restriction removed, at any depth.
+fn without_restrictions(symbol: Symbol) -> Symbol {
+    transform_symbol(symbol, &mut |symbol| match symbol {
+        Symbol::Restricted { symbol, .. } => *symbol,
+        other => other,
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{bind, except, exclude, follow, id, labeled, precede, restriction_ids};
+    use crate::{bind, except, exclude, follow, group, id, labeled, opt, precede, restriction_ids};
+
+    #[test]
+    fn test_display_name_leaves_out_restrictions() {
+        let keyword = Symbol::restricted(
+            id!("\"else\""),
+            Restrictions {
+                precede: restriction_ids!("[a-z]"),
+                follow: restriction_ids!("X", "[a-z]"),
+                ..Default::default()
+            },
+        );
+        let origin = opt!(group!(keyword, id!("B")));
+        let nonterminal = Nonterminal::with_origin("Opt_0", origin);
+        assert_eq!(nonterminal.display_name(), "(\"else\" B)?");
+    }
 
     fn names(ids: &[Identifier]) -> Vec<&str> {
         ids.iter().map(|id| id.name.as_str()).collect()

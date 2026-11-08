@@ -345,7 +345,7 @@ impl<'a> Plus0<'a> {
     pub fn display_name(&self) -> &'static str {
         match self {
             Plus0::Amb(_) => "Amb",
-            _ => "{Number Identifier \\ Keyword}+",
+            _ => "{Number Identifier}+",
         }
     }
     pub fn origin(&self) -> Option<Origin> {
@@ -405,7 +405,7 @@ impl<'a> Plus1<'a> {
     pub fn display_name(&self) -> &'static str {
         match self {
             Plus1::Amb(_) => "Amb",
-            _ => "{Identifier \\ Keyword \",\"}+",
+            _ => "{Identifier \",\"}+",
         }
     }
     pub fn origin(&self) -> Option<Origin> {

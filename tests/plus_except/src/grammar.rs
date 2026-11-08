@@ -25,11 +25,11 @@ static NONTERMINALS: [Nonterminal; 6] = [
     },
     Nonterminal {
         name: "Plus_0",
-        display_name: "{Number Identifier \\ Keyword}+",
+        display_name: "{Number Identifier}+",
     },
     Nonterminal {
         name: "Plus_1",
-        display_name: "{Identifier \\ Keyword \",\"}+",
+        display_name: "{Identifier \",\"}+",
     },
     Nonterminal {
         name: "StartSep",
@@ -51,67 +51,67 @@ static TERMINALS: [Terminal; 6] = [
 ];
 static SLOTS: [Slot; 20] = [
     Slot {
-        display_name: "Sep : . {Number Identifier \\ Keyword}+",
+        display_name: "Sep : . {Number Identifier}+",
         position: 0,
     },
     Slot {
-        display_name: "Sep : {Number Identifier \\ Keyword}+.",
+        display_name: "Sep : {Number Identifier}+.",
         position: 1,
     },
     Slot {
-        display_name: "Base : . {Identifier \\ Keyword \",\"}+",
+        display_name: "Base : . {Identifier \",\"}+",
         position: 0,
     },
     Slot {
-        display_name: "Base : {Identifier \\ Keyword \",\"}+.",
+        display_name: "Base : {Identifier \",\"}+.",
         position: 1,
     },
     Slot {
-        display_name: "{Number Identifier \\ Keyword}+ : . {Number Identifier \\ Keyword}+ Identifier \\ Keyword Number",
+        display_name: "{Number Identifier}+ : . {Number Identifier}+ Identifier \\ Keyword Number",
         position: 0,
     },
     Slot {
-        display_name: "{Number Identifier \\ Keyword}+ : {Number Identifier \\ Keyword}+ . Identifier \\ Keyword Number",
+        display_name: "{Number Identifier}+ : {Number Identifier}+ . Identifier \\ Keyword Number",
         position: 1,
     },
     Slot {
-        display_name: "{Number Identifier \\ Keyword}+ : {Number Identifier \\ Keyword}+ Identifier \\ Keyword . Number",
+        display_name: "{Number Identifier}+ : {Number Identifier}+ Identifier \\ Keyword . Number",
         position: 2,
     },
     Slot {
-        display_name: "{Number Identifier \\ Keyword}+ : {Number Identifier \\ Keyword}+ Identifier \\ Keyword Number.",
+        display_name: "{Number Identifier}+ : {Number Identifier}+ Identifier \\ Keyword Number.",
         position: 3,
     },
     Slot {
-        display_name: "{Number Identifier \\ Keyword}+ : . Number",
+        display_name: "{Number Identifier}+ : . Number",
         position: 0,
     },
     Slot {
-        display_name: "{Number Identifier \\ Keyword}+ : Number.",
+        display_name: "{Number Identifier}+ : Number.",
         position: 1,
     },
     Slot {
-        display_name: "{Identifier \\ Keyword \",\"}+ : . {Identifier \\ Keyword \",\"}+ \",\" Identifier \\ Keyword",
+        display_name: "{Identifier \",\"}+ : . {Identifier \",\"}+ \",\" Identifier \\ Keyword",
         position: 0,
     },
     Slot {
-        display_name: "{Identifier \\ Keyword \",\"}+ : {Identifier \\ Keyword \",\"}+ . \",\" Identifier \\ Keyword",
+        display_name: "{Identifier \",\"}+ : {Identifier \",\"}+ . \",\" Identifier \\ Keyword",
         position: 1,
     },
     Slot {
-        display_name: "{Identifier \\ Keyword \",\"}+ : {Identifier \\ Keyword \",\"}+ \",\" . Identifier \\ Keyword",
+        display_name: "{Identifier \",\"}+ : {Identifier \",\"}+ \",\" . Identifier \\ Keyword",
         position: 2,
     },
     Slot {
-        display_name: "{Identifier \\ Keyword \",\"}+ : {Identifier \\ Keyword \",\"}+ \",\" Identifier \\ Keyword.",
+        display_name: "{Identifier \",\"}+ : {Identifier \",\"}+ \",\" Identifier \\ Keyword.",
         position: 3,
     },
     Slot {
-        display_name: "{Identifier \\ Keyword \",\"}+ : . Identifier \\ Keyword",
+        display_name: "{Identifier \",\"}+ : . Identifier \\ Keyword",
         position: 0,
     },
     Slot {
-        display_name: "{Identifier \\ Keyword \",\"}+ : Identifier \\ Keyword.",
+        display_name: "{Identifier \",\"}+ : Identifier \\ Keyword.",
         position: 1,
     },
     Slot {

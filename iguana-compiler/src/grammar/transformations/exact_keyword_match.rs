@@ -281,34 +281,6 @@ fn restriction_operand(
     }]
 }
 
-/// Returns `symbol` without the precede and follow restrictions that were
-/// added for exact keyword matching.
-pub fn without_keyword_restrictions(symbol: Symbol) -> Symbol {
-    // A user-defined precede or follow restriction refers to a rule by an
-    // identifier, which cannot start with `[`. Only the restrictions that
-    // `transform` adds refer to rules whose names start with `[`, because
-    // each name is the `to_string` of its character class.
-    let user_defined = |identifier: &Identifier| !identifier.name.starts_with('[');
-    transform_symbol(symbol, &mut |symbol| match symbol {
-        Symbol::Restricted {
-            symbol,
-            mut restrictions,
-        } => {
-            restrictions.precede.retain(user_defined);
-            restrictions.follow.retain(user_defined);
-            if restrictions.is_empty() {
-                *symbol
-            } else {
-                Symbol::Restricted {
-                    symbol,
-                    restrictions,
-                }
-            }
-        }
-        other => other,
-    })
-}
-
 /// The two restriction sets combined: each list is the concatenation in
 /// argument order.
 fn merge(first: Restrictions, second: Restrictions) -> Restrictions {
@@ -612,26 +584,6 @@ mod tests {
         let restrictions = restrictions(first_symbol(&out));
         assert_eq!(names(&restrictions.follow), ["X", "[0-9 a-z]"]);
         assert_eq!(names(&restrictions.precede), ["[0-9 a-z]"]);
-    }
-
-    #[test]
-    fn removing_keyword_restrictions_keeps_the_written_ones() {
-        let (out, _) = run_transform(
-            |table| {
-                vec![
-                    follow!(refer("\"else\"", table), "X"),
-                    refer("\"if\"", table),
-                ]
-            },
-            vec![identifier_rule(), literal_rule("else"), literal_rule("if")],
-            &id_rules(),
-        );
-        let symbols = &out[0].priority_levels[0].alternatives[0].symbols;
-        let written: Vec<String> = symbols
-            .iter()
-            .map(|symbol| without_keyword_restrictions(symbol.clone()).to_string())
-            .collect();
-        assert_eq!(written, ["\"else\" !>> X", "\"if\""]);
     }
 
     #[test]
