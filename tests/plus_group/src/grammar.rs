@@ -16,201 +16,17 @@ pub const START_A: NonterminalId = NonterminalId(6);
 pub const START_B: NonterminalId = NonterminalId(7);
 pub const START_C: NonterminalId = NonterminalId(8);
 pub struct PlusGroupGrammar;
-static NONTERMINALS: [Nonterminal; 9] = [
-    Nonterminal {
-        name: "S",
-        display_name: "S",
-    },
-    Nonterminal {
-        name: "A",
-        display_name: "A",
-    },
-    Nonterminal {
-        name: "B",
-        display_name: "B",
-    },
-    Nonterminal {
-        name: "C",
-        display_name: "C",
-    },
-    Nonterminal {
-        name: "Plus_0",
-        display_name: "(A B C)+",
-    },
-    Nonterminal {
-        name: "StartS",
-        display_name: "S",
-    },
-    Nonterminal {
-        name: "StartA",
-        display_name: "A",
-    },
-    Nonterminal {
-        name: "StartB",
-        display_name: "B",
-    },
-    Nonterminal {
-        name: "StartC",
-        display_name: "C",
-    },
-];
-static DISPLAY_ORDER: [&str; 4] = ["S", "A", "B", "C"];
-static TERMINALS: [Terminal; 5] = [
-    Terminal { name: "\"a\"" },
-    Terminal { name: "\"b\"" },
-    Terminal { name: "\"c\"" },
-    Terminal { name: "Epsilon" },
-    Terminal { name: "EOF" },
-];
-static SLOTS: [Slot; 25] = [
-    Slot {
-        display_name: "S : . (A B C)+",
-        position: 0,
-    },
-    Slot {
-        display_name: "S : (A B C)+.",
-        position: 1,
-    },
-    Slot {
-        display_name: "A : . \"a\"",
-        position: 0,
-    },
-    Slot {
-        display_name: "A : \"a\".",
-        position: 1,
-    },
-    Slot {
-        display_name: "B : . \"b\"",
-        position: 0,
-    },
-    Slot {
-        display_name: "B : \"b\".",
-        position: 1,
-    },
-    Slot {
-        display_name: "C : . \"c\"",
-        position: 0,
-    },
-    Slot {
-        display_name: "C : \"c\".",
-        position: 1,
-    },
-    Slot {
-        display_name: "(A B C)+ : . (A B C)+ A B C",
-        position: 0,
-    },
-    Slot {
-        display_name: "(A B C)+ : (A B C)+ . A B C",
-        position: 1,
-    },
-    Slot {
-        display_name: "(A B C)+ : (A B C)+ A . B C",
-        position: 2,
-    },
-    Slot {
-        display_name: "(A B C)+ : (A B C)+ A B . C",
-        position: 3,
-    },
-    Slot {
-        display_name: "(A B C)+ : (A B C)+ A B C.",
-        position: 4,
-    },
-    Slot {
-        display_name: "(A B C)+ : . A B C",
-        position: 0,
-    },
-    Slot {
-        display_name: "(A B C)+ : A . B C",
-        position: 1,
-    },
-    Slot {
-        display_name: "(A B C)+ : A B . C",
-        position: 2,
-    },
-    Slot {
-        display_name: "(A B C)+ : A B C.",
-        position: 3,
-    },
-    Slot {
-        display_name: "S : . start:S",
-        position: 0,
-    },
-    Slot {
-        display_name: "S : start:S.",
-        position: 1,
-    },
-    Slot {
-        display_name: "A : . start:A",
-        position: 0,
-    },
-    Slot {
-        display_name: "A : start:A.",
-        position: 1,
-    },
-    Slot {
-        display_name: "B : . start:B",
-        position: 0,
-    },
-    Slot {
-        display_name: "B : start:B.",
-        position: 1,
-    },
-    Slot {
-        display_name: "C : . start:C",
-        position: 0,
-    },
-    Slot {
-        display_name: "C : start:C.",
-        position: 1,
-    },
-];
-static FIRST_SLOTS: [&[SlotId]; 9] = [
-    &[SlotId(0)],
-    &[SlotId(2)],
-    &[SlotId(4)],
-    &[SlotId(6)],
-    &[SlotId(8), SlotId(13)],
-    &[SlotId(17)],
-    &[SlotId(19)],
-    &[SlotId(21)],
-    &[SlotId(23)],
-];
-// A failed terminal match refers to a static terminal set like every other failure, so the
-// error reporting path needs to reach a terminal set from a terminal id. This table, indexed
-// by terminal id, serves only that.
-static SINGLE_TERMINAL_SETS: [TerminalSet; 5] = [
-    TerminalSet {
-        id: 7,
-        terminals: &[TerminalId(0)],
-    },
-    TerminalSet {
-        id: 8,
-        terminals: &[TerminalId(1)],
-    },
-    TerminalSet {
-        id: 9,
-        terminals: &[TerminalId(2)],
-    },
-    TerminalSet {
-        id: 10,
-        terminals: &[TerminalId(3)],
-    },
-    TerminalSet {
-        id: 11,
-        terminals: &[TerminalId(4)],
-    },
-];
 impl Grammar for PlusGroupGrammar {
     type Alternatives = BitSet<1>;
     const NAME: &'static str = "PlusGroup";
-    const NONTERMINALS: &'static [Nonterminal] = &NONTERMINALS;
-    const DISPLAY_ORDER: &'static [&'static str] = &DISPLAY_ORDER;
-    const TERMINALS: &'static [Terminal] = &TERMINALS;
-    const SLOTS: &'static [Slot] = &SLOTS;
-    const FIRST_SLOTS: &'static [&'static [SlotId]] = &FIRST_SLOTS;
+    const NONTERMINALS: &'static [Nonterminal] = &data::NONTERMINALS;
+    const DISPLAY_ORDER: &'static [&'static str] = &data::DISPLAY_ORDER;
+    const TERMINALS: &'static [Terminal] = &data::TERMINALS;
+    const SLOTS: &'static [Slot] = &data::SLOTS;
+    const FIRST_SLOTS: &'static [&'static [SlotId]] = &data::FIRST_SLOTS;
     const LAYOUT_NAME: Option<&'static str> = None;
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[];
-    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &SINGLE_TERMINAL_SETS;
+    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &data::SINGLE_TERMINAL_SETS;
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         match name {
             "S" => Some(S),
@@ -226,93 +42,286 @@ impl Grammar for PlusGroupGrammar {
         }
     }
 }
-// S { EOF }
-pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(4)],
-};
-// A { "b", EOF }
-pub static FOLLOW_SET_A: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(1), TerminalId(4)],
-};
-// B { "c", EOF }
-pub static FOLLOW_SET_B: TerminalSet = TerminalSet {
-    id: 2,
-    terminals: &[TerminalId(2), TerminalId(4)],
-};
-// C { "a", EOF }
-pub static FOLLOW_SET_C: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[TerminalId(0), TerminalId(4)],
-};
-// Plus_0 { "a", EOF }
-pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[TerminalId(0), TerminalId(4)],
-};
-// StartS { EOF }
-pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(4)],
-};
-// StartA { EOF }
-pub static FOLLOW_SET_START_A: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(4)],
-};
-// StartB { EOF }
-pub static FOLLOW_SET_START_B: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(4)],
-};
-// StartC { EOF }
-pub static FOLLOW_SET_START_C: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(4)],
-};
-// S { "a" }
-pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(0)],
-};
-// A { "a" }
-pub static FIRST_SET_A: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(0)],
-};
-// B { "b" }
-pub static FIRST_SET_B: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[TerminalId(1)],
-};
-// C { "c" }
-pub static FIRST_SET_C: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(2)],
-};
-// Plus_0 { "a" }
-pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(0)],
-};
-// StartS { "a" }
-pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(0)],
-};
-// StartA { "a" }
-pub static FIRST_SET_START_A: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(0)],
-};
-// StartB { "b" }
-pub static FIRST_SET_START_B: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[TerminalId(1)],
-};
-// StartC { "c" }
-pub static FIRST_SET_START_C: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(2)],
-};
+pub mod data {
+    #[allow(unused_imports)]
+    use iguana_runtime::{
+        grammar::{Nonterminal, Slot, Terminal},
+        ids::{SlotId, TerminalId},
+        prediction::Prediction,
+        scanner::TerminalSet,
+    };
+    pub(super) static NONTERMINALS: [Nonterminal; 9] = [
+        Nonterminal {
+            name: "S",
+            display_name: "S",
+        },
+        Nonterminal {
+            name: "A",
+            display_name: "A",
+        },
+        Nonterminal {
+            name: "B",
+            display_name: "B",
+        },
+        Nonterminal {
+            name: "C",
+            display_name: "C",
+        },
+        Nonterminal {
+            name: "Plus_0",
+            display_name: "(A B C)+",
+        },
+        Nonterminal {
+            name: "StartS",
+            display_name: "S",
+        },
+        Nonterminal {
+            name: "StartA",
+            display_name: "A",
+        },
+        Nonterminal {
+            name: "StartB",
+            display_name: "B",
+        },
+        Nonterminal {
+            name: "StartC",
+            display_name: "C",
+        },
+    ];
+    pub(super) static DISPLAY_ORDER: [&str; 4] = ["S", "A", "B", "C"];
+    pub(super) static TERMINALS: [Terminal; 5] = [
+        Terminal { name: "\"a\"" },
+        Terminal { name: "\"b\"" },
+        Terminal { name: "\"c\"" },
+        Terminal { name: "Epsilon" },
+        Terminal { name: "EOF" },
+    ];
+    pub(super) static SLOTS: [Slot; 25] = [
+        Slot {
+            display_name: "S : . (A B C)+",
+            position: 0,
+        },
+        Slot {
+            display_name: "S : (A B C)+.",
+            position: 1,
+        },
+        Slot {
+            display_name: "A : . \"a\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "A : \"a\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "B : . \"b\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "B : \"b\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "C : . \"c\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "C : \"c\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "(A B C)+ : . (A B C)+ A B C",
+            position: 0,
+        },
+        Slot {
+            display_name: "(A B C)+ : (A B C)+ . A B C",
+            position: 1,
+        },
+        Slot {
+            display_name: "(A B C)+ : (A B C)+ A . B C",
+            position: 2,
+        },
+        Slot {
+            display_name: "(A B C)+ : (A B C)+ A B . C",
+            position: 3,
+        },
+        Slot {
+            display_name: "(A B C)+ : (A B C)+ A B C.",
+            position: 4,
+        },
+        Slot {
+            display_name: "(A B C)+ : . A B C",
+            position: 0,
+        },
+        Slot {
+            display_name: "(A B C)+ : A . B C",
+            position: 1,
+        },
+        Slot {
+            display_name: "(A B C)+ : A B . C",
+            position: 2,
+        },
+        Slot {
+            display_name: "(A B C)+ : A B C.",
+            position: 3,
+        },
+        Slot {
+            display_name: "S : . start:S",
+            position: 0,
+        },
+        Slot {
+            display_name: "S : start:S.",
+            position: 1,
+        },
+        Slot {
+            display_name: "A : . start:A",
+            position: 0,
+        },
+        Slot {
+            display_name: "A : start:A.",
+            position: 1,
+        },
+        Slot {
+            display_name: "B : . start:B",
+            position: 0,
+        },
+        Slot {
+            display_name: "B : start:B.",
+            position: 1,
+        },
+        Slot {
+            display_name: "C : . start:C",
+            position: 0,
+        },
+        Slot {
+            display_name: "C : start:C.",
+            position: 1,
+        },
+    ];
+    pub(super) static FIRST_SLOTS: [&[SlotId]; 9] = [
+        &[SlotId(0)],
+        &[SlotId(2)],
+        &[SlotId(4)],
+        &[SlotId(6)],
+        &[SlotId(8), SlotId(13)],
+        &[SlotId(17)],
+        &[SlotId(19)],
+        &[SlotId(21)],
+        &[SlotId(23)],
+    ];
+    // A failed terminal match refers to a static terminal set like every other failure, so the
+    // error reporting path needs to reach a terminal set from a terminal id. This table, indexed
+    // by terminal id, serves only that.
+    pub(super) static SINGLE_TERMINAL_SETS: [TerminalSet; 5] = [
+        TerminalSet {
+            id: 7,
+            terminals: &[TerminalId(0)],
+        },
+        TerminalSet {
+            id: 8,
+            terminals: &[TerminalId(1)],
+        },
+        TerminalSet {
+            id: 9,
+            terminals: &[TerminalId(2)],
+        },
+        TerminalSet {
+            id: 10,
+            terminals: &[TerminalId(3)],
+        },
+        TerminalSet {
+            id: 11,
+            terminals: &[TerminalId(4)],
+        },
+    ];
+    // S { EOF }
+    pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(4)],
+    };
+    // A { "b", EOF }
+    pub static FOLLOW_SET_A: TerminalSet = TerminalSet {
+        id: 1,
+        terminals: &[TerminalId(1), TerminalId(4)],
+    };
+    // B { "c", EOF }
+    pub static FOLLOW_SET_B: TerminalSet = TerminalSet {
+        id: 2,
+        terminals: &[TerminalId(2), TerminalId(4)],
+    };
+    // C { "a", EOF }
+    pub static FOLLOW_SET_C: TerminalSet = TerminalSet {
+        id: 3,
+        terminals: &[TerminalId(0), TerminalId(4)],
+    };
+    // Plus_0 { "a", EOF }
+    pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
+        id: 3,
+        terminals: &[TerminalId(0), TerminalId(4)],
+    };
+    // StartS { EOF }
+    pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(4)],
+    };
+    // StartA { EOF }
+    pub static FOLLOW_SET_START_A: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(4)],
+    };
+    // StartB { EOF }
+    pub static FOLLOW_SET_START_B: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(4)],
+    };
+    // StartC { EOF }
+    pub static FOLLOW_SET_START_C: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(4)],
+    };
+    // S { "a" }
+    pub static FIRST_SET_S: TerminalSet = TerminalSet {
+        id: 4,
+        terminals: &[TerminalId(0)],
+    };
+    // A { "a" }
+    pub static FIRST_SET_A: TerminalSet = TerminalSet {
+        id: 4,
+        terminals: &[TerminalId(0)],
+    };
+    // B { "b" }
+    pub static FIRST_SET_B: TerminalSet = TerminalSet {
+        id: 5,
+        terminals: &[TerminalId(1)],
+    };
+    // C { "c" }
+    pub static FIRST_SET_C: TerminalSet = TerminalSet {
+        id: 6,
+        terminals: &[TerminalId(2)],
+    };
+    // Plus_0 { "a" }
+    pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
+        id: 4,
+        terminals: &[TerminalId(0)],
+    };
+    // StartS { "a" }
+    pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
+        id: 4,
+        terminals: &[TerminalId(0)],
+    };
+    // StartA { "a" }
+    pub static FIRST_SET_START_A: TerminalSet = TerminalSet {
+        id: 4,
+        terminals: &[TerminalId(0)],
+    };
+    // StartB { "b" }
+    pub static FIRST_SET_START_B: TerminalSet = TerminalSet {
+        id: 5,
+        terminals: &[TerminalId(1)],
+    };
+    // StartC { "c" }
+    pub static FIRST_SET_START_C: TerminalSet = TerminalSet {
+        id: 6,
+        terminals: &[TerminalId(2)],
+    };
+}

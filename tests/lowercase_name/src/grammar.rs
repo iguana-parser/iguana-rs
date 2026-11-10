@@ -11,102 +11,17 @@ pub const B: NonterminalId = NonterminalId(1);
 pub const START_S: NonterminalId = NonterminalId(2);
 pub const START_B: NonterminalId = NonterminalId(3);
 pub struct LowercaseNameGrammar;
-static NONTERMINALS: [Nonterminal; 4] = [
-    Nonterminal {
-        name: "S",
-        display_name: "S",
-    },
-    Nonterminal {
-        name: "B",
-        display_name: "B",
-    },
-    Nonterminal {
-        name: "StartS",
-        display_name: "S",
-    },
-    Nonterminal {
-        name: "StartB",
-        display_name: "B",
-    },
-];
-static DISPLAY_ORDER: [&str; 2] = ["S", "B"];
-static TERMINALS: [Terminal; 4] = [
-    Terminal { name: "\"a\"" },
-    Terminal { name: "\"b\"" },
-    Terminal { name: "Epsilon" },
-    Terminal { name: "EOF" },
-];
-static SLOTS: [Slot; 9] = [
-    Slot {
-        display_name: "S : . \"a\" B",
-        position: 0,
-    },
-    Slot {
-        display_name: "S : \"a\" . B",
-        position: 1,
-    },
-    Slot {
-        display_name: "S : \"a\" B.",
-        position: 2,
-    },
-    Slot {
-        display_name: "B : . \"b\"",
-        position: 0,
-    },
-    Slot {
-        display_name: "B : \"b\".",
-        position: 1,
-    },
-    Slot {
-        display_name: "S : . start:S",
-        position: 0,
-    },
-    Slot {
-        display_name: "S : start:S.",
-        position: 1,
-    },
-    Slot {
-        display_name: "B : . start:B",
-        position: 0,
-    },
-    Slot {
-        display_name: "B : start:B.",
-        position: 1,
-    },
-];
-static FIRST_SLOTS: [&[SlotId]; 4] = [&[SlotId(0)], &[SlotId(3)], &[SlotId(5)], &[SlotId(7)]];
-// A failed terminal match refers to a static terminal set like every other failure, so the
-// error reporting path needs to reach a terminal set from a terminal id. This table, indexed
-// by terminal id, serves only that.
-static SINGLE_TERMINAL_SETS: [TerminalSet; 4] = [
-    TerminalSet {
-        id: 3,
-        terminals: &[TerminalId(0)],
-    },
-    TerminalSet {
-        id: 4,
-        terminals: &[TerminalId(1)],
-    },
-    TerminalSet {
-        id: 5,
-        terminals: &[TerminalId(2)],
-    },
-    TerminalSet {
-        id: 6,
-        terminals: &[TerminalId(3)],
-    },
-];
 impl Grammar for LowercaseNameGrammar {
     type Alternatives = BitSet<1>;
     const NAME: &'static str = "lowercase_name";
-    const NONTERMINALS: &'static [Nonterminal] = &NONTERMINALS;
-    const DISPLAY_ORDER: &'static [&'static str] = &DISPLAY_ORDER;
-    const TERMINALS: &'static [Terminal] = &TERMINALS;
-    const SLOTS: &'static [Slot] = &SLOTS;
-    const FIRST_SLOTS: &'static [&'static [SlotId]] = &FIRST_SLOTS;
+    const NONTERMINALS: &'static [Nonterminal] = &data::NONTERMINALS;
+    const DISPLAY_ORDER: &'static [&'static str] = &data::DISPLAY_ORDER;
+    const TERMINALS: &'static [Terminal] = &data::TERMINALS;
+    const SLOTS: &'static [Slot] = &data::SLOTS;
+    const FIRST_SLOTS: &'static [&'static [SlotId]] = &data::FIRST_SLOTS;
     const LAYOUT_NAME: Option<&'static str> = None;
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[];
-    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &SINGLE_TERMINAL_SETS;
+    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &data::SINGLE_TERMINAL_SETS;
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         match name {
             "S" => Some(S),
@@ -117,43 +32,138 @@ impl Grammar for LowercaseNameGrammar {
         }
     }
 }
-// S { EOF }
-pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(3)],
-};
-// B { EOF }
-pub static FOLLOW_SET_B: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(3)],
-};
-// StartS { EOF }
-pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(3)],
-};
-// StartB { EOF }
-pub static FOLLOW_SET_START_B: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(3)],
-};
-// S { "a" }
-pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
-// B { "b" }
-pub static FIRST_SET_B: TerminalSet = TerminalSet {
-    id: 2,
-    terminals: &[TerminalId(1)],
-};
-// StartS { "a" }
-pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
-// StartB { "b" }
-pub static FIRST_SET_START_B: TerminalSet = TerminalSet {
-    id: 2,
-    terminals: &[TerminalId(1)],
-};
+pub mod data {
+    #[allow(unused_imports)]
+    use iguana_runtime::{
+        grammar::{Nonterminal, Slot, Terminal},
+        ids::{SlotId, TerminalId},
+        prediction::Prediction,
+        scanner::TerminalSet,
+    };
+    pub(super) static NONTERMINALS: [Nonterminal; 4] = [
+        Nonterminal {
+            name: "S",
+            display_name: "S",
+        },
+        Nonterminal {
+            name: "B",
+            display_name: "B",
+        },
+        Nonterminal {
+            name: "StartS",
+            display_name: "S",
+        },
+        Nonterminal {
+            name: "StartB",
+            display_name: "B",
+        },
+    ];
+    pub(super) static DISPLAY_ORDER: [&str; 2] = ["S", "B"];
+    pub(super) static TERMINALS: [Terminal; 4] = [
+        Terminal { name: "\"a\"" },
+        Terminal { name: "\"b\"" },
+        Terminal { name: "Epsilon" },
+        Terminal { name: "EOF" },
+    ];
+    pub(super) static SLOTS: [Slot; 9] = [
+        Slot {
+            display_name: "S : . \"a\" B",
+            position: 0,
+        },
+        Slot {
+            display_name: "S : \"a\" . B",
+            position: 1,
+        },
+        Slot {
+            display_name: "S : \"a\" B.",
+            position: 2,
+        },
+        Slot {
+            display_name: "B : . \"b\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "B : \"b\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "S : . start:S",
+            position: 0,
+        },
+        Slot {
+            display_name: "S : start:S.",
+            position: 1,
+        },
+        Slot {
+            display_name: "B : . start:B",
+            position: 0,
+        },
+        Slot {
+            display_name: "B : start:B.",
+            position: 1,
+        },
+    ];
+    pub(super) static FIRST_SLOTS: [&[SlotId]; 4] =
+        [&[SlotId(0)], &[SlotId(3)], &[SlotId(5)], &[SlotId(7)]];
+    // A failed terminal match refers to a static terminal set like every other failure, so the
+    // error reporting path needs to reach a terminal set from a terminal id. This table, indexed
+    // by terminal id, serves only that.
+    pub(super) static SINGLE_TERMINAL_SETS: [TerminalSet; 4] = [
+        TerminalSet {
+            id: 3,
+            terminals: &[TerminalId(0)],
+        },
+        TerminalSet {
+            id: 4,
+            terminals: &[TerminalId(1)],
+        },
+        TerminalSet {
+            id: 5,
+            terminals: &[TerminalId(2)],
+        },
+        TerminalSet {
+            id: 6,
+            terminals: &[TerminalId(3)],
+        },
+    ];
+    // S { EOF }
+    pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(3)],
+    };
+    // B { EOF }
+    pub static FOLLOW_SET_B: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(3)],
+    };
+    // StartS { EOF }
+    pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(3)],
+    };
+    // StartB { EOF }
+    pub static FOLLOW_SET_START_B: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(3)],
+    };
+    // S { "a" }
+    pub static FIRST_SET_S: TerminalSet = TerminalSet {
+        id: 1,
+        terminals: &[TerminalId(0)],
+    };
+    // B { "b" }
+    pub static FIRST_SET_B: TerminalSet = TerminalSet {
+        id: 2,
+        terminals: &[TerminalId(1)],
+    };
+    // StartS { "a" }
+    pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
+        id: 1,
+        terminals: &[TerminalId(0)],
+    };
+    // StartB { "b" }
+    pub static FIRST_SET_START_B: TerminalSet = TerminalSet {
+        id: 2,
+        terminals: &[TerminalId(1)],
+    };
+}

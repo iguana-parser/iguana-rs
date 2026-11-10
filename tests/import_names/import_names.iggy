@@ -1,7 +1,11 @@
 grammar ImportNames
 
-// Nonterminals named after the runtime items the generated modules use.
-S = Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot TerminalSet
+S = RuntimeItems GeneratedTypes GrammarData Locals ParserMethods
+
+// Rules named after the runtime items the generated modules import.
+RuntimeItems = Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal
+               Slot TerminalSet Arena NodeKind ParseTreeBuilder ParseTreeNode NonterminalId
+               TerminalId SPPFNodeId NonterminalNode TerminalNode
 Parse = "a"
 Parser = "b"
 SPPFNode = "c"
@@ -13,3 +17,41 @@ Nonterminal = "h"
 Terminal = "i"
 Slot = "j"
 TerminalSet = "k"
+Arena = "l"
+NodeKind = "m"
+ParseTreeBuilder = "n"
+ParseTreeNode = "o"
+NonterminalId = "p"
+TerminalId = "r"
+SPPFNodeId = "s"
+NonterminalNode = "t"
+TerminalNode = "u"
+
+// Rules named after the grammar and parser types.
+GeneratedTypes = ImportNamesGrammar ImportNamesParser
+ImportNamesGrammar = "v"
+ImportNamesParser = "w"
+
+// Rules whose constants have the names of the grammar data.
+GrammarData = Nonterminals Terminals Slots DisplayOrder FirstSlots SingleTerminalSets FirstSetS FollowSetS
+Nonterminals = "x"
+Terminals = "y"
+Slots = "z"
+DisplayOrder = "A"
+FirstSlots = "B"
+SingleTerminalSets = "C"
+FirstSetS = "D"
+FollowSetS = "E"
+
+// Fields named after the parameters of generated functions.
+Locals = Index nonterminal_node:"G"
+Index = "F"
+
+// Rules whose entry points `parse_a_ll1`, `parse_a_body`, and
+// `parse_start_without_layout` are close to the parser's own methods
+// `ll1_parse_a`, `ll1_body_a`, and `typed_parse_without_layout`.
+ParserMethods = A ALl1 ABody StartWithoutLayout
+A = "H"
+ALl1 = "I"
+ABody = "J"
+StartWithoutLayout = "K"

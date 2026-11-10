@@ -4,7 +4,7 @@ use std::path::Path;
 use iguana_runtime::input::{Input, Span};
 use rustc_hash::{FxHashMap, FxHashSet};
 
-use crate::generator::grammar_utils::{grammar_ident, parse_tree_builder_ident, parser_ident};
+use crate::generator::grammar_utils::parse_tree_builder_ident;
 use crate::generator::utils::is_rust_keyword;
 use crate::grammar::{
     def::{GrammarDef, LexicalRule, SyntaxRule},
@@ -153,54 +153,42 @@ fn check_duplicate_definitions<'a>(
     }
 }
 
-/// Reports syntax rule names that collide after conversion to Rust identifiers.
+/// Reports nonterminals whose names collide in the generated parser, such as
+/// `LineComment` and `line_comment`.
 ///
-/// Each syntax rule produces two identifiers:
-/// - A `PascalCase` parse-tree type.
-/// - An `UPPER_SNAKE_CASE` nonterminal ID constant.
+/// Each nonterminal produces these names, shown for `LineComment`:
 ///
-/// Duplicate source names are reported separately. This check reports only
-/// names that become equal during either conversion.
+/// - the type `LineComment` and the method `ParseTree::unwrap_line_comment` in
+///   `parse_tree.rs`,
+/// - the nonterminal id constant `LINE_COMMENT` in `grammar.rs`,
+/// - the entry point `parse_line_comment` in `parser.rs` and, if `LineComment`
+///   is an LL(1) nonterminal, the methods `ll1_parse_line_comment` and
+///   `ll1_body_line_comment`.
+///
+/// Two names with different snake_case forms can have the same PascalCase form
+/// (`to_pascal_case`), so this check compares the PascalCase forms.
+///
+/// Nonterminals with the same name in the grammar are reported by
+/// `check_duplicate_definitions`.
 fn check_generated_rule_name_collisions<'a>(
     grammar_def: &'a GrammarDef,
     spans: &GrammarSpans<'a>,
     errors: &mut Vec<GrammarError>,
 ) {
-    // A map from generated `PascalCase` type names to source rule names.
+    // A map from generated type names to source rule names.
     let mut type_names = FxHashMap::default();
-    // A map from generated `UPPER_SNAKE_CASE` constant names to source rule names.
-    let mut constant_names = FxHashMap::default();
-    // A collision between the same two rules is reported only once. For example,
-    // `Foo` and `foo` collide as both the type `Foo` and the constant `FOO`. The
-    // type collision is checked first, so the constant collision is skipped.
-    let mut reported = FxHashSet::default();
 
     for rule in &grammar_def.syntax_rules {
         let name = rule.head.name.as_str();
-        let span = spans.nonterminal(&rule.head).span;
         let type_name = to_pascal_case(name);
         if let Some(previous) = type_names.insert(type_name.clone(), name)
             && previous != name
-            && reported.insert((previous, name))
         {
             errors.push(GrammarError {
                 message: format!(
                     "`{previous}` and `{name}` have the same generated name `{type_name}`"
                 ),
-                span,
-            });
-        }
-
-        let constant_name = constant_name(name);
-        if let Some(previous) = constant_names.insert(constant_name.clone(), name)
-            && previous != name
-            && reported.insert((previous, name))
-        {
-            errors.push(GrammarError {
-                message: format!(
-                    "`{previous}` and `{name}` have the same generated name `{constant_name}`"
-                ),
-                span,
+                span: spans.nonterminal(&rule.head).span,
             });
         }
     }
@@ -547,89 +535,90 @@ fn check_sequence_field_labels<'a>(
     }
 }
 
-/// Names of types and traits imported or defined by the generated parse tree.
+/// Names that nonterminals cannot use because they would conflict with types
+/// in `parse_tree.rs`:
 ///
-/// Keep this list synchronized with generated-code type and trait names in
-/// `generator/parse_tree_gen.rs` that are not derived from the grammar,
-/// including the prelude types the generated code uses unqualified.
-const RESERVED_TYPE_NAMES: &[&str] = &[
-    "Arena",
-    "CycleTarget",
-    "NodeKind",
-    "NonterminalId",
-    "NonterminalNode",
-    "OptNode",
-    "Option",
-    "Origin",
-    "ParseTree",
-    "ParseTreeBuilder",
-    "ParseTreeNode",
-    "SPPFNodeId",
-    "SlotId",
-    "Span",
-    "Start",
-    "TerminalId",
-    "TerminalNode",
-    "Token",
-    "TokenKind",
-    "Vec",
+/// - `ParseTree`, `Token`, `TokenKind`, and `OptNode`, defined there,
+/// - `Start`, re-exported there,
+/// - `SlotId`, imported there,
+/// - `Option`, `Vec`, and `Iterator`, the prelude types the generated code uses.
+///
+/// Other runtime items are accessed through their modules, so they do not need
+/// to be reserved. The runtime types `Span` and `Origin` are covered by
+/// `RESERVED_FIELD_NAMES`, which applies to every rule.
+const RESERVED_NONTERMINAL_NAMES: &[&str] = &[
+    "iterator",
+    "opt_node",
+    "option",
+    "parse_tree",
+    "slot_id",
+    "start",
+    "token",
+    "token_kind",
+    "vec",
+];
+
+/// Names that nonterminals, lexical rules, and labels cannot use because they
+/// would conflict with the methods every parse tree type has. A reference to a
+/// rule becomes a field named after the rule, or after its label if it has
+/// one. The type of a rule with a single alternative gets an accessor method
+/// for each field. `span` also conflicts with the span field of every
+/// alternative.
+const RESERVED_FIELD_NAMES: &[&str] = &[
+    "span",
+    "display_name",
+    "origin",
+    "child",
+    "child_count",
+    "as_parse_tree",
 ];
 
 const AMBIGUITY_VARIANT_NAME: &str = "Amb";
 
-const ALTERNATIVE_SPAN_FIELD_NAME: &str = "span";
-
 /// The Rust keywords that cannot be escaped as raw identifiers. Every other
-/// keyword label becomes a raw identifier, such as `r#type` for `type:A`.
+/// keyword becomes a raw identifier when it is a field name, such as `r#type`
+/// for `type:A`.
 const UNESCAPABLE_FIELD_NAMES: &[&str] = &["self", "super", "crate"];
 
 /// Reports rule and label names that collide with generated Rust identifiers
 /// or cannot be Rust identifiers.
 ///
-/// The check compares each name after applying the generator's case conversion.
-/// Rule names become PascalCase types and UPPER_SNAKE_CASE constants.
-/// Alternative labels become PascalCase variants, and symbol labels become
-/// snake_case fields.
+/// The check compares each name after applying the generator's case conversion:
+///
+/// - Reserved names are compared in snake_case. `TokenKind`, `token_kind`, and
+///   `TOKEN_KIND` all conflict with `token_kind`.
+/// - The start wrappers and the parse tree builder are types, compared in
+///   PascalCase. `start_s` conflicts with `StartS`, the start wrapper of `S`.
+/// - Alternative labels become PascalCase variants.
 fn check_reserved_names<'a>(
     grammar_def: &'a GrammarDef,
     spans: &GrammarSpans<'a>,
     errors: &mut Vec<GrammarError>,
 ) {
-    // Every syntax rule gets a `StartX` wrapper. Compare constant names so
-    // different spellings that generate the same constant, such as `start_s`
-    // and `StartS`, are also detected.
-    let start_wrappers: FxHashMap<String, &str> = grammar_def
+    // Every syntax rule `X` gets a start wrapper `StartX`.
+    let start_wrappers: FxHashSet<String> = grammar_def
         .syntax_rules
         .iter()
-        .map(|rule| rule.head.name.as_str())
-        .map(|name| (constant_name(&format!("Start{name}")), name))
+        .map(|rule| to_pascal_case(&format!("Start{}", rule.head.name)))
         .collect();
-    let grammar_type = grammar_ident(&grammar_def.name);
-    let parser_type = parser_ident(&grammar_def.name);
-    let parse_tree_builder_type = parse_tree_builder_ident(&grammar_def.name);
+    let parse_tree_builder = parse_tree_builder_ident(&grammar_def.name).to_string();
 
     for rule in &grammar_def.syntax_rules {
         let name = rule.head.name.as_str();
         let span = spans.nonterminal(&rule.head).span;
 
-        if let Some(wrapped) = start_wrappers.get(&constant_name(name)) {
-            errors.push(GrammarError {
-                message: format!(
-                    "`{name}` collides with the generated start wrapper for `{wrapped}`"
-                ),
-                span,
-            });
-        }
         let type_name = to_pascal_case(name);
-        if RESERVED_TYPE_NAMES.contains(&type_name.as_str())
-            || grammar_type == type_name
-            || parser_type == type_name
-            || parse_tree_builder_type == type_name
+        let snake_name = to_snake_case(name);
+        if RESERVED_NONTERMINAL_NAMES.contains(&snake_name.as_str())
+            || start_wrappers.contains(&type_name)
+            || type_name == parse_tree_builder
         {
-            errors.push(GrammarError {
-                message: format!("`{name}` is a reserved name in the generated crate"),
-                span,
-            });
+            errors.push(name_conflict(name, &type_name, span));
+        } else if RESERVED_FIELD_NAMES.contains(&snake_name.as_str()) {
+            errors.push(name_conflict(name, &snake_name, span));
+        }
+        if UNESCAPABLE_FIELD_NAMES.contains(&snake_name.as_str()) {
+            errors.push(unescapable_field(name, &snake_name, span));
         }
 
         let mut variant_names = FxHashMap::default();
@@ -694,37 +683,56 @@ fn check_reserved_names<'a>(
         }
     }
 
-    // A symbol label becomes a snake_case field name. An unlabeled rule reference
-    // derives its field name from the referenced rule, but repeated names gain
-    // numeric indexes. Whether an unlabeled field collides with `span` therefore
-    // cannot be decided from the rule name alone.
+    // A reference to a lexical rule becomes a token field named after the rule.
+    for rule in &grammar_def.lexical_rules {
+        let name = rule.head.name.as_str();
+        let span = spans.terminal(&rule.head).span;
+        let field_name = to_snake_case(name);
+        if RESERVED_FIELD_NAMES.contains(&field_name.as_str()) {
+            errors.push(name_conflict(name, &field_name, span));
+        }
+        if UNESCAPABLE_FIELD_NAMES.contains(&field_name.as_str()) {
+            errors.push(unescapable_field(name, &field_name, span));
+        }
+    }
+
+    // A symbol label becomes a snake_case field name.
     grammar_def.for_each_symbol(&mut |symbol| {
         let Symbol::Labeled { label, .. } = symbol else {
             return;
         };
+        let span = spans.symbol(symbol).span;
         let field_name = to_snake_case(label);
-        if field_name == ALTERNATIVE_SPAN_FIELD_NAME {
-            errors.push(GrammarError {
-                message: format!(
-                    "`{label}` becomes the field `{ALTERNATIVE_SPAN_FIELD_NAME}`, which the generator uses for an alternative's span"
-                ),
-                span: spans.symbol(symbol).span,
-            });
+        if RESERVED_FIELD_NAMES.contains(&field_name.as_str()) {
+            errors.push(name_conflict(label, &field_name, span));
         }
         if UNESCAPABLE_FIELD_NAMES.contains(&field_name.as_str()) {
-            errors.push(GrammarError {
-                message: format!(
-                    "`{label}` becomes the field `{field_name}`, which cannot be a Rust field name"
-                ),
-                span: spans.symbol(symbol).span,
-            });
+            errors.push(unescapable_field(label, &field_name, span));
         }
     });
 }
 
-/// Converts a rule name to the upper snake case used for grammar-data constants.
-fn constant_name(rule_name: &str) -> String {
-    to_snake_case(rule_name).to_uppercase()
+/// The error for a rule or label `name` that becomes `generated`, a name the
+/// generated code already uses. The message names `generated` only when it is
+/// spelled differently from `name`.
+fn name_conflict(name: &str, generated: &str, span: Span) -> GrammarError {
+    let message = if generated == name {
+        format!("`{name}` conflicts with a name in the generated code")
+    } else {
+        format!("`{name}` conflicts with `{generated}` in the generated code")
+    };
+    GrammarError { message, span }
+}
+
+/// The error for a rule or label `name` that becomes the field `field_name`,
+/// which Rust does not accept even as a raw identifier.
+fn unescapable_field(name: &str, field_name: &str, span: Span) -> GrammarError {
+    GrammarError {
+        message: format!(
+            "`{name}` becomes the field `{field_name}`, which cannot be a Rust field name"
+        ),
+        span,
+    }
 }
 
 /// Reports every rule after the first marked `@Layout`, at its rule head,
@@ -791,13 +799,19 @@ mod tests {
     use crate::iggy::parse_grammar;
 
     #[test]
-    fn a_rule_named_like_the_generated_grammar_type_is_rejected() {
-        let source = "grammar Foo\n\nS = FooGrammar\nFooGrammar = \"a\"\n";
+    fn only_the_parse_tree_builder_type_is_rejected_as_a_rule_name() {
+        let source = r#"grammar Foo
+
+S = FooGrammar FooParser FooParseTreeBuilder
+FooGrammar = "a"
+FooParser = "b"
+FooParseTreeBuilder = "c"
+"#;
         let errors = parse_grammar(source).unwrap_err();
         let messages: Vec<&str> = errors.iter().map(|error| error.message.as_str()).collect();
         assert_eq!(
             messages,
-            ["`FooGrammar` is a reserved name in the generated crate"]
+            ["`FooParseTreeBuilder` conflicts with a name in the generated code"]
         );
     }
 
@@ -838,15 +852,136 @@ mod tests {
 
     #[test]
     fn rules_named_like_prelude_types_are_rejected() {
-        let source = "grammar G\n\nS = Option Vec\nOption = \"a\"\nVec = \"b\"\n";
+        let source = r#"grammar G
+
+S = Option Vec Iterator
+Option = "a"
+Vec = "b"
+Iterator = "c"
+"#;
         let errors = parse_grammar(source).unwrap_err();
         let messages: Vec<&str> = errors.iter().map(|error| error.message.as_str()).collect();
         assert_eq!(
             messages,
             [
-                "`Option` is a reserved name in the generated crate",
-                "`Vec` is a reserved name in the generated crate",
+                "`Option` conflicts with a name in the generated code",
+                "`Vec` conflicts with a name in the generated code",
+                "`Iterator` conflicts with a name in the generated code",
             ]
+        );
+    }
+
+    #[test]
+    fn rules_and_labels_named_like_node_methods_are_rejected() {
+        let source = r#"grammar G
+
+S = Span DisplayName AsParseTree Origin child:"a" child_count:"b"
+Span = "c"
+DisplayName = "d"
+AsParseTree = "e"
+@Regex
+Origin = [a-z]+
+"#;
+        let errors = parse_grammar(source).unwrap_err();
+        let messages: Vec<&str> = errors.iter().map(|error| error.message.as_str()).collect();
+        assert_eq!(
+            messages,
+            [
+                "`Span` conflicts with `span` in the generated code",
+                "`DisplayName` conflicts with `display_name` in the generated code",
+                "`AsParseTree` conflicts with `as_parse_tree` in the generated code",
+                "`Origin` conflicts with `origin` in the generated code",
+                "`child` conflicts with a name in the generated code",
+                "`child_count` conflicts with a name in the generated code",
+            ]
+        );
+    }
+
+    #[test]
+    fn a_reserved_name_conflicts_in_every_spelling() {
+        for (name, expected) in [
+            (
+                "OptNode",
+                "`OptNode` conflicts with a name in the generated code",
+            ),
+            (
+                "opt_node",
+                "`opt_node` conflicts with `OptNode` in the generated code",
+            ),
+            (
+                "optNode",
+                "`optNode` conflicts with `OptNode` in the generated code",
+            ),
+            (
+                "Opt_Node",
+                "`Opt_Node` conflicts with `OptNode` in the generated code",
+            ),
+            (
+                "OPT_NODE",
+                "`OPT_NODE` conflicts with `OptNode` in the generated code",
+            ),
+            (
+                "START",
+                "`START` conflicts with `Start` in the generated code",
+            ),
+            (
+                "Span_",
+                "`Span_` conflicts with `span` in the generated code",
+            ),
+        ] {
+            let source = format!("grammar G\n\nS = {name}\n{name} = \"a\"\n");
+            let errors = parse_grammar(&source).unwrap_err();
+            let messages: Vec<&str> = errors.iter().map(|error| error.message.as_str()).collect();
+            assert_eq!(messages, [expected]);
+        }
+    }
+
+    #[test]
+    fn names_that_do_not_conflict_are_accepted() {
+        // `StartFOOBAR` becomes the type `StartFoobar`, and the start wrapper
+        // of `FOO_BAR` becomes `StartFooBar`.
+        let source = r#"grammar G
+
+S = Spans ALl1 BLl1Body StartWithoutLayout ChildAt:"a" StartFOOBAR FOO_BAR
+Spans = "b"
+ALl1 = "c"
+BLl1Body = "d"
+StartWithoutLayout = "e"
+StartFOOBAR = "f"
+FOO_BAR = "g"
+"#;
+        let result = parse_grammar(source);
+        assert!(result.is_ok(), "{:?}", result.err());
+    }
+
+    #[test]
+    fn rules_that_become_the_same_type_are_rejected() {
+        let source = "grammar G\n\nS = A_1 A1\nA_1 = \"a\"\nA1 = \"b\"\n";
+        let errors = parse_grammar(source).unwrap_err();
+        let messages: Vec<&str> = errors.iter().map(|error| error.message.as_str()).collect();
+        assert_eq!(
+            messages,
+            ["`A_1` and `A1` have the same generated name `A1`"]
+        );
+
+        // The start wrapper of `X_1` is `StartX1`.
+        let source = "grammar G\n\nS = X_1 StartX1\nX_1 = \"a\"\nStartX1 = \"b\"\n";
+        let errors = parse_grammar(source).unwrap_err();
+        let messages: Vec<&str> = errors.iter().map(|error| error.message.as_str()).collect();
+        assert_eq!(
+            messages,
+            ["`StartX1` conflicts with a name in the generated code"]
+        );
+    }
+
+    #[test]
+    fn a_rule_named_self_is_rejected() {
+        let source = "grammar G\n\nS = Self\nSelf = \"a\"\n";
+        let errors = parse_grammar(source).unwrap_err();
+        let messages: Vec<&str> = errors.iter().map(|error| error.message.as_str()).collect();
+        assert_eq!(
+            messages,
+            ["`Self` becomes the field `self`, which cannot be a Rust field name"]
         );
     }
 

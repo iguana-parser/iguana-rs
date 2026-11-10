@@ -17,9 +17,16 @@ use iguana_runtime::ids::TerminalId;
 /// Generates `grammar.rs`: the nonterminal id constants, the grammar type
 /// with its `Grammar` implementation, the terminal sets the parser passes to
 /// the scanner or refers to in failures, and the predictions of the
-/// alternatives of the nonterminals. The statics are public because the
-/// parser references only some of them, and a private unused static fails the
-/// denied dead-code lint.
+/// alternatives of the nonterminals.
+///
+/// Every static is in the `data` module, so a rule named `Slots` or
+/// `FirstSetExpr` does not collide with the static `SLOTS` or `FIRST_SET_EXPR`.
+/// The only top-level constants are the nonterminal id constants.
+///
+/// The `Grammar` data, such as `SLOTS`, is visible only in `grammar.rs`. The
+/// terminal sets and predictions are public because the parser references
+/// only some of them, and a private unused static fails the denied dead-code
+/// lint.
 #[allow(clippy::too_many_arguments)]
 pub fn generate<'a>(
     grammar: &'a Grammar,
@@ -38,15 +45,6 @@ pub fn generate<'a>(
     let single_terminal_sets = single_terminal_sets(terminal_ids, terminal_sets);
     let prediction_statics =
         prediction_statics(grammar, ff, first_chars, terminal_ids, ll1_nonterminals);
-    // A grammar parsed entirely by LL(1) functions does not have a
-    // `Prediction` static, and the import would be unused.
-    let prediction_import = if prediction_statics.is_empty() {
-        quote! {}
-    } else {
-        quote! {
-            use iguana_runtime::prediction::Prediction;
-        }
-    };
     // The width of `Grammar::Alternatives` in 64-bit words: enough for the
     // nonterminal with the most alternatives.
     let alternative_words = grammar
@@ -144,52 +142,31 @@ pub fn generate<'a>(
             scanner::TerminalSet,
             utils::bit_set::BitSet,
         };
-        #prediction_import
 
         #(#nonterminal_id_consts)*
 
         pub struct #grammar_type;
-
-        static NONTERMINALS: [Nonterminal; #nonterminal_count] = [#(#nonterminals),*];
-
-        static DISPLAY_ORDER: [&str; #display_order_count] = [#(#display_order_names),*];
-
-        static TERMINALS: [Terminal; #terminal_count] = [
-            #(#terminals,)*
-            Terminal { name: "Epsilon" },
-            Terminal { name: "EOF" },
-        ];
-
-        static SLOTS: [Slot; #slot_count] = [#(#slots),*];
-
-        static FIRST_SLOTS: [&[SlotId]; #nonterminal_count] = [#(#first_slots),*];
-
-        #[comment = "A failed terminal match refers to a static terminal set like every other
-                     failure, so the error reporting path needs to reach a terminal set
-                     from a terminal id. This table, indexed by terminal id, serves only that."]
-        static SINGLE_TERMINAL_SETS: [TerminalSet; #single_terminal_set_count] =
-            [#(#single_terminal_sets),*];
 
         impl Grammar for #grammar_type {
             type Alternatives = BitSet<#alternative_words>;
 
             const NAME: &'static str = #grammar_name;
 
-            const NONTERMINALS: &'static [Nonterminal] = &NONTERMINALS;
+            const NONTERMINALS: &'static [Nonterminal] = &data::NONTERMINALS;
 
-            const DISPLAY_ORDER: &'static [&'static str] = &DISPLAY_ORDER;
+            const DISPLAY_ORDER: &'static [&'static str] = &data::DISPLAY_ORDER;
 
-            const TERMINALS: &'static [Terminal] = &TERMINALS;
+            const TERMINALS: &'static [Terminal] = &data::TERMINALS;
 
-            const SLOTS: &'static [Slot] = &SLOTS;
+            const SLOTS: &'static [Slot] = &data::SLOTS;
 
-            const FIRST_SLOTS: &'static [&'static [SlotId]] = &FIRST_SLOTS;
+            const FIRST_SLOTS: &'static [&'static [SlotId]] = &data::FIRST_SLOTS;
 
             const LAYOUT_NAME: Option<&'static str> = #layout_name;
 
             const LAYOUT_TERMINALS: &'static [TerminalId] = &[#(#layout_terminals),*];
 
-            const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &SINGLE_TERMINAL_SETS;
+            const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &data::SINGLE_TERMINAL_SETS;
 
             fn nonterminal_id(name: &str) -> Option<NonterminalId> {
                 match name {
@@ -199,9 +176,41 @@ pub fn generate<'a>(
             }
         }
 
-        #(#terminal_set_statics)*
+        pub mod data {
+            // Not every grammar uses every import. A grammar parsed entirely by
+            // LL(1) functions, for example, does not have a `Prediction` static.
+            #[allow(unused_imports)]
+            use iguana_runtime::{
+                grammar::{Nonterminal, Slot, Terminal},
+                ids::{SlotId, TerminalId},
+                prediction::Prediction,
+                scanner::TerminalSet,
+            };
 
-        #(#prediction_statics)*
+            pub(super) static NONTERMINALS: [Nonterminal; #nonterminal_count] = [#(#nonterminals),*];
+
+            pub(super) static DISPLAY_ORDER: [&str; #display_order_count] = [#(#display_order_names),*];
+
+            pub(super) static TERMINALS: [Terminal; #terminal_count] = [
+                #(#terminals,)*
+                Terminal { name: "Epsilon" },
+                Terminal { name: "EOF" },
+            ];
+
+            pub(super) static SLOTS: [Slot; #slot_count] = [#(#slots),*];
+
+            pub(super) static FIRST_SLOTS: [&[SlotId]; #nonterminal_count] = [#(#first_slots),*];
+
+            #[comment = "A failed terminal match refers to a static terminal set like every other
+                         failure, so the error reporting path needs to reach a terminal set
+                         from a terminal id. This table, indexed by terminal id, serves only that."]
+            pub(super) static SINGLE_TERMINAL_SETS: [TerminalSet; #single_terminal_set_count] =
+                [#(#single_terminal_sets),*];
+
+            #(#terminal_set_statics)*
+
+            #(#prediction_statics)*
+        }
     }
 }
 

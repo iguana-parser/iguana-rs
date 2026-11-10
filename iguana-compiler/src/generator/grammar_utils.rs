@@ -64,6 +64,20 @@ pub fn nonterminal_type_name(name: &str) -> String {
     to_pascal_case(name)
 }
 
+/// Returns the identifier of the LL(1) method of a nonterminal,
+/// `ll1_parse_<name>`. The entry point of every nonterminal is
+/// `parse_<name>`, so the prefix keeps the two apart for every rule name.
+pub fn ll1_method_ident(nonterminal_name: &str) -> Ident {
+    format_ident!("ll1_parse_{}", to_snake_case(nonterminal_name))
+}
+
+/// Returns the identifier of the body of the LL(1) method of a nonterminal,
+/// `ll1_body_<name>`. A suffix such as `ll1_parse_<name>_body` would be the
+/// LL(1) method of a rule named `<name>_body`.
+pub fn ll1_body_method_ident(nonterminal_name: &str) -> Ident {
+    format_ident!("ll1_body_{}", to_snake_case(nonterminal_name))
+}
+
 /// Returns the identifier of the generated grammar type, the `Grammar` trait
 /// implementation, with the grammar name in PascalCase.
 pub fn grammar_ident(grammar_name: &str) -> Ident {

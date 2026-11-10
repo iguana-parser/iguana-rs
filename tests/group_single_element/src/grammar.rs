@@ -12,120 +12,17 @@ pub const GROUP_0: NonterminalId = NonterminalId(2);
 pub const START_D: NonterminalId = NonterminalId(3);
 pub const START_NUM: NonterminalId = NonterminalId(4);
 pub struct GroupSingleElementGrammar;
-static NONTERMINALS: [Nonterminal; 5] = [
-    Nonterminal {
-        name: "D",
-        display_name: "D",
-    },
-    Nonterminal {
-        name: "Num",
-        display_name: "Num",
-    },
-    Nonterminal {
-        name: "Group_0",
-        display_name: "(\"!\" Num)",
-    },
-    Nonterminal {
-        name: "StartD",
-        display_name: "D",
-    },
-    Nonterminal {
-        name: "StartNum",
-        display_name: "Num",
-    },
-];
-static DISPLAY_ORDER: [&str; 2] = ["D", "Num"];
-static TERMINALS: [Terminal; 4] = [
-    Terminal { name: "\"!\"" },
-    Terminal { name: "\"1\"" },
-    Terminal { name: "Epsilon" },
-    Terminal { name: "EOF" },
-];
-static SLOTS: [Slot; 11] = [
-    Slot {
-        display_name: "D : . (\"!\" Num)",
-        position: 0,
-    },
-    Slot {
-        display_name: "D : (\"!\" Num).",
-        position: 1,
-    },
-    Slot {
-        display_name: "Num : . \"1\"",
-        position: 0,
-    },
-    Slot {
-        display_name: "Num : \"1\".",
-        position: 1,
-    },
-    Slot {
-        display_name: "(\"!\" Num) : . \"!\" Num",
-        position: 0,
-    },
-    Slot {
-        display_name: "(\"!\" Num) : \"!\" . Num",
-        position: 1,
-    },
-    Slot {
-        display_name: "(\"!\" Num) : \"!\" Num.",
-        position: 2,
-    },
-    Slot {
-        display_name: "D : . start:D",
-        position: 0,
-    },
-    Slot {
-        display_name: "D : start:D.",
-        position: 1,
-    },
-    Slot {
-        display_name: "Num : . start:Num",
-        position: 0,
-    },
-    Slot {
-        display_name: "Num : start:Num.",
-        position: 1,
-    },
-];
-static FIRST_SLOTS: [&[SlotId]; 5] = [
-    &[SlotId(0)],
-    &[SlotId(2)],
-    &[SlotId(4)],
-    &[SlotId(7)],
-    &[SlotId(9)],
-];
-// A failed terminal match refers to a static terminal set like every other failure, so the
-// error reporting path needs to reach a terminal set from a terminal id. This table, indexed
-// by terminal id, serves only that.
-static SINGLE_TERMINAL_SETS: [TerminalSet; 4] = [
-    TerminalSet {
-        id: 3,
-        terminals: &[TerminalId(0)],
-    },
-    TerminalSet {
-        id: 4,
-        terminals: &[TerminalId(1)],
-    },
-    TerminalSet {
-        id: 5,
-        terminals: &[TerminalId(2)],
-    },
-    TerminalSet {
-        id: 6,
-        terminals: &[TerminalId(3)],
-    },
-];
 impl Grammar for GroupSingleElementGrammar {
     type Alternatives = BitSet<1>;
     const NAME: &'static str = "GroupSingleElement";
-    const NONTERMINALS: &'static [Nonterminal] = &NONTERMINALS;
-    const DISPLAY_ORDER: &'static [&'static str] = &DISPLAY_ORDER;
-    const TERMINALS: &'static [Terminal] = &TERMINALS;
-    const SLOTS: &'static [Slot] = &SLOTS;
-    const FIRST_SLOTS: &'static [&'static [SlotId]] = &FIRST_SLOTS;
+    const NONTERMINALS: &'static [Nonterminal] = &data::NONTERMINALS;
+    const DISPLAY_ORDER: &'static [&'static str] = &data::DISPLAY_ORDER;
+    const TERMINALS: &'static [Terminal] = &data::TERMINALS;
+    const SLOTS: &'static [Slot] = &data::SLOTS;
+    const FIRST_SLOTS: &'static [&'static [SlotId]] = &data::FIRST_SLOTS;
     const LAYOUT_NAME: Option<&'static str> = None;
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[];
-    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &SINGLE_TERMINAL_SETS;
+    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &data::SINGLE_TERMINAL_SETS;
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         match name {
             "D" => Some(D),
@@ -137,53 +34,165 @@ impl Grammar for GroupSingleElementGrammar {
         }
     }
 }
-// D { EOF }
-pub static FOLLOW_SET_D: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(3)],
-};
-// Num { EOF }
-pub static FOLLOW_SET_NUM: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(3)],
-};
-// Group_0 { EOF }
-pub static FOLLOW_SET_GROUP_0: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(3)],
-};
-// StartD { EOF }
-pub static FOLLOW_SET_START_D: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(3)],
-};
-// StartNum { EOF }
-pub static FOLLOW_SET_START_NUM: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(3)],
-};
-// D { "!" }
-pub static FIRST_SET_D: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
-// Num { "1" }
-pub static FIRST_SET_NUM: TerminalSet = TerminalSet {
-    id: 2,
-    terminals: &[TerminalId(1)],
-};
-// Group_0 { "!" }
-pub static FIRST_SET_GROUP_0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
-// StartD { "!" }
-pub static FIRST_SET_START_D: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(0)],
-};
-// StartNum { "1" }
-pub static FIRST_SET_START_NUM: TerminalSet = TerminalSet {
-    id: 2,
-    terminals: &[TerminalId(1)],
-};
+pub mod data {
+    #[allow(unused_imports)]
+    use iguana_runtime::{
+        grammar::{Nonterminal, Slot, Terminal},
+        ids::{SlotId, TerminalId},
+        prediction::Prediction,
+        scanner::TerminalSet,
+    };
+    pub(super) static NONTERMINALS: [Nonterminal; 5] = [
+        Nonterminal {
+            name: "D",
+            display_name: "D",
+        },
+        Nonterminal {
+            name: "Num",
+            display_name: "Num",
+        },
+        Nonterminal {
+            name: "Group_0",
+            display_name: "(\"!\" Num)",
+        },
+        Nonterminal {
+            name: "StartD",
+            display_name: "D",
+        },
+        Nonterminal {
+            name: "StartNum",
+            display_name: "Num",
+        },
+    ];
+    pub(super) static DISPLAY_ORDER: [&str; 2] = ["D", "Num"];
+    pub(super) static TERMINALS: [Terminal; 4] = [
+        Terminal { name: "\"!\"" },
+        Terminal { name: "\"1\"" },
+        Terminal { name: "Epsilon" },
+        Terminal { name: "EOF" },
+    ];
+    pub(super) static SLOTS: [Slot; 11] = [
+        Slot {
+            display_name: "D : . (\"!\" Num)",
+            position: 0,
+        },
+        Slot {
+            display_name: "D : (\"!\" Num).",
+            position: 1,
+        },
+        Slot {
+            display_name: "Num : . \"1\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "Num : \"1\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "(\"!\" Num) : . \"!\" Num",
+            position: 0,
+        },
+        Slot {
+            display_name: "(\"!\" Num) : \"!\" . Num",
+            position: 1,
+        },
+        Slot {
+            display_name: "(\"!\" Num) : \"!\" Num.",
+            position: 2,
+        },
+        Slot {
+            display_name: "D : . start:D",
+            position: 0,
+        },
+        Slot {
+            display_name: "D : start:D.",
+            position: 1,
+        },
+        Slot {
+            display_name: "Num : . start:Num",
+            position: 0,
+        },
+        Slot {
+            display_name: "Num : start:Num.",
+            position: 1,
+        },
+    ];
+    pub(super) static FIRST_SLOTS: [&[SlotId]; 5] = [
+        &[SlotId(0)],
+        &[SlotId(2)],
+        &[SlotId(4)],
+        &[SlotId(7)],
+        &[SlotId(9)],
+    ];
+    // A failed terminal match refers to a static terminal set like every other failure, so the
+    // error reporting path needs to reach a terminal set from a terminal id. This table, indexed
+    // by terminal id, serves only that.
+    pub(super) static SINGLE_TERMINAL_SETS: [TerminalSet; 4] = [
+        TerminalSet {
+            id: 3,
+            terminals: &[TerminalId(0)],
+        },
+        TerminalSet {
+            id: 4,
+            terminals: &[TerminalId(1)],
+        },
+        TerminalSet {
+            id: 5,
+            terminals: &[TerminalId(2)],
+        },
+        TerminalSet {
+            id: 6,
+            terminals: &[TerminalId(3)],
+        },
+    ];
+    // D { EOF }
+    pub static FOLLOW_SET_D: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(3)],
+    };
+    // Num { EOF }
+    pub static FOLLOW_SET_NUM: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(3)],
+    };
+    // Group_0 { EOF }
+    pub static FOLLOW_SET_GROUP_0: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(3)],
+    };
+    // StartD { EOF }
+    pub static FOLLOW_SET_START_D: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(3)],
+    };
+    // StartNum { EOF }
+    pub static FOLLOW_SET_START_NUM: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(3)],
+    };
+    // D { "!" }
+    pub static FIRST_SET_D: TerminalSet = TerminalSet {
+        id: 1,
+        terminals: &[TerminalId(0)],
+    };
+    // Num { "1" }
+    pub static FIRST_SET_NUM: TerminalSet = TerminalSet {
+        id: 2,
+        terminals: &[TerminalId(1)],
+    };
+    // Group_0 { "!" }
+    pub static FIRST_SET_GROUP_0: TerminalSet = TerminalSet {
+        id: 1,
+        terminals: &[TerminalId(0)],
+    };
+    // StartD { "!" }
+    pub static FIRST_SET_START_D: TerminalSet = TerminalSet {
+        id: 1,
+        terminals: &[TerminalId(0)],
+    };
+    // StartNum { "1" }
+    pub static FIRST_SET_START_NUM: TerminalSet = TerminalSet {
+        id: 2,
+        terminals: &[TerminalId(1)],
+    };
+}

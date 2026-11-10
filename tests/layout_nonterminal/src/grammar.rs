@@ -14,179 +14,17 @@ pub const STAR_0: NonterminalId = NonterminalId(4);
 pub const START_S: NonterminalId = NonterminalId(5);
 pub const START_LAYOUT: NonterminalId = NonterminalId(6);
 pub struct LayoutNonterminalGrammar;
-static NONTERMINALS: [Nonterminal; 7] = [
-    Nonterminal {
-        name: "S",
-        display_name: "S",
-    },
-    Nonterminal {
-        name: "Layout",
-        display_name: "Layout",
-    },
-    Nonterminal {
-        name: "Alt_0",
-        display_name: "(WhiteSpace | Comment)",
-    },
-    Nonterminal {
-        name: "Plus_0",
-        display_name: "(WhiteSpace | Comment)+",
-    },
-    Nonterminal {
-        name: "Star_0",
-        display_name: "(WhiteSpace | Comment)*",
-    },
-    Nonterminal {
-        name: "StartS",
-        display_name: "S",
-    },
-    Nonterminal {
-        name: "StartLayout",
-        display_name: "Layout",
-    },
-];
-static DISPLAY_ORDER: [&str; 2] = ["S", "Layout"];
-static TERMINALS: [Terminal; 5] = [
-    Terminal { name: "WhiteSpace" },
-    Terminal { name: "Comment" },
-    Terminal { name: "\"x\"" },
-    Terminal { name: "Epsilon" },
-    Terminal { name: "EOF" },
-];
-static SLOTS: [Slot; 22] = [
-    Slot {
-        display_name: "S : . \"x\"",
-        position: 0,
-    },
-    Slot {
-        display_name: "S : \"x\".",
-        position: 1,
-    },
-    Slot {
-        display_name: "Layout : . (WhiteSpace | Comment)*",
-        position: 0,
-    },
-    Slot {
-        display_name: "Layout : (WhiteSpace | Comment)*.",
-        position: 1,
-    },
-    Slot {
-        display_name: "(WhiteSpace | Comment) : . WhiteSpace",
-        position: 0,
-    },
-    Slot {
-        display_name: "(WhiteSpace | Comment) : WhiteSpace.",
-        position: 1,
-    },
-    Slot {
-        display_name: "(WhiteSpace | Comment) : . Comment",
-        position: 0,
-    },
-    Slot {
-        display_name: "(WhiteSpace | Comment) : Comment.",
-        position: 1,
-    },
-    Slot {
-        display_name: "(WhiteSpace | Comment)+ : . (WhiteSpace | Comment)+ (WhiteSpace | Comment)",
-        position: 0,
-    },
-    Slot {
-        display_name: "(WhiteSpace | Comment)+ : (WhiteSpace | Comment)+ . (WhiteSpace | Comment)",
-        position: 1,
-    },
-    Slot {
-        display_name: "(WhiteSpace | Comment)+ : (WhiteSpace | Comment)+ (WhiteSpace | Comment).",
-        position: 2,
-    },
-    Slot {
-        display_name: "(WhiteSpace | Comment)+ : . (WhiteSpace | Comment)",
-        position: 0,
-    },
-    Slot {
-        display_name: "(WhiteSpace | Comment)+ : (WhiteSpace | Comment).",
-        position: 1,
-    },
-    Slot {
-        display_name: "(WhiteSpace | Comment)* : . (WhiteSpace | Comment)+",
-        position: 0,
-    },
-    Slot {
-        display_name: "(WhiteSpace | Comment)* : (WhiteSpace | Comment)+.",
-        position: 1,
-    },
-    Slot {
-        display_name: "(WhiteSpace | Comment)* : .",
-        position: 0,
-    },
-    Slot {
-        display_name: "S : . Layout start:S Layout",
-        position: 0,
-    },
-    Slot {
-        display_name: "S : Layout . start:S Layout",
-        position: 1,
-    },
-    Slot {
-        display_name: "S : Layout start:S . Layout",
-        position: 2,
-    },
-    Slot {
-        display_name: "S : Layout start:S Layout.",
-        position: 3,
-    },
-    Slot {
-        display_name: "Layout : . start:Layout",
-        position: 0,
-    },
-    Slot {
-        display_name: "Layout : start:Layout.",
-        position: 1,
-    },
-];
-static FIRST_SLOTS: [&[SlotId]; 7] = [
-    &[SlotId(0)],
-    &[SlotId(2)],
-    &[SlotId(4), SlotId(6)],
-    &[SlotId(8), SlotId(11)],
-    &[SlotId(13), SlotId(15)],
-    &[SlotId(16)],
-    &[SlotId(20)],
-];
-// A failed terminal match refers to a static terminal set like every other failure, so the
-// error reporting path needs to reach a terminal set from a terminal id. This table, indexed
-// by terminal id, serves only that.
-static SINGLE_TERMINAL_SETS: [TerminalSet; 5] = [
-    TerminalSet {
-        id: 7,
-        terminals: &[TerminalId(0)],
-    },
-    TerminalSet {
-        id: 8,
-        terminals: &[TerminalId(1)],
-    },
-    TerminalSet {
-        id: 9,
-        terminals: &[TerminalId(2)],
-    },
-    TerminalSet {
-        id: 10,
-        terminals: &[TerminalId(3)],
-    },
-    TerminalSet {
-        id: 11,
-        terminals: &[TerminalId(4)],
-    },
-];
 impl Grammar for LayoutNonterminalGrammar {
     type Alternatives = BitSet<1>;
     const NAME: &'static str = "LayoutNonterminal";
-    const NONTERMINALS: &'static [Nonterminal] = &NONTERMINALS;
-    const DISPLAY_ORDER: &'static [&'static str] = &DISPLAY_ORDER;
-    const TERMINALS: &'static [Terminal] = &TERMINALS;
-    const SLOTS: &'static [Slot] = &SLOTS;
-    const FIRST_SLOTS: &'static [&'static [SlotId]] = &FIRST_SLOTS;
+    const NONTERMINALS: &'static [Nonterminal] = &data::NONTERMINALS;
+    const DISPLAY_ORDER: &'static [&'static str] = &data::DISPLAY_ORDER;
+    const TERMINALS: &'static [Terminal] = &data::TERMINALS;
+    const SLOTS: &'static [Slot] = &data::SLOTS;
+    const FIRST_SLOTS: &'static [&'static [SlotId]] = &data::FIRST_SLOTS;
     const LAYOUT_NAME: Option<&'static str> = Some("Layout");
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[TerminalId(0), TerminalId(1)];
-    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &SINGLE_TERMINAL_SETS;
+    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &data::SINGLE_TERMINAL_SETS;
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         match name {
             "S" => Some(S),
@@ -200,73 +38,244 @@ impl Grammar for LayoutNonterminalGrammar {
         }
     }
 }
-// S { WhiteSpace, Comment, EOF }
-pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(4)],
-};
-// Layout { "x", EOF }
-pub static FOLLOW_SET_LAYOUT: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(2), TerminalId(4)],
-};
-// Alt_0 { WhiteSpace, Comment, "x", EOF }
-pub static FOLLOW_SET_ALT_0: TerminalSet = TerminalSet {
-    id: 2,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(2), TerminalId(4)],
-};
-// Plus_0 { WhiteSpace, Comment, "x", EOF }
-pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 2,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(2), TerminalId(4)],
-};
-// Star_0 { "x", EOF }
-pub static FOLLOW_SET_STAR_0: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(2), TerminalId(4)],
-};
-// StartS { EOF }
-pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[TerminalId(4)],
-};
-// StartLayout { EOF }
-pub static FOLLOW_SET_START_LAYOUT: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[TerminalId(4)],
-};
-// S { "x" }
-pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(2)],
-};
-// Layout { WhiteSpace, Comment }
-pub static FIRST_SET_LAYOUT: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
-// Alt_0 { WhiteSpace, Comment }
-pub static FIRST_SET_ALT_0: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
-// Plus_0 { WhiteSpace, Comment }
-pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
-// Star_0 { WhiteSpace, Comment }
-pub static FIRST_SET_STAR_0: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
-// StartS { WhiteSpace, Comment, "x" }
-pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(0), TerminalId(1), TerminalId(2)],
-};
-// StartLayout { WhiteSpace, Comment }
-pub static FIRST_SET_START_LAYOUT: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[TerminalId(0), TerminalId(1)],
-};
+pub mod data {
+    #[allow(unused_imports)]
+    use iguana_runtime::{
+        grammar::{Nonterminal, Slot, Terminal},
+        ids::{SlotId, TerminalId},
+        prediction::Prediction,
+        scanner::TerminalSet,
+    };
+    pub(super) static NONTERMINALS: [Nonterminal; 7] = [
+        Nonterminal {
+            name: "S",
+            display_name: "S",
+        },
+        Nonterminal {
+            name: "Layout",
+            display_name: "Layout",
+        },
+        Nonterminal {
+            name: "Alt_0",
+            display_name: "(WhiteSpace | Comment)",
+        },
+        Nonterminal {
+            name: "Plus_0",
+            display_name: "(WhiteSpace | Comment)+",
+        },
+        Nonterminal {
+            name: "Star_0",
+            display_name: "(WhiteSpace | Comment)*",
+        },
+        Nonterminal {
+            name: "StartS",
+            display_name: "S",
+        },
+        Nonterminal {
+            name: "StartLayout",
+            display_name: "Layout",
+        },
+    ];
+    pub(super) static DISPLAY_ORDER: [&str; 2] = ["S", "Layout"];
+    pub(super) static TERMINALS: [Terminal; 5] = [
+        Terminal { name: "WhiteSpace" },
+        Terminal { name: "Comment" },
+        Terminal { name: "\"x\"" },
+        Terminal { name: "Epsilon" },
+        Terminal { name: "EOF" },
+    ];
+    pub(super) static SLOTS: [Slot; 22] = [
+        Slot {
+            display_name: "S : . \"x\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "S : \"x\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "Layout : . (WhiteSpace | Comment)*",
+            position: 0,
+        },
+        Slot {
+            display_name: "Layout : (WhiteSpace | Comment)*.",
+            position: 1,
+        },
+        Slot {
+            display_name: "(WhiteSpace | Comment) : . WhiteSpace",
+            position: 0,
+        },
+        Slot {
+            display_name: "(WhiteSpace | Comment) : WhiteSpace.",
+            position: 1,
+        },
+        Slot {
+            display_name: "(WhiteSpace | Comment) : . Comment",
+            position: 0,
+        },
+        Slot {
+            display_name: "(WhiteSpace | Comment) : Comment.",
+            position: 1,
+        },
+        Slot {
+            display_name: "(WhiteSpace | Comment)+ : . (WhiteSpace | Comment)+ (WhiteSpace | Comment)",
+            position: 0,
+        },
+        Slot {
+            display_name: "(WhiteSpace | Comment)+ : (WhiteSpace | Comment)+ . (WhiteSpace | Comment)",
+            position: 1,
+        },
+        Slot {
+            display_name: "(WhiteSpace | Comment)+ : (WhiteSpace | Comment)+ (WhiteSpace | Comment).",
+            position: 2,
+        },
+        Slot {
+            display_name: "(WhiteSpace | Comment)+ : . (WhiteSpace | Comment)",
+            position: 0,
+        },
+        Slot {
+            display_name: "(WhiteSpace | Comment)+ : (WhiteSpace | Comment).",
+            position: 1,
+        },
+        Slot {
+            display_name: "(WhiteSpace | Comment)* : . (WhiteSpace | Comment)+",
+            position: 0,
+        },
+        Slot {
+            display_name: "(WhiteSpace | Comment)* : (WhiteSpace | Comment)+.",
+            position: 1,
+        },
+        Slot {
+            display_name: "(WhiteSpace | Comment)* : .",
+            position: 0,
+        },
+        Slot {
+            display_name: "S : . Layout start:S Layout",
+            position: 0,
+        },
+        Slot {
+            display_name: "S : Layout . start:S Layout",
+            position: 1,
+        },
+        Slot {
+            display_name: "S : Layout start:S . Layout",
+            position: 2,
+        },
+        Slot {
+            display_name: "S : Layout start:S Layout.",
+            position: 3,
+        },
+        Slot {
+            display_name: "Layout : . start:Layout",
+            position: 0,
+        },
+        Slot {
+            display_name: "Layout : start:Layout.",
+            position: 1,
+        },
+    ];
+    pub(super) static FIRST_SLOTS: [&[SlotId]; 7] = [
+        &[SlotId(0)],
+        &[SlotId(2)],
+        &[SlotId(4), SlotId(6)],
+        &[SlotId(8), SlotId(11)],
+        &[SlotId(13), SlotId(15)],
+        &[SlotId(16)],
+        &[SlotId(20)],
+    ];
+    // A failed terminal match refers to a static terminal set like every other failure, so the
+    // error reporting path needs to reach a terminal set from a terminal id. This table, indexed
+    // by terminal id, serves only that.
+    pub(super) static SINGLE_TERMINAL_SETS: [TerminalSet; 5] = [
+        TerminalSet {
+            id: 7,
+            terminals: &[TerminalId(0)],
+        },
+        TerminalSet {
+            id: 8,
+            terminals: &[TerminalId(1)],
+        },
+        TerminalSet {
+            id: 9,
+            terminals: &[TerminalId(2)],
+        },
+        TerminalSet {
+            id: 10,
+            terminals: &[TerminalId(3)],
+        },
+        TerminalSet {
+            id: 11,
+            terminals: &[TerminalId(4)],
+        },
+    ];
+    // S { WhiteSpace, Comment, EOF }
+    pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(0), TerminalId(1), TerminalId(4)],
+    };
+    // Layout { "x", EOF }
+    pub static FOLLOW_SET_LAYOUT: TerminalSet = TerminalSet {
+        id: 1,
+        terminals: &[TerminalId(2), TerminalId(4)],
+    };
+    // Alt_0 { WhiteSpace, Comment, "x", EOF }
+    pub static FOLLOW_SET_ALT_0: TerminalSet = TerminalSet {
+        id: 2,
+        terminals: &[TerminalId(0), TerminalId(1), TerminalId(2), TerminalId(4)],
+    };
+    // Plus_0 { WhiteSpace, Comment, "x", EOF }
+    pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
+        id: 2,
+        terminals: &[TerminalId(0), TerminalId(1), TerminalId(2), TerminalId(4)],
+    };
+    // Star_0 { "x", EOF }
+    pub static FOLLOW_SET_STAR_0: TerminalSet = TerminalSet {
+        id: 1,
+        terminals: &[TerminalId(2), TerminalId(4)],
+    };
+    // StartS { EOF }
+    pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
+        id: 3,
+        terminals: &[TerminalId(4)],
+    };
+    // StartLayout { EOF }
+    pub static FOLLOW_SET_START_LAYOUT: TerminalSet = TerminalSet {
+        id: 3,
+        terminals: &[TerminalId(4)],
+    };
+    // S { "x" }
+    pub static FIRST_SET_S: TerminalSet = TerminalSet {
+        id: 4,
+        terminals: &[TerminalId(2)],
+    };
+    // Layout { WhiteSpace, Comment }
+    pub static FIRST_SET_LAYOUT: TerminalSet = TerminalSet {
+        id: 5,
+        terminals: &[TerminalId(0), TerminalId(1)],
+    };
+    // Alt_0 { WhiteSpace, Comment }
+    pub static FIRST_SET_ALT_0: TerminalSet = TerminalSet {
+        id: 5,
+        terminals: &[TerminalId(0), TerminalId(1)],
+    };
+    // Plus_0 { WhiteSpace, Comment }
+    pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
+        id: 5,
+        terminals: &[TerminalId(0), TerminalId(1)],
+    };
+    // Star_0 { WhiteSpace, Comment }
+    pub static FIRST_SET_STAR_0: TerminalSet = TerminalSet {
+        id: 5,
+        terminals: &[TerminalId(0), TerminalId(1)],
+    };
+    // StartS { WhiteSpace, Comment, "x" }
+    pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
+        id: 6,
+        terminals: &[TerminalId(0), TerminalId(1), TerminalId(2)],
+    };
+    // StartLayout { WhiteSpace, Comment }
+    pub static FIRST_SET_START_LAYOUT: TerminalSet = TerminalSet {
+        id: 5,
+        terminals: &[TerminalId(0), TerminalId(1)],
+    };
+}

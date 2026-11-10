@@ -14,7 +14,7 @@ const MATCH_MEMO_WORDS: usize = 1;
 // match of the terminal `t`. A nullable terminal can match at every position, so its entry
 // holds every character. `match_token` tests the character at a position against it before
 // it matches the terminal.
-static TERMINAL_FIRST_CHARS: [CharSet; 13] = [
+static TERMINAL_FIRST_CHARS: [CharSet; 38] = [
     CharSet::new(0x2000000000000000000000000, &[]),
     CharSet::new(0x4000000000000000000000000, &[]),
     CharSet::new(0x8000000000000000000000000, &[]),
@@ -26,6 +26,31 @@ static TERMINAL_FIRST_CHARS: [CharSet; 13] = [
     CharSet::new(0x200000000000000000000000000, &[]),
     CharSet::new(0x400000000000000000000000000, &[]),
     CharSet::new(0x800000000000000000000000000, &[]),
+    CharSet::new(0x1000000000000000000000000000, &[]),
+    CharSet::new(0x2000000000000000000000000000, &[]),
+    CharSet::new(0x4000000000000000000000000000, &[]),
+    CharSet::new(0x8000000000000000000000000000, &[]),
+    CharSet::new(0x10000000000000000000000000000, &[]),
+    CharSet::new(0x40000000000000000000000000000, &[]),
+    CharSet::new(0x80000000000000000000000000000, &[]),
+    CharSet::new(0x100000000000000000000000000000, &[]),
+    CharSet::new(0x200000000000000000000000000000, &[]),
+    CharSet::new(0x400000000000000000000000000000, &[]),
+    CharSet::new(0x800000000000000000000000000000, &[]),
+    CharSet::new(0x1000000000000000000000000000000, &[]),
+    CharSet::new(0x2000000000000000000000000000000, &[]),
+    CharSet::new(0x4000000000000000000000000000000, &[]),
+    CharSet::new(0x20000000000000000, &[]),
+    CharSet::new(0x40000000000000000, &[]),
+    CharSet::new(0x80000000000000000, &[]),
+    CharSet::new(0x100000000000000000, &[]),
+    CharSet::new(0x200000000000000000, &[]),
+    CharSet::new(0x800000000000000000, &[]),
+    CharSet::new(0x400000000000000000, &[]),
+    CharSet::new(0x1000000000000000000, &[]),
+    CharSet::new(0x2000000000000000000, &[]),
+    CharSet::new(0x4000000000000000000, &[]),
+    CharSet::new(0x8000000000000000000, &[]),
     CharSet::new(
         0xffffffffffffffffffffffffffffffff,
         &[CharRange {
@@ -35,8 +60,9 @@ static TERMINAL_FIRST_CHARS: [CharSet; 13] = [
     ),
     CharSet::new(0x0, &[]),
 ];
-static MATCH_ANY_FIRST_CHARS: [CharSet; 11] = [
+static MATCH_ANY_FIRST_CHARS: [CharSet; 36] = [
     CharSet::new(0x0, &[]),
+    CharSet::new(0x400000000000000000000000000000, &[]),
     CharSet::new(0x4000000000000000000000000, &[]),
     CharSet::new(0x8000000000000000000000000, &[]),
     CharSet::new(0x10000000000000000000000000, &[]),
@@ -47,19 +73,68 @@ static MATCH_ANY_FIRST_CHARS: [CharSet; 11] = [
     CharSet::new(0x200000000000000000000000000, &[]),
     CharSet::new(0x400000000000000000000000000, &[]),
     CharSet::new(0x800000000000000000000000000, &[]),
+    CharSet::new(0x1000000000000000000000000000, &[]),
+    CharSet::new(0x2000000000000000000000000000, &[]),
+    CharSet::new(0x4000000000000000000000000000, &[]),
+    CharSet::new(0x8000000000000000000000000000, &[]),
+    CharSet::new(0x10000000000000000000000000000, &[]),
+    CharSet::new(0x40000000000000000000000000000, &[]),
+    CharSet::new(0x80000000000000000000000000000, &[]),
+    CharSet::new(0x100000000000000000000000000000, &[]),
+    CharSet::new(0x200000000000000000000000000000, &[]),
+    CharSet::new(0x1000000000000000000000000000000, &[]),
+    CharSet::new(0x800000000000000000000000000000, &[]),
+    CharSet::new(0x400000000000000000, &[]),
+    CharSet::new(0x2000000000000000000000000000000, &[]),
+    CharSet::new(0x4000000000000000000000000000000, &[]),
+    CharSet::new(0x20000000000000000, &[]),
+    CharSet::new(0x40000000000000000, &[]),
+    CharSet::new(0x80000000000000000, &[]),
+    CharSet::new(0x100000000000000000, &[]),
+    CharSet::new(0x200000000000000000, &[]),
+    CharSet::new(0x1000000000000000000, &[]),
+    CharSet::new(0x800000000000000000, &[]),
+    CharSet::new(0x2000000000000000000, &[]),
+    CharSet::new(0x4000000000000000000, &[]),
+    CharSet::new(0x8000000000000000000, &[]),
 ];
-static MATCH_ANY_MASKS: [BitSet<MATCH_MEMO_WORDS>; 11] = [
-    BitSet::from_members(&[12]),
-    BitSet::from_members(&[1, 12]),
-    BitSet::from_members(&[2, 12]),
-    BitSet::from_members(&[3, 12]),
-    BitSet::from_members(&[4, 12]),
-    BitSet::from_members(&[5, 12]),
-    BitSet::from_members(&[6, 12]),
-    BitSet::from_members(&[7, 12]),
-    BitSet::from_members(&[8, 12]),
-    BitSet::from_members(&[9, 12]),
-    BitSet::from_members(&[10, 12]),
+static MATCH_ANY_MASKS: [BitSet<MATCH_MEMO_WORDS>; 36] = [
+    BitSet::from_members(&[37]),
+    BitSet::from_members(&[20, 37]),
+    BitSet::from_members(&[1, 37]),
+    BitSet::from_members(&[2, 37]),
+    BitSet::from_members(&[3, 37]),
+    BitSet::from_members(&[4, 37]),
+    BitSet::from_members(&[5, 37]),
+    BitSet::from_members(&[6, 37]),
+    BitSet::from_members(&[7, 37]),
+    BitSet::from_members(&[8, 37]),
+    BitSet::from_members(&[9, 37]),
+    BitSet::from_members(&[10, 37]),
+    BitSet::from_members(&[11, 37]),
+    BitSet::from_members(&[12, 37]),
+    BitSet::from_members(&[13, 37]),
+    BitSet::from_members(&[14, 37]),
+    BitSet::from_members(&[15, 37]),
+    BitSet::from_members(&[16, 37]),
+    BitSet::from_members(&[17, 37]),
+    BitSet::from_members(&[18, 37]),
+    BitSet::from_members(&[19, 37]),
+    BitSet::from_members(&[22, 37]),
+    BitSet::from_members(&[21, 37]),
+    BitSet::from_members(&[31, 37]),
+    BitSet::from_members(&[23, 37]),
+    BitSet::from_members(&[24, 37]),
+    BitSet::from_members(&[25, 37]),
+    BitSet::from_members(&[26, 37]),
+    BitSet::from_members(&[27, 37]),
+    BitSet::from_members(&[28, 37]),
+    BitSet::from_members(&[29, 37]),
+    BitSet::from_members(&[32, 37]),
+    BitSet::from_members(&[30, 37]),
+    BitSet::from_members(&[33, 37]),
+    BitSet::from_members(&[34, 37]),
+    BitSet::from_members(&[35, 37]),
 ];
 // Indexed by ASCII character. `FIRST_CHAR_MASKS[c]` is a bitset indexed by terminal id, and
 // the bit of a terminal is set if the terminal can begin with the character `c`. It holds
@@ -132,17 +207,17 @@ static FIRST_CHAR_MASKS: [BitSet<MATCH_MEMO_WORDS>; 128] = [
     BitSet::from_members(&[]),
     BitSet::from_members(&[]),
     BitSet::from_members(&[]),
-    BitSet::from_members(&[]),
-    BitSet::from_members(&[]),
-    BitSet::from_members(&[]),
-    BitSet::from_members(&[]),
-    BitSet::from_members(&[]),
-    BitSet::from_members(&[]),
-    BitSet::from_members(&[]),
-    BitSet::from_members(&[]),
-    BitSet::from_members(&[]),
-    BitSet::from_members(&[]),
-    BitSet::from_members(&[]),
+    BitSet::from_members(&[25]),
+    BitSet::from_members(&[26]),
+    BitSet::from_members(&[27]),
+    BitSet::from_members(&[28]),
+    BitSet::from_members(&[29]),
+    BitSet::from_members(&[31]),
+    BitSet::from_members(&[30]),
+    BitSet::from_members(&[32]),
+    BitSet::from_members(&[33]),
+    BitSet::from_members(&[34]),
+    BitSet::from_members(&[35]),
     BitSet::from_members(&[]),
     BitSet::from_members(&[]),
     BitSet::from_members(&[]),
@@ -175,21 +250,21 @@ static FIRST_CHAR_MASKS: [BitSet<MATCH_MEMO_WORDS>; 128] = [
     BitSet::from_members(&[8]),
     BitSet::from_members(&[9]),
     BitSet::from_members(&[10]),
+    BitSet::from_members(&[11]),
+    BitSet::from_members(&[12]),
+    BitSet::from_members(&[13]),
+    BitSet::from_members(&[14]),
+    BitSet::from_members(&[15]),
     BitSet::from_members(&[]),
-    BitSet::from_members(&[]),
-    BitSet::from_members(&[]),
-    BitSet::from_members(&[]),
-    BitSet::from_members(&[]),
-    BitSet::from_members(&[]),
-    BitSet::from_members(&[]),
-    BitSet::from_members(&[]),
-    BitSet::from_members(&[]),
-    BitSet::from_members(&[]),
-    BitSet::from_members(&[]),
-    BitSet::from_members(&[]),
-    BitSet::from_members(&[]),
-    BitSet::from_members(&[]),
-    BitSet::from_members(&[]),
+    BitSet::from_members(&[16]),
+    BitSet::from_members(&[17]),
+    BitSet::from_members(&[18]),
+    BitSet::from_members(&[19]),
+    BitSet::from_members(&[20]),
+    BitSet::from_members(&[21]),
+    BitSet::from_members(&[22]),
+    BitSet::from_members(&[23]),
+    BitSet::from_members(&[24]),
     BitSet::from_members(&[]),
     BitSet::from_members(&[]),
     BitSet::from_members(&[]),
@@ -249,13 +324,113 @@ impl<'i, 'arena> ImportNamesScanner<'i, 'arena> {
     pub fn match_terminal_10(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b"k")
     }
+    // "l" = l
+    pub fn match_terminal_11(&self, input_index: u32) -> Option<u32> {
+        self.input.match_literal(input_index, b"l")
+    }
+    // "m" = m
+    pub fn match_terminal_12(&self, input_index: u32) -> Option<u32> {
+        self.input.match_literal(input_index, b"m")
+    }
+    // "n" = n
+    pub fn match_terminal_13(&self, input_index: u32) -> Option<u32> {
+        self.input.match_literal(input_index, b"n")
+    }
+    // "o" = o
+    pub fn match_terminal_14(&self, input_index: u32) -> Option<u32> {
+        self.input.match_literal(input_index, b"o")
+    }
+    // "p" = p
+    pub fn match_terminal_15(&self, input_index: u32) -> Option<u32> {
+        self.input.match_literal(input_index, b"p")
+    }
+    // "r" = r
+    pub fn match_terminal_16(&self, input_index: u32) -> Option<u32> {
+        self.input.match_literal(input_index, b"r")
+    }
+    // "s" = s
+    pub fn match_terminal_17(&self, input_index: u32) -> Option<u32> {
+        self.input.match_literal(input_index, b"s")
+    }
+    // "t" = t
+    pub fn match_terminal_18(&self, input_index: u32) -> Option<u32> {
+        self.input.match_literal(input_index, b"t")
+    }
+    // "u" = u
+    pub fn match_terminal_19(&self, input_index: u32) -> Option<u32> {
+        self.input.match_literal(input_index, b"u")
+    }
+    // "v" = v
+    pub fn match_terminal_20(&self, input_index: u32) -> Option<u32> {
+        self.input.match_literal(input_index, b"v")
+    }
+    // "w" = w
+    pub fn match_terminal_21(&self, input_index: u32) -> Option<u32> {
+        self.input.match_literal(input_index, b"w")
+    }
+    // "x" = x
+    pub fn match_terminal_22(&self, input_index: u32) -> Option<u32> {
+        self.input.match_literal(input_index, b"x")
+    }
+    // "y" = y
+    pub fn match_terminal_23(&self, input_index: u32) -> Option<u32> {
+        self.input.match_literal(input_index, b"y")
+    }
+    // "z" = z
+    pub fn match_terminal_24(&self, input_index: u32) -> Option<u32> {
+        self.input.match_literal(input_index, b"z")
+    }
+    // "A" = A
+    pub fn match_terminal_25(&self, input_index: u32) -> Option<u32> {
+        self.input.match_literal(input_index, b"A")
+    }
+    // "B" = B
+    pub fn match_terminal_26(&self, input_index: u32) -> Option<u32> {
+        self.input.match_literal(input_index, b"B")
+    }
+    // "C" = C
+    pub fn match_terminal_27(&self, input_index: u32) -> Option<u32> {
+        self.input.match_literal(input_index, b"C")
+    }
+    // "D" = D
+    pub fn match_terminal_28(&self, input_index: u32) -> Option<u32> {
+        self.input.match_literal(input_index, b"D")
+    }
+    // "E" = E
+    pub fn match_terminal_29(&self, input_index: u32) -> Option<u32> {
+        self.input.match_literal(input_index, b"E")
+    }
+    // "G" = G
+    pub fn match_terminal_30(&self, input_index: u32) -> Option<u32> {
+        self.input.match_literal(input_index, b"G")
+    }
+    // "F" = F
+    pub fn match_terminal_31(&self, input_index: u32) -> Option<u32> {
+        self.input.match_literal(input_index, b"F")
+    }
+    // "H" = H
+    pub fn match_terminal_32(&self, input_index: u32) -> Option<u32> {
+        self.input.match_literal(input_index, b"H")
+    }
+    // "I" = I
+    pub fn match_terminal_33(&self, input_index: u32) -> Option<u32> {
+        self.input.match_literal(input_index, b"I")
+    }
+    // "J" = J
+    pub fn match_terminal_34(&self, input_index: u32) -> Option<u32> {
+        self.input.match_literal(input_index, b"J")
+    }
+    // "K" = K
+    pub fn match_terminal_35(&self, input_index: u32) -> Option<u32> {
+        self.input.match_literal(input_index, b"K")
+    }
     // Returns true if any terminal in `set` matches at `input_index`. The memo of `match_token`
     // answers for the terminals of `set` already tried at `input_index`, and only the other
     // terminals are matched.
     #[inline(never)]
     pub fn match_any(&mut self, set: &TerminalSet, input_index: u32) -> bool {
         debug_assert!(
-            set.id < 11,
+            set.id < 36,
             "terminal set {} does not have a match_any id",
             set.id,
         );
@@ -319,7 +494,32 @@ impl<'i, 'arena> ImportNamesScanner<'i, 'arena> {
             TerminalId(8) => self.match_terminal_8(input_index),
             TerminalId(9) => self.match_terminal_9(input_index),
             TerminalId(10) => self.match_terminal_10(input_index),
-            TerminalId(12) => {
+            TerminalId(11) => self.match_terminal_11(input_index),
+            TerminalId(12) => self.match_terminal_12(input_index),
+            TerminalId(13) => self.match_terminal_13(input_index),
+            TerminalId(14) => self.match_terminal_14(input_index),
+            TerminalId(15) => self.match_terminal_15(input_index),
+            TerminalId(16) => self.match_terminal_16(input_index),
+            TerminalId(17) => self.match_terminal_17(input_index),
+            TerminalId(18) => self.match_terminal_18(input_index),
+            TerminalId(19) => self.match_terminal_19(input_index),
+            TerminalId(20) => self.match_terminal_20(input_index),
+            TerminalId(21) => self.match_terminal_21(input_index),
+            TerminalId(22) => self.match_terminal_22(input_index),
+            TerminalId(23) => self.match_terminal_23(input_index),
+            TerminalId(24) => self.match_terminal_24(input_index),
+            TerminalId(25) => self.match_terminal_25(input_index),
+            TerminalId(26) => self.match_terminal_26(input_index),
+            TerminalId(27) => self.match_terminal_27(input_index),
+            TerminalId(28) => self.match_terminal_28(input_index),
+            TerminalId(29) => self.match_terminal_29(input_index),
+            TerminalId(30) => self.match_terminal_30(input_index),
+            TerminalId(31) => self.match_terminal_31(input_index),
+            TerminalId(32) => self.match_terminal_32(input_index),
+            TerminalId(33) => self.match_terminal_33(input_index),
+            TerminalId(34) => self.match_terminal_34(input_index),
+            TerminalId(35) => self.match_terminal_35(input_index),
+            TerminalId(37) => {
                 if input_index == self.input.len() {
                     Some(input_index)
                 } else {

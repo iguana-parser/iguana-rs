@@ -7,488 +7,103 @@ use iguana_runtime::{
     utils::bit_set::BitSet,
 };
 pub const S: NonterminalId = NonterminalId(0);
-pub const PARSE: NonterminalId = NonterminalId(1);
-pub const PARSER: NonterminalId = NonterminalId(2);
-pub const SPPF_NODE: NonterminalId = NonterminalId(3);
-pub const INPUT: NonterminalId = NonterminalId(4);
-pub const PARSE_ERROR: NonterminalId = NonterminalId(5);
-pub const PARSE_SUCCESS: NonterminalId = NonterminalId(6);
-pub const GRAMMAR: NonterminalId = NonterminalId(7);
-pub const NONTERMINAL: NonterminalId = NonterminalId(8);
-pub const TERMINAL: NonterminalId = NonterminalId(9);
-pub const SLOT: NonterminalId = NonterminalId(10);
-pub const TERMINAL_SET: NonterminalId = NonterminalId(11);
-pub const START_S: NonterminalId = NonterminalId(12);
-pub const START_PARSE: NonterminalId = NonterminalId(13);
-pub const START_PARSER: NonterminalId = NonterminalId(14);
-pub const START_SPPF_NODE: NonterminalId = NonterminalId(15);
-pub const START_INPUT: NonterminalId = NonterminalId(16);
-pub const START_PARSE_ERROR: NonterminalId = NonterminalId(17);
-pub const START_PARSE_SUCCESS: NonterminalId = NonterminalId(18);
-pub const START_GRAMMAR: NonterminalId = NonterminalId(19);
-pub const START_NONTERMINAL: NonterminalId = NonterminalId(20);
-pub const START_TERMINAL: NonterminalId = NonterminalId(21);
-pub const START_SLOT: NonterminalId = NonterminalId(22);
-pub const START_TERMINAL_SET: NonterminalId = NonterminalId(23);
+pub const RUNTIME_ITEMS: NonterminalId = NonterminalId(1);
+pub const PARSE: NonterminalId = NonterminalId(2);
+pub const PARSER: NonterminalId = NonterminalId(3);
+pub const SPPF_NODE: NonterminalId = NonterminalId(4);
+pub const INPUT: NonterminalId = NonterminalId(5);
+pub const PARSE_ERROR: NonterminalId = NonterminalId(6);
+pub const PARSE_SUCCESS: NonterminalId = NonterminalId(7);
+pub const GRAMMAR: NonterminalId = NonterminalId(8);
+pub const NONTERMINAL: NonterminalId = NonterminalId(9);
+pub const TERMINAL: NonterminalId = NonterminalId(10);
+pub const SLOT: NonterminalId = NonterminalId(11);
+pub const TERMINAL_SET: NonterminalId = NonterminalId(12);
+pub const ARENA: NonterminalId = NonterminalId(13);
+pub const NODE_KIND: NonterminalId = NonterminalId(14);
+pub const PARSE_TREE_BUILDER: NonterminalId = NonterminalId(15);
+pub const PARSE_TREE_NODE: NonterminalId = NonterminalId(16);
+pub const NONTERMINAL_ID: NonterminalId = NonterminalId(17);
+pub const TERMINAL_ID: NonterminalId = NonterminalId(18);
+pub const SPPF_NODE_ID: NonterminalId = NonterminalId(19);
+pub const NONTERMINAL_NODE: NonterminalId = NonterminalId(20);
+pub const TERMINAL_NODE: NonterminalId = NonterminalId(21);
+pub const GENERATED_TYPES: NonterminalId = NonterminalId(22);
+pub const IMPORT_NAMES_GRAMMAR: NonterminalId = NonterminalId(23);
+pub const IMPORT_NAMES_PARSER: NonterminalId = NonterminalId(24);
+pub const GRAMMAR_DATA: NonterminalId = NonterminalId(25);
+pub const NONTERMINALS: NonterminalId = NonterminalId(26);
+pub const TERMINALS: NonterminalId = NonterminalId(27);
+pub const SLOTS: NonterminalId = NonterminalId(28);
+pub const DISPLAY_ORDER: NonterminalId = NonterminalId(29);
+pub const FIRST_SLOTS: NonterminalId = NonterminalId(30);
+pub const SINGLE_TERMINAL_SETS: NonterminalId = NonterminalId(31);
+pub const FIRST_SET_S: NonterminalId = NonterminalId(32);
+pub const FOLLOW_SET_S: NonterminalId = NonterminalId(33);
+pub const LOCALS: NonterminalId = NonterminalId(34);
+pub const INDEX: NonterminalId = NonterminalId(35);
+pub const PARSER_METHODS: NonterminalId = NonterminalId(36);
+pub const A: NonterminalId = NonterminalId(37);
+pub const A_LL1: NonterminalId = NonterminalId(38);
+pub const A_BODY: NonterminalId = NonterminalId(39);
+pub const START_WITHOUT_LAYOUT: NonterminalId = NonterminalId(40);
+pub const START_S: NonterminalId = NonterminalId(41);
+pub const START_RUNTIME_ITEMS: NonterminalId = NonterminalId(42);
+pub const START_PARSE: NonterminalId = NonterminalId(43);
+pub const START_PARSER: NonterminalId = NonterminalId(44);
+pub const START_SPPF_NODE: NonterminalId = NonterminalId(45);
+pub const START_INPUT: NonterminalId = NonterminalId(46);
+pub const START_PARSE_ERROR: NonterminalId = NonterminalId(47);
+pub const START_PARSE_SUCCESS: NonterminalId = NonterminalId(48);
+pub const START_GRAMMAR: NonterminalId = NonterminalId(49);
+pub const START_NONTERMINAL: NonterminalId = NonterminalId(50);
+pub const START_TERMINAL: NonterminalId = NonterminalId(51);
+pub const START_SLOT: NonterminalId = NonterminalId(52);
+pub const START_TERMINAL_SET: NonterminalId = NonterminalId(53);
+pub const START_ARENA: NonterminalId = NonterminalId(54);
+pub const START_NODE_KIND: NonterminalId = NonterminalId(55);
+pub const START_PARSE_TREE_BUILDER: NonterminalId = NonterminalId(56);
+pub const START_PARSE_TREE_NODE: NonterminalId = NonterminalId(57);
+pub const START_NONTERMINAL_ID: NonterminalId = NonterminalId(58);
+pub const START_TERMINAL_ID: NonterminalId = NonterminalId(59);
+pub const START_SPPF_NODE_ID: NonterminalId = NonterminalId(60);
+pub const START_NONTERMINAL_NODE: NonterminalId = NonterminalId(61);
+pub const START_TERMINAL_NODE: NonterminalId = NonterminalId(62);
+pub const START_GENERATED_TYPES: NonterminalId = NonterminalId(63);
+pub const START_IMPORT_NAMES_GRAMMAR: NonterminalId = NonterminalId(64);
+pub const START_IMPORT_NAMES_PARSER: NonterminalId = NonterminalId(65);
+pub const START_GRAMMAR_DATA: NonterminalId = NonterminalId(66);
+pub const START_NONTERMINALS: NonterminalId = NonterminalId(67);
+pub const START_TERMINALS: NonterminalId = NonterminalId(68);
+pub const START_SLOTS: NonterminalId = NonterminalId(69);
+pub const START_DISPLAY_ORDER: NonterminalId = NonterminalId(70);
+pub const START_FIRST_SLOTS: NonterminalId = NonterminalId(71);
+pub const START_SINGLE_TERMINAL_SETS: NonterminalId = NonterminalId(72);
+pub const START_FIRST_SET_S: NonterminalId = NonterminalId(73);
+pub const START_FOLLOW_SET_S: NonterminalId = NonterminalId(74);
+pub const START_LOCALS: NonterminalId = NonterminalId(75);
+pub const START_INDEX: NonterminalId = NonterminalId(76);
+pub const START_PARSER_METHODS: NonterminalId = NonterminalId(77);
+pub const START_A: NonterminalId = NonterminalId(78);
+pub const START_A_LL1: NonterminalId = NonterminalId(79);
+pub const START_A_BODY: NonterminalId = NonterminalId(80);
+pub const START_START_WITHOUT_LAYOUT: NonterminalId = NonterminalId(81);
 pub struct ImportNamesGrammar;
-static NONTERMINALS: [Nonterminal; 24] = [
-    Nonterminal {
-        name: "S",
-        display_name: "S",
-    },
-    Nonterminal {
-        name: "Parse",
-        display_name: "Parse",
-    },
-    Nonterminal {
-        name: "Parser",
-        display_name: "Parser",
-    },
-    Nonterminal {
-        name: "SPPFNode",
-        display_name: "SPPFNode",
-    },
-    Nonterminal {
-        name: "Input",
-        display_name: "Input",
-    },
-    Nonterminal {
-        name: "ParseError",
-        display_name: "ParseError",
-    },
-    Nonterminal {
-        name: "ParseSuccess",
-        display_name: "ParseSuccess",
-    },
-    Nonterminal {
-        name: "Grammar",
-        display_name: "Grammar",
-    },
-    Nonterminal {
-        name: "Nonterminal",
-        display_name: "Nonterminal",
-    },
-    Nonterminal {
-        name: "Terminal",
-        display_name: "Terminal",
-    },
-    Nonterminal {
-        name: "Slot",
-        display_name: "Slot",
-    },
-    Nonterminal {
-        name: "TerminalSet",
-        display_name: "TerminalSet",
-    },
-    Nonterminal {
-        name: "StartS",
-        display_name: "S",
-    },
-    Nonterminal {
-        name: "StartParse",
-        display_name: "Parse",
-    },
-    Nonterminal {
-        name: "StartParser",
-        display_name: "Parser",
-    },
-    Nonterminal {
-        name: "StartSPPFNode",
-        display_name: "SPPFNode",
-    },
-    Nonterminal {
-        name: "StartInput",
-        display_name: "Input",
-    },
-    Nonterminal {
-        name: "StartParseError",
-        display_name: "ParseError",
-    },
-    Nonterminal {
-        name: "StartParseSuccess",
-        display_name: "ParseSuccess",
-    },
-    Nonterminal {
-        name: "StartGrammar",
-        display_name: "Grammar",
-    },
-    Nonterminal {
-        name: "StartNonterminal",
-        display_name: "Nonterminal",
-    },
-    Nonterminal {
-        name: "StartTerminal",
-        display_name: "Terminal",
-    },
-    Nonterminal {
-        name: "StartSlot",
-        display_name: "Slot",
-    },
-    Nonterminal {
-        name: "StartTerminalSet",
-        display_name: "TerminalSet",
-    },
-];
-static DISPLAY_ORDER: [&str; 12] = [
-    "S",
-    "Parse",
-    "Parser",
-    "SPPFNode",
-    "Input",
-    "ParseError",
-    "ParseSuccess",
-    "Grammar",
-    "Nonterminal",
-    "Terminal",
-    "Slot",
-    "TerminalSet",
-];
-static TERMINALS: [Terminal; 13] = [
-    Terminal { name: "\"a\"" },
-    Terminal { name: "\"b\"" },
-    Terminal { name: "\"c\"" },
-    Terminal { name: "\"d\"" },
-    Terminal { name: "\"e\"" },
-    Terminal { name: "\"f\"" },
-    Terminal { name: "\"g\"" },
-    Terminal { name: "\"h\"" },
-    Terminal { name: "\"i\"" },
-    Terminal { name: "\"j\"" },
-    Terminal { name: "\"k\"" },
-    Terminal { name: "Epsilon" },
-    Terminal { name: "EOF" },
-];
-static SLOTS: [Slot; 58] = [
-    Slot {
-        display_name: "S : . Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot TerminalSet",
-        position: 0,
-    },
-    Slot {
-        display_name: "S : Parse . Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot TerminalSet",
-        position: 1,
-    },
-    Slot {
-        display_name: "S : Parse Parser . SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot TerminalSet",
-        position: 2,
-    },
-    Slot {
-        display_name: "S : Parse Parser SPPFNode . Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot TerminalSet",
-        position: 3,
-    },
-    Slot {
-        display_name: "S : Parse Parser SPPFNode Input . ParseError ParseSuccess Grammar Nonterminal Terminal Slot TerminalSet",
-        position: 4,
-    },
-    Slot {
-        display_name: "S : Parse Parser SPPFNode Input ParseError . ParseSuccess Grammar Nonterminal Terminal Slot TerminalSet",
-        position: 5,
-    },
-    Slot {
-        display_name: "S : Parse Parser SPPFNode Input ParseError ParseSuccess . Grammar Nonterminal Terminal Slot TerminalSet",
-        position: 6,
-    },
-    Slot {
-        display_name: "S : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar . Nonterminal Terminal Slot TerminalSet",
-        position: 7,
-    },
-    Slot {
-        display_name: "S : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal . Terminal Slot TerminalSet",
-        position: 8,
-    },
-    Slot {
-        display_name: "S : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal . Slot TerminalSet",
-        position: 9,
-    },
-    Slot {
-        display_name: "S : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot . TerminalSet",
-        position: 10,
-    },
-    Slot {
-        display_name: "S : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot TerminalSet.",
-        position: 11,
-    },
-    Slot {
-        display_name: "Parse : . \"a\"",
-        position: 0,
-    },
-    Slot {
-        display_name: "Parse : \"a\".",
-        position: 1,
-    },
-    Slot {
-        display_name: "Parser : . \"b\"",
-        position: 0,
-    },
-    Slot {
-        display_name: "Parser : \"b\".",
-        position: 1,
-    },
-    Slot {
-        display_name: "SPPFNode : . \"c\"",
-        position: 0,
-    },
-    Slot {
-        display_name: "SPPFNode : \"c\".",
-        position: 1,
-    },
-    Slot {
-        display_name: "Input : . \"d\"",
-        position: 0,
-    },
-    Slot {
-        display_name: "Input : \"d\".",
-        position: 1,
-    },
-    Slot {
-        display_name: "ParseError : . \"e\"",
-        position: 0,
-    },
-    Slot {
-        display_name: "ParseError : \"e\".",
-        position: 1,
-    },
-    Slot {
-        display_name: "ParseSuccess : . \"f\"",
-        position: 0,
-    },
-    Slot {
-        display_name: "ParseSuccess : \"f\".",
-        position: 1,
-    },
-    Slot {
-        display_name: "Grammar : . \"g\"",
-        position: 0,
-    },
-    Slot {
-        display_name: "Grammar : \"g\".",
-        position: 1,
-    },
-    Slot {
-        display_name: "Nonterminal : . \"h\"",
-        position: 0,
-    },
-    Slot {
-        display_name: "Nonterminal : \"h\".",
-        position: 1,
-    },
-    Slot {
-        display_name: "Terminal : . \"i\"",
-        position: 0,
-    },
-    Slot {
-        display_name: "Terminal : \"i\".",
-        position: 1,
-    },
-    Slot {
-        display_name: "Slot : . \"j\"",
-        position: 0,
-    },
-    Slot {
-        display_name: "Slot : \"j\".",
-        position: 1,
-    },
-    Slot {
-        display_name: "TerminalSet : . \"k\"",
-        position: 0,
-    },
-    Slot {
-        display_name: "TerminalSet : \"k\".",
-        position: 1,
-    },
-    Slot {
-        display_name: "S : . start:S",
-        position: 0,
-    },
-    Slot {
-        display_name: "S : start:S.",
-        position: 1,
-    },
-    Slot {
-        display_name: "Parse : . start:Parse",
-        position: 0,
-    },
-    Slot {
-        display_name: "Parse : start:Parse.",
-        position: 1,
-    },
-    Slot {
-        display_name: "Parser : . start:Parser",
-        position: 0,
-    },
-    Slot {
-        display_name: "Parser : start:Parser.",
-        position: 1,
-    },
-    Slot {
-        display_name: "SPPFNode : . start:SPPFNode",
-        position: 0,
-    },
-    Slot {
-        display_name: "SPPFNode : start:SPPFNode.",
-        position: 1,
-    },
-    Slot {
-        display_name: "Input : . start:Input",
-        position: 0,
-    },
-    Slot {
-        display_name: "Input : start:Input.",
-        position: 1,
-    },
-    Slot {
-        display_name: "ParseError : . start:ParseError",
-        position: 0,
-    },
-    Slot {
-        display_name: "ParseError : start:ParseError.",
-        position: 1,
-    },
-    Slot {
-        display_name: "ParseSuccess : . start:ParseSuccess",
-        position: 0,
-    },
-    Slot {
-        display_name: "ParseSuccess : start:ParseSuccess.",
-        position: 1,
-    },
-    Slot {
-        display_name: "Grammar : . start:Grammar",
-        position: 0,
-    },
-    Slot {
-        display_name: "Grammar : start:Grammar.",
-        position: 1,
-    },
-    Slot {
-        display_name: "Nonterminal : . start:Nonterminal",
-        position: 0,
-    },
-    Slot {
-        display_name: "Nonterminal : start:Nonterminal.",
-        position: 1,
-    },
-    Slot {
-        display_name: "Terminal : . start:Terminal",
-        position: 0,
-    },
-    Slot {
-        display_name: "Terminal : start:Terminal.",
-        position: 1,
-    },
-    Slot {
-        display_name: "Slot : . start:Slot",
-        position: 0,
-    },
-    Slot {
-        display_name: "Slot : start:Slot.",
-        position: 1,
-    },
-    Slot {
-        display_name: "TerminalSet : . start:TerminalSet",
-        position: 0,
-    },
-    Slot {
-        display_name: "TerminalSet : start:TerminalSet.",
-        position: 1,
-    },
-];
-static FIRST_SLOTS: [&[SlotId]; 24] = [
-    &[SlotId(0)],
-    &[SlotId(12)],
-    &[SlotId(14)],
-    &[SlotId(16)],
-    &[SlotId(18)],
-    &[SlotId(20)],
-    &[SlotId(22)],
-    &[SlotId(24)],
-    &[SlotId(26)],
-    &[SlotId(28)],
-    &[SlotId(30)],
-    &[SlotId(32)],
-    &[SlotId(34)],
-    &[SlotId(36)],
-    &[SlotId(38)],
-    &[SlotId(40)],
-    &[SlotId(42)],
-    &[SlotId(44)],
-    &[SlotId(46)],
-    &[SlotId(48)],
-    &[SlotId(50)],
-    &[SlotId(52)],
-    &[SlotId(54)],
-    &[SlotId(56)],
-];
-// A failed terminal match refers to a static terminal set like every other failure, so the
-// error reporting path needs to reach a terminal set from a terminal id. This table, indexed
-// by terminal id, serves only that.
-static SINGLE_TERMINAL_SETS: [TerminalSet; 13] = [
-    TerminalSet {
-        id: 22,
-        terminals: &[TerminalId(0)],
-    },
-    TerminalSet {
-        id: 23,
-        terminals: &[TerminalId(1)],
-    },
-    TerminalSet {
-        id: 24,
-        terminals: &[TerminalId(2)],
-    },
-    TerminalSet {
-        id: 25,
-        terminals: &[TerminalId(3)],
-    },
-    TerminalSet {
-        id: 26,
-        terminals: &[TerminalId(4)],
-    },
-    TerminalSet {
-        id: 27,
-        terminals: &[TerminalId(5)],
-    },
-    TerminalSet {
-        id: 28,
-        terminals: &[TerminalId(6)],
-    },
-    TerminalSet {
-        id: 29,
-        terminals: &[TerminalId(7)],
-    },
-    TerminalSet {
-        id: 30,
-        terminals: &[TerminalId(8)],
-    },
-    TerminalSet {
-        id: 31,
-        terminals: &[TerminalId(9)],
-    },
-    TerminalSet {
-        id: 32,
-        terminals: &[TerminalId(10)],
-    },
-    TerminalSet {
-        id: 33,
-        terminals: &[TerminalId(11)],
-    },
-    TerminalSet {
-        id: 34,
-        terminals: &[TerminalId(12)],
-    },
-];
 impl Grammar for ImportNamesGrammar {
     type Alternatives = BitSet<1>;
     const NAME: &'static str = "ImportNames";
-    const NONTERMINALS: &'static [Nonterminal] = &NONTERMINALS;
-    const DISPLAY_ORDER: &'static [&'static str] = &DISPLAY_ORDER;
-    const TERMINALS: &'static [Terminal] = &TERMINALS;
-    const SLOTS: &'static [Slot] = &SLOTS;
-    const FIRST_SLOTS: &'static [&'static [SlotId]] = &FIRST_SLOTS;
+    const NONTERMINALS: &'static [Nonterminal] = &data::NONTERMINALS;
+    const DISPLAY_ORDER: &'static [&'static str] = &data::DISPLAY_ORDER;
+    const TERMINALS: &'static [Terminal] = &data::TERMINALS;
+    const SLOTS: &'static [Slot] = &data::SLOTS;
+    const FIRST_SLOTS: &'static [&'static [SlotId]] = &data::FIRST_SLOTS;
     const LAYOUT_NAME: Option<&'static str> = None;
     const LAYOUT_TERMINALS: &'static [TerminalId] = &[];
-    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &SINGLE_TERMINAL_SETS;
+    const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &data::SINGLE_TERMINAL_SETS;
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         match name {
             "S" => Some(S),
+            "RuntimeItems" => Some(RUNTIME_ITEMS),
             "Parse" => Some(PARSE),
             "Parser" => Some(PARSER),
             "SPPFNode" => Some(SPPF_NODE),
@@ -500,7 +115,36 @@ impl Grammar for ImportNamesGrammar {
             "Terminal" => Some(TERMINAL),
             "Slot" => Some(SLOT),
             "TerminalSet" => Some(TERMINAL_SET),
+            "Arena" => Some(ARENA),
+            "NodeKind" => Some(NODE_KIND),
+            "ParseTreeBuilder" => Some(PARSE_TREE_BUILDER),
+            "ParseTreeNode" => Some(PARSE_TREE_NODE),
+            "NonterminalId" => Some(NONTERMINAL_ID),
+            "TerminalId" => Some(TERMINAL_ID),
+            "SPPFNodeId" => Some(SPPF_NODE_ID),
+            "NonterminalNode" => Some(NONTERMINAL_NODE),
+            "TerminalNode" => Some(TERMINAL_NODE),
+            "GeneratedTypes" => Some(GENERATED_TYPES),
+            "ImportNamesGrammar" => Some(IMPORT_NAMES_GRAMMAR),
+            "ImportNamesParser" => Some(IMPORT_NAMES_PARSER),
+            "GrammarData" => Some(GRAMMAR_DATA),
+            "Nonterminals" => Some(NONTERMINALS),
+            "Terminals" => Some(TERMINALS),
+            "Slots" => Some(SLOTS),
+            "DisplayOrder" => Some(DISPLAY_ORDER),
+            "FirstSlots" => Some(FIRST_SLOTS),
+            "SingleTerminalSets" => Some(SINGLE_TERMINAL_SETS),
+            "FirstSetS" => Some(FIRST_SET_S),
+            "FollowSetS" => Some(FOLLOW_SET_S),
+            "Locals" => Some(LOCALS),
+            "Index" => Some(INDEX),
+            "ParserMethods" => Some(PARSER_METHODS),
+            "A" => Some(A),
+            "ALl1" => Some(A_LL1),
+            "ABody" => Some(A_BODY),
+            "StartWithoutLayout" => Some(START_WITHOUT_LAYOUT),
             "StartS" => Some(START_S),
+            "StartRuntimeItems" => Some(START_RUNTIME_ITEMS),
             "StartParse" => Some(START_PARSE),
             "StartParser" => Some(START_PARSER),
             "StartSPPFNode" => Some(START_SPPF_NODE),
@@ -512,247 +156,2316 @@ impl Grammar for ImportNamesGrammar {
             "StartTerminal" => Some(START_TERMINAL),
             "StartSlot" => Some(START_SLOT),
             "StartTerminalSet" => Some(START_TERMINAL_SET),
+            "StartArena" => Some(START_ARENA),
+            "StartNodeKind" => Some(START_NODE_KIND),
+            "StartParseTreeBuilder" => Some(START_PARSE_TREE_BUILDER),
+            "StartParseTreeNode" => Some(START_PARSE_TREE_NODE),
+            "StartNonterminalId" => Some(START_NONTERMINAL_ID),
+            "StartTerminalId" => Some(START_TERMINAL_ID),
+            "StartSPPFNodeId" => Some(START_SPPF_NODE_ID),
+            "StartNonterminalNode" => Some(START_NONTERMINAL_NODE),
+            "StartTerminalNode" => Some(START_TERMINAL_NODE),
+            "StartGeneratedTypes" => Some(START_GENERATED_TYPES),
+            "StartImportNamesGrammar" => Some(START_IMPORT_NAMES_GRAMMAR),
+            "StartImportNamesParser" => Some(START_IMPORT_NAMES_PARSER),
+            "StartGrammarData" => Some(START_GRAMMAR_DATA),
+            "StartNonterminals" => Some(START_NONTERMINALS),
+            "StartTerminals" => Some(START_TERMINALS),
+            "StartSlots" => Some(START_SLOTS),
+            "StartDisplayOrder" => Some(START_DISPLAY_ORDER),
+            "StartFirstSlots" => Some(START_FIRST_SLOTS),
+            "StartSingleTerminalSets" => Some(START_SINGLE_TERMINAL_SETS),
+            "StartFirstSetS" => Some(START_FIRST_SET_S),
+            "StartFollowSetS" => Some(START_FOLLOW_SET_S),
+            "StartLocals" => Some(START_LOCALS),
+            "StartIndex" => Some(START_INDEX),
+            "StartParserMethods" => Some(START_PARSER_METHODS),
+            "StartA" => Some(START_A),
+            "StartALl1" => Some(START_A_LL1),
+            "StartABody" => Some(START_A_BODY),
+            "StartStartWithoutLayout" => Some(START_START_WITHOUT_LAYOUT),
             _ => None,
         }
     }
 }
-// S { EOF }
-pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(12)],
-};
-// Parse { "b", EOF }
-pub static FOLLOW_SET_PARSE: TerminalSet = TerminalSet {
-    id: 1,
-    terminals: &[TerminalId(1), TerminalId(12)],
-};
-// Parser { "c", EOF }
-pub static FOLLOW_SET_PARSER: TerminalSet = TerminalSet {
-    id: 2,
-    terminals: &[TerminalId(2), TerminalId(12)],
-};
-// SPPFNode { "d", EOF }
-pub static FOLLOW_SET_SPPF_NODE: TerminalSet = TerminalSet {
-    id: 3,
-    terminals: &[TerminalId(3), TerminalId(12)],
-};
-// Input { "e", EOF }
-pub static FOLLOW_SET_INPUT: TerminalSet = TerminalSet {
-    id: 4,
-    terminals: &[TerminalId(4), TerminalId(12)],
-};
-// ParseError { "f", EOF }
-pub static FOLLOW_SET_PARSE_ERROR: TerminalSet = TerminalSet {
-    id: 5,
-    terminals: &[TerminalId(5), TerminalId(12)],
-};
-// ParseSuccess { "g", EOF }
-pub static FOLLOW_SET_PARSE_SUCCESS: TerminalSet = TerminalSet {
-    id: 6,
-    terminals: &[TerminalId(6), TerminalId(12)],
-};
-// Grammar { "h", EOF }
-pub static FOLLOW_SET_GRAMMAR: TerminalSet = TerminalSet {
-    id: 7,
-    terminals: &[TerminalId(7), TerminalId(12)],
-};
-// Nonterminal { "i", EOF }
-pub static FOLLOW_SET_NONTERMINAL: TerminalSet = TerminalSet {
-    id: 8,
-    terminals: &[TerminalId(8), TerminalId(12)],
-};
-// Terminal { "j", EOF }
-pub static FOLLOW_SET_TERMINAL: TerminalSet = TerminalSet {
-    id: 9,
-    terminals: &[TerminalId(9), TerminalId(12)],
-};
-// Slot { "k", EOF }
-pub static FOLLOW_SET_SLOT: TerminalSet = TerminalSet {
-    id: 10,
-    terminals: &[TerminalId(10), TerminalId(12)],
-};
-// TerminalSet { EOF }
-pub static FOLLOW_SET_TERMINAL_SET: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(12)],
-};
-// StartS { EOF }
-pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(12)],
-};
-// StartParse { EOF }
-pub static FOLLOW_SET_START_PARSE: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(12)],
-};
-// StartParser { EOF }
-pub static FOLLOW_SET_START_PARSER: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(12)],
-};
-// StartSPPFNode { EOF }
-pub static FOLLOW_SET_START_SPPF_NODE: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(12)],
-};
-// StartInput { EOF }
-pub static FOLLOW_SET_START_INPUT: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(12)],
-};
-// StartParseError { EOF }
-pub static FOLLOW_SET_START_PARSE_ERROR: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(12)],
-};
-// StartParseSuccess { EOF }
-pub static FOLLOW_SET_START_PARSE_SUCCESS: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(12)],
-};
-// StartGrammar { EOF }
-pub static FOLLOW_SET_START_GRAMMAR: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(12)],
-};
-// StartNonterminal { EOF }
-pub static FOLLOW_SET_START_NONTERMINAL: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(12)],
-};
-// StartTerminal { EOF }
-pub static FOLLOW_SET_START_TERMINAL: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(12)],
-};
-// StartSlot { EOF }
-pub static FOLLOW_SET_START_SLOT: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(12)],
-};
-// StartTerminalSet { EOF }
-pub static FOLLOW_SET_START_TERMINAL_SET: TerminalSet = TerminalSet {
-    id: 0,
-    terminals: &[TerminalId(12)],
-};
-// S { "a" }
-pub static FIRST_SET_S: TerminalSet = TerminalSet {
-    id: 11,
-    terminals: &[TerminalId(0)],
-};
-// Parse { "a" }
-pub static FIRST_SET_PARSE: TerminalSet = TerminalSet {
-    id: 11,
-    terminals: &[TerminalId(0)],
-};
-// Parser { "b" }
-pub static FIRST_SET_PARSER: TerminalSet = TerminalSet {
-    id: 12,
-    terminals: &[TerminalId(1)],
-};
-// SPPFNode { "c" }
-pub static FIRST_SET_SPPF_NODE: TerminalSet = TerminalSet {
-    id: 13,
-    terminals: &[TerminalId(2)],
-};
-// Input { "d" }
-pub static FIRST_SET_INPUT: TerminalSet = TerminalSet {
-    id: 14,
-    terminals: &[TerminalId(3)],
-};
-// ParseError { "e" }
-pub static FIRST_SET_PARSE_ERROR: TerminalSet = TerminalSet {
-    id: 15,
-    terminals: &[TerminalId(4)],
-};
-// ParseSuccess { "f" }
-pub static FIRST_SET_PARSE_SUCCESS: TerminalSet = TerminalSet {
-    id: 16,
-    terminals: &[TerminalId(5)],
-};
-// Grammar { "g" }
-pub static FIRST_SET_GRAMMAR: TerminalSet = TerminalSet {
-    id: 17,
-    terminals: &[TerminalId(6)],
-};
-// Nonterminal { "h" }
-pub static FIRST_SET_NONTERMINAL: TerminalSet = TerminalSet {
-    id: 18,
-    terminals: &[TerminalId(7)],
-};
-// Terminal { "i" }
-pub static FIRST_SET_TERMINAL: TerminalSet = TerminalSet {
-    id: 19,
-    terminals: &[TerminalId(8)],
-};
-// Slot { "j" }
-pub static FIRST_SET_SLOT: TerminalSet = TerminalSet {
-    id: 20,
-    terminals: &[TerminalId(9)],
-};
-// TerminalSet { "k" }
-pub static FIRST_SET_TERMINAL_SET: TerminalSet = TerminalSet {
-    id: 21,
-    terminals: &[TerminalId(10)],
-};
-// StartS { "a" }
-pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-    id: 11,
-    terminals: &[TerminalId(0)],
-};
-// StartParse { "a" }
-pub static FIRST_SET_START_PARSE: TerminalSet = TerminalSet {
-    id: 11,
-    terminals: &[TerminalId(0)],
-};
-// StartParser { "b" }
-pub static FIRST_SET_START_PARSER: TerminalSet = TerminalSet {
-    id: 12,
-    terminals: &[TerminalId(1)],
-};
-// StartSPPFNode { "c" }
-pub static FIRST_SET_START_SPPF_NODE: TerminalSet = TerminalSet {
-    id: 13,
-    terminals: &[TerminalId(2)],
-};
-// StartInput { "d" }
-pub static FIRST_SET_START_INPUT: TerminalSet = TerminalSet {
-    id: 14,
-    terminals: &[TerminalId(3)],
-};
-// StartParseError { "e" }
-pub static FIRST_SET_START_PARSE_ERROR: TerminalSet = TerminalSet {
-    id: 15,
-    terminals: &[TerminalId(4)],
-};
-// StartParseSuccess { "f" }
-pub static FIRST_SET_START_PARSE_SUCCESS: TerminalSet = TerminalSet {
-    id: 16,
-    terminals: &[TerminalId(5)],
-};
-// StartGrammar { "g" }
-pub static FIRST_SET_START_GRAMMAR: TerminalSet = TerminalSet {
-    id: 17,
-    terminals: &[TerminalId(6)],
-};
-// StartNonterminal { "h" }
-pub static FIRST_SET_START_NONTERMINAL: TerminalSet = TerminalSet {
-    id: 18,
-    terminals: &[TerminalId(7)],
-};
-// StartTerminal { "i" }
-pub static FIRST_SET_START_TERMINAL: TerminalSet = TerminalSet {
-    id: 19,
-    terminals: &[TerminalId(8)],
-};
-// StartSlot { "j" }
-pub static FIRST_SET_START_SLOT: TerminalSet = TerminalSet {
-    id: 20,
-    terminals: &[TerminalId(9)],
-};
-// StartTerminalSet { "k" }
-pub static FIRST_SET_START_TERMINAL_SET: TerminalSet = TerminalSet {
-    id: 21,
-    terminals: &[TerminalId(10)],
-};
+pub mod data {
+    #[allow(unused_imports)]
+    use iguana_runtime::{
+        grammar::{Nonterminal, Slot, Terminal},
+        ids::{SlotId, TerminalId},
+        prediction::Prediction,
+        scanner::TerminalSet,
+    };
+    pub(super) static NONTERMINALS: [Nonterminal; 82] = [
+        Nonterminal {
+            name: "S",
+            display_name: "S",
+        },
+        Nonterminal {
+            name: "RuntimeItems",
+            display_name: "RuntimeItems",
+        },
+        Nonterminal {
+            name: "Parse",
+            display_name: "Parse",
+        },
+        Nonterminal {
+            name: "Parser",
+            display_name: "Parser",
+        },
+        Nonterminal {
+            name: "SPPFNode",
+            display_name: "SPPFNode",
+        },
+        Nonterminal {
+            name: "Input",
+            display_name: "Input",
+        },
+        Nonterminal {
+            name: "ParseError",
+            display_name: "ParseError",
+        },
+        Nonterminal {
+            name: "ParseSuccess",
+            display_name: "ParseSuccess",
+        },
+        Nonterminal {
+            name: "Grammar",
+            display_name: "Grammar",
+        },
+        Nonterminal {
+            name: "Nonterminal",
+            display_name: "Nonterminal",
+        },
+        Nonterminal {
+            name: "Terminal",
+            display_name: "Terminal",
+        },
+        Nonterminal {
+            name: "Slot",
+            display_name: "Slot",
+        },
+        Nonterminal {
+            name: "TerminalSet",
+            display_name: "TerminalSet",
+        },
+        Nonterminal {
+            name: "Arena",
+            display_name: "Arena",
+        },
+        Nonterminal {
+            name: "NodeKind",
+            display_name: "NodeKind",
+        },
+        Nonterminal {
+            name: "ParseTreeBuilder",
+            display_name: "ParseTreeBuilder",
+        },
+        Nonterminal {
+            name: "ParseTreeNode",
+            display_name: "ParseTreeNode",
+        },
+        Nonterminal {
+            name: "NonterminalId",
+            display_name: "NonterminalId",
+        },
+        Nonterminal {
+            name: "TerminalId",
+            display_name: "TerminalId",
+        },
+        Nonterminal {
+            name: "SPPFNodeId",
+            display_name: "SPPFNodeId",
+        },
+        Nonterminal {
+            name: "NonterminalNode",
+            display_name: "NonterminalNode",
+        },
+        Nonterminal {
+            name: "TerminalNode",
+            display_name: "TerminalNode",
+        },
+        Nonterminal {
+            name: "GeneratedTypes",
+            display_name: "GeneratedTypes",
+        },
+        Nonterminal {
+            name: "ImportNamesGrammar",
+            display_name: "ImportNamesGrammar",
+        },
+        Nonterminal {
+            name: "ImportNamesParser",
+            display_name: "ImportNamesParser",
+        },
+        Nonterminal {
+            name: "GrammarData",
+            display_name: "GrammarData",
+        },
+        Nonterminal {
+            name: "Nonterminals",
+            display_name: "Nonterminals",
+        },
+        Nonterminal {
+            name: "Terminals",
+            display_name: "Terminals",
+        },
+        Nonterminal {
+            name: "Slots",
+            display_name: "Slots",
+        },
+        Nonterminal {
+            name: "DisplayOrder",
+            display_name: "DisplayOrder",
+        },
+        Nonterminal {
+            name: "FirstSlots",
+            display_name: "FirstSlots",
+        },
+        Nonterminal {
+            name: "SingleTerminalSets",
+            display_name: "SingleTerminalSets",
+        },
+        Nonterminal {
+            name: "FirstSetS",
+            display_name: "FirstSetS",
+        },
+        Nonterminal {
+            name: "FollowSetS",
+            display_name: "FollowSetS",
+        },
+        Nonterminal {
+            name: "Locals",
+            display_name: "Locals",
+        },
+        Nonterminal {
+            name: "Index",
+            display_name: "Index",
+        },
+        Nonterminal {
+            name: "ParserMethods",
+            display_name: "ParserMethods",
+        },
+        Nonterminal {
+            name: "A",
+            display_name: "A",
+        },
+        Nonterminal {
+            name: "ALl1",
+            display_name: "ALl1",
+        },
+        Nonterminal {
+            name: "ABody",
+            display_name: "ABody",
+        },
+        Nonterminal {
+            name: "StartWithoutLayout",
+            display_name: "StartWithoutLayout",
+        },
+        Nonterminal {
+            name: "StartS",
+            display_name: "S",
+        },
+        Nonterminal {
+            name: "StartRuntimeItems",
+            display_name: "RuntimeItems",
+        },
+        Nonterminal {
+            name: "StartParse",
+            display_name: "Parse",
+        },
+        Nonterminal {
+            name: "StartParser",
+            display_name: "Parser",
+        },
+        Nonterminal {
+            name: "StartSPPFNode",
+            display_name: "SPPFNode",
+        },
+        Nonterminal {
+            name: "StartInput",
+            display_name: "Input",
+        },
+        Nonterminal {
+            name: "StartParseError",
+            display_name: "ParseError",
+        },
+        Nonterminal {
+            name: "StartParseSuccess",
+            display_name: "ParseSuccess",
+        },
+        Nonterminal {
+            name: "StartGrammar",
+            display_name: "Grammar",
+        },
+        Nonterminal {
+            name: "StartNonterminal",
+            display_name: "Nonterminal",
+        },
+        Nonterminal {
+            name: "StartTerminal",
+            display_name: "Terminal",
+        },
+        Nonterminal {
+            name: "StartSlot",
+            display_name: "Slot",
+        },
+        Nonterminal {
+            name: "StartTerminalSet",
+            display_name: "TerminalSet",
+        },
+        Nonterminal {
+            name: "StartArena",
+            display_name: "Arena",
+        },
+        Nonterminal {
+            name: "StartNodeKind",
+            display_name: "NodeKind",
+        },
+        Nonterminal {
+            name: "StartParseTreeBuilder",
+            display_name: "ParseTreeBuilder",
+        },
+        Nonterminal {
+            name: "StartParseTreeNode",
+            display_name: "ParseTreeNode",
+        },
+        Nonterminal {
+            name: "StartNonterminalId",
+            display_name: "NonterminalId",
+        },
+        Nonterminal {
+            name: "StartTerminalId",
+            display_name: "TerminalId",
+        },
+        Nonterminal {
+            name: "StartSPPFNodeId",
+            display_name: "SPPFNodeId",
+        },
+        Nonterminal {
+            name: "StartNonterminalNode",
+            display_name: "NonterminalNode",
+        },
+        Nonterminal {
+            name: "StartTerminalNode",
+            display_name: "TerminalNode",
+        },
+        Nonterminal {
+            name: "StartGeneratedTypes",
+            display_name: "GeneratedTypes",
+        },
+        Nonterminal {
+            name: "StartImportNamesGrammar",
+            display_name: "ImportNamesGrammar",
+        },
+        Nonterminal {
+            name: "StartImportNamesParser",
+            display_name: "ImportNamesParser",
+        },
+        Nonterminal {
+            name: "StartGrammarData",
+            display_name: "GrammarData",
+        },
+        Nonterminal {
+            name: "StartNonterminals",
+            display_name: "Nonterminals",
+        },
+        Nonterminal {
+            name: "StartTerminals",
+            display_name: "Terminals",
+        },
+        Nonterminal {
+            name: "StartSlots",
+            display_name: "Slots",
+        },
+        Nonterminal {
+            name: "StartDisplayOrder",
+            display_name: "DisplayOrder",
+        },
+        Nonterminal {
+            name: "StartFirstSlots",
+            display_name: "FirstSlots",
+        },
+        Nonterminal {
+            name: "StartSingleTerminalSets",
+            display_name: "SingleTerminalSets",
+        },
+        Nonterminal {
+            name: "StartFirstSetS",
+            display_name: "FirstSetS",
+        },
+        Nonterminal {
+            name: "StartFollowSetS",
+            display_name: "FollowSetS",
+        },
+        Nonterminal {
+            name: "StartLocals",
+            display_name: "Locals",
+        },
+        Nonterminal {
+            name: "StartIndex",
+            display_name: "Index",
+        },
+        Nonterminal {
+            name: "StartParserMethods",
+            display_name: "ParserMethods",
+        },
+        Nonterminal {
+            name: "StartA",
+            display_name: "A",
+        },
+        Nonterminal {
+            name: "StartALl1",
+            display_name: "ALl1",
+        },
+        Nonterminal {
+            name: "StartABody",
+            display_name: "ABody",
+        },
+        Nonterminal {
+            name: "StartStartWithoutLayout",
+            display_name: "StartWithoutLayout",
+        },
+    ];
+    pub(super) static DISPLAY_ORDER: [&str; 41] = [
+        "S",
+        "RuntimeItems",
+        "Parse",
+        "Parser",
+        "SPPFNode",
+        "Input",
+        "ParseError",
+        "ParseSuccess",
+        "Grammar",
+        "Nonterminal",
+        "Terminal",
+        "Slot",
+        "TerminalSet",
+        "Arena",
+        "NodeKind",
+        "ParseTreeBuilder",
+        "ParseTreeNode",
+        "NonterminalId",
+        "TerminalId",
+        "SPPFNodeId",
+        "NonterminalNode",
+        "TerminalNode",
+        "GeneratedTypes",
+        "ImportNamesGrammar",
+        "ImportNamesParser",
+        "GrammarData",
+        "Nonterminals",
+        "Terminals",
+        "Slots",
+        "DisplayOrder",
+        "FirstSlots",
+        "SingleTerminalSets",
+        "FirstSetS",
+        "FollowSetS",
+        "Locals",
+        "Index",
+        "ParserMethods",
+        "A",
+        "ALl1",
+        "ABody",
+        "StartWithoutLayout",
+    ];
+    pub(super) static TERMINALS: [Terminal; 38] = [
+        Terminal { name: "\"a\"" },
+        Terminal { name: "\"b\"" },
+        Terminal { name: "\"c\"" },
+        Terminal { name: "\"d\"" },
+        Terminal { name: "\"e\"" },
+        Terminal { name: "\"f\"" },
+        Terminal { name: "\"g\"" },
+        Terminal { name: "\"h\"" },
+        Terminal { name: "\"i\"" },
+        Terminal { name: "\"j\"" },
+        Terminal { name: "\"k\"" },
+        Terminal { name: "\"l\"" },
+        Terminal { name: "\"m\"" },
+        Terminal { name: "\"n\"" },
+        Terminal { name: "\"o\"" },
+        Terminal { name: "\"p\"" },
+        Terminal { name: "\"r\"" },
+        Terminal { name: "\"s\"" },
+        Terminal { name: "\"t\"" },
+        Terminal { name: "\"u\"" },
+        Terminal { name: "\"v\"" },
+        Terminal { name: "\"w\"" },
+        Terminal { name: "\"x\"" },
+        Terminal { name: "\"y\"" },
+        Terminal { name: "\"z\"" },
+        Terminal { name: "\"A\"" },
+        Terminal { name: "\"B\"" },
+        Terminal { name: "\"C\"" },
+        Terminal { name: "\"D\"" },
+        Terminal { name: "\"E\"" },
+        Terminal { name: "\"G\"" },
+        Terminal { name: "\"F\"" },
+        Terminal { name: "\"H\"" },
+        Terminal { name: "\"I\"" },
+        Terminal { name: "\"J\"" },
+        Terminal { name: "\"K\"" },
+        Terminal { name: "Epsilon" },
+        Terminal { name: "EOF" },
+    ];
+    pub(super) static SLOTS: [Slot; 199] = [
+        Slot {
+            display_name: "S : . RuntimeItems GeneratedTypes GrammarData Locals ParserMethods",
+            position: 0,
+        },
+        Slot {
+            display_name: "S : RuntimeItems . GeneratedTypes GrammarData Locals ParserMethods",
+            position: 1,
+        },
+        Slot {
+            display_name: "S : RuntimeItems GeneratedTypes . GrammarData Locals ParserMethods",
+            position: 2,
+        },
+        Slot {
+            display_name: "S : RuntimeItems GeneratedTypes GrammarData . Locals ParserMethods",
+            position: 3,
+        },
+        Slot {
+            display_name: "S : RuntimeItems GeneratedTypes GrammarData Locals . ParserMethods",
+            position: 4,
+        },
+        Slot {
+            display_name: "S : RuntimeItems GeneratedTypes GrammarData Locals ParserMethods.",
+            position: 5,
+        },
+        Slot {
+            display_name: "RuntimeItems : . Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot TerminalSet Arena NodeKind ParseTreeBuilder ParseTreeNode NonterminalId TerminalId SPPFNodeId NonterminalNode TerminalNode",
+            position: 0,
+        },
+        Slot {
+            display_name: "RuntimeItems : Parse . Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot TerminalSet Arena NodeKind ParseTreeBuilder ParseTreeNode NonterminalId TerminalId SPPFNodeId NonterminalNode TerminalNode",
+            position: 1,
+        },
+        Slot {
+            display_name: "RuntimeItems : Parse Parser . SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot TerminalSet Arena NodeKind ParseTreeBuilder ParseTreeNode NonterminalId TerminalId SPPFNodeId NonterminalNode TerminalNode",
+            position: 2,
+        },
+        Slot {
+            display_name: "RuntimeItems : Parse Parser SPPFNode . Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot TerminalSet Arena NodeKind ParseTreeBuilder ParseTreeNode NonterminalId TerminalId SPPFNodeId NonterminalNode TerminalNode",
+            position: 3,
+        },
+        Slot {
+            display_name: "RuntimeItems : Parse Parser SPPFNode Input . ParseError ParseSuccess Grammar Nonterminal Terminal Slot TerminalSet Arena NodeKind ParseTreeBuilder ParseTreeNode NonterminalId TerminalId SPPFNodeId NonterminalNode TerminalNode",
+            position: 4,
+        },
+        Slot {
+            display_name: "RuntimeItems : Parse Parser SPPFNode Input ParseError . ParseSuccess Grammar Nonterminal Terminal Slot TerminalSet Arena NodeKind ParseTreeBuilder ParseTreeNode NonterminalId TerminalId SPPFNodeId NonterminalNode TerminalNode",
+            position: 5,
+        },
+        Slot {
+            display_name: "RuntimeItems : Parse Parser SPPFNode Input ParseError ParseSuccess . Grammar Nonterminal Terminal Slot TerminalSet Arena NodeKind ParseTreeBuilder ParseTreeNode NonterminalId TerminalId SPPFNodeId NonterminalNode TerminalNode",
+            position: 6,
+        },
+        Slot {
+            display_name: "RuntimeItems : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar . Nonterminal Terminal Slot TerminalSet Arena NodeKind ParseTreeBuilder ParseTreeNode NonterminalId TerminalId SPPFNodeId NonterminalNode TerminalNode",
+            position: 7,
+        },
+        Slot {
+            display_name: "RuntimeItems : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal . Terminal Slot TerminalSet Arena NodeKind ParseTreeBuilder ParseTreeNode NonterminalId TerminalId SPPFNodeId NonterminalNode TerminalNode",
+            position: 8,
+        },
+        Slot {
+            display_name: "RuntimeItems : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal . Slot TerminalSet Arena NodeKind ParseTreeBuilder ParseTreeNode NonterminalId TerminalId SPPFNodeId NonterminalNode TerminalNode",
+            position: 9,
+        },
+        Slot {
+            display_name: "RuntimeItems : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot . TerminalSet Arena NodeKind ParseTreeBuilder ParseTreeNode NonterminalId TerminalId SPPFNodeId NonterminalNode TerminalNode",
+            position: 10,
+        },
+        Slot {
+            display_name: "RuntimeItems : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot TerminalSet . Arena NodeKind ParseTreeBuilder ParseTreeNode NonterminalId TerminalId SPPFNodeId NonterminalNode TerminalNode",
+            position: 11,
+        },
+        Slot {
+            display_name: "RuntimeItems : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot TerminalSet Arena . NodeKind ParseTreeBuilder ParseTreeNode NonterminalId TerminalId SPPFNodeId NonterminalNode TerminalNode",
+            position: 12,
+        },
+        Slot {
+            display_name: "RuntimeItems : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot TerminalSet Arena NodeKind . ParseTreeBuilder ParseTreeNode NonterminalId TerminalId SPPFNodeId NonterminalNode TerminalNode",
+            position: 13,
+        },
+        Slot {
+            display_name: "RuntimeItems : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot TerminalSet Arena NodeKind ParseTreeBuilder . ParseTreeNode NonterminalId TerminalId SPPFNodeId NonterminalNode TerminalNode",
+            position: 14,
+        },
+        Slot {
+            display_name: "RuntimeItems : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot TerminalSet Arena NodeKind ParseTreeBuilder ParseTreeNode . NonterminalId TerminalId SPPFNodeId NonterminalNode TerminalNode",
+            position: 15,
+        },
+        Slot {
+            display_name: "RuntimeItems : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot TerminalSet Arena NodeKind ParseTreeBuilder ParseTreeNode NonterminalId . TerminalId SPPFNodeId NonterminalNode TerminalNode",
+            position: 16,
+        },
+        Slot {
+            display_name: "RuntimeItems : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot TerminalSet Arena NodeKind ParseTreeBuilder ParseTreeNode NonterminalId TerminalId . SPPFNodeId NonterminalNode TerminalNode",
+            position: 17,
+        },
+        Slot {
+            display_name: "RuntimeItems : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot TerminalSet Arena NodeKind ParseTreeBuilder ParseTreeNode NonterminalId TerminalId SPPFNodeId . NonterminalNode TerminalNode",
+            position: 18,
+        },
+        Slot {
+            display_name: "RuntimeItems : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot TerminalSet Arena NodeKind ParseTreeBuilder ParseTreeNode NonterminalId TerminalId SPPFNodeId NonterminalNode . TerminalNode",
+            position: 19,
+        },
+        Slot {
+            display_name: "RuntimeItems : Parse Parser SPPFNode Input ParseError ParseSuccess Grammar Nonterminal Terminal Slot TerminalSet Arena NodeKind ParseTreeBuilder ParseTreeNode NonterminalId TerminalId SPPFNodeId NonterminalNode TerminalNode.",
+            position: 20,
+        },
+        Slot {
+            display_name: "Parse : . \"a\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "Parse : \"a\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "Parser : . \"b\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "Parser : \"b\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "SPPFNode : . \"c\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "SPPFNode : \"c\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "Input : . \"d\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "Input : \"d\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "ParseError : . \"e\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "ParseError : \"e\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "ParseSuccess : . \"f\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "ParseSuccess : \"f\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "Grammar : . \"g\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "Grammar : \"g\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "Nonterminal : . \"h\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "Nonterminal : \"h\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "Terminal : . \"i\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "Terminal : \"i\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "Slot : . \"j\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "Slot : \"j\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "TerminalSet : . \"k\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "TerminalSet : \"k\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "Arena : . \"l\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "Arena : \"l\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "NodeKind : . \"m\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "NodeKind : \"m\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "ParseTreeBuilder : . \"n\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "ParseTreeBuilder : \"n\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "ParseTreeNode : . \"o\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "ParseTreeNode : \"o\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "NonterminalId : . \"p\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "NonterminalId : \"p\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "TerminalId : . \"r\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "TerminalId : \"r\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "SPPFNodeId : . \"s\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "SPPFNodeId : \"s\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "NonterminalNode : . \"t\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "NonterminalNode : \"t\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "TerminalNode : . \"u\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "TerminalNode : \"u\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "GeneratedTypes : . ImportNamesGrammar ImportNamesParser",
+            position: 0,
+        },
+        Slot {
+            display_name: "GeneratedTypes : ImportNamesGrammar . ImportNamesParser",
+            position: 1,
+        },
+        Slot {
+            display_name: "GeneratedTypes : ImportNamesGrammar ImportNamesParser.",
+            position: 2,
+        },
+        Slot {
+            display_name: "ImportNamesGrammar : . \"v\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "ImportNamesGrammar : \"v\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "ImportNamesParser : . \"w\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "ImportNamesParser : \"w\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "GrammarData : . Nonterminals Terminals Slots DisplayOrder FirstSlots SingleTerminalSets FirstSetS FollowSetS",
+            position: 0,
+        },
+        Slot {
+            display_name: "GrammarData : Nonterminals . Terminals Slots DisplayOrder FirstSlots SingleTerminalSets FirstSetS FollowSetS",
+            position: 1,
+        },
+        Slot {
+            display_name: "GrammarData : Nonterminals Terminals . Slots DisplayOrder FirstSlots SingleTerminalSets FirstSetS FollowSetS",
+            position: 2,
+        },
+        Slot {
+            display_name: "GrammarData : Nonterminals Terminals Slots . DisplayOrder FirstSlots SingleTerminalSets FirstSetS FollowSetS",
+            position: 3,
+        },
+        Slot {
+            display_name: "GrammarData : Nonterminals Terminals Slots DisplayOrder . FirstSlots SingleTerminalSets FirstSetS FollowSetS",
+            position: 4,
+        },
+        Slot {
+            display_name: "GrammarData : Nonterminals Terminals Slots DisplayOrder FirstSlots . SingleTerminalSets FirstSetS FollowSetS",
+            position: 5,
+        },
+        Slot {
+            display_name: "GrammarData : Nonterminals Terminals Slots DisplayOrder FirstSlots SingleTerminalSets . FirstSetS FollowSetS",
+            position: 6,
+        },
+        Slot {
+            display_name: "GrammarData : Nonterminals Terminals Slots DisplayOrder FirstSlots SingleTerminalSets FirstSetS . FollowSetS",
+            position: 7,
+        },
+        Slot {
+            display_name: "GrammarData : Nonterminals Terminals Slots DisplayOrder FirstSlots SingleTerminalSets FirstSetS FollowSetS.",
+            position: 8,
+        },
+        Slot {
+            display_name: "Nonterminals : . \"x\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "Nonterminals : \"x\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "Terminals : . \"y\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "Terminals : \"y\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "Slots : . \"z\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "Slots : \"z\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "DisplayOrder : . \"A\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "DisplayOrder : \"A\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "FirstSlots : . \"B\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "FirstSlots : \"B\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "SingleTerminalSets : . \"C\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "SingleTerminalSets : \"C\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "FirstSetS : . \"D\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "FirstSetS : \"D\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "FollowSetS : . \"E\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "FollowSetS : \"E\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "Locals : . Index nonterminal_node:\"G\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "Locals : Index . nonterminal_node:\"G\"",
+            position: 1,
+        },
+        Slot {
+            display_name: "Locals : Index nonterminal_node:\"G\".",
+            position: 2,
+        },
+        Slot {
+            display_name: "Index : . \"F\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "Index : \"F\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "ParserMethods : . A ALl1 ABody StartWithoutLayout",
+            position: 0,
+        },
+        Slot {
+            display_name: "ParserMethods : A . ALl1 ABody StartWithoutLayout",
+            position: 1,
+        },
+        Slot {
+            display_name: "ParserMethods : A ALl1 . ABody StartWithoutLayout",
+            position: 2,
+        },
+        Slot {
+            display_name: "ParserMethods : A ALl1 ABody . StartWithoutLayout",
+            position: 3,
+        },
+        Slot {
+            display_name: "ParserMethods : A ALl1 ABody StartWithoutLayout.",
+            position: 4,
+        },
+        Slot {
+            display_name: "A : . \"H\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "A : \"H\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "ALl1 : . \"I\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "ALl1 : \"I\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "ABody : . \"J\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "ABody : \"J\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "StartWithoutLayout : . \"K\"",
+            position: 0,
+        },
+        Slot {
+            display_name: "StartWithoutLayout : \"K\".",
+            position: 1,
+        },
+        Slot {
+            display_name: "S : . start:S",
+            position: 0,
+        },
+        Slot {
+            display_name: "S : start:S.",
+            position: 1,
+        },
+        Slot {
+            display_name: "RuntimeItems : . start:RuntimeItems",
+            position: 0,
+        },
+        Slot {
+            display_name: "RuntimeItems : start:RuntimeItems.",
+            position: 1,
+        },
+        Slot {
+            display_name: "Parse : . start:Parse",
+            position: 0,
+        },
+        Slot {
+            display_name: "Parse : start:Parse.",
+            position: 1,
+        },
+        Slot {
+            display_name: "Parser : . start:Parser",
+            position: 0,
+        },
+        Slot {
+            display_name: "Parser : start:Parser.",
+            position: 1,
+        },
+        Slot {
+            display_name: "SPPFNode : . start:SPPFNode",
+            position: 0,
+        },
+        Slot {
+            display_name: "SPPFNode : start:SPPFNode.",
+            position: 1,
+        },
+        Slot {
+            display_name: "Input : . start:Input",
+            position: 0,
+        },
+        Slot {
+            display_name: "Input : start:Input.",
+            position: 1,
+        },
+        Slot {
+            display_name: "ParseError : . start:ParseError",
+            position: 0,
+        },
+        Slot {
+            display_name: "ParseError : start:ParseError.",
+            position: 1,
+        },
+        Slot {
+            display_name: "ParseSuccess : . start:ParseSuccess",
+            position: 0,
+        },
+        Slot {
+            display_name: "ParseSuccess : start:ParseSuccess.",
+            position: 1,
+        },
+        Slot {
+            display_name: "Grammar : . start:Grammar",
+            position: 0,
+        },
+        Slot {
+            display_name: "Grammar : start:Grammar.",
+            position: 1,
+        },
+        Slot {
+            display_name: "Nonterminal : . start:Nonterminal",
+            position: 0,
+        },
+        Slot {
+            display_name: "Nonterminal : start:Nonterminal.",
+            position: 1,
+        },
+        Slot {
+            display_name: "Terminal : . start:Terminal",
+            position: 0,
+        },
+        Slot {
+            display_name: "Terminal : start:Terminal.",
+            position: 1,
+        },
+        Slot {
+            display_name: "Slot : . start:Slot",
+            position: 0,
+        },
+        Slot {
+            display_name: "Slot : start:Slot.",
+            position: 1,
+        },
+        Slot {
+            display_name: "TerminalSet : . start:TerminalSet",
+            position: 0,
+        },
+        Slot {
+            display_name: "TerminalSet : start:TerminalSet.",
+            position: 1,
+        },
+        Slot {
+            display_name: "Arena : . start:Arena",
+            position: 0,
+        },
+        Slot {
+            display_name: "Arena : start:Arena.",
+            position: 1,
+        },
+        Slot {
+            display_name: "NodeKind : . start:NodeKind",
+            position: 0,
+        },
+        Slot {
+            display_name: "NodeKind : start:NodeKind.",
+            position: 1,
+        },
+        Slot {
+            display_name: "ParseTreeBuilder : . start:ParseTreeBuilder",
+            position: 0,
+        },
+        Slot {
+            display_name: "ParseTreeBuilder : start:ParseTreeBuilder.",
+            position: 1,
+        },
+        Slot {
+            display_name: "ParseTreeNode : . start:ParseTreeNode",
+            position: 0,
+        },
+        Slot {
+            display_name: "ParseTreeNode : start:ParseTreeNode.",
+            position: 1,
+        },
+        Slot {
+            display_name: "NonterminalId : . start:NonterminalId",
+            position: 0,
+        },
+        Slot {
+            display_name: "NonterminalId : start:NonterminalId.",
+            position: 1,
+        },
+        Slot {
+            display_name: "TerminalId : . start:TerminalId",
+            position: 0,
+        },
+        Slot {
+            display_name: "TerminalId : start:TerminalId.",
+            position: 1,
+        },
+        Slot {
+            display_name: "SPPFNodeId : . start:SPPFNodeId",
+            position: 0,
+        },
+        Slot {
+            display_name: "SPPFNodeId : start:SPPFNodeId.",
+            position: 1,
+        },
+        Slot {
+            display_name: "NonterminalNode : . start:NonterminalNode",
+            position: 0,
+        },
+        Slot {
+            display_name: "NonterminalNode : start:NonterminalNode.",
+            position: 1,
+        },
+        Slot {
+            display_name: "TerminalNode : . start:TerminalNode",
+            position: 0,
+        },
+        Slot {
+            display_name: "TerminalNode : start:TerminalNode.",
+            position: 1,
+        },
+        Slot {
+            display_name: "GeneratedTypes : . start:GeneratedTypes",
+            position: 0,
+        },
+        Slot {
+            display_name: "GeneratedTypes : start:GeneratedTypes.",
+            position: 1,
+        },
+        Slot {
+            display_name: "ImportNamesGrammar : . start:ImportNamesGrammar",
+            position: 0,
+        },
+        Slot {
+            display_name: "ImportNamesGrammar : start:ImportNamesGrammar.",
+            position: 1,
+        },
+        Slot {
+            display_name: "ImportNamesParser : . start:ImportNamesParser",
+            position: 0,
+        },
+        Slot {
+            display_name: "ImportNamesParser : start:ImportNamesParser.",
+            position: 1,
+        },
+        Slot {
+            display_name: "GrammarData : . start:GrammarData",
+            position: 0,
+        },
+        Slot {
+            display_name: "GrammarData : start:GrammarData.",
+            position: 1,
+        },
+        Slot {
+            display_name: "Nonterminals : . start:Nonterminals",
+            position: 0,
+        },
+        Slot {
+            display_name: "Nonterminals : start:Nonterminals.",
+            position: 1,
+        },
+        Slot {
+            display_name: "Terminals : . start:Terminals",
+            position: 0,
+        },
+        Slot {
+            display_name: "Terminals : start:Terminals.",
+            position: 1,
+        },
+        Slot {
+            display_name: "Slots : . start:Slots",
+            position: 0,
+        },
+        Slot {
+            display_name: "Slots : start:Slots.",
+            position: 1,
+        },
+        Slot {
+            display_name: "DisplayOrder : . start:DisplayOrder",
+            position: 0,
+        },
+        Slot {
+            display_name: "DisplayOrder : start:DisplayOrder.",
+            position: 1,
+        },
+        Slot {
+            display_name: "FirstSlots : . start:FirstSlots",
+            position: 0,
+        },
+        Slot {
+            display_name: "FirstSlots : start:FirstSlots.",
+            position: 1,
+        },
+        Slot {
+            display_name: "SingleTerminalSets : . start:SingleTerminalSets",
+            position: 0,
+        },
+        Slot {
+            display_name: "SingleTerminalSets : start:SingleTerminalSets.",
+            position: 1,
+        },
+        Slot {
+            display_name: "FirstSetS : . start:FirstSetS",
+            position: 0,
+        },
+        Slot {
+            display_name: "FirstSetS : start:FirstSetS.",
+            position: 1,
+        },
+        Slot {
+            display_name: "FollowSetS : . start:FollowSetS",
+            position: 0,
+        },
+        Slot {
+            display_name: "FollowSetS : start:FollowSetS.",
+            position: 1,
+        },
+        Slot {
+            display_name: "Locals : . start:Locals",
+            position: 0,
+        },
+        Slot {
+            display_name: "Locals : start:Locals.",
+            position: 1,
+        },
+        Slot {
+            display_name: "Index : . start:Index",
+            position: 0,
+        },
+        Slot {
+            display_name: "Index : start:Index.",
+            position: 1,
+        },
+        Slot {
+            display_name: "ParserMethods : . start:ParserMethods",
+            position: 0,
+        },
+        Slot {
+            display_name: "ParserMethods : start:ParserMethods.",
+            position: 1,
+        },
+        Slot {
+            display_name: "A : . start:A",
+            position: 0,
+        },
+        Slot {
+            display_name: "A : start:A.",
+            position: 1,
+        },
+        Slot {
+            display_name: "ALl1 : . start:ALl1",
+            position: 0,
+        },
+        Slot {
+            display_name: "ALl1 : start:ALl1.",
+            position: 1,
+        },
+        Slot {
+            display_name: "ABody : . start:ABody",
+            position: 0,
+        },
+        Slot {
+            display_name: "ABody : start:ABody.",
+            position: 1,
+        },
+        Slot {
+            display_name: "StartWithoutLayout : . start:StartWithoutLayout",
+            position: 0,
+        },
+        Slot {
+            display_name: "StartWithoutLayout : start:StartWithoutLayout.",
+            position: 1,
+        },
+    ];
+    pub(super) static FIRST_SLOTS: [&[SlotId]; 82] = [
+        &[SlotId(0)],
+        &[SlotId(6)],
+        &[SlotId(27)],
+        &[SlotId(29)],
+        &[SlotId(31)],
+        &[SlotId(33)],
+        &[SlotId(35)],
+        &[SlotId(37)],
+        &[SlotId(39)],
+        &[SlotId(41)],
+        &[SlotId(43)],
+        &[SlotId(45)],
+        &[SlotId(47)],
+        &[SlotId(49)],
+        &[SlotId(51)],
+        &[SlotId(53)],
+        &[SlotId(55)],
+        &[SlotId(57)],
+        &[SlotId(59)],
+        &[SlotId(61)],
+        &[SlotId(63)],
+        &[SlotId(65)],
+        &[SlotId(67)],
+        &[SlotId(70)],
+        &[SlotId(72)],
+        &[SlotId(74)],
+        &[SlotId(83)],
+        &[SlotId(85)],
+        &[SlotId(87)],
+        &[SlotId(89)],
+        &[SlotId(91)],
+        &[SlotId(93)],
+        &[SlotId(95)],
+        &[SlotId(97)],
+        &[SlotId(99)],
+        &[SlotId(102)],
+        &[SlotId(104)],
+        &[SlotId(109)],
+        &[SlotId(111)],
+        &[SlotId(113)],
+        &[SlotId(115)],
+        &[SlotId(117)],
+        &[SlotId(119)],
+        &[SlotId(121)],
+        &[SlotId(123)],
+        &[SlotId(125)],
+        &[SlotId(127)],
+        &[SlotId(129)],
+        &[SlotId(131)],
+        &[SlotId(133)],
+        &[SlotId(135)],
+        &[SlotId(137)],
+        &[SlotId(139)],
+        &[SlotId(141)],
+        &[SlotId(143)],
+        &[SlotId(145)],
+        &[SlotId(147)],
+        &[SlotId(149)],
+        &[SlotId(151)],
+        &[SlotId(153)],
+        &[SlotId(155)],
+        &[SlotId(157)],
+        &[SlotId(159)],
+        &[SlotId(161)],
+        &[SlotId(163)],
+        &[SlotId(165)],
+        &[SlotId(167)],
+        &[SlotId(169)],
+        &[SlotId(171)],
+        &[SlotId(173)],
+        &[SlotId(175)],
+        &[SlotId(177)],
+        &[SlotId(179)],
+        &[SlotId(181)],
+        &[SlotId(183)],
+        &[SlotId(185)],
+        &[SlotId(187)],
+        &[SlotId(189)],
+        &[SlotId(191)],
+        &[SlotId(193)],
+        &[SlotId(195)],
+        &[SlotId(197)],
+    ];
+    // A failed terminal match refers to a static terminal set like every other failure, so the
+    // error reporting path needs to reach a terminal set from a terminal id. This table, indexed
+    // by terminal id, serves only that.
+    pub(super) static SINGLE_TERMINAL_SETS: [TerminalSet; 38] = [
+        TerminalSet {
+            id: 71,
+            terminals: &[TerminalId(0)],
+        },
+        TerminalSet {
+            id: 72,
+            terminals: &[TerminalId(1)],
+        },
+        TerminalSet {
+            id: 73,
+            terminals: &[TerminalId(2)],
+        },
+        TerminalSet {
+            id: 74,
+            terminals: &[TerminalId(3)],
+        },
+        TerminalSet {
+            id: 75,
+            terminals: &[TerminalId(4)],
+        },
+        TerminalSet {
+            id: 76,
+            terminals: &[TerminalId(5)],
+        },
+        TerminalSet {
+            id: 77,
+            terminals: &[TerminalId(6)],
+        },
+        TerminalSet {
+            id: 78,
+            terminals: &[TerminalId(7)],
+        },
+        TerminalSet {
+            id: 79,
+            terminals: &[TerminalId(8)],
+        },
+        TerminalSet {
+            id: 80,
+            terminals: &[TerminalId(9)],
+        },
+        TerminalSet {
+            id: 81,
+            terminals: &[TerminalId(10)],
+        },
+        TerminalSet {
+            id: 82,
+            terminals: &[TerminalId(11)],
+        },
+        TerminalSet {
+            id: 83,
+            terminals: &[TerminalId(12)],
+        },
+        TerminalSet {
+            id: 84,
+            terminals: &[TerminalId(13)],
+        },
+        TerminalSet {
+            id: 85,
+            terminals: &[TerminalId(14)],
+        },
+        TerminalSet {
+            id: 86,
+            terminals: &[TerminalId(15)],
+        },
+        TerminalSet {
+            id: 87,
+            terminals: &[TerminalId(16)],
+        },
+        TerminalSet {
+            id: 88,
+            terminals: &[TerminalId(17)],
+        },
+        TerminalSet {
+            id: 89,
+            terminals: &[TerminalId(18)],
+        },
+        TerminalSet {
+            id: 90,
+            terminals: &[TerminalId(19)],
+        },
+        TerminalSet {
+            id: 91,
+            terminals: &[TerminalId(20)],
+        },
+        TerminalSet {
+            id: 92,
+            terminals: &[TerminalId(21)],
+        },
+        TerminalSet {
+            id: 93,
+            terminals: &[TerminalId(22)],
+        },
+        TerminalSet {
+            id: 94,
+            terminals: &[TerminalId(23)],
+        },
+        TerminalSet {
+            id: 95,
+            terminals: &[TerminalId(24)],
+        },
+        TerminalSet {
+            id: 96,
+            terminals: &[TerminalId(25)],
+        },
+        TerminalSet {
+            id: 97,
+            terminals: &[TerminalId(26)],
+        },
+        TerminalSet {
+            id: 98,
+            terminals: &[TerminalId(27)],
+        },
+        TerminalSet {
+            id: 99,
+            terminals: &[TerminalId(28)],
+        },
+        TerminalSet {
+            id: 100,
+            terminals: &[TerminalId(29)],
+        },
+        TerminalSet {
+            id: 101,
+            terminals: &[TerminalId(30)],
+        },
+        TerminalSet {
+            id: 102,
+            terminals: &[TerminalId(31)],
+        },
+        TerminalSet {
+            id: 103,
+            terminals: &[TerminalId(32)],
+        },
+        TerminalSet {
+            id: 104,
+            terminals: &[TerminalId(33)],
+        },
+        TerminalSet {
+            id: 105,
+            terminals: &[TerminalId(34)],
+        },
+        TerminalSet {
+            id: 106,
+            terminals: &[TerminalId(35)],
+        },
+        TerminalSet {
+            id: 107,
+            terminals: &[TerminalId(36)],
+        },
+        TerminalSet {
+            id: 108,
+            terminals: &[TerminalId(37)],
+        },
+    ];
+    // S { EOF }
+    pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // RuntimeItems { "v", EOF }
+    pub static FOLLOW_SET_RUNTIME_ITEMS: TerminalSet = TerminalSet {
+        id: 1,
+        terminals: &[TerminalId(20), TerminalId(37)],
+    };
+    // Parse { "b", EOF }
+    pub static FOLLOW_SET_PARSE: TerminalSet = TerminalSet {
+        id: 2,
+        terminals: &[TerminalId(1), TerminalId(37)],
+    };
+    // Parser { "c", EOF }
+    pub static FOLLOW_SET_PARSER: TerminalSet = TerminalSet {
+        id: 3,
+        terminals: &[TerminalId(2), TerminalId(37)],
+    };
+    // SPPFNode { "d", EOF }
+    pub static FOLLOW_SET_SPPF_NODE: TerminalSet = TerminalSet {
+        id: 4,
+        terminals: &[TerminalId(3), TerminalId(37)],
+    };
+    // Input { "e", EOF }
+    pub static FOLLOW_SET_INPUT: TerminalSet = TerminalSet {
+        id: 5,
+        terminals: &[TerminalId(4), TerminalId(37)],
+    };
+    // ParseError { "f", EOF }
+    pub static FOLLOW_SET_PARSE_ERROR: TerminalSet = TerminalSet {
+        id: 6,
+        terminals: &[TerminalId(5), TerminalId(37)],
+    };
+    // ParseSuccess { "g", EOF }
+    pub static FOLLOW_SET_PARSE_SUCCESS: TerminalSet = TerminalSet {
+        id: 7,
+        terminals: &[TerminalId(6), TerminalId(37)],
+    };
+    // Grammar { "h", EOF }
+    pub static FOLLOW_SET_GRAMMAR: TerminalSet = TerminalSet {
+        id: 8,
+        terminals: &[TerminalId(7), TerminalId(37)],
+    };
+    // Nonterminal { "i", EOF }
+    pub static FOLLOW_SET_NONTERMINAL: TerminalSet = TerminalSet {
+        id: 9,
+        terminals: &[TerminalId(8), TerminalId(37)],
+    };
+    // Terminal { "j", EOF }
+    pub static FOLLOW_SET_TERMINAL: TerminalSet = TerminalSet {
+        id: 10,
+        terminals: &[TerminalId(9), TerminalId(37)],
+    };
+    // Slot { "k", EOF }
+    pub static FOLLOW_SET_SLOT: TerminalSet = TerminalSet {
+        id: 11,
+        terminals: &[TerminalId(10), TerminalId(37)],
+    };
+    // TerminalSet { "l", EOF }
+    pub static FOLLOW_SET_TERMINAL_SET: TerminalSet = TerminalSet {
+        id: 12,
+        terminals: &[TerminalId(11), TerminalId(37)],
+    };
+    // Arena { "m", EOF }
+    pub static FOLLOW_SET_ARENA: TerminalSet = TerminalSet {
+        id: 13,
+        terminals: &[TerminalId(12), TerminalId(37)],
+    };
+    // NodeKind { "n", EOF }
+    pub static FOLLOW_SET_NODE_KIND: TerminalSet = TerminalSet {
+        id: 14,
+        terminals: &[TerminalId(13), TerminalId(37)],
+    };
+    // ParseTreeBuilder { "o", EOF }
+    pub static FOLLOW_SET_PARSE_TREE_BUILDER: TerminalSet = TerminalSet {
+        id: 15,
+        terminals: &[TerminalId(14), TerminalId(37)],
+    };
+    // ParseTreeNode { "p", EOF }
+    pub static FOLLOW_SET_PARSE_TREE_NODE: TerminalSet = TerminalSet {
+        id: 16,
+        terminals: &[TerminalId(15), TerminalId(37)],
+    };
+    // NonterminalId { "r", EOF }
+    pub static FOLLOW_SET_NONTERMINAL_ID: TerminalSet = TerminalSet {
+        id: 17,
+        terminals: &[TerminalId(16), TerminalId(37)],
+    };
+    // TerminalId { "s", EOF }
+    pub static FOLLOW_SET_TERMINAL_ID: TerminalSet = TerminalSet {
+        id: 18,
+        terminals: &[TerminalId(17), TerminalId(37)],
+    };
+    // SPPFNodeId { "t", EOF }
+    pub static FOLLOW_SET_SPPF_NODE_ID: TerminalSet = TerminalSet {
+        id: 19,
+        terminals: &[TerminalId(18), TerminalId(37)],
+    };
+    // NonterminalNode { "u", EOF }
+    pub static FOLLOW_SET_NONTERMINAL_NODE: TerminalSet = TerminalSet {
+        id: 20,
+        terminals: &[TerminalId(19), TerminalId(37)],
+    };
+    // TerminalNode { "v", EOF }
+    pub static FOLLOW_SET_TERMINAL_NODE: TerminalSet = TerminalSet {
+        id: 1,
+        terminals: &[TerminalId(20), TerminalId(37)],
+    };
+    // GeneratedTypes { "x", EOF }
+    pub static FOLLOW_SET_GENERATED_TYPES: TerminalSet = TerminalSet {
+        id: 21,
+        terminals: &[TerminalId(22), TerminalId(37)],
+    };
+    // ImportNamesGrammar { "w", EOF }
+    pub static FOLLOW_SET_IMPORT_NAMES_GRAMMAR: TerminalSet = TerminalSet {
+        id: 22,
+        terminals: &[TerminalId(21), TerminalId(37)],
+    };
+    // ImportNamesParser { "x", EOF }
+    pub static FOLLOW_SET_IMPORT_NAMES_PARSER: TerminalSet = TerminalSet {
+        id: 21,
+        terminals: &[TerminalId(22), TerminalId(37)],
+    };
+    // GrammarData { "F", EOF }
+    pub static FOLLOW_SET_GRAMMAR_DATA: TerminalSet = TerminalSet {
+        id: 23,
+        terminals: &[TerminalId(31), TerminalId(37)],
+    };
+    // Nonterminals { "y", EOF }
+    pub static FOLLOW_SET_NONTERMINALS: TerminalSet = TerminalSet {
+        id: 24,
+        terminals: &[TerminalId(23), TerminalId(37)],
+    };
+    // Terminals { "z", EOF }
+    pub static FOLLOW_SET_TERMINALS: TerminalSet = TerminalSet {
+        id: 25,
+        terminals: &[TerminalId(24), TerminalId(37)],
+    };
+    // Slots { "A", EOF }
+    pub static FOLLOW_SET_SLOTS: TerminalSet = TerminalSet {
+        id: 26,
+        terminals: &[TerminalId(25), TerminalId(37)],
+    };
+    // DisplayOrder { "B", EOF }
+    pub static FOLLOW_SET_DISPLAY_ORDER: TerminalSet = TerminalSet {
+        id: 27,
+        terminals: &[TerminalId(26), TerminalId(37)],
+    };
+    // FirstSlots { "C", EOF }
+    pub static FOLLOW_SET_FIRST_SLOTS: TerminalSet = TerminalSet {
+        id: 28,
+        terminals: &[TerminalId(27), TerminalId(37)],
+    };
+    // SingleTerminalSets { "D", EOF }
+    pub static FOLLOW_SET_SINGLE_TERMINAL_SETS: TerminalSet = TerminalSet {
+        id: 29,
+        terminals: &[TerminalId(28), TerminalId(37)],
+    };
+    // FirstSetS { "E", EOF }
+    pub static FOLLOW_SET_FIRST_SET_S: TerminalSet = TerminalSet {
+        id: 30,
+        terminals: &[TerminalId(29), TerminalId(37)],
+    };
+    // FollowSetS { "F", EOF }
+    pub static FOLLOW_SET_FOLLOW_SET_S: TerminalSet = TerminalSet {
+        id: 23,
+        terminals: &[TerminalId(31), TerminalId(37)],
+    };
+    // Locals { "H", EOF }
+    pub static FOLLOW_SET_LOCALS: TerminalSet = TerminalSet {
+        id: 31,
+        terminals: &[TerminalId(32), TerminalId(37)],
+    };
+    // Index { "G", EOF }
+    pub static FOLLOW_SET_INDEX: TerminalSet = TerminalSet {
+        id: 32,
+        terminals: &[TerminalId(30), TerminalId(37)],
+    };
+    // ParserMethods { EOF }
+    pub static FOLLOW_SET_PARSER_METHODS: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // A { "I", EOF }
+    pub static FOLLOW_SET_A: TerminalSet = TerminalSet {
+        id: 33,
+        terminals: &[TerminalId(33), TerminalId(37)],
+    };
+    // ALl1 { "J", EOF }
+    pub static FOLLOW_SET_A_LL1: TerminalSet = TerminalSet {
+        id: 34,
+        terminals: &[TerminalId(34), TerminalId(37)],
+    };
+    // ABody { "K", EOF }
+    pub static FOLLOW_SET_A_BODY: TerminalSet = TerminalSet {
+        id: 35,
+        terminals: &[TerminalId(35), TerminalId(37)],
+    };
+    // StartWithoutLayout { EOF }
+    pub static FOLLOW_SET_START_WITHOUT_LAYOUT: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartS { EOF }
+    pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartRuntimeItems { EOF }
+    pub static FOLLOW_SET_START_RUNTIME_ITEMS: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartParse { EOF }
+    pub static FOLLOW_SET_START_PARSE: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartParser { EOF }
+    pub static FOLLOW_SET_START_PARSER: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartSPPFNode { EOF }
+    pub static FOLLOW_SET_START_SPPF_NODE: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartInput { EOF }
+    pub static FOLLOW_SET_START_INPUT: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartParseError { EOF }
+    pub static FOLLOW_SET_START_PARSE_ERROR: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartParseSuccess { EOF }
+    pub static FOLLOW_SET_START_PARSE_SUCCESS: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartGrammar { EOF }
+    pub static FOLLOW_SET_START_GRAMMAR: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartNonterminal { EOF }
+    pub static FOLLOW_SET_START_NONTERMINAL: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartTerminal { EOF }
+    pub static FOLLOW_SET_START_TERMINAL: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartSlot { EOF }
+    pub static FOLLOW_SET_START_SLOT: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartTerminalSet { EOF }
+    pub static FOLLOW_SET_START_TERMINAL_SET: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartArena { EOF }
+    pub static FOLLOW_SET_START_ARENA: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartNodeKind { EOF }
+    pub static FOLLOW_SET_START_NODE_KIND: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartParseTreeBuilder { EOF }
+    pub static FOLLOW_SET_START_PARSE_TREE_BUILDER: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartParseTreeNode { EOF }
+    pub static FOLLOW_SET_START_PARSE_TREE_NODE: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartNonterminalId { EOF }
+    pub static FOLLOW_SET_START_NONTERMINAL_ID: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartTerminalId { EOF }
+    pub static FOLLOW_SET_START_TERMINAL_ID: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartSPPFNodeId { EOF }
+    pub static FOLLOW_SET_START_SPPF_NODE_ID: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartNonterminalNode { EOF }
+    pub static FOLLOW_SET_START_NONTERMINAL_NODE: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartTerminalNode { EOF }
+    pub static FOLLOW_SET_START_TERMINAL_NODE: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartGeneratedTypes { EOF }
+    pub static FOLLOW_SET_START_GENERATED_TYPES: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartImportNamesGrammar { EOF }
+    pub static FOLLOW_SET_START_IMPORT_NAMES_GRAMMAR: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartImportNamesParser { EOF }
+    pub static FOLLOW_SET_START_IMPORT_NAMES_PARSER: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartGrammarData { EOF }
+    pub static FOLLOW_SET_START_GRAMMAR_DATA: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartNonterminals { EOF }
+    pub static FOLLOW_SET_START_NONTERMINALS: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartTerminals { EOF }
+    pub static FOLLOW_SET_START_TERMINALS: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartSlots { EOF }
+    pub static FOLLOW_SET_START_SLOTS: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartDisplayOrder { EOF }
+    pub static FOLLOW_SET_START_DISPLAY_ORDER: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartFirstSlots { EOF }
+    pub static FOLLOW_SET_START_FIRST_SLOTS: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartSingleTerminalSets { EOF }
+    pub static FOLLOW_SET_START_SINGLE_TERMINAL_SETS: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartFirstSetS { EOF }
+    pub static FOLLOW_SET_START_FIRST_SET_S: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartFollowSetS { EOF }
+    pub static FOLLOW_SET_START_FOLLOW_SET_S: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartLocals { EOF }
+    pub static FOLLOW_SET_START_LOCALS: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartIndex { EOF }
+    pub static FOLLOW_SET_START_INDEX: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartParserMethods { EOF }
+    pub static FOLLOW_SET_START_PARSER_METHODS: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartA { EOF }
+    pub static FOLLOW_SET_START_A: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartALl1 { EOF }
+    pub static FOLLOW_SET_START_A_LL1: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartABody { EOF }
+    pub static FOLLOW_SET_START_A_BODY: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // StartStartWithoutLayout { EOF }
+    pub static FOLLOW_SET_START_START_WITHOUT_LAYOUT: TerminalSet = TerminalSet {
+        id: 0,
+        terminals: &[TerminalId(37)],
+    };
+    // S { "a" }
+    pub static FIRST_SET_S: TerminalSet = TerminalSet {
+        id: 36,
+        terminals: &[TerminalId(0)],
+    };
+    // RuntimeItems { "a" }
+    pub static FIRST_SET_RUNTIME_ITEMS: TerminalSet = TerminalSet {
+        id: 36,
+        terminals: &[TerminalId(0)],
+    };
+    // Parse { "a" }
+    pub static FIRST_SET_PARSE: TerminalSet = TerminalSet {
+        id: 36,
+        terminals: &[TerminalId(0)],
+    };
+    // Parser { "b" }
+    pub static FIRST_SET_PARSER: TerminalSet = TerminalSet {
+        id: 37,
+        terminals: &[TerminalId(1)],
+    };
+    // SPPFNode { "c" }
+    pub static FIRST_SET_SPPF_NODE: TerminalSet = TerminalSet {
+        id: 38,
+        terminals: &[TerminalId(2)],
+    };
+    // Input { "d" }
+    pub static FIRST_SET_INPUT: TerminalSet = TerminalSet {
+        id: 39,
+        terminals: &[TerminalId(3)],
+    };
+    // ParseError { "e" }
+    pub static FIRST_SET_PARSE_ERROR: TerminalSet = TerminalSet {
+        id: 40,
+        terminals: &[TerminalId(4)],
+    };
+    // ParseSuccess { "f" }
+    pub static FIRST_SET_PARSE_SUCCESS: TerminalSet = TerminalSet {
+        id: 41,
+        terminals: &[TerminalId(5)],
+    };
+    // Grammar { "g" }
+    pub static FIRST_SET_GRAMMAR: TerminalSet = TerminalSet {
+        id: 42,
+        terminals: &[TerminalId(6)],
+    };
+    // Nonterminal { "h" }
+    pub static FIRST_SET_NONTERMINAL: TerminalSet = TerminalSet {
+        id: 43,
+        terminals: &[TerminalId(7)],
+    };
+    // Terminal { "i" }
+    pub static FIRST_SET_TERMINAL: TerminalSet = TerminalSet {
+        id: 44,
+        terminals: &[TerminalId(8)],
+    };
+    // Slot { "j" }
+    pub static FIRST_SET_SLOT: TerminalSet = TerminalSet {
+        id: 45,
+        terminals: &[TerminalId(9)],
+    };
+    // TerminalSet { "k" }
+    pub static FIRST_SET_TERMINAL_SET: TerminalSet = TerminalSet {
+        id: 46,
+        terminals: &[TerminalId(10)],
+    };
+    // Arena { "l" }
+    pub static FIRST_SET_ARENA: TerminalSet = TerminalSet {
+        id: 47,
+        terminals: &[TerminalId(11)],
+    };
+    // NodeKind { "m" }
+    pub static FIRST_SET_NODE_KIND: TerminalSet = TerminalSet {
+        id: 48,
+        terminals: &[TerminalId(12)],
+    };
+    // ParseTreeBuilder { "n" }
+    pub static FIRST_SET_PARSE_TREE_BUILDER: TerminalSet = TerminalSet {
+        id: 49,
+        terminals: &[TerminalId(13)],
+    };
+    // ParseTreeNode { "o" }
+    pub static FIRST_SET_PARSE_TREE_NODE: TerminalSet = TerminalSet {
+        id: 50,
+        terminals: &[TerminalId(14)],
+    };
+    // NonterminalId { "p" }
+    pub static FIRST_SET_NONTERMINAL_ID: TerminalSet = TerminalSet {
+        id: 51,
+        terminals: &[TerminalId(15)],
+    };
+    // TerminalId { "r" }
+    pub static FIRST_SET_TERMINAL_ID: TerminalSet = TerminalSet {
+        id: 52,
+        terminals: &[TerminalId(16)],
+    };
+    // SPPFNodeId { "s" }
+    pub static FIRST_SET_SPPF_NODE_ID: TerminalSet = TerminalSet {
+        id: 53,
+        terminals: &[TerminalId(17)],
+    };
+    // NonterminalNode { "t" }
+    pub static FIRST_SET_NONTERMINAL_NODE: TerminalSet = TerminalSet {
+        id: 54,
+        terminals: &[TerminalId(18)],
+    };
+    // TerminalNode { "u" }
+    pub static FIRST_SET_TERMINAL_NODE: TerminalSet = TerminalSet {
+        id: 55,
+        terminals: &[TerminalId(19)],
+    };
+    // GeneratedTypes { "v" }
+    pub static FIRST_SET_GENERATED_TYPES: TerminalSet = TerminalSet {
+        id: 56,
+        terminals: &[TerminalId(20)],
+    };
+    // ImportNamesGrammar { "v" }
+    pub static FIRST_SET_IMPORT_NAMES_GRAMMAR: TerminalSet = TerminalSet {
+        id: 56,
+        terminals: &[TerminalId(20)],
+    };
+    // ImportNamesParser { "w" }
+    pub static FIRST_SET_IMPORT_NAMES_PARSER: TerminalSet = TerminalSet {
+        id: 57,
+        terminals: &[TerminalId(21)],
+    };
+    // GrammarData { "x" }
+    pub static FIRST_SET_GRAMMAR_DATA: TerminalSet = TerminalSet {
+        id: 58,
+        terminals: &[TerminalId(22)],
+    };
+    // Nonterminals { "x" }
+    pub static FIRST_SET_NONTERMINALS: TerminalSet = TerminalSet {
+        id: 58,
+        terminals: &[TerminalId(22)],
+    };
+    // Terminals { "y" }
+    pub static FIRST_SET_TERMINALS: TerminalSet = TerminalSet {
+        id: 59,
+        terminals: &[TerminalId(23)],
+    };
+    // Slots { "z" }
+    pub static FIRST_SET_SLOTS: TerminalSet = TerminalSet {
+        id: 60,
+        terminals: &[TerminalId(24)],
+    };
+    // DisplayOrder { "A" }
+    pub static FIRST_SET_DISPLAY_ORDER: TerminalSet = TerminalSet {
+        id: 61,
+        terminals: &[TerminalId(25)],
+    };
+    // FirstSlots { "B" }
+    pub static FIRST_SET_FIRST_SLOTS: TerminalSet = TerminalSet {
+        id: 62,
+        terminals: &[TerminalId(26)],
+    };
+    // SingleTerminalSets { "C" }
+    pub static FIRST_SET_SINGLE_TERMINAL_SETS: TerminalSet = TerminalSet {
+        id: 63,
+        terminals: &[TerminalId(27)],
+    };
+    // FirstSetS { "D" }
+    pub static FIRST_SET_FIRST_SET_S: TerminalSet = TerminalSet {
+        id: 64,
+        terminals: &[TerminalId(28)],
+    };
+    // FollowSetS { "E" }
+    pub static FIRST_SET_FOLLOW_SET_S: TerminalSet = TerminalSet {
+        id: 65,
+        terminals: &[TerminalId(29)],
+    };
+    // Locals { "F" }
+    pub static FIRST_SET_LOCALS: TerminalSet = TerminalSet {
+        id: 66,
+        terminals: &[TerminalId(31)],
+    };
+    // Index { "F" }
+    pub static FIRST_SET_INDEX: TerminalSet = TerminalSet {
+        id: 66,
+        terminals: &[TerminalId(31)],
+    };
+    // ParserMethods { "H" }
+    pub static FIRST_SET_PARSER_METHODS: TerminalSet = TerminalSet {
+        id: 67,
+        terminals: &[TerminalId(32)],
+    };
+    // A { "H" }
+    pub static FIRST_SET_A: TerminalSet = TerminalSet {
+        id: 67,
+        terminals: &[TerminalId(32)],
+    };
+    // ALl1 { "I" }
+    pub static FIRST_SET_A_LL1: TerminalSet = TerminalSet {
+        id: 68,
+        terminals: &[TerminalId(33)],
+    };
+    // ABody { "J" }
+    pub static FIRST_SET_A_BODY: TerminalSet = TerminalSet {
+        id: 69,
+        terminals: &[TerminalId(34)],
+    };
+    // StartWithoutLayout { "K" }
+    pub static FIRST_SET_START_WITHOUT_LAYOUT: TerminalSet = TerminalSet {
+        id: 70,
+        terminals: &[TerminalId(35)],
+    };
+    // StartS { "a" }
+    pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
+        id: 36,
+        terminals: &[TerminalId(0)],
+    };
+    // StartRuntimeItems { "a" }
+    pub static FIRST_SET_START_RUNTIME_ITEMS: TerminalSet = TerminalSet {
+        id: 36,
+        terminals: &[TerminalId(0)],
+    };
+    // StartParse { "a" }
+    pub static FIRST_SET_START_PARSE: TerminalSet = TerminalSet {
+        id: 36,
+        terminals: &[TerminalId(0)],
+    };
+    // StartParser { "b" }
+    pub static FIRST_SET_START_PARSER: TerminalSet = TerminalSet {
+        id: 37,
+        terminals: &[TerminalId(1)],
+    };
+    // StartSPPFNode { "c" }
+    pub static FIRST_SET_START_SPPF_NODE: TerminalSet = TerminalSet {
+        id: 38,
+        terminals: &[TerminalId(2)],
+    };
+    // StartInput { "d" }
+    pub static FIRST_SET_START_INPUT: TerminalSet = TerminalSet {
+        id: 39,
+        terminals: &[TerminalId(3)],
+    };
+    // StartParseError { "e" }
+    pub static FIRST_SET_START_PARSE_ERROR: TerminalSet = TerminalSet {
+        id: 40,
+        terminals: &[TerminalId(4)],
+    };
+    // StartParseSuccess { "f" }
+    pub static FIRST_SET_START_PARSE_SUCCESS: TerminalSet = TerminalSet {
+        id: 41,
+        terminals: &[TerminalId(5)],
+    };
+    // StartGrammar { "g" }
+    pub static FIRST_SET_START_GRAMMAR: TerminalSet = TerminalSet {
+        id: 42,
+        terminals: &[TerminalId(6)],
+    };
+    // StartNonterminal { "h" }
+    pub static FIRST_SET_START_NONTERMINAL: TerminalSet = TerminalSet {
+        id: 43,
+        terminals: &[TerminalId(7)],
+    };
+    // StartTerminal { "i" }
+    pub static FIRST_SET_START_TERMINAL: TerminalSet = TerminalSet {
+        id: 44,
+        terminals: &[TerminalId(8)],
+    };
+    // StartSlot { "j" }
+    pub static FIRST_SET_START_SLOT: TerminalSet = TerminalSet {
+        id: 45,
+        terminals: &[TerminalId(9)],
+    };
+    // StartTerminalSet { "k" }
+    pub static FIRST_SET_START_TERMINAL_SET: TerminalSet = TerminalSet {
+        id: 46,
+        terminals: &[TerminalId(10)],
+    };
+    // StartArena { "l" }
+    pub static FIRST_SET_START_ARENA: TerminalSet = TerminalSet {
+        id: 47,
+        terminals: &[TerminalId(11)],
+    };
+    // StartNodeKind { "m" }
+    pub static FIRST_SET_START_NODE_KIND: TerminalSet = TerminalSet {
+        id: 48,
+        terminals: &[TerminalId(12)],
+    };
+    // StartParseTreeBuilder { "n" }
+    pub static FIRST_SET_START_PARSE_TREE_BUILDER: TerminalSet = TerminalSet {
+        id: 49,
+        terminals: &[TerminalId(13)],
+    };
+    // StartParseTreeNode { "o" }
+    pub static FIRST_SET_START_PARSE_TREE_NODE: TerminalSet = TerminalSet {
+        id: 50,
+        terminals: &[TerminalId(14)],
+    };
+    // StartNonterminalId { "p" }
+    pub static FIRST_SET_START_NONTERMINAL_ID: TerminalSet = TerminalSet {
+        id: 51,
+        terminals: &[TerminalId(15)],
+    };
+    // StartTerminalId { "r" }
+    pub static FIRST_SET_START_TERMINAL_ID: TerminalSet = TerminalSet {
+        id: 52,
+        terminals: &[TerminalId(16)],
+    };
+    // StartSPPFNodeId { "s" }
+    pub static FIRST_SET_START_SPPF_NODE_ID: TerminalSet = TerminalSet {
+        id: 53,
+        terminals: &[TerminalId(17)],
+    };
+    // StartNonterminalNode { "t" }
+    pub static FIRST_SET_START_NONTERMINAL_NODE: TerminalSet = TerminalSet {
+        id: 54,
+        terminals: &[TerminalId(18)],
+    };
+    // StartTerminalNode { "u" }
+    pub static FIRST_SET_START_TERMINAL_NODE: TerminalSet = TerminalSet {
+        id: 55,
+        terminals: &[TerminalId(19)],
+    };
+    // StartGeneratedTypes { "v" }
+    pub static FIRST_SET_START_GENERATED_TYPES: TerminalSet = TerminalSet {
+        id: 56,
+        terminals: &[TerminalId(20)],
+    };
+    // StartImportNamesGrammar { "v" }
+    pub static FIRST_SET_START_IMPORT_NAMES_GRAMMAR: TerminalSet = TerminalSet {
+        id: 56,
+        terminals: &[TerminalId(20)],
+    };
+    // StartImportNamesParser { "w" }
+    pub static FIRST_SET_START_IMPORT_NAMES_PARSER: TerminalSet = TerminalSet {
+        id: 57,
+        terminals: &[TerminalId(21)],
+    };
+    // StartGrammarData { "x" }
+    pub static FIRST_SET_START_GRAMMAR_DATA: TerminalSet = TerminalSet {
+        id: 58,
+        terminals: &[TerminalId(22)],
+    };
+    // StartNonterminals { "x" }
+    pub static FIRST_SET_START_NONTERMINALS: TerminalSet = TerminalSet {
+        id: 58,
+        terminals: &[TerminalId(22)],
+    };
+    // StartTerminals { "y" }
+    pub static FIRST_SET_START_TERMINALS: TerminalSet = TerminalSet {
+        id: 59,
+        terminals: &[TerminalId(23)],
+    };
+    // StartSlots { "z" }
+    pub static FIRST_SET_START_SLOTS: TerminalSet = TerminalSet {
+        id: 60,
+        terminals: &[TerminalId(24)],
+    };
+    // StartDisplayOrder { "A" }
+    pub static FIRST_SET_START_DISPLAY_ORDER: TerminalSet = TerminalSet {
+        id: 61,
+        terminals: &[TerminalId(25)],
+    };
+    // StartFirstSlots { "B" }
+    pub static FIRST_SET_START_FIRST_SLOTS: TerminalSet = TerminalSet {
+        id: 62,
+        terminals: &[TerminalId(26)],
+    };
+    // StartSingleTerminalSets { "C" }
+    pub static FIRST_SET_START_SINGLE_TERMINAL_SETS: TerminalSet = TerminalSet {
+        id: 63,
+        terminals: &[TerminalId(27)],
+    };
+    // StartFirstSetS { "D" }
+    pub static FIRST_SET_START_FIRST_SET_S: TerminalSet = TerminalSet {
+        id: 64,
+        terminals: &[TerminalId(28)],
+    };
+    // StartFollowSetS { "E" }
+    pub static FIRST_SET_START_FOLLOW_SET_S: TerminalSet = TerminalSet {
+        id: 65,
+        terminals: &[TerminalId(29)],
+    };
+    // StartLocals { "F" }
+    pub static FIRST_SET_START_LOCALS: TerminalSet = TerminalSet {
+        id: 66,
+        terminals: &[TerminalId(31)],
+    };
+    // StartIndex { "F" }
+    pub static FIRST_SET_START_INDEX: TerminalSet = TerminalSet {
+        id: 66,
+        terminals: &[TerminalId(31)],
+    };
+    // StartParserMethods { "H" }
+    pub static FIRST_SET_START_PARSER_METHODS: TerminalSet = TerminalSet {
+        id: 67,
+        terminals: &[TerminalId(32)],
+    };
+    // StartA { "H" }
+    pub static FIRST_SET_START_A: TerminalSet = TerminalSet {
+        id: 67,
+        terminals: &[TerminalId(32)],
+    };
+    // StartALl1 { "I" }
+    pub static FIRST_SET_START_A_LL1: TerminalSet = TerminalSet {
+        id: 68,
+        terminals: &[TerminalId(33)],
+    };
+    // StartABody { "J" }
+    pub static FIRST_SET_START_A_BODY: TerminalSet = TerminalSet {
+        id: 69,
+        terminals: &[TerminalId(34)],
+    };
+    // StartStartWithoutLayout { "K" }
+    pub static FIRST_SET_START_START_WITHOUT_LAYOUT: TerminalSet = TerminalSet {
+        id: 70,
+        terminals: &[TerminalId(35)],
+    };
+}

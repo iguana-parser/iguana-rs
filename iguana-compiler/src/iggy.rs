@@ -860,19 +860,19 @@ S = "a"
         for (source, expected) in [
             (
                 "grammar g S = parse_tree parse_tree = \"a\"",
-                "`parse_tree` is a reserved name in the generated crate",
+                "`parse_tree` conflicts with `ParseTree` in the generated code",
             ),
             (
-                "grammar g S = GParser GParser = \"a\"",
-                "`GParser` is a reserved name in the generated crate",
+                "grammar g S = g_parse_tree_builder g_parse_tree_builder = \"a\"",
+                "`g_parse_tree_builder` conflicts with `GParseTreeBuilder` in the generated code",
             ),
             (
                 "grammar g S = Span:\"a\"",
-                "`Span` becomes the field `span`, which the generator uses for an alternative's span",
+                "`Span` conflicts with `span` in the generated code",
             ),
             (
                 "grammar g S = start_s start_s = \"a\"",
-                "`start_s` collides with the generated start wrapper for `S`",
+                "`start_s` conflicts with `StartS` in the generated code",
             ),
             (
                 "grammar g S = \"a\" #amb",

@@ -10,6 +10,8 @@ use crate::generator::GenConfig;
 use crate::generator::grammar_gen::terminal_set_name;
 use crate::generator::grammar_utils::grammar_ident;
 use crate::generator::grammar_utils::is_ll1_return_slot;
+use crate::generator::grammar_utils::ll1_body_method_ident;
+use crate::generator::grammar_utils::ll1_method_ident;
 use crate::generator::grammar_utils::needs_env_binding;
 use crate::generator::grammar_utils::nt_ident;
 use crate::generator::grammar_utils::parse_tree_builder_ident;
@@ -311,6 +313,7 @@ impl<'a> ParserGen<'a> {
 
     fn gen_imports(&self) -> TokenStream {
         let scanner_name = scanner_ident(&self.grammar.name);
+        let grammar_type = grammar_ident(&self.grammar.name);
         let parse_tree_builder_name = parse_tree_builder_ident(&self.grammar.name);
         // The first-parse mode does not have the side maps, the only users of
         // OnceCell and FxHashMap, or the SPPF-node indexes.
@@ -338,7 +341,7 @@ impl<'a> ParserGen<'a> {
         quote! {
             #once_cell_import
             use crate::{
-                grammar::*,
+                grammar::{self, #grammar_type, data::*},
                 parse_tree::{self, #parse_tree_builder_name, ParseTree, create_parse_tree},
                 scanner::#scanner_name,
             };
@@ -987,7 +990,7 @@ impl<'a> ParserGen<'a> {
     ///
     /// The scanner matches a regex layout (`@Regex`): longest match makes
     /// the result unique. An LL(1) layout is matched by its ordinary
-    /// `parse_*_ll1` method, memoized in `layout_memo`, with error
+    /// `ll1_parse_*` method, memoized in `layout_memo`, with error
     /// recording suppressed so the speculative parse cannot plant an error
     /// the real parse never reached; LL(1) determinism makes this result
     /// unique too. Any other layout can match with multiple right extents,
@@ -1007,7 +1010,7 @@ impl<'a> ParserGen<'a> {
                 quote! { self.scanner.match_token(#terminal_id, #pos) }
             }
             Definition::Nonterminal(nonterminal) if self.ll1_nonterminals.contains(nonterminal) => {
-                let method_name = format_ident!("parse_{}_ll1", to_snake_case(&nonterminal.name));
+                let method_name = ll1_method_ident(&nonterminal.name);
                 quote! {
                     {
                         self.suppress_failures = true;
@@ -1037,7 +1040,7 @@ impl<'a> ParserGen<'a> {
         let slot_id = self.slot_id(slot);
         let next_slot_id = self.next_slot_id(slot);
         let body = if self.ll1_nonterminals.contains(nonterminal) {
-            let method_name = format_ident!("parse_{}_ll1", to_snake_case(&nonterminal.name));
+            let method_name = ll1_method_ident(&nonterminal.name);
             // An LL(1) function has no GSS node, so the main loop records a failed
             // call's `expected FIRST(X)` itself, after any failures recorded inside
             // the function. A nullable X does not fail, so `ll1_failure_set` is None
@@ -1119,7 +1122,7 @@ impl<'a> ParserGen<'a> {
     }
 
     /// The set an LL(1) prediction failure reports, or None when the
-    /// nonterminal is nullable. A nullable nonterminal's `parse_X_ll1` always
+    /// nonterminal is nullable. A nullable nonterminal's `ll1_parse_X` always
     /// returns a node (the ε alternative), so only a non-nullable one can fail
     /// to predict an alternative, and its expected set is the FIRST set its
     /// prediction tests.
@@ -1295,8 +1298,9 @@ impl<'a> ParserGen<'a> {
     /// The typed entry points: one consuming method per declared nonterminal,
     /// which parses from the nonterminal's start wrapper and converts the
     /// untyped start node to the wrapper's type. The conversion is in
-    /// `parse_start`, for the start nonterminals with layout, and in
-    /// `parse_start_without_layout`, for the ones without.
+    /// `typed_parse`, for the start nonterminals with layout, and in
+    /// `typed_parse_without_layout`, for the ones without. Their names do not
+    /// start with `parse_`, so they cannot be the entry point of a rule.
     fn gen_typed_entry_points(&self) -> Vec<TokenStream> {
         let mut with_layout = false;
         let mut without_layout = false;
@@ -1312,12 +1316,12 @@ impl<'a> ParserGen<'a> {
                 let fn_name = format_ident!("parse_{}", to_snake_case(&nt.name));
                 let nt_const = format_ident!("{}", to_snake_case(&start.name).to_uppercase());
                 let unwrap_node = format_ident!("unwrap_{}", to_snake_case(&nt.name));
-                let parse_start = if self.grammar.start_layout(start).is_some() {
+                let typed_parse = if self.grammar.start_layout(start).is_some() {
                     with_layout = true;
-                    format_ident!("parse_start")
+                    format_ident!("typed_parse")
                 } else {
                     without_layout = true;
-                    format_ident!("parse_start_without_layout")
+                    format_ident!("typed_parse_without_layout")
                 };
                 // A start wrapper has a generated alias, which always has a
                 // lifetime.
@@ -1327,7 +1331,7 @@ impl<'a> ParserGen<'a> {
                         self,
                         tree_arena: &Arena,
                     ) -> Result<ParseSuccess<parse_tree::#start_ident<'_>>, ParseError> {
-                        self.#parse_start(#nt_const, tree_arena, ParseTree::#unwrap_node)
+                        self.#typed_parse(grammar::#nt_const, tree_arena, ParseTree::#unwrap_node)
                     }
                 }
             })
@@ -1350,7 +1354,7 @@ impl<'a> ParserGen<'a> {
                 )
             };
             methods.push(quote! {
-                fn parse_start<'a, T>(
+                fn typed_parse<'a, T>(
                     self,
                     start: NonterminalId,
                     tree_arena: &'a Arena,
@@ -1370,7 +1374,7 @@ impl<'a> ParserGen<'a> {
         }
         if without_layout {
             methods.push(quote! {
-                fn parse_start_without_layout<'a, T>(
+                fn typed_parse_without_layout<'a, T>(
                     self,
                     start: NonterminalId,
                     tree_arena: &'a Arena,
@@ -1653,19 +1657,19 @@ impl<'a> ParserGen<'a> {
         quote! { self.scanner.match_any(&#name, #input_index) }
     }
 
-    /// Generates `parse_X_ll1`, the recursive-descent function for an LL(1)
+    /// Generates `ll1_parse_X`, the recursive-descent function for an LL(1)
     /// nonterminal X, and defines where the failures are recorded.
     ///
-    /// `parse_X_ll1` predicts its alternative with one lookahead token:
+    /// `ll1_parse_X` predicts its alternative with one lookahead token:
     /// `longest_match(&FIRST_SET_X, i)`. When no alternative can be predicted,
-    /// `parse_X_ll1` returns None, recording a failure only when the caller
-    /// supplies a failure context. On success, `parse_X_ll1` returns the right
+    /// `ll1_parse_X` returns None, recording a failure only when the caller
+    /// supplies a failure context. On success, `ll1_parse_X` returns the right
     /// extent with the node, as `match_terminal` does, so the caller does not
     /// look up the node to continue from its right extent.
     ///
     /// This is in contrast to GLL, where we record a failure when no
     /// alternative can be predicted. The LL(1) path can stay silent because whether
-    /// the failure is an error depends on the grammar context where `parse_X_ll1`
+    /// the failure is an error depends on the grammar context where `ll1_parse_X`
     /// is called:
     ///
     /// - If X is a plain symbol reference in a rule, a None means none of X's
@@ -1685,7 +1689,7 @@ impl<'a> ParserGen<'a> {
     /// function passes its slot for a required reference and None for a
     /// repetition probe, and the GLL main loop passes None and records the failure
     /// itself. This is what lets the repetition probe stay silent: if
-    /// `parse_X_ll1` recorded its prediction failures unconditionally, the probe
+    /// `ll1_parse_X` recorded its prediction failures unconditionally, the probe
     /// would record `expected FIRST(<loop element>)` every time a repetition
     /// ends. Such a record is usually harmless: the parser keeps only the error
     /// at the farthest input position, so it is discarded as soon as the parse
@@ -1701,7 +1705,7 @@ impl<'a> ParserGen<'a> {
     /// their order even when a predicted alternative fails later in the parse.
     ///
     /// A nullable nonterminal can always succeed without matching, so not
-    /// predicting an alternative is not an error for it. Its `parse_X_ll1`
+    /// predicting an alternative is not an error for it. Its `ll1_parse_X`
     /// matches its nullable alternative rather than returning None on a
     /// prediction failure, so it never records a FIRST-set error.
     fn gen_parse_method_ll1(
@@ -1715,7 +1719,7 @@ impl<'a> ParserGen<'a> {
         // Star is desugared as `A+ | ε`, so Opt and Star are handled by the
         // standard alternative-matching below.
         let is_plus = matches!(&nonterminal.origin, Some(Symbol::Plus(_, _)));
-        let method_name = format_ident!("parse_{}_ll1", to_snake_case(&nonterminal.name));
+        let method_name = ll1_method_ident(&nonterminal.name);
         let body_tokens = if is_plus {
             self.gen_plus_body_ll1(nonterminal)
         } else {
@@ -1764,7 +1768,7 @@ impl<'a> ParserGen<'a> {
         // around the call. The body is a method rather than a closure because
         // a closure cannot be marked `#[inline(always)]`, and an inlined method
         // must inline its body too.
-        let body_method_name = format_ident!("{}_body", method_name);
+        let body_method_name = ll1_body_method_ident(&nonterminal.name);
         let (body_tokens, body_method) = if failure_set.is_some() || memoize {
             (
                 quote! {
@@ -2108,7 +2112,7 @@ impl<'a> ParserGen<'a> {
                 }
             }
             Definition::Nonterminal(nt) => {
-                let nt_method = format_ident!("parse_{}_ll1", to_snake_case(&nt.name));
+                let nt_method = ll1_method_ident(&nt.name);
                 let failure_context = match failure_context {
                     Some(slot_id) => quote! { Some(#slot_id) },
                     None => quote! { None },
@@ -2189,7 +2193,7 @@ impl<'a> ParserGen<'a> {
                     });
                 }
                 Definition::Nonterminal(nt) => {
-                    let nt_method = format_ident!("parse_{}_ll1", to_snake_case(&nt.name));
+                    let nt_method = ll1_method_ident(&nt.name);
                     // Symbol-reference call inside an alternative body: on a
                     // prediction failure, the callee records `expected FIRST(nt)`
                     // at `start` using this call's slot, and returns None. No
