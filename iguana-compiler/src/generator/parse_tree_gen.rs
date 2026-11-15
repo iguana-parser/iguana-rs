@@ -262,21 +262,9 @@ impl<'a> ParseTreeGen<'a> {
         &self,
         alternative: &Alternative,
     ) -> Vec<(Ident, TokenStream)> {
-        let counts = count_symbol_occurrences(self.grammar, &alternative.symbols);
-        alternative
-            .symbols
-            .iter()
-            .filter(|s| s.is_parse_tree_symbol())
-            .enumerate()
-            .map(|(i, s)| {
-                let base_name = get_symbol_base_name(self.grammar, s);
-                let needs_index =
-                    base_name.is_some_and(|name| counts.get(&name).copied().unwrap_or(0) > 1);
-                let field_name = gen_field_name(self.grammar, s, i, needs_index);
-                let field_ident = safe_ident(&field_name);
-                let field_type = self.symbol_type(s.resolved_def());
-                (field_ident, field_type)
-            })
+        fields(self.grammar, alternative)
+            .into_iter()
+            .map(|(field_ident, s)| (field_ident, self.symbol_type(s.resolved_def())))
             .collect()
     }
 
@@ -407,19 +395,11 @@ impl<'a> ParseTreeGen<'a> {
         let alternative = &alternatives[0];
         let alt0_label = alternative_label(alternative, 0);
         let alt0_variant = nt_ident(&alt0_label);
-        let counts = count_symbol_occurrences(self.grammar, &alternative.symbols);
         let panic_msg = format!("{} is ambiguous", nt_name);
         let cycle_arm = self.cycle_panic_arm(nonterminal);
-        let methods: Vec<_> = alternative
-            .symbols
-            .iter()
-            .filter(|s| s.is_parse_tree_symbol())
-            .enumerate()
-            .map(|(i, s)| {
-                let base_name = get_symbol_base_name(self.grammar, s);
-                let needs_index =
-                    base_name.is_some_and(|name| counts.get(&name).copied().unwrap_or(0) > 1);
-                let field_ident = safe_ident(&gen_field_name(self.grammar, s, i, needs_index));
+        let methods: Vec<_> = fields(self.grammar, alternative)
+            .into_iter()
+            .map(|(field_ident, s)| {
                 let field_ty = self.symbol_type(s.resolved_def());
                 let is_terminal = matches!(
                     self.grammar.definition(s.resolved_def()),
@@ -540,14 +520,9 @@ impl<'a> ParseTreeGen<'a> {
             .enumerate()
             .flat_map(|(i, alternative)| {
                 let alt_variant = nt_ident(&alternative_label(alternative, i));
-                let symbols = alternative
-                    .symbols
-                    .iter()
-                    .filter(|s| s.is_parse_tree_symbol());
                 let past_fields_arm = quote! { (#ident::#alt_variant { .. }, _) => None };
-                field_names(self.grammar, alternative)
+                fields(self.grammar, alternative)
                     .into_iter()
-                    .zip(symbols)
                     .enumerate()
                     .map(move |(index, (field, symbol))| {
                         let index = Literal::usize_unsuffixed(index);
@@ -777,30 +752,28 @@ impl<'a> ParseTreeGen<'a> {
                         let alternative = &alternatives[index];
                         let end_slot_id = end_slot.slot_id;
                         let rule_comment = structural_rule(self.grammar, nonterminal, alternative);
-                        let field_names = field_names(self.grammar, alternative);
-                        let method_calls: Vec<_> = alternative
-                            .symbols
+                        let fields = fields(self.grammar, alternative);
+                        let method_calls: Vec<_> = fields
                             .iter()
-                            .filter(|s| s.is_parse_tree_symbol())
-                            .map(|s| {
+                            .map(|(child, s)| {
                                 let def_id = s.resolved_def();
                                 let def = self.grammar.definition(def_id);
-                                match def {
+                                let method = match def {
                                     Definition::Terminal(_) =>
                                         Ident::new("unwrap_token", Span::call_site()),
                                     Definition::Nonterminal(nt) => {
                                         format_ident!("unwrap_{}", to_snake_case(&nt.name))
                                     }
-                                }
+                                };
+                                quote! { #child.#method() }
                             })
-                            .zip(field_names.iter().cloned())
-                            .map(|(method, child)| quote! { #child.#method() })
                             .collect();
                         let nonterminal_type = nt_ident(&nonterminal.name);
                         let variant = Ident::new(
                             &to_pascal_case(&alternative_label(alternative, index)),
                             Span::call_site()
                         );
+                        let field_names: Vec<_> = fields.iter().map(|(name, _)| name).collect();
                         // The children arrive last first.
                         let reversed_field_names = field_names.iter().rev();
                         quote! {
@@ -1226,15 +1199,20 @@ impl<'a> ParseTreeGen<'a> {
     ///     pub fn as_range_char(&self) -> Option<&Token> { ... }
     /// }
     /// ```
+    ///
+    /// Two alternatives that would get the same accessor name, as in
+    /// `("if" | "IF")`, get no accessor, because the name could not say which
+    /// alternative it returns.
     fn gen_alt_accessors(&self, nonterminal: &Nonterminal) -> TokenStream {
         let alt_type = nt_ident(&nonterminal.name);
         let alternatives = self.grammar.alternatives(nonterminal);
 
-        let accessors: Vec<_> = alternatives
+        // (method name, accessor) for each alternative that has an accessor.
+        let candidates: Vec<_> = alternatives
             .iter()
             .enumerate()
             .filter_map(|(i, alt)| {
-                let symbol = &alt.symbols[0];
+                let (field_name, symbol) = fields(self.grammar, alt).into_iter().next()?;
                 let def = self.grammar.definition(symbol.resolved_def());
                 let (method_name, return_type) = match def {
                     // For alternations with a single terminal, e.g., `Type | "void"`,
@@ -1256,17 +1234,24 @@ impl<'a> ParseTreeGen<'a> {
                     }
                 };
                 let variant = format_ident!("{}", to_pascal_case(&alternative_label(alt, i)));
-                let field_name = safe_ident(&gen_field_name(self.grammar, symbol, 0, false));
 
-                Some(quote! {
-                    pub fn #method_name(&self) -> Option<&#return_type> {
-                        match self {
-                            #alt_type::#variant { #field_name, .. } => Some(#field_name),
-                            _ => None,
+                Some((
+                    method_name.to_string(),
+                    quote! {
+                        pub fn #method_name(&self) -> Option<&#return_type> {
+                            match self {
+                                #alt_type::#variant { #field_name, .. } => Some(#field_name),
+                                _ => None,
+                            }
                         }
-                    }
-                })
+                    },
+                ))
             })
+            .collect();
+        let accessors: Vec<_> = candidates
+            .iter()
+            .filter(|(name, _)| candidates.iter().filter(|(other, _)| other == name).count() == 1)
+            .map(|(_, accessor)| accessor)
             .collect();
 
         let ty = self.nonterminal_type(nonterminal);
@@ -2133,9 +2118,17 @@ fn gen_token_kind_function(terminals: &[(TerminalId, String)]) -> TokenStream {
     }
 }
 
-fn field_names(grammar: &Grammar, alternative: &Alternative) -> Vec<Ident> {
+/// The fields of an alternative: the name and the symbol of each of its parse
+/// tree symbols, in order.
+///
+/// Implicit names with the same base name get the position of their symbol as
+/// a suffix. An implicit name that is still the name of another implicit
+/// field also gets the suffix: `Box+ Boxes` has the fields `boxes_0` and
+/// `boxes_1`.
+fn fields<'g>(grammar: &Grammar, alternative: &'g Alternative) -> Vec<(Ident, &'g Symbol)> {
     let counts = count_symbol_occurrences(grammar, &alternative.symbols);
-    alternative
+    // (name, symbol, whether the name is implicit)
+    let named: Vec<(String, &Symbol, bool)> = alternative
         .symbols
         .iter()
         .filter(|s| s.is_parse_tree_symbol())
@@ -2144,9 +2137,31 @@ fn field_names(grammar: &Grammar, alternative: &Alternative) -> Vec<Ident> {
             let base_name = get_symbol_base_name(grammar, s);
             let needs_index =
                 base_name.is_some_and(|name| counts.get(&name).copied().unwrap_or(0) > 1);
-            safe_ident(&gen_field_name(grammar, s, i, needs_index))
+            (
+                gen_field_name(grammar, s, i, needs_index),
+                s,
+                s.label().is_none(),
+            )
         })
-        .collect::<Vec<_>>()
+        .collect();
+    named
+        .iter()
+        .enumerate()
+        .map(|(i, (name, symbol, implicit))| {
+            let repeated = *implicit
+                && named
+                    .iter()
+                    .filter(|(other, _, other_implicit)| *other_implicit && other == name)
+                    .count()
+                    > 1;
+            let name = if repeated {
+                format!("{name}_{i}")
+            } else {
+                name.clone()
+            };
+            (safe_ident(&name), *symbol)
+        })
+        .collect()
 }
 
 fn gen_new_token_method() -> TokenStream {
@@ -2170,22 +2185,20 @@ fn gen_opt_node_trait() -> TokenStream {
 }
 
 /// Returns true if the nonterminal is an alternation where each alternative has exactly one symbol.
-/// This includes both anonymous inline alternations (Symbol::Alt origin) and named nonterminals
-/// like `RangeElement = Range | RangeChar`.
+/// This includes both anonymous inline alternations (Symbol::Alt origin), such as `(A | "x")`,
+/// and named nonterminals like `RangeElement = Range | RangeChar`. A named nonterminal does not
+/// qualify if an alternative is a literal.
 fn is_single_symbol_alternation(grammar: &Grammar, nonterminal: &Nonterminal) -> bool {
-    // Anonymous inline alternations always qualify
-    if matches!(&nonterminal.origin, Some(Symbol::Alt(_))) {
-        return true;
-    }
-    // Named nonterminals: check if they have multiple alternatives, each with exactly one symbol.
+    let inline = matches!(&nonterminal.origin, Some(Symbol::Alt(_)));
     let alternatives = grammar.alternatives(nonterminal);
     alternatives.len() > 1
         && alternatives.iter().all(|alt| {
             alt.symbols.len() == 1
-                && match grammar.definition(alt.symbols[0].resolved_def()) {
-                    Definition::Nonterminal(_) => true,
-                    Definition::Terminal(t) => !t.is_literal(),
-                }
+                && (inline
+                    || match grammar.definition(alt.symbols[0].resolved_def()) {
+                        Definition::Nonterminal(_) => true,
+                        Definition::Terminal(t) => !t.is_literal(),
+                    })
         })
 }
 

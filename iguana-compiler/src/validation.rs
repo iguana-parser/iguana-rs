@@ -92,8 +92,10 @@ pub fn crate_name_error(grammar_name: &str) -> Option<String> {
     ))
 }
 
-/// The grammar name parses as an identifier but also names the generated
-/// crate, which has its own restrictions. The error points at the header name.
+/// The snake_case form of the grammar name must not be a Rust keyword, `std`,
+/// or the name of a dependency of the generated crate, because it is the name
+/// of the generated crate. For example, `grammar Std` results in a crate named
+/// `std`, which would shadow the standard library.
 fn check_grammar_name(
     grammar_def: &GrammarDef,
     spans: &GrammarSpans<'_>,
@@ -110,25 +112,24 @@ fn check_grammar_name(
     }
 }
 
-/// A grammar needs at least one syntax rule. Generating from a grammar without
-/// one produces a crate with an empty token kind and no start symbol, which
-/// does not compile. The error carries the start of the file, since a grammar
-/// that defines nothing has no rule to point at.
+/// A grammar must have at least one syntax rule. Without any syntax rules, the
+/// generated crate does not compile.
 fn check_grammar_has_a_syntax_rule(grammar_def: &GrammarDef, errors: &mut Vec<GrammarError>) {
     if grammar_def.syntax_rules.is_empty() {
         errors.push(GrammarError {
             message: format!("grammar `{}` has no syntax rules", grammar_def.name),
+            // There is no syntax rule to report the error at, so it is
+            // reported at the start of the file.
             span: Span::new(0, 0),
         });
     }
 }
 
-/// Checks that syntax and lexical rule names are unique. Each repeated
-/// definition produces an error at its rule name.
+/// Rule names must be unique across all syntax and lexical rules.
 ///
-/// Lexical rules are checked before syntax rules, the same order that assigns
-/// definition IDs. As a result, a name used by both lexical and syntax rules is
-/// reported on the syntax rule.
+/// Lexical rules are checked first, in the order definition IDs are assigned,
+/// so a name used by both a lexical and a syntax rule is reported at the
+/// syntax rule.
 fn check_duplicate_definitions<'a>(
     grammar_def: &'a GrammarDef,
     spans: &GrammarSpans<'a>,
@@ -153,10 +154,9 @@ fn check_duplicate_definitions<'a>(
     }
 }
 
-/// Reports nonterminals whose names collide in the generated parser, such as
-/// `LineComment` and `line_comment`.
-///
-/// Each nonterminal produces these names, shown for `LineComment`:
+/// The names of two nonterminals must not have the same PascalCase form, such
+/// as `LineComment` and `line_comment`, because the nonterminals would get the
+/// same names in the generated parser. `LineComment`, for example, gets:
 ///
 /// - the type `LineComment` and the method `ParseTree::unwrap_line_comment` in
 ///   `parse_tree.rs`,
@@ -164,12 +164,6 @@ fn check_duplicate_definitions<'a>(
 /// - the entry point `parse_line_comment` in `parser.rs` and, if `LineComment`
 ///   is an LL(1) nonterminal, the methods `ll1_parse_line_comment` and
 ///   `ll1_body_line_comment`.
-///
-/// Two names with different snake_case forms can have the same PascalCase form
-/// (`to_pascal_case`), so this check compares the PascalCase forms.
-///
-/// Nonterminals with the same name in the grammar are reported by
-/// `check_duplicate_definitions`.
 fn check_generated_rule_name_collisions<'a>(
     grammar_def: &'a GrammarDef,
     spans: &GrammarSpans<'a>,
@@ -180,7 +174,12 @@ fn check_generated_rule_name_collisions<'a>(
 
     for rule in &grammar_def.syntax_rules {
         let name = rule.head.name.as_str();
+        // Two names with different snake_case forms can have the same
+        // PascalCase form (`to_pascal_case`), so this check compares the
+        // PascalCase forms.
         let type_name = to_pascal_case(name);
+        // Nonterminals with the same name in the grammar are reported by
+        // `check_duplicate_definitions`.
         if let Some(previous) = type_names.insert(type_name.clone(), name)
             && previous != name
         {
@@ -194,17 +193,14 @@ fn check_generated_rule_name_collisions<'a>(
     }
 }
 
-/// Reports unresolved rule references.
-///
-/// Resolution assigns definition IDs to references in syntax rules and lexical
-/// rule bodies. Restrictions attached directly to lexical rules are resolved
-/// only after validation, so this check compares their names with the defined
-/// rule names.
+/// Every reference to a rule must resolve to a rule in the grammar.
 fn check_unresolved_identifiers<'a>(
     grammar_def: &'a GrammarDef,
     spans: &GrammarSpans<'a>,
     errors: &mut Vec<GrammarError>,
 ) {
+    // Resolution assigns definition IDs to references in syntax rules and
+    // lexical rule bodies.
     grammar_def.for_each_identifier(&mut |identifier| {
         if identifier.definition.is_none() {
             errors.push(GrammarError {
@@ -214,6 +210,9 @@ fn check_unresolved_identifiers<'a>(
         }
     });
 
+    // Restrictions attached directly to lexical rules are resolved only after
+    // validation, so this check compares their names with the defined rule
+    // names.
     let defined = defined_names(grammar_def);
     for rule in &grammar_def.lexical_rules {
         for (_, identifier) in lexical_restrictions(rule) {
@@ -254,12 +253,8 @@ fn lexical_restrictions(rule: &LexicalRule) -> Vec<(RestrictionKind, &Identifier
     restrictions
 }
 
-/// Checks an exclusion (`A!label`): it applies to a reference to a syntax
-/// rule, and each label names one of that rule's alternatives.
-///
-/// Anything else has no alternatives to exclude. Without this check, EBNF
-/// expansion lifts a group or repetition into a generated rule, and exclusion
-/// desugaring later panics about a label on a name the user did not write.
+/// An exclusion (`A!label`) must apply to a reference to a syntax rule. Each
+/// exclusion label must be the label of an alternative of that rule.
 fn check_exclusions<'a>(
     grammar_def: &'a GrammarDef,
     spans: &GrammarSpans<'a>,
@@ -284,8 +279,6 @@ fn check_exclusions<'a>(
         let label_spans = spans.label_spans(symbol);
         let first_label_span = label_spans[0];
 
-        // An exclusion wraps the reference directly. A field label or a
-        // restriction wraps the exclusion instead.
         let Symbol::Identifier(identifier) = inner.as_ref() else {
             errors.push(GrammarError {
                 message: format!(
@@ -348,15 +341,12 @@ impl RestrictionKind {
     }
 }
 
-/// Reports invalid restriction operands:
-///
-/// - **Lexical operand.** Every operand must name a lexical rule. Missing names
-///   are reported separately. This check reports operands that name syntax
-///   rules. The scanner matches lexical rules, not syntax rules.
-/// - **Unrestricted `\` operand.** A `\` operand must name a lexical rule
-///   without restrictions of its own. The compiler subtracts only the
-///   operand's regex. The subtraction would silently ignore any restrictions
-///   on the operand.
+/// - The operand of a restriction (`\`, `!>>`, `!>>>`, or `!<<`) must refer to
+///   a lexical rule, because the scanner matches only lexical rules.
+/// - The operand of an except (`\`) must refer to a lexical rule without
+///   restrictions of its own, because an except uses only the regex of its
+///   operand. For example, `Id \ Keyword` is an error when
+///   `Keyword = "if" !>> Tail`.
 fn check_restriction_targets<'a>(
     grammar_def: &'a GrammarDef,
     spans: &GrammarSpans<'a>,
@@ -403,7 +393,7 @@ fn check_restriction_targets<'a>(
     }
 }
 
-/// Checks one restriction operand against the rule it names.
+/// Checks one restriction operand against the rule it refers to.
 fn check_restriction_target<'a>(
     kind: RestrictionKind,
     identifier: &'a Identifier,
@@ -437,11 +427,9 @@ fn check_restriction_target<'a>(
     }
 }
 
-/// Reports a label nested directly inside another label (`outer:inner:A`).
-///
-/// One label is valid. Direct nesting gives the same symbol two labels, and
-/// the generator uses only the outer one, so the inner label would silently
-/// disappear.
+/// A symbol must have at most one label. For example, `outer:inner:A` is an
+/// error, because the generator would use only the outer label, and the inner
+/// one would silently disappear.
 fn check_one_label_per_symbol<'a>(
     grammar_def: &'a GrammarDef,
     spans: &GrammarSpans<'a>,
@@ -470,17 +458,13 @@ fn check_one_label_per_symbol<'a>(
     });
 }
 
-/// Reports two labeled symbols in an alternative whose labels become the same
-/// field name, such as `x:"a" x:"b"` or `fooBar:A foo_bar:B`.
+/// Two field names in an alternative must not have the same snake_case form,
+/// because each becomes a field of the generated type. For example,
+/// `x:"a" x:"b"` and `fooBar:A foo_bar:B` are errors.
 ///
-/// Validation runs before EBNF-to-BNF conversion, because an error needs the
-/// source span of its symbol and only the parsed grammar (GrammarDef) has
-/// spans. At this point a parenthesized group or a list is still a symbol
-/// nested inside its enclosing alternative, and EBNF-to-BNF later turns it
-/// into a rule of its own. The check therefore also visits every nested
-/// sequence, the symbols of a group or a list element together with its
-/// separator, and compares each sequence's labels on their own, as they will
-/// be fields of one alternative in the generated parser.
+/// Field names inside a group or a list do not conflict with field names
+/// outside it, because the group or the list becomes a rule of its own. For
+/// example, `x:A (x:B C)` is valid, but `(x:B x:C)` is an error.
 fn check_duplicate_field_labels<'a>(
     grammar_def: &'a GrammarDef,
     spans: &GrammarSpans<'a>,
@@ -491,8 +475,11 @@ fn check_duplicate_field_labels<'a>(
             check_sequence_field_labels(alternative.symbols.iter(), spans, errors);
         }
     }
-    // An alternation element or an option body is a sequence of one symbol,
-    // which cannot repeat a label.
+    // Validation runs before EBNF-to-BNF conversion, because an error needs the
+    // source span of its symbol and only the parsed grammar (GrammarDef) has
+    // spans. Groups and lists are therefore still nested in their alternatives
+    // here. An alternation element or an option body is a sequence of one
+    // symbol, which cannot repeat a label.
     grammar_def.for_each_symbol(&mut |symbol| match symbol {
         Symbol::Group(symbols) => check_sequence_field_labels(symbols.iter(), spans, errors),
         Symbol::Star(element, separator) | Symbol::Plus(element, separator) => {
@@ -580,16 +567,31 @@ const AMBIGUITY_VARIANT_NAME: &str = "Amb";
 /// for `type:A`.
 const UNESCAPABLE_FIELD_NAMES: &[&str] = &["self", "super", "crate"];
 
-/// Reports rule and label names that collide with generated Rust identifiers
-/// or cannot be Rust identifiers.
+/// The prefixes of the names of the nonterminals derived from EBNF symbols.
+const EBNF_PREFIXES: &[&str] = &["Opt", "Star", "Plus", "Group", "Alt"];
+
+/// Whether `name` can conflict with the name of a nonterminal derived from an
+/// EBNF symbol, such as `Opt_0`. The check compares PascalCase forms, so
+/// `Opt_0`, `opt_0`, and `Opt0` all conflict with `Opt_0`.
+fn conflicts_with_ebnf_name(name: &str) -> bool {
+    let pascal_name = to_pascal_case(name);
+    EBNF_PREFIXES.iter().any(|prefix| {
+        pascal_name
+            .strip_prefix(prefix)
+            .is_some_and(|number| number.parse::<usize>().is_ok())
+    })
+}
+
+/// Rule names, field names, and alternative labels must not conflict with
+/// identifiers in the generated code. Before the comparison, each of these
+/// names is converted the way the generator converts it: to PascalCase when it
+/// becomes a type or an enum variant, and to snake_case when it becomes a field
+/// or a method. For example, a nonterminal named `TokenKind`, `token_kind`, or
+/// `TOKEN_KIND` results in a type named `TokenKind`, which conflicts with the
+/// type `TokenKind` in `parse_tree.rs`.
 ///
-/// The check compares each name after applying the generator's case conversion:
-///
-/// - Reserved names are compared in snake_case. `TokenKind`, `token_kind`, and
-///   `TOKEN_KIND` all conflict with `token_kind`.
-/// - The start wrappers and the parse tree builder are types, compared in
-///   PascalCase. `start_s` conflicts with `StartS`, the start wrapper of `S`.
-/// - Alternative labels become PascalCase variants.
+/// A rule name or a field name also must not become the field `self`, `super`,
+/// or `crate`, which Rust does not accept even as a raw identifier.
 fn check_reserved_names<'a>(
     grammar_def: &'a GrammarDef,
     spans: &GrammarSpans<'a>,
@@ -603,6 +605,17 @@ fn check_reserved_names<'a>(
         .collect();
     let parse_tree_builder = parse_tree_builder_ident(&grammar_def.name).to_string();
 
+    // The name of a syntax rule must not:
+    // - have a reserved nonterminal name as its snake_case form
+    //   (`RESERVED_NONTERMINAL_NAMES`).
+    // - have the type of a start wrapper, such as `StartS`, or of the parse
+    //   tree builder as its PascalCase form.
+    // - conflict with the name of a nonterminal derived from an EBNF symbol,
+    //   such as `Opt_0`, because both would become the type `Opt0`.
+    // - have a reserved field name as its snake_case form
+    //   (`RESERVED_FIELD_NAMES`).
+    // - have `self`, `super`, or `crate` as its snake_case form
+    //   (`UNESCAPABLE_FIELD_NAMES`).
     for rule in &grammar_def.syntax_rules {
         let name = rule.head.name.as_str();
         let span = spans.nonterminal(&rule.head).span;
@@ -612,6 +625,7 @@ fn check_reserved_names<'a>(
         if RESERVED_NONTERMINAL_NAMES.contains(&snake_name.as_str())
             || start_wrappers.contains(&type_name)
             || type_name == parse_tree_builder
+            || conflicts_with_ebnf_name(name)
         {
             errors.push(name_conflict(name, &type_name, span));
         } else if RESERVED_FIELD_NAMES.contains(&snake_name.as_str()) {
@@ -621,6 +635,14 @@ fn check_reserved_names<'a>(
             errors.push(unescapable_field(name, &snake_name, span));
         }
 
+        // The PascalCase form of an alternative label must not be one of these
+        // names (a label becomes an enum variant, which is in PascalCase):
+        // - `Self`, a Rust keyword that cannot be a raw identifier.
+        // - `Amb`, the variant of ambiguous alternatives.
+        // - `Cycle`, the variant of cyclic references.
+        // - `Alt` followed by a number, the variants of unlabeled alternatives.
+        // - the label of another alternative of the same rule, such as `#if`
+        //   and `#If`.
         let mut variant_names = FxHashMap::default();
         for alternative in rule.alternatives() {
             let Some(label) = &alternative.label else {
@@ -628,13 +650,7 @@ fn check_reserved_names<'a>(
             };
             let variant_name = to_pascal_case(label);
             let alternative_span = spans.alternative(alternative).span;
-            // Alternative labels become PascalCase Rust enum variants:
-            // `#type` becomes `Type`, and `#match` becomes `Match`. Rust keywords
-            // are case-sensitive, so those variant names are valid. However,
-            // `#self` and `#Self` both become `Self`, which is a Rust keyword
-            // meaning the current type. Rust lets us escape most keywords with
-            // `r#`, as in `r#type`, but explicitly forbids `r#Self`. We therefore
-            // reject labels that become `Self`.
+            // `Self` is the only Rust keyword in PascalCase.
             if is_rust_keyword(&variant_name) {
                 errors.push(GrammarError {
                     message: format!(
@@ -683,12 +699,22 @@ fn check_reserved_names<'a>(
         }
     }
 
-    // A reference to a lexical rule becomes a token field named after the rule.
+    // The name of a lexical rule must not:
+    // - conflict with the name of a nonterminal derived from an EBNF symbol,
+    //   such as `Opt_0`, because a reference to the lexical rule would refer to
+    //   that nonterminal instead. The check compares PascalCase forms, so it
+    //   also rejects `Opt0`, which does not conflict.
+    // - have a reserved field name as its snake_case form
+    //   (`RESERVED_FIELD_NAMES`).
+    // - have `self`, `super`, or `crate` as its snake_case form
+    //   (`UNESCAPABLE_FIELD_NAMES`).
     for rule in &grammar_def.lexical_rules {
         let name = rule.head.name.as_str();
         let span = spans.terminal(&rule.head).span;
         let field_name = to_snake_case(name);
-        if RESERVED_FIELD_NAMES.contains(&field_name.as_str()) {
+        if conflicts_with_ebnf_name(name) {
+            errors.push(name_conflict(name, name, span));
+        } else if RESERVED_FIELD_NAMES.contains(&field_name.as_str()) {
             errors.push(name_conflict(name, &field_name, span));
         }
         if UNESCAPABLE_FIELD_NAMES.contains(&field_name.as_str()) {
@@ -696,7 +722,11 @@ fn check_reserved_names<'a>(
         }
     }
 
-    // A symbol label becomes a snake_case field name.
+    // A field name must not:
+    // - have a reserved field name as its snake_case form
+    //   (`RESERVED_FIELD_NAMES`).
+    // - have `self`, `super`, or `crate` as its snake_case form
+    //   (`UNESCAPABLE_FIELD_NAMES`).
     grammar_def.for_each_symbol(&mut |symbol| {
         let Symbol::Labeled { label, .. } = symbol else {
             return;
@@ -735,12 +765,11 @@ fn unescapable_field(name: &str, field_name: &str, span: Span) -> GrammarError {
     }
 }
 
-/// Reports every rule after the first marked `@Layout`, at its rule head,
-/// naming the first in source order. A grammar has at most one layout rule.
-///
-/// Rule names are unique here, because `validate` returns early on a duplicate
-/// definition.
+/// A grammar must have at most one layout rule (`@Layout`). Every layout rule
+/// after the first one is an error.
 fn check_duplicate_layout_rules(spans: &GrammarSpans<'_>, errors: &mut Vec<GrammarError>) {
+    // Rule names are unique here, because `validate` returns early on a
+    // duplicate definition.
     let Some(((first, _), rest)) = spans.layout_rules.split_first() else {
         return;
     };
@@ -754,9 +783,10 @@ fn check_duplicate_layout_rules(spans: &GrammarSpans<'_>, errors: &mut Vec<Gramm
     }
 }
 
-/// Reports a rule annotated both `@Layout` and `@Identifier`. Keyword
-/// exactness derives word boundaries from the identifier rules, and layout is
-/// what separates the words, so one rule cannot serve as both.
+/// A rule must not be both the layout rule (`@Layout`) and an identifier rule
+/// (`@Identifier`). Keyword exactness derives word boundaries from the
+/// identifier rules, and layout is what separates the words, so one rule
+/// cannot serve as both.
 fn check_layout_is_not_an_identifier_rule(
     grammar_def: &GrammarDef,
     spans: &GrammarSpans<'_>,
@@ -952,6 +982,35 @@ FOO_BAR = "g"
 "#;
         let result = parse_grammar(source);
         assert!(result.is_ok(), "{:?}", result.err());
+    }
+
+    #[test]
+    fn rules_named_like_ebnf_types_are_rejected() {
+        let source = r#"grammar G
+
+S = Opt0 Star_0 alt12 Optional Alt Plus_1 Group3
+Opt0 = "a"
+Star_0 = "b"
+alt12 = "c"
+Optional = "d"
+Alt = "e"
+@Regex
+Plus_1 = [p]
+@Regex
+Group3 = [g]
+"#;
+        let errors = parse_grammar(source).unwrap_err();
+        let messages: Vec<&str> = errors.iter().map(|error| error.message.as_str()).collect();
+        assert_eq!(
+            messages,
+            [
+                "`Opt0` conflicts with a name in the generated code",
+                "`Star_0` conflicts with `Star0` in the generated code",
+                "`alt12` conflicts with `Alt12` in the generated code",
+                "`Plus_1` conflicts with a name in the generated code",
+                "`Group3` conflicts with a name in the generated code",
+            ]
+        );
     }
 
     #[test]

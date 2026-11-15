@@ -643,6 +643,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "generated_names"
+version = "0.1.0"
+dependencies = [
+ "iguana-runtime",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
 name = "gimli"
 version = "0.32.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"

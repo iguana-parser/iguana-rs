@@ -1,0 +1,26 @@
+(Start
+  (S
+    (Fields
+      (Box+
+        (Box "b")
+        (Box "b"))
+      (Boxes "c")
+      (("," A)*
+        ","
+        (A "a"))
+      ";"
+      (("," A)*
+        ","
+        (A "a")
+        ","
+        (A "a")))
+    (Accessors
+      ((A B | A C)
+        (A "a")
+        (C "y"))
+      (("if" | "IF") "IF")
+      ((Box+ Boxes | C)
+        (Box+
+          (Box "b")
+          (Box "b"))
+        (Boxes "c")))))

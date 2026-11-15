@@ -1,0 +1,16 @@
+grammar GeneratedNames
+
+S = Fields Accessors
+
+// Implicit field names that are the same although their base names differ:
+// the plural of `Box` and `Boxes`, and a repeated group.
+Fields = Box+ Boxes ("," A)* ";" ("," A)*
+Box = "b"
+Boxes = "c"
+A = "a"
+
+// Alternatives with more than one symbol, which get no accessors, and
+// single-symbol alternatives that would get the same accessor name.
+Accessors = (A B | A C) ("if" | "IF") (Box+ Boxes | C)
+B = "x"
+C = "y"
