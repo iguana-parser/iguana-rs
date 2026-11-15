@@ -186,10 +186,7 @@ fn convert_alternative(alt: &parse_tree::Alternative, input: &Input) -> Alternat
     // Extract label, stripping the # prefix
     let label = label.value().map(|token| {
         let label_text = input.text(token.span());
-        label_text
-            .strip_prefix('#')
-            .unwrap_or(&label_text)
-            .to_string()
+        label_text.trim_prefix('#').to_string()
     });
 
     Alternative { symbols, label }

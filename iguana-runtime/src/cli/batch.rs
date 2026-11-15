@@ -57,7 +57,7 @@ fn run_batch<'i, 'arena, P: Parser<'i, 'arena>>(
     #[cfg(feature = "instrument")]
     let mut corpus_stats = crate::instrument::Stats::new();
     for path in &files {
-        let rel = path.strip_prefix(dir).unwrap_or(path.as_path());
+        let rel = path.trim_prefix(dir);
         let input_start = Instant::now();
         let input = match Input::try_from(path.as_path()) {
             Ok(input) => input,

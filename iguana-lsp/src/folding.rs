@@ -76,7 +76,7 @@ mod tests {
 
     fn ranges(source: &str) -> Vec<FoldingRange> {
         use iguana_runtime::input::Input;
-        let source = source.strip_prefix('\n').unwrap_or(source);
+        let source = source.trim_prefix('\n');
         let input = Input::from(source);
         let tree_arena = iguana_runtime::arena::Arena::new();
         let crate::BuildResult::Success { tree, .. } = crate::build(&input, &tree_arena) else {

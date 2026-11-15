@@ -491,7 +491,7 @@ fn corpus_counts(name: &str, report: &CorpusReport) -> String {
 /// Strips `root` and normalizes separators to `/` so the recorded path is the
 /// same on every platform.
 fn normalize_rel(path: &Path, root: &Path) -> String {
-    let rel = path.strip_prefix(root).unwrap_or(path);
+    let rel = path.trim_prefix(root);
     rel.to_string_lossy().replace('\\', "/")
 }
 

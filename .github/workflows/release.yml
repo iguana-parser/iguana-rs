@@ -26,7 +26,11 @@ permissions:
 env:
   CARGO_TERM_COLOR: always
   RELEASE_VERSION: ${{ inputs.version }}
-  RUST_TOOLCHAIN: 1.99.0
+  # The same version as `rust-version` in the root Cargo.toml and the Rust
+  # requirement in docs/development.md. The release builds with this
+  # toolchain, which checks that the crates build on their declared minimum
+  # Rust version.
+  RUST_TOOLCHAIN: 1.100.0
 
 defaults:
   run:

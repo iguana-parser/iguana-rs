@@ -150,7 +150,7 @@ mod tests {
     use std::{fs, path::Path};
 
     fn analyze(source: &str) -> Analysis {
-        Analysis::new(source.strip_prefix('\n').unwrap_or(source))
+        Analysis::new(source.trim_prefix('\n'))
     }
 
     fn find_refs(source: &str, line: u32, column: u32, include_declaration: bool) -> Vec<Range> {

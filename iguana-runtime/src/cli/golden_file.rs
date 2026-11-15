@@ -235,7 +235,7 @@ fn run_golden(
 /// Strips `root` from `path` for display, falling back to the full path when
 /// `path` is not under `root` or `root` is `None` (single-file mode).
 fn rel<'a>(path: &'a Path, root: Option<&Path>) -> &'a Path {
-    root.and_then(|r| path.strip_prefix(r).ok()).unwrap_or(path)
+    root.map_or(path, |root| path.trim_prefix(root))
 }
 
 /// Reads a golden file, normalizing CRLF to LF so golden files written on Windows

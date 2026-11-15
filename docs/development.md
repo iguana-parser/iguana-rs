@@ -6,8 +6,8 @@ relationships.
 
 ## Prerequisites
 
-- **Rust.** The workspace uses Rust edition 2024 and the current stable
-  toolchain.
+- **Rust.** The workspace uses Rust edition 2024 and requires Rust 1.100 or
+  newer.
 - **Node.js and npm.** Node.js 22.12 or newer is required for the
   web packages, Terrarium, and the VS Code extension.
 - **Graphviz.** The `dot` command is required only when a generated parser

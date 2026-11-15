@@ -2,6 +2,7 @@
 name = "iguana-compiler"
 version.workspace = true
 edition = "2024"
+rust-version.workspace = true
 license.workspace = true
 description = "The iguana compiler (grammar IR, analysis, transforms, and code generation): translates iggy grammar definitions into Rust code"
 repository.workspace = true

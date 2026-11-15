@@ -136,6 +136,10 @@ impl Arena {
     }
 
     /// Moves `value` into the arena.
+    ///
+    /// The arena does not run the destructor of a value moved into it. `T`
+    /// must therefore not own memory outside the arena. A `String`, for
+    /// example, would leak its buffer.
     #[inline]
     pub fn alloc<T>(&self, value: T) -> &mut T {
         self.0.alloc(value)
@@ -144,6 +148,9 @@ impl Arena {
     /// Moves the items of `iter` into the arena as one contiguous slice. The
     /// iterator must know its length, so the slice is allocated once rather
     /// than grown.
+    ///
+    /// As in [`Arena::alloc`], the items must not own memory outside the
+    /// arena.
     #[inline]
     pub fn alloc_slice<T, I>(&self, iter: I) -> &mut [T]
     where

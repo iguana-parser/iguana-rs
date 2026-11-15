@@ -1094,7 +1094,7 @@ fn add_start_rule(
         definition: Some(def_id),
     };
     let symbol = if !nt.parameters.is_empty() {
-        let arguments = (0..nt.parameters.len()).map(|_| Expr::Int(0)).collect();
+        let arguments = Vec::from_fn(nt.parameters.len(), |_| Expr::Int(0));
         Symbol::Call {
             name: identifier,
             arguments,

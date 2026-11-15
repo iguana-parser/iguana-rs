@@ -239,7 +239,7 @@ mod tests {
         accepts: &[(StateId, TerminalId)],
         transitions: &[(StateId, Option<CharClass>, StateId)],
     ) -> Nfa {
-        let mut states: Vec<State> = (0..num_states).map(|_| State::default()).collect();
+        let mut states = Vec::from_fn(num_states, |_| State::default());
         for (from, label, to) in transitions {
             match label {
                 Some(class) => states[*from].add_transition(class.clone(), *to),
