@@ -1253,6 +1253,9 @@ impl<'a> ParseTreeGen<'a> {
             .filter(|(name, _)| candidates.iter().filter(|(other, _)| other == name).count() == 1)
             .map(|(_, accessor)| accessor)
             .collect();
+        if accessors.is_empty() {
+            return TokenStream::new();
+        }
 
         let ty = self.nonterminal_type(nonterminal);
         quote! {

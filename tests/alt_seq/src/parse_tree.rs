@@ -713,34 +713,6 @@ impl<'a> Alt1<'a> {
         }
     }
 }
-impl<'a> Alt0<'a> {
-    pub fn as_a(&self) -> Option<&A<'a>> {
-        match self {
-            Alt0::Alt0 { a, .. } => Some(a),
-            _ => None,
-        }
-    }
-    pub fn as_c(&self) -> Option<&C<'a>> {
-        match self {
-            Alt0::Alt1 { c, .. } => Some(c),
-            _ => None,
-        }
-    }
-}
-impl<'a> Alt1<'a> {
-    pub fn as_d(&self) -> Option<&D<'a>> {
-        match self {
-            Alt1::Alt0 { d, .. } => Some(d),
-            _ => None,
-        }
-    }
-    pub fn as_e(&self) -> Option<&E<'a>> {
-        match self {
-            Alt1::Alt1 { e, .. } => Some(e),
-            _ => None,
-        }
-    }
-}
 #[derive(Debug, Clone, Copy)]
 pub struct Token {
     pub kind: TokenKind,

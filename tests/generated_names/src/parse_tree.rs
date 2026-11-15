@@ -1133,22 +1133,6 @@ impl<'a> Alt2<'a> {
         }
     }
 }
-impl<'a> Alt0<'a> {}
-impl<'a> Alt1<'a> {}
-impl<'a> Alt2<'a> {
-    pub fn as_plus_0(&self) -> Option<&Plus0<'a>> {
-        match self {
-            Alt2::Alt0 { boxes_0, .. } => Some(boxes_0),
-            _ => None,
-        }
-    }
-    pub fn as_c(&self) -> Option<&C<'a>> {
-        match self {
-            Alt2::Alt1 { c, .. } => Some(c),
-            _ => None,
-        }
-    }
-}
 #[derive(Debug, Clone, Copy)]
 pub struct Token {
     pub kind: TokenKind,
