@@ -31,170 +31,92 @@ impl Grammar for CommentsGrammar {
 pub mod data {
     #[allow(unused_imports)]
     use iguana_runtime::{
-        grammar::{Nonterminal, Slot, Terminal},
-        ids::{SlotId, TerminalId},
+        grammar::{Alternative, Nonterminal, Slot, SlotKind, Terminal},
+        ids::{NonterminalId, SlotId, TerminalId},
         prediction::Prediction,
         scanner::TerminalSet,
     };
     pub(super) static NONTERMINALS: [Nonterminal; 2] = [
-        Nonterminal {
-            name: "Expr",
-            display_name: "Expr",
-        },
-        Nonterminal {
-            name: "StartExpr",
-            display_name: "Expr",
-        },
+        Nonterminal::new("Expr", "Expr"),
+        Nonterminal::new("StartExpr", "Expr"),
     ];
     pub(super) static DISPLAY_ORDER: [&str; 1] = ["Expr"];
     pub(super) static TERMINALS: [Terminal; 9] = [
-        Terminal { name: "Layout" },
-        Terminal { name: "Identifier" },
-        Terminal { name: "Comment" },
-        Terminal { name: "WS" },
-        Terminal { name: "\"+\"" },
-        Terminal { name: "\"*\"" },
-        Terminal { name: "\"x\"" },
-        Terminal { name: "Epsilon" },
-        Terminal { name: "EOF" },
+        Terminal::new("Layout"),
+        Terminal::new("Identifier"),
+        Terminal::new("Comment"),
+        Terminal::new("WS"),
+        Terminal::new("\"+\""),
+        Terminal::new("\"*\""),
+        Terminal::new("\"x\""),
+        Terminal::new("Epsilon"),
+        Terminal::new("EOF"),
     ];
     pub(super) static SLOTS: [Slot; 18] = [
-        Slot {
-            display_name: "Expr : . Expr Layout \"+\" Layout Expr",
-            position: 0,
-        },
-        Slot {
-            display_name: "Expr : Expr . Layout \"+\" Layout Expr",
-            position: 1,
-        },
-        Slot {
-            display_name: "Expr : Expr Layout . \"+\" Layout Expr",
-            position: 2,
-        },
-        Slot {
-            display_name: "Expr : Expr Layout \"+\" . Layout Expr",
-            position: 3,
-        },
-        Slot {
-            display_name: "Expr : Expr Layout \"+\" Layout . Expr",
-            position: 4,
-        },
-        Slot {
-            display_name: "Expr : Expr Layout \"+\" Layout Expr.",
-            position: 5,
-        },
-        Slot {
-            display_name: "Expr : . Expr Layout \"*\" Layout Expr",
-            position: 0,
-        },
-        Slot {
-            display_name: "Expr : Expr . Layout \"*\" Layout Expr",
-            position: 1,
-        },
-        Slot {
-            display_name: "Expr : Expr Layout . \"*\" Layout Expr",
-            position: 2,
-        },
-        Slot {
-            display_name: "Expr : Expr Layout \"*\" . Layout Expr",
-            position: 3,
-        },
-        Slot {
-            display_name: "Expr : Expr Layout \"*\" Layout . Expr",
-            position: 4,
-        },
-        Slot {
-            display_name: "Expr : Expr Layout \"*\" Layout Expr.",
-            position: 5,
-        },
-        Slot {
-            display_name: "Expr : . \"x\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Expr : \"x\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "Expr : . Layout start:Expr Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "Expr : Layout . start:Expr Layout",
-            position: 1,
-        },
-        Slot {
-            display_name: "Expr : Layout start:Expr . Layout",
-            position: 2,
-        },
-        Slot {
-            display_name: "Expr : Layout start:Expr Layout.",
-            position: 3,
-        },
+        Slot::new(&ALT_0, 0, SlotKind::Nonterminal(NonterminalId(0))),
+        Slot::new(&ALT_0, 1, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_0, 2, SlotKind::Terminal(TerminalId(4))),
+        Slot::new(&ALT_0, 3, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_0, 4, SlotKind::Nonterminal(NonterminalId(0))),
+        Slot::new(&ALT_0, 5, SlotKind::End),
+        Slot::new(&ALT_1, 0, SlotKind::Nonterminal(NonterminalId(0))),
+        Slot::new(&ALT_1, 1, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_1, 2, SlotKind::Terminal(TerminalId(5))),
+        Slot::new(&ALT_1, 3, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_1, 4, SlotKind::Nonterminal(NonterminalId(0))),
+        Slot::new(&ALT_1, 5, SlotKind::End),
+        Slot::new(&ALT_2, 0, SlotKind::Terminal(TerminalId(6))),
+        Slot::new(&ALT_2, 1, SlotKind::End),
+        Slot::new(&ALT_3, 0, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_3, 1, SlotKind::Nonterminal(NonterminalId(0))),
+        Slot::new(&ALT_3, 2, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_3, 3, SlotKind::End),
     ];
+    static ALT_0: Alternative = Alternative {
+        head: NonterminalId(0),
+        symbols: &["Expr", "Layout", "\"+\"", "Layout", "Expr"],
+    };
+    static ALT_1: Alternative = Alternative {
+        head: NonterminalId(0),
+        symbols: &["Expr", "Layout", "\"*\"", "Layout", "Expr"],
+    };
+    static ALT_2: Alternative = Alternative {
+        head: NonterminalId(0),
+        symbols: &["\"x\""],
+    };
+    static ALT_3: Alternative = Alternative {
+        head: NonterminalId(1),
+        symbols: &["Layout", "start:Expr", "Layout"],
+    };
     pub(super) static FIRST_SLOTS: [&[SlotId]; 2] =
         [&[SlotId(0), SlotId(6), SlotId(12)], &[SlotId(14)]];
     // A failed terminal match refers to a static terminal set like every other failure, so the
     // error reporting path needs to reach a terminal set from a terminal id. This table, indexed
     // by terminal id, serves only that.
     pub(super) static SINGLE_TERMINAL_SETS: [TerminalSet; 9] = [
-        TerminalSet {
-            id: 4,
-            terminals: &[TerminalId(0)],
-        },
-        TerminalSet {
-            id: 5,
-            terminals: &[TerminalId(1)],
-        },
-        TerminalSet {
-            id: 6,
-            terminals: &[TerminalId(2)],
-        },
-        TerminalSet {
-            id: 7,
-            terminals: &[TerminalId(3)],
-        },
-        TerminalSet {
-            id: 8,
-            terminals: &[TerminalId(4)],
-        },
-        TerminalSet {
-            id: 9,
-            terminals: &[TerminalId(5)],
-        },
-        TerminalSet {
-            id: 10,
-            terminals: &[TerminalId(6)],
-        },
-        TerminalSet {
-            id: 11,
-            terminals: &[TerminalId(7)],
-        },
-        TerminalSet {
-            id: 12,
-            terminals: &[TerminalId(8)],
-        },
+        TerminalSet::new(4, &[TerminalId(0)]),
+        TerminalSet::new(5, &[TerminalId(1)]),
+        TerminalSet::new(6, &[TerminalId(2)]),
+        TerminalSet::new(7, &[TerminalId(3)]),
+        TerminalSet::new(8, &[TerminalId(4)]),
+        TerminalSet::new(9, &[TerminalId(5)]),
+        TerminalSet::new(10, &[TerminalId(6)]),
+        TerminalSet::new(11, &[TerminalId(7)]),
+        TerminalSet::new(12, &[TerminalId(8)]),
     ];
     // Expr { Layout, "+", "*", EOF }
-    pub static FOLLOW_SET_EXPR: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(0), TerminalId(4), TerminalId(5), TerminalId(8)],
-    };
+    pub static FOLLOW_SET_EXPR: TerminalSet = TerminalSet::new(
+        0,
+        &[TerminalId(0), TerminalId(4), TerminalId(5), TerminalId(8)],
+    );
     // StartExpr { EOF }
-    pub static FOLLOW_SET_START_EXPR: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(8)],
-    };
+    pub static FOLLOW_SET_START_EXPR: TerminalSet = TerminalSet::new(1, &[TerminalId(8)]);
     // Expr : Expr . Layout "+" Layout Expr lookahead { "+" }
-    pub static RETURN_SLOT_LOOKAHEAD_EXPR_ALT0_POS1: TerminalSet = TerminalSet {
-        id: 2,
-        terminals: &[TerminalId(4)],
-    };
+    pub static RETURN_SLOT_LOOKAHEAD_EXPR_ALT0_POS1: TerminalSet =
+        TerminalSet::new(2, &[TerminalId(4)]);
     // Expr : Expr . Layout "*" Layout Expr lookahead { "*" }
-    pub static RETURN_SLOT_LOOKAHEAD_EXPR_ALT1_POS1: TerminalSet = TerminalSet {
-        id: 3,
-        terminals: &[TerminalId(5)],
-    };
+    pub static RETURN_SLOT_LOOKAHEAD_EXPR_ALT1_POS1: TerminalSet =
+        TerminalSet::new(3, &[TerminalId(5)]);
     // Expr
     // 0: Expr Layout "+" Layout Expr
     // 1: Expr Layout "*" Layout Expr

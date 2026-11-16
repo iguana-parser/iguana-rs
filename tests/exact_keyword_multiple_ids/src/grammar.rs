@@ -31,165 +31,89 @@ impl Grammar for ExactKeywordMultipleIdsGrammar {
 pub mod data {
     #[allow(unused_imports)]
     use iguana_runtime::{
-        grammar::{Nonterminal, Slot, Terminal},
-        ids::{SlotId, TerminalId},
+        grammar::{Alternative, Nonterminal, Slot, SlotKind, Terminal},
+        ids::{NonterminalId, SlotId, TerminalId},
         prediction::Prediction,
         scanner::TerminalSet,
     };
-    pub(super) static NONTERMINALS: [Nonterminal; 2] = [
-        Nonterminal {
-            name: "S",
-            display_name: "S",
-        },
-        Nonterminal {
-            name: "StartS",
-            display_name: "S",
-        },
-    ];
+    pub(super) static NONTERMINALS: [Nonterminal; 2] =
+        [Nonterminal::new("S", "S"), Nonterminal::new("StartS", "S")];
     pub(super) static DISPLAY_ORDER: [&str; 1] = ["S"];
     pub(super) static TERMINALS: [Terminal; 9] = [
-        Terminal { name: "VarId" },
-        Terminal { name: "NumId" },
-        Terminal { name: "WS" },
-        Terminal { name: "\"else\"" },
-        Terminal { name: "\";\"" },
-        Terminal { name: "[a-z]" },
-        Terminal { name: "[0-9 a-z]" },
-        Terminal { name: "Epsilon" },
-        Terminal { name: "EOF" },
+        Terminal::new("VarId"),
+        Terminal::new("NumId"),
+        Terminal::new("WS"),
+        Terminal::new("\"else\""),
+        Terminal::new("\";\""),
+        Terminal::new("[a-z]"),
+        Terminal::new("[0-9 a-z]"),
+        Terminal::new("Epsilon"),
+        Terminal::new("EOF"),
     ];
     pub(super) static SLOTS: [Slot; 18] = [
-        Slot {
-            display_name: "S : . [a-z] !<< \"else\" !>> [0-9 a-z] WS VarId WS \";\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : [a-z] !<< \"else\" !>> [0-9 a-z] . WS VarId WS \";\"",
-            position: 1,
-        },
-        Slot {
-            display_name: "S : [a-z] !<< \"else\" !>> [0-9 a-z] WS . VarId WS \";\"",
-            position: 2,
-        },
-        Slot {
-            display_name: "S : [a-z] !<< \"else\" !>> [0-9 a-z] WS VarId . WS \";\"",
-            position: 3,
-        },
-        Slot {
-            display_name: "S : [a-z] !<< \"else\" !>> [0-9 a-z] WS VarId WS . \";\"",
-            position: 4,
-        },
-        Slot {
-            display_name: "S : [a-z] !<< \"else\" !>> [0-9 a-z] WS VarId WS \";\".",
-            position: 5,
-        },
-        Slot {
-            display_name: "S : . NumId WS \";\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : NumId . WS \";\"",
-            position: 1,
-        },
-        Slot {
-            display_name: "S : NumId WS . \";\"",
-            position: 2,
-        },
-        Slot {
-            display_name: "S : NumId WS \";\".",
-            position: 3,
-        },
-        Slot {
-            display_name: "S : . VarId WS \";\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : VarId . WS \";\"",
-            position: 1,
-        },
-        Slot {
-            display_name: "S : VarId WS . \";\"",
-            position: 2,
-        },
-        Slot {
-            display_name: "S : VarId WS \";\".",
-            position: 3,
-        },
-        Slot {
-            display_name: "S : . WS start:S WS",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : WS . start:S WS",
-            position: 1,
-        },
-        Slot {
-            display_name: "S : WS start:S . WS",
-            position: 2,
-        },
-        Slot {
-            display_name: "S : WS start:S WS.",
-            position: 3,
-        },
+        Slot::new(&ALT_0, 0, SlotKind::Terminal(TerminalId(3))),
+        Slot::new(&ALT_0, 1, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_0, 2, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_0, 3, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_0, 4, SlotKind::Terminal(TerminalId(4))),
+        Slot::new(&ALT_0, 5, SlotKind::End),
+        Slot::new(&ALT_1, 0, SlotKind::Terminal(TerminalId(1))),
+        Slot::new(&ALT_1, 1, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_1, 2, SlotKind::Terminal(TerminalId(4))),
+        Slot::new(&ALT_1, 3, SlotKind::End),
+        Slot::new(&ALT_2, 0, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_2, 1, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_2, 2, SlotKind::Terminal(TerminalId(4))),
+        Slot::new(&ALT_2, 3, SlotKind::End),
+        Slot::new(&ALT_3, 0, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_3, 1, SlotKind::Nonterminal(NonterminalId(0))),
+        Slot::new(&ALT_3, 2, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_3, 3, SlotKind::End),
     ];
+    static ALT_0: Alternative = Alternative {
+        head: NonterminalId(0),
+        symbols: &[
+            "[a-z] !<< \"else\" !>> [0-9 a-z]",
+            "WS",
+            "VarId",
+            "WS",
+            "\";\"",
+        ],
+    };
+    static ALT_1: Alternative = Alternative {
+        head: NonterminalId(0),
+        symbols: &["NumId", "WS", "\";\""],
+    };
+    static ALT_2: Alternative = Alternative {
+        head: NonterminalId(0),
+        symbols: &["VarId", "WS", "\";\""],
+    };
+    static ALT_3: Alternative = Alternative {
+        head: NonterminalId(1),
+        symbols: &["WS", "start:S", "WS"],
+    };
     pub(super) static FIRST_SLOTS: [&[SlotId]; 2] =
         [&[SlotId(0), SlotId(6), SlotId(10)], &[SlotId(14)]];
     // A failed terminal match refers to a static terminal set like every other failure, so the
     // error reporting path needs to reach a terminal set from a terminal id. This table, indexed
     // by terminal id, serves only that.
     pub(super) static SINGLE_TERMINAL_SETS: [TerminalSet; 9] = [
-        TerminalSet {
-            id: 3,
-            terminals: &[TerminalId(0)],
-        },
-        TerminalSet {
-            id: 4,
-            terminals: &[TerminalId(1)],
-        },
-        TerminalSet {
-            id: 5,
-            terminals: &[TerminalId(2)],
-        },
-        TerminalSet {
-            id: 6,
-            terminals: &[TerminalId(3)],
-        },
-        TerminalSet {
-            id: 7,
-            terminals: &[TerminalId(4)],
-        },
-        TerminalSet {
-            id: 8,
-            terminals: &[TerminalId(5)],
-        },
-        TerminalSet {
-            id: 9,
-            terminals: &[TerminalId(6)],
-        },
-        TerminalSet {
-            id: 10,
-            terminals: &[TerminalId(7)],
-        },
-        TerminalSet {
-            id: 11,
-            terminals: &[TerminalId(8)],
-        },
+        TerminalSet::new(3, &[TerminalId(0)]),
+        TerminalSet::new(4, &[TerminalId(1)]),
+        TerminalSet::new(5, &[TerminalId(2)]),
+        TerminalSet::new(6, &[TerminalId(3)]),
+        TerminalSet::new(7, &[TerminalId(4)]),
+        TerminalSet::new(8, &[TerminalId(5)]),
+        TerminalSet::new(9, &[TerminalId(6)]),
+        TerminalSet::new(10, &[TerminalId(7)]),
+        TerminalSet::new(11, &[TerminalId(8)]),
     ];
     // S { WS, EOF }
-    pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(2), TerminalId(8)],
-    };
+    pub static FOLLOW_SET_S: TerminalSet = TerminalSet::new(0, &[TerminalId(2), TerminalId(8)]);
     // S : . [a-z] !<< "else" !>> [0-9 a-z] WS VarId WS ";" !>> { [0-9 a-z] }
-    pub static FOLLOW_RESTRICTION_S_ALT0_POS0: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(6)],
-    };
+    pub static FOLLOW_RESTRICTION_S_ALT0_POS0: TerminalSet = TerminalSet::new(1, &[TerminalId(6)]);
     // StartS { EOF }
-    pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
-        id: 2,
-        terminals: &[TerminalId(8)],
-    };
+    pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet::new(2, &[TerminalId(8)]);
     // S
     // 0: [a-z] !<< "else" !>> [0-9 a-z] WS VarId WS ";" #Else
     // 1: NumId WS ";" #NumId

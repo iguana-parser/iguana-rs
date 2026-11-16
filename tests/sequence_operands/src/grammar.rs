@@ -111,180 +111,54 @@ impl Grammar for SequenceOperandsGrammar {
 pub mod data {
     #[allow(unused_imports)]
     use iguana_runtime::{
-        grammar::{Nonterminal, Slot, Terminal},
-        ids::{SlotId, TerminalId},
+        grammar::{Alternative, Nonterminal, Slot, SlotKind, Terminal},
+        ids::{NonterminalId, SlotId, TerminalId},
         prediction::Prediction,
         scanner::TerminalSet,
     };
     pub(super) static NONTERMINALS: [Nonterminal; 42] = [
-        Nonterminal {
-            name: "Items",
-            display_name: "Items",
-        },
-        Nonterminal {
-            name: "Names",
-            display_name: "Names",
-        },
-        Nonterminal {
-            name: "Separated",
-            display_name: "Separated",
-        },
-        Nonterminal {
-            name: "Pairs",
-            display_name: "Pairs",
-        },
-        Nonterminal {
-            name: "Else",
-            display_name: "Else",
-        },
-        Nonterminal {
-            name: "Single",
-            display_name: "Single",
-        },
-        Nonterminal {
-            name: "Written",
-            display_name: "Written",
-        },
-        Nonterminal {
-            name: "Mixed",
-            display_name: "Mixed",
-        },
-        Nonterminal {
-            name: "Expected",
-            display_name: "Expected",
-        },
-        Nonterminal {
-            name: "Item",
-            display_name: "Item",
-        },
-        Nonterminal {
-            name: "Key",
-            display_name: "Key",
-        },
-        Nonterminal {
-            name: "Value",
-            display_name: "Value",
-        },
-        Nonterminal {
-            name: "Choice",
-            display_name: "Choice",
-        },
-        Nonterminal {
-            name: "Layout",
-            display_name: "Layout",
-        },
-        Nonterminal {
-            name: "Plus_0",
-            display_name: "(\",\" Item)+",
-        },
-        Nonterminal {
-            name: "Star_0",
-            display_name: "(\",\" Item)*",
-        },
-        Nonterminal {
-            name: "Plus_1",
-            display_name: "(\",\" Name)+",
-        },
-        Nonterminal {
-            name: "Star_1",
-            display_name: "(\",\" Name)*",
-        },
-        Nonterminal {
-            name: "Plus_2",
-            display_name: "(Key Value)+",
-        },
-        Nonterminal {
-            name: "Opt_0",
-            display_name: "(\"else\" Item)?",
-        },
-        Nonterminal {
-            name: "Opt_1",
-            display_name: "(Item)?",
-        },
-        Nonterminal {
-            name: "Group_0",
-            display_name: "(Key Value)",
-        },
-        Nonterminal {
-            name: "Plus_3",
-            display_name: "((Key Value))+",
-        },
-        Nonterminal {
-            name: "Star_2",
-            display_name: "((Key Value))*",
-        },
-        Nonterminal {
-            name: "Opt_2",
-            display_name: "(Value Value)?",
-        },
-        Nonterminal {
-            name: "Plus_4",
-            display_name: "(Key (Value Value)?)+",
-        },
-        Nonterminal {
-            name: "Plus_5",
-            display_name: "(Key Choice)+",
-        },
-        Nonterminal {
-            name: "Opt_3",
-            display_name: "WhiteSpace?",
-        },
-        Nonterminal {
-            name: "StartItems",
-            display_name: "Items",
-        },
-        Nonterminal {
-            name: "StartNames",
-            display_name: "Names",
-        },
-        Nonterminal {
-            name: "StartSeparated",
-            display_name: "Separated",
-        },
-        Nonterminal {
-            name: "StartPairs",
-            display_name: "Pairs",
-        },
-        Nonterminal {
-            name: "StartElse",
-            display_name: "Else",
-        },
-        Nonterminal {
-            name: "StartSingle",
-            display_name: "Single",
-        },
-        Nonterminal {
-            name: "StartWritten",
-            display_name: "Written",
-        },
-        Nonterminal {
-            name: "StartMixed",
-            display_name: "Mixed",
-        },
-        Nonterminal {
-            name: "StartExpected",
-            display_name: "Expected",
-        },
-        Nonterminal {
-            name: "StartItem",
-            display_name: "Item",
-        },
-        Nonterminal {
-            name: "StartKey",
-            display_name: "Key",
-        },
-        Nonterminal {
-            name: "StartValue",
-            display_name: "Value",
-        },
-        Nonterminal {
-            name: "StartChoice",
-            display_name: "Choice",
-        },
-        Nonterminal {
-            name: "StartLayout",
-            display_name: "Layout",
-        },
+        Nonterminal::new("Items", "Items"),
+        Nonterminal::new("Names", "Names"),
+        Nonterminal::new("Separated", "Separated"),
+        Nonterminal::new("Pairs", "Pairs"),
+        Nonterminal::new("Else", "Else"),
+        Nonterminal::new("Single", "Single"),
+        Nonterminal::new("Written", "Written"),
+        Nonterminal::new("Mixed", "Mixed"),
+        Nonterminal::new("Expected", "Expected"),
+        Nonterminal::new("Item", "Item"),
+        Nonterminal::new("Key", "Key"),
+        Nonterminal::new("Value", "Value"),
+        Nonterminal::new("Choice", "Choice"),
+        Nonterminal::new("Layout", "Layout"),
+        Nonterminal::new("Plus_0", "(\",\" Item)+"),
+        Nonterminal::new("Star_0", "(\",\" Item)*"),
+        Nonterminal::new("Plus_1", "(\",\" Name)+"),
+        Nonterminal::new("Star_1", "(\",\" Name)*"),
+        Nonterminal::new("Plus_2", "(Key Value)+"),
+        Nonterminal::new("Opt_0", "(\"else\" Item)?"),
+        Nonterminal::new("Opt_1", "(Item)?"),
+        Nonterminal::new("Group_0", "(Key Value)"),
+        Nonterminal::new("Plus_3", "((Key Value))+"),
+        Nonterminal::new("Star_2", "((Key Value))*"),
+        Nonterminal::new("Opt_2", "(Value Value)?"),
+        Nonterminal::new("Plus_4", "(Key (Value Value)?)+"),
+        Nonterminal::new("Plus_5", "(Key Choice)+"),
+        Nonterminal::new("Opt_3", "WhiteSpace?"),
+        Nonterminal::new("StartItems", "Items"),
+        Nonterminal::new("StartNames", "Names"),
+        Nonterminal::new("StartSeparated", "Separated"),
+        Nonterminal::new("StartPairs", "Pairs"),
+        Nonterminal::new("StartElse", "Else"),
+        Nonterminal::new("StartSingle", "Single"),
+        Nonterminal::new("StartWritten", "Written"),
+        Nonterminal::new("StartMixed", "Mixed"),
+        Nonterminal::new("StartExpected", "Expected"),
+        Nonterminal::new("StartItem", "Item"),
+        Nonterminal::new("StartKey", "Key"),
+        Nonterminal::new("StartValue", "Value"),
+        Nonterminal::new("StartChoice", "Choice"),
+        Nonterminal::new("StartLayout", "Layout"),
     ];
     pub(super) static DISPLAY_ORDER: [&str; 14] = [
         "Items",
@@ -303,775 +177,442 @@ pub mod data {
         "Layout",
     ];
     pub(super) static TERMINALS: [Terminal; 16] = [
-        Terminal { name: "WhiteSpace" },
-        Terminal { name: "Name" },
-        Terminal { name: "\",\"" },
-        Terminal { name: "\"names\"" },
-        Terminal { name: "\"if\"" },
-        Terminal { name: "\"else\"" },
-        Terminal { name: "\"single\"" },
-        Terminal {
-            name: "\"written\"",
-        },
-        Terminal { name: "\"mixed\"" },
-        Terminal { name: "\"expect\"" },
-        Terminal { name: "\";\"" },
-        Terminal { name: "\"k\"" },
-        Terminal { name: "\"v\"" },
-        Terminal { name: "\"w\"" },
-        Terminal { name: "Epsilon" },
-        Terminal { name: "EOF" },
+        Terminal::new("WhiteSpace"),
+        Terminal::new("Name"),
+        Terminal::new("\",\""),
+        Terminal::new("\"names\""),
+        Terminal::new("\"if\""),
+        Terminal::new("\"else\""),
+        Terminal::new("\"single\""),
+        Terminal::new("\"written\""),
+        Terminal::new("\"mixed\""),
+        Terminal::new("\"expect\""),
+        Terminal::new("\";\""),
+        Terminal::new("\"k\""),
+        Terminal::new("\"v\""),
+        Terminal::new("\"w\""),
+        Terminal::new("Epsilon"),
+        Terminal::new("EOF"),
     ];
     pub(super) static SLOTS: [Slot; 187] = [
-        Slot {
-            display_name: "Items : . Item Layout (\",\" Item)*",
-            position: 0,
-        },
-        Slot {
-            display_name: "Items : Item . Layout (\",\" Item)*",
-            position: 1,
-        },
-        Slot {
-            display_name: "Items : Item Layout . (\",\" Item)*",
-            position: 2,
-        },
-        Slot {
-            display_name: "Items : Item Layout (\",\" Item)*.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Names : . \"names\" Layout (\",\" Name)*",
-            position: 0,
-        },
-        Slot {
-            display_name: "Names : \"names\" . Layout (\",\" Name)*",
-            position: 1,
-        },
-        Slot {
-            display_name: "Names : \"names\" Layout . (\",\" Name)*",
-            position: 2,
-        },
-        Slot {
-            display_name: "Names : \"names\" Layout (\",\" Name)*.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Separated : . (\",\" Item)+",
-            position: 0,
-        },
-        Slot {
-            display_name: "Separated : (\",\" Item)+.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Pairs : . (Key Value)+",
-            position: 0,
-        },
-        Slot {
-            display_name: "Pairs : (Key Value)+.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Else : . \"if\" Layout Item Layout (\"else\" Item)?",
-            position: 0,
-        },
-        Slot {
-            display_name: "Else : \"if\" . Layout Item Layout (\"else\" Item)?",
-            position: 1,
-        },
-        Slot {
-            display_name: "Else : \"if\" Layout . Item Layout (\"else\" Item)?",
-            position: 2,
-        },
-        Slot {
-            display_name: "Else : \"if\" Layout Item . Layout (\"else\" Item)?",
-            position: 3,
-        },
-        Slot {
-            display_name: "Else : \"if\" Layout Item Layout . (\"else\" Item)?",
-            position: 4,
-        },
-        Slot {
-            display_name: "Else : \"if\" Layout Item Layout (\"else\" Item)?.",
-            position: 5,
-        },
-        Slot {
-            display_name: "Single : . \"single\" Layout (Item)?",
-            position: 0,
-        },
-        Slot {
-            display_name: "Single : \"single\" . Layout (Item)?",
-            position: 1,
-        },
-        Slot {
-            display_name: "Single : \"single\" Layout . (Item)?",
-            position: 2,
-        },
-        Slot {
-            display_name: "Single : \"single\" Layout (Item)?.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Written : . \"written\" Layout ((Key Value))*",
-            position: 0,
-        },
-        Slot {
-            display_name: "Written : \"written\" . Layout ((Key Value))*",
-            position: 1,
-        },
-        Slot {
-            display_name: "Written : \"written\" Layout . ((Key Value))*",
-            position: 2,
-        },
-        Slot {
-            display_name: "Written : \"written\" Layout ((Key Value))*.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Mixed : . \"mixed\" Layout (Key (Value Value)?)+",
-            position: 0,
-        },
-        Slot {
-            display_name: "Mixed : \"mixed\" . Layout (Key (Value Value)?)+",
-            position: 1,
-        },
-        Slot {
-            display_name: "Mixed : \"mixed\" Layout . (Key (Value Value)?)+",
-            position: 2,
-        },
-        Slot {
-            display_name: "Mixed : \"mixed\" Layout (Key (Value Value)?)+.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Expected : . \"expect\" Layout (Key Choice)+ Layout \";\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Expected : \"expect\" . Layout (Key Choice)+ Layout \";\"",
-            position: 1,
-        },
-        Slot {
-            display_name: "Expected : \"expect\" Layout . (Key Choice)+ Layout \";\"",
-            position: 2,
-        },
-        Slot {
-            display_name: "Expected : \"expect\" Layout (Key Choice)+ . Layout \";\"",
-            position: 3,
-        },
-        Slot {
-            display_name: "Expected : \"expect\" Layout (Key Choice)+ Layout . \";\"",
-            position: 4,
-        },
-        Slot {
-            display_name: "Expected : \"expect\" Layout (Key Choice)+ Layout \";\".",
-            position: 5,
-        },
-        Slot {
-            display_name: "Item : . Name",
-            position: 0,
-        },
-        Slot {
-            display_name: "Item : Name.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Key : . \"k\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Key : \"k\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "Value : . \"v\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Value : \"v\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "Choice : . \"v\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Choice : \"v\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "Choice : . \"w\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Choice : \"w\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "Layout : . WhiteSpace? !>> WhiteSpace",
-            position: 0,
-        },
-        Slot {
-            display_name: "Layout : WhiteSpace? !>> WhiteSpace.",
-            position: 1,
-        },
-        Slot {
-            display_name: "(\",\" Item)+ : . (\",\" Item)+ Layout \",\" Layout Item",
-            position: 0,
-        },
-        Slot {
-            display_name: "(\",\" Item)+ : (\",\" Item)+ . Layout \",\" Layout Item",
-            position: 1,
-        },
-        Slot {
-            display_name: "(\",\" Item)+ : (\",\" Item)+ Layout . \",\" Layout Item",
-            position: 2,
-        },
-        Slot {
-            display_name: "(\",\" Item)+ : (\",\" Item)+ Layout \",\" . Layout Item",
-            position: 3,
-        },
-        Slot {
-            display_name: "(\",\" Item)+ : (\",\" Item)+ Layout \",\" Layout . Item",
-            position: 4,
-        },
-        Slot {
-            display_name: "(\",\" Item)+ : (\",\" Item)+ Layout \",\" Layout Item.",
-            position: 5,
-        },
-        Slot {
-            display_name: "(\",\" Item)+ : . \",\" Layout Item",
-            position: 0,
-        },
-        Slot {
-            display_name: "(\",\" Item)+ : \",\" . Layout Item",
-            position: 1,
-        },
-        Slot {
-            display_name: "(\",\" Item)+ : \",\" Layout . Item",
-            position: 2,
-        },
-        Slot {
-            display_name: "(\",\" Item)+ : \",\" Layout Item.",
-            position: 3,
-        },
-        Slot {
-            display_name: "(\",\" Item)* : . (\",\" Item)+",
-            position: 0,
-        },
-        Slot {
-            display_name: "(\",\" Item)* : (\",\" Item)+.",
-            position: 1,
-        },
-        Slot {
-            display_name: "(\",\" Item)* : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "(\",\" Name)+ : . (\",\" Name)+ Layout \",\" Layout Name",
-            position: 0,
-        },
-        Slot {
-            display_name: "(\",\" Name)+ : (\",\" Name)+ . Layout \",\" Layout Name",
-            position: 1,
-        },
-        Slot {
-            display_name: "(\",\" Name)+ : (\",\" Name)+ Layout . \",\" Layout Name",
-            position: 2,
-        },
-        Slot {
-            display_name: "(\",\" Name)+ : (\",\" Name)+ Layout \",\" . Layout Name",
-            position: 3,
-        },
-        Slot {
-            display_name: "(\",\" Name)+ : (\",\" Name)+ Layout \",\" Layout . Name",
-            position: 4,
-        },
-        Slot {
-            display_name: "(\",\" Name)+ : (\",\" Name)+ Layout \",\" Layout Name.",
-            position: 5,
-        },
-        Slot {
-            display_name: "(\",\" Name)+ : . \",\" Layout Name",
-            position: 0,
-        },
-        Slot {
-            display_name: "(\",\" Name)+ : \",\" . Layout Name",
-            position: 1,
-        },
-        Slot {
-            display_name: "(\",\" Name)+ : \",\" Layout . Name",
-            position: 2,
-        },
-        Slot {
-            display_name: "(\",\" Name)+ : \",\" Layout Name.",
-            position: 3,
-        },
-        Slot {
-            display_name: "(\",\" Name)* : . (\",\" Name)+",
-            position: 0,
-        },
-        Slot {
-            display_name: "(\",\" Name)* : (\",\" Name)+.",
-            position: 1,
-        },
-        Slot {
-            display_name: "(\",\" Name)* : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "(Key Value)+ : . (Key Value)+ Layout Key Layout Value",
-            position: 0,
-        },
-        Slot {
-            display_name: "(Key Value)+ : (Key Value)+ . Layout Key Layout Value",
-            position: 1,
-        },
-        Slot {
-            display_name: "(Key Value)+ : (Key Value)+ Layout . Key Layout Value",
-            position: 2,
-        },
-        Slot {
-            display_name: "(Key Value)+ : (Key Value)+ Layout Key . Layout Value",
-            position: 3,
-        },
-        Slot {
-            display_name: "(Key Value)+ : (Key Value)+ Layout Key Layout . Value",
-            position: 4,
-        },
-        Slot {
-            display_name: "(Key Value)+ : (Key Value)+ Layout Key Layout Value.",
-            position: 5,
-        },
-        Slot {
-            display_name: "(Key Value)+ : . Key Layout Value",
-            position: 0,
-        },
-        Slot {
-            display_name: "(Key Value)+ : Key . Layout Value",
-            position: 1,
-        },
-        Slot {
-            display_name: "(Key Value)+ : Key Layout . Value",
-            position: 2,
-        },
-        Slot {
-            display_name: "(Key Value)+ : Key Layout Value.",
-            position: 3,
-        },
-        Slot {
-            display_name: "(\"else\" Item)? : . \"else\" Layout Item",
-            position: 0,
-        },
-        Slot {
-            display_name: "(\"else\" Item)? : \"else\" . Layout Item",
-            position: 1,
-        },
-        Slot {
-            display_name: "(\"else\" Item)? : \"else\" Layout . Item",
-            position: 2,
-        },
-        Slot {
-            display_name: "(\"else\" Item)? : \"else\" Layout Item.",
-            position: 3,
-        },
-        Slot {
-            display_name: "(\"else\" Item)? : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "(Item)? : . Item",
-            position: 0,
-        },
-        Slot {
-            display_name: "(Item)? : Item.",
-            position: 1,
-        },
-        Slot {
-            display_name: "(Item)? : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "(Key Value) : . Key Layout Value",
-            position: 0,
-        },
-        Slot {
-            display_name: "(Key Value) : Key . Layout Value",
-            position: 1,
-        },
-        Slot {
-            display_name: "(Key Value) : Key Layout . Value",
-            position: 2,
-        },
-        Slot {
-            display_name: "(Key Value) : Key Layout Value.",
-            position: 3,
-        },
-        Slot {
-            display_name: "((Key Value))+ : . ((Key Value))+ Layout (Key Value)",
-            position: 0,
-        },
-        Slot {
-            display_name: "((Key Value))+ : ((Key Value))+ . Layout (Key Value)",
-            position: 1,
-        },
-        Slot {
-            display_name: "((Key Value))+ : ((Key Value))+ Layout . (Key Value)",
-            position: 2,
-        },
-        Slot {
-            display_name: "((Key Value))+ : ((Key Value))+ Layout (Key Value).",
-            position: 3,
-        },
-        Slot {
-            display_name: "((Key Value))+ : . (Key Value)",
-            position: 0,
-        },
-        Slot {
-            display_name: "((Key Value))+ : (Key Value).",
-            position: 1,
-        },
-        Slot {
-            display_name: "((Key Value))* : . ((Key Value))+",
-            position: 0,
-        },
-        Slot {
-            display_name: "((Key Value))* : ((Key Value))+.",
-            position: 1,
-        },
-        Slot {
-            display_name: "((Key Value))* : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "(Value Value)? : . Value Layout Value",
-            position: 0,
-        },
-        Slot {
-            display_name: "(Value Value)? : Value . Layout Value",
-            position: 1,
-        },
-        Slot {
-            display_name: "(Value Value)? : Value Layout . Value",
-            position: 2,
-        },
-        Slot {
-            display_name: "(Value Value)? : Value Layout Value.",
-            position: 3,
-        },
-        Slot {
-            display_name: "(Value Value)? : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "(Key (Value Value)?)+ : . (Key (Value Value)?)+ Layout Key Layout (Value Value)?",
-            position: 0,
-        },
-        Slot {
-            display_name: "(Key (Value Value)?)+ : (Key (Value Value)?)+ . Layout Key Layout (Value Value)?",
-            position: 1,
-        },
-        Slot {
-            display_name: "(Key (Value Value)?)+ : (Key (Value Value)?)+ Layout . Key Layout (Value Value)?",
-            position: 2,
-        },
-        Slot {
-            display_name: "(Key (Value Value)?)+ : (Key (Value Value)?)+ Layout Key . Layout (Value Value)?",
-            position: 3,
-        },
-        Slot {
-            display_name: "(Key (Value Value)?)+ : (Key (Value Value)?)+ Layout Key Layout . (Value Value)?",
-            position: 4,
-        },
-        Slot {
-            display_name: "(Key (Value Value)?)+ : (Key (Value Value)?)+ Layout Key Layout (Value Value)?.",
-            position: 5,
-        },
-        Slot {
-            display_name: "(Key (Value Value)?)+ : . Key Layout (Value Value)?",
-            position: 0,
-        },
-        Slot {
-            display_name: "(Key (Value Value)?)+ : Key . Layout (Value Value)?",
-            position: 1,
-        },
-        Slot {
-            display_name: "(Key (Value Value)?)+ : Key Layout . (Value Value)?",
-            position: 2,
-        },
-        Slot {
-            display_name: "(Key (Value Value)?)+ : Key Layout (Value Value)?.",
-            position: 3,
-        },
-        Slot {
-            display_name: "(Key Choice)+ : . (Key Choice)+ Layout Key Layout Choice",
-            position: 0,
-        },
-        Slot {
-            display_name: "(Key Choice)+ : (Key Choice)+ . Layout Key Layout Choice",
-            position: 1,
-        },
-        Slot {
-            display_name: "(Key Choice)+ : (Key Choice)+ Layout . Key Layout Choice",
-            position: 2,
-        },
-        Slot {
-            display_name: "(Key Choice)+ : (Key Choice)+ Layout Key . Layout Choice",
-            position: 3,
-        },
-        Slot {
-            display_name: "(Key Choice)+ : (Key Choice)+ Layout Key Layout . Choice",
-            position: 4,
-        },
-        Slot {
-            display_name: "(Key Choice)+ : (Key Choice)+ Layout Key Layout Choice.",
-            position: 5,
-        },
-        Slot {
-            display_name: "(Key Choice)+ : . Key Layout Choice",
-            position: 0,
-        },
-        Slot {
-            display_name: "(Key Choice)+ : Key . Layout Choice",
-            position: 1,
-        },
-        Slot {
-            display_name: "(Key Choice)+ : Key Layout . Choice",
-            position: 2,
-        },
-        Slot {
-            display_name: "(Key Choice)+ : Key Layout Choice.",
-            position: 3,
-        },
-        Slot {
-            display_name: "WhiteSpace? : . WhiteSpace",
-            position: 0,
-        },
-        Slot {
-            display_name: "WhiteSpace? : WhiteSpace.",
-            position: 1,
-        },
-        Slot {
-            display_name: "WhiteSpace? : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "Items : . Layout start:Items Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "Items : Layout . start:Items Layout",
-            position: 1,
-        },
-        Slot {
-            display_name: "Items : Layout start:Items . Layout",
-            position: 2,
-        },
-        Slot {
-            display_name: "Items : Layout start:Items Layout.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Names : . Layout start:Names Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "Names : Layout . start:Names Layout",
-            position: 1,
-        },
-        Slot {
-            display_name: "Names : Layout start:Names . Layout",
-            position: 2,
-        },
-        Slot {
-            display_name: "Names : Layout start:Names Layout.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Separated : . Layout start:Separated Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "Separated : Layout . start:Separated Layout",
-            position: 1,
-        },
-        Slot {
-            display_name: "Separated : Layout start:Separated . Layout",
-            position: 2,
-        },
-        Slot {
-            display_name: "Separated : Layout start:Separated Layout.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Pairs : . Layout start:Pairs Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "Pairs : Layout . start:Pairs Layout",
-            position: 1,
-        },
-        Slot {
-            display_name: "Pairs : Layout start:Pairs . Layout",
-            position: 2,
-        },
-        Slot {
-            display_name: "Pairs : Layout start:Pairs Layout.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Else : . Layout start:Else Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "Else : Layout . start:Else Layout",
-            position: 1,
-        },
-        Slot {
-            display_name: "Else : Layout start:Else . Layout",
-            position: 2,
-        },
-        Slot {
-            display_name: "Else : Layout start:Else Layout.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Single : . Layout start:Single Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "Single : Layout . start:Single Layout",
-            position: 1,
-        },
-        Slot {
-            display_name: "Single : Layout start:Single . Layout",
-            position: 2,
-        },
-        Slot {
-            display_name: "Single : Layout start:Single Layout.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Written : . Layout start:Written Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "Written : Layout . start:Written Layout",
-            position: 1,
-        },
-        Slot {
-            display_name: "Written : Layout start:Written . Layout",
-            position: 2,
-        },
-        Slot {
-            display_name: "Written : Layout start:Written Layout.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Mixed : . Layout start:Mixed Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "Mixed : Layout . start:Mixed Layout",
-            position: 1,
-        },
-        Slot {
-            display_name: "Mixed : Layout start:Mixed . Layout",
-            position: 2,
-        },
-        Slot {
-            display_name: "Mixed : Layout start:Mixed Layout.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Expected : . Layout start:Expected Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "Expected : Layout . start:Expected Layout",
-            position: 1,
-        },
-        Slot {
-            display_name: "Expected : Layout start:Expected . Layout",
-            position: 2,
-        },
-        Slot {
-            display_name: "Expected : Layout start:Expected Layout.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Item : . Layout start:Item Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "Item : Layout . start:Item Layout",
-            position: 1,
-        },
-        Slot {
-            display_name: "Item : Layout start:Item . Layout",
-            position: 2,
-        },
-        Slot {
-            display_name: "Item : Layout start:Item Layout.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Key : . Layout start:Key Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "Key : Layout . start:Key Layout",
-            position: 1,
-        },
-        Slot {
-            display_name: "Key : Layout start:Key . Layout",
-            position: 2,
-        },
-        Slot {
-            display_name: "Key : Layout start:Key Layout.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Value : . Layout start:Value Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "Value : Layout . start:Value Layout",
-            position: 1,
-        },
-        Slot {
-            display_name: "Value : Layout start:Value . Layout",
-            position: 2,
-        },
-        Slot {
-            display_name: "Value : Layout start:Value Layout.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Choice : . Layout start:Choice Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "Choice : Layout . start:Choice Layout",
-            position: 1,
-        },
-        Slot {
-            display_name: "Choice : Layout start:Choice . Layout",
-            position: 2,
-        },
-        Slot {
-            display_name: "Choice : Layout start:Choice Layout.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Layout : . start:Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "Layout : start:Layout.",
-            position: 1,
-        },
+        Slot::new(&ALT_0, 0, SlotKind::Nonterminal(NonterminalId(9))),
+        Slot::new(&ALT_0, 1, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_0, 2, SlotKind::Nonterminal(NonterminalId(15))),
+        Slot::new(&ALT_0, 3, SlotKind::End),
+        Slot::new(&ALT_1, 0, SlotKind::Terminal(TerminalId(3))),
+        Slot::new(&ALT_1, 1, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_1, 2, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_1, 3, SlotKind::End),
+        Slot::new(&ALT_2, 0, SlotKind::Nonterminal(NonterminalId(14))),
+        Slot::new(&ALT_2, 1, SlotKind::End),
+        Slot::new(&ALT_3, 0, SlotKind::Nonterminal(NonterminalId(18))),
+        Slot::new(&ALT_3, 1, SlotKind::End),
+        Slot::new(&ALT_4, 0, SlotKind::Terminal(TerminalId(4))),
+        Slot::new(&ALT_4, 1, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_4, 2, SlotKind::Nonterminal(NonterminalId(9))),
+        Slot::new(&ALT_4, 3, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_4, 4, SlotKind::Nonterminal(NonterminalId(19))),
+        Slot::new(&ALT_4, 5, SlotKind::End),
+        Slot::new(&ALT_5, 0, SlotKind::Terminal(TerminalId(6))),
+        Slot::new(&ALT_5, 1, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_5, 2, SlotKind::Nonterminal(NonterminalId(20))),
+        Slot::new(&ALT_5, 3, SlotKind::End),
+        Slot::new(&ALT_6, 0, SlotKind::Terminal(TerminalId(7))),
+        Slot::new(&ALT_6, 1, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_6, 2, SlotKind::Nonterminal(NonterminalId(23))),
+        Slot::new(&ALT_6, 3, SlotKind::End),
+        Slot::new(&ALT_7, 0, SlotKind::Terminal(TerminalId(8))),
+        Slot::new(&ALT_7, 1, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_7, 2, SlotKind::Nonterminal(NonterminalId(25))),
+        Slot::new(&ALT_7, 3, SlotKind::End),
+        Slot::new(&ALT_8, 0, SlotKind::Terminal(TerminalId(9))),
+        Slot::new(&ALT_8, 1, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_8, 2, SlotKind::Nonterminal(NonterminalId(26))),
+        Slot::new(&ALT_8, 3, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_8, 4, SlotKind::Terminal(TerminalId(10))),
+        Slot::new(&ALT_8, 5, SlotKind::End),
+        Slot::new(&ALT_9, 0, SlotKind::Terminal(TerminalId(1))),
+        Slot::new(&ALT_9, 1, SlotKind::End),
+        Slot::new(&ALT_10, 0, SlotKind::Terminal(TerminalId(11))),
+        Slot::new(&ALT_10, 1, SlotKind::End),
+        Slot::new(&ALT_11, 0, SlotKind::Terminal(TerminalId(12))),
+        Slot::new(&ALT_11, 1, SlotKind::End),
+        Slot::new(&ALT_12, 0, SlotKind::Terminal(TerminalId(12))),
+        Slot::new(&ALT_12, 1, SlotKind::End),
+        Slot::new(&ALT_13, 0, SlotKind::Terminal(TerminalId(13))),
+        Slot::new(&ALT_13, 1, SlotKind::End),
+        Slot::new(&ALT_14, 0, SlotKind::Nonterminal(NonterminalId(27))),
+        Slot::new(&ALT_14, 1, SlotKind::End),
+        Slot::new(&ALT_15, 0, SlotKind::Nonterminal(NonterminalId(14))),
+        Slot::new(&ALT_15, 1, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_15, 2, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_15, 3, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_15, 4, SlotKind::Nonterminal(NonterminalId(9))),
+        Slot::new(&ALT_15, 5, SlotKind::End),
+        Slot::new(&ALT_16, 0, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_16, 1, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_16, 2, SlotKind::Nonterminal(NonterminalId(9))),
+        Slot::new(&ALT_16, 3, SlotKind::End),
+        Slot::new(&ALT_17, 0, SlotKind::Nonterminal(NonterminalId(14))),
+        Slot::new(&ALT_17, 1, SlotKind::End),
+        Slot::new(&ALT_18, 0, SlotKind::End),
+        Slot::new(&ALT_19, 0, SlotKind::Nonterminal(NonterminalId(16))),
+        Slot::new(&ALT_19, 1, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_19, 2, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_19, 3, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_19, 4, SlotKind::Terminal(TerminalId(1))),
+        Slot::new(&ALT_19, 5, SlotKind::End),
+        Slot::new(&ALT_20, 0, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_20, 1, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_20, 2, SlotKind::Terminal(TerminalId(1))),
+        Slot::new(&ALT_20, 3, SlotKind::End),
+        Slot::new(&ALT_21, 0, SlotKind::Nonterminal(NonterminalId(16))),
+        Slot::new(&ALT_21, 1, SlotKind::End),
+        Slot::new(&ALT_22, 0, SlotKind::End),
+        Slot::new(&ALT_23, 0, SlotKind::Nonterminal(NonterminalId(18))),
+        Slot::new(&ALT_23, 1, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_23, 2, SlotKind::Nonterminal(NonterminalId(10))),
+        Slot::new(&ALT_23, 3, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_23, 4, SlotKind::Nonterminal(NonterminalId(11))),
+        Slot::new(&ALT_23, 5, SlotKind::End),
+        Slot::new(&ALT_24, 0, SlotKind::Nonterminal(NonterminalId(10))),
+        Slot::new(&ALT_24, 1, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_24, 2, SlotKind::Nonterminal(NonterminalId(11))),
+        Slot::new(&ALT_24, 3, SlotKind::End),
+        Slot::new(&ALT_25, 0, SlotKind::Terminal(TerminalId(5))),
+        Slot::new(&ALT_25, 1, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_25, 2, SlotKind::Nonterminal(NonterminalId(9))),
+        Slot::new(&ALT_25, 3, SlotKind::End),
+        Slot::new(&ALT_26, 0, SlotKind::End),
+        Slot::new(&ALT_27, 0, SlotKind::Nonterminal(NonterminalId(9))),
+        Slot::new(&ALT_27, 1, SlotKind::End),
+        Slot::new(&ALT_28, 0, SlotKind::End),
+        Slot::new(&ALT_29, 0, SlotKind::Nonterminal(NonterminalId(10))),
+        Slot::new(&ALT_29, 1, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_29, 2, SlotKind::Nonterminal(NonterminalId(11))),
+        Slot::new(&ALT_29, 3, SlotKind::End),
+        Slot::new(&ALT_30, 0, SlotKind::Nonterminal(NonterminalId(22))),
+        Slot::new(&ALT_30, 1, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_30, 2, SlotKind::Nonterminal(NonterminalId(21))),
+        Slot::new(&ALT_30, 3, SlotKind::End),
+        Slot::new(&ALT_31, 0, SlotKind::Nonterminal(NonterminalId(21))),
+        Slot::new(&ALT_31, 1, SlotKind::End),
+        Slot::new(&ALT_32, 0, SlotKind::Nonterminal(NonterminalId(22))),
+        Slot::new(&ALT_32, 1, SlotKind::End),
+        Slot::new(&ALT_33, 0, SlotKind::End),
+        Slot::new(&ALT_34, 0, SlotKind::Nonterminal(NonterminalId(11))),
+        Slot::new(&ALT_34, 1, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_34, 2, SlotKind::Nonterminal(NonterminalId(11))),
+        Slot::new(&ALT_34, 3, SlotKind::End),
+        Slot::new(&ALT_35, 0, SlotKind::End),
+        Slot::new(&ALT_36, 0, SlotKind::Nonterminal(NonterminalId(25))),
+        Slot::new(&ALT_36, 1, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_36, 2, SlotKind::Nonterminal(NonterminalId(10))),
+        Slot::new(&ALT_36, 3, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_36, 4, SlotKind::Nonterminal(NonterminalId(24))),
+        Slot::new(&ALT_36, 5, SlotKind::End),
+        Slot::new(&ALT_37, 0, SlotKind::Nonterminal(NonterminalId(10))),
+        Slot::new(&ALT_37, 1, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_37, 2, SlotKind::Nonterminal(NonterminalId(24))),
+        Slot::new(&ALT_37, 3, SlotKind::End),
+        Slot::new(&ALT_38, 0, SlotKind::Nonterminal(NonterminalId(26))),
+        Slot::new(&ALT_38, 1, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_38, 2, SlotKind::Nonterminal(NonterminalId(10))),
+        Slot::new(&ALT_38, 3, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_38, 4, SlotKind::Nonterminal(NonterminalId(12))),
+        Slot::new(&ALT_38, 5, SlotKind::End),
+        Slot::new(&ALT_39, 0, SlotKind::Nonterminal(NonterminalId(10))),
+        Slot::new(&ALT_39, 1, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_39, 2, SlotKind::Nonterminal(NonterminalId(12))),
+        Slot::new(&ALT_39, 3, SlotKind::End),
+        Slot::new(&ALT_40, 0, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_40, 1, SlotKind::End),
+        Slot::new(&ALT_41, 0, SlotKind::End),
+        Slot::new(&ALT_42, 0, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_42, 1, SlotKind::Nonterminal(NonterminalId(0))),
+        Slot::new(&ALT_42, 2, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_42, 3, SlotKind::End),
+        Slot::new(&ALT_43, 0, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_43, 1, SlotKind::Nonterminal(NonterminalId(1))),
+        Slot::new(&ALT_43, 2, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_43, 3, SlotKind::End),
+        Slot::new(&ALT_44, 0, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_44, 1, SlotKind::Nonterminal(NonterminalId(2))),
+        Slot::new(&ALT_44, 2, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_44, 3, SlotKind::End),
+        Slot::new(&ALT_45, 0, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_45, 1, SlotKind::Nonterminal(NonterminalId(3))),
+        Slot::new(&ALT_45, 2, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_45, 3, SlotKind::End),
+        Slot::new(&ALT_46, 0, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_46, 1, SlotKind::Nonterminal(NonterminalId(4))),
+        Slot::new(&ALT_46, 2, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_46, 3, SlotKind::End),
+        Slot::new(&ALT_47, 0, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_47, 1, SlotKind::Nonterminal(NonterminalId(5))),
+        Slot::new(&ALT_47, 2, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_47, 3, SlotKind::End),
+        Slot::new(&ALT_48, 0, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_48, 1, SlotKind::Nonterminal(NonterminalId(6))),
+        Slot::new(&ALT_48, 2, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_48, 3, SlotKind::End),
+        Slot::new(&ALT_49, 0, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_49, 1, SlotKind::Nonterminal(NonterminalId(7))),
+        Slot::new(&ALT_49, 2, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_49, 3, SlotKind::End),
+        Slot::new(&ALT_50, 0, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_50, 1, SlotKind::Nonterminal(NonterminalId(8))),
+        Slot::new(&ALT_50, 2, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_50, 3, SlotKind::End),
+        Slot::new(&ALT_51, 0, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_51, 1, SlotKind::Nonterminal(NonterminalId(9))),
+        Slot::new(&ALT_51, 2, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_51, 3, SlotKind::End),
+        Slot::new(&ALT_52, 0, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_52, 1, SlotKind::Nonterminal(NonterminalId(10))),
+        Slot::new(&ALT_52, 2, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_52, 3, SlotKind::End),
+        Slot::new(&ALT_53, 0, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_53, 1, SlotKind::Nonterminal(NonterminalId(11))),
+        Slot::new(&ALT_53, 2, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_53, 3, SlotKind::End),
+        Slot::new(&ALT_54, 0, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_54, 1, SlotKind::Nonterminal(NonterminalId(12))),
+        Slot::new(&ALT_54, 2, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_54, 3, SlotKind::End),
+        Slot::new(&ALT_55, 0, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_55, 1, SlotKind::End),
     ];
+    static ALT_0: Alternative = Alternative {
+        head: NonterminalId(0),
+        symbols: &["Item", "Layout", "(\",\" Item)*"],
+    };
+    static ALT_1: Alternative = Alternative {
+        head: NonterminalId(1),
+        symbols: &["\"names\"", "Layout", "(\",\" Name)*"],
+    };
+    static ALT_2: Alternative = Alternative {
+        head: NonterminalId(2),
+        symbols: &["(\",\" Item)+"],
+    };
+    static ALT_3: Alternative = Alternative {
+        head: NonterminalId(3),
+        symbols: &["(Key Value)+"],
+    };
+    static ALT_4: Alternative = Alternative {
+        head: NonterminalId(4),
+        symbols: &["\"if\"", "Layout", "Item", "Layout", "(\"else\" Item)?"],
+    };
+    static ALT_5: Alternative = Alternative {
+        head: NonterminalId(5),
+        symbols: &["\"single\"", "Layout", "(Item)?"],
+    };
+    static ALT_6: Alternative = Alternative {
+        head: NonterminalId(6),
+        symbols: &["\"written\"", "Layout", "((Key Value))*"],
+    };
+    static ALT_7: Alternative = Alternative {
+        head: NonterminalId(7),
+        symbols: &["\"mixed\"", "Layout", "(Key (Value Value)?)+"],
+    };
+    static ALT_8: Alternative = Alternative {
+        head: NonterminalId(8),
+        symbols: &["\"expect\"", "Layout", "(Key Choice)+", "Layout", "\";\""],
+    };
+    static ALT_9: Alternative = Alternative {
+        head: NonterminalId(9),
+        symbols: &["Name"],
+    };
+    static ALT_10: Alternative = Alternative {
+        head: NonterminalId(10),
+        symbols: &["\"k\""],
+    };
+    static ALT_11: Alternative = Alternative {
+        head: NonterminalId(11),
+        symbols: &["\"v\""],
+    };
+    static ALT_12: Alternative = Alternative {
+        head: NonterminalId(12),
+        symbols: &["\"v\""],
+    };
+    static ALT_13: Alternative = Alternative {
+        head: NonterminalId(12),
+        symbols: &["\"w\""],
+    };
+    static ALT_14: Alternative = Alternative {
+        head: NonterminalId(13),
+        symbols: &["WhiteSpace? !>> WhiteSpace"],
+    };
+    static ALT_15: Alternative = Alternative {
+        head: NonterminalId(14),
+        symbols: &["(\",\" Item)+", "Layout", "\",\"", "Layout", "Item"],
+    };
+    static ALT_16: Alternative = Alternative {
+        head: NonterminalId(14),
+        symbols: &["\",\"", "Layout", "Item"],
+    };
+    static ALT_17: Alternative = Alternative {
+        head: NonterminalId(15),
+        symbols: &["(\",\" Item)+"],
+    };
+    static ALT_18: Alternative = Alternative {
+        head: NonterminalId(15),
+        symbols: &[],
+    };
+    static ALT_19: Alternative = Alternative {
+        head: NonterminalId(16),
+        symbols: &["(\",\" Name)+", "Layout", "\",\"", "Layout", "Name"],
+    };
+    static ALT_20: Alternative = Alternative {
+        head: NonterminalId(16),
+        symbols: &["\",\"", "Layout", "Name"],
+    };
+    static ALT_21: Alternative = Alternative {
+        head: NonterminalId(17),
+        symbols: &["(\",\" Name)+"],
+    };
+    static ALT_22: Alternative = Alternative {
+        head: NonterminalId(17),
+        symbols: &[],
+    };
+    static ALT_23: Alternative = Alternative {
+        head: NonterminalId(18),
+        symbols: &["(Key Value)+", "Layout", "Key", "Layout", "Value"],
+    };
+    static ALT_24: Alternative = Alternative {
+        head: NonterminalId(18),
+        symbols: &["Key", "Layout", "Value"],
+    };
+    static ALT_25: Alternative = Alternative {
+        head: NonterminalId(19),
+        symbols: &["\"else\"", "Layout", "Item"],
+    };
+    static ALT_26: Alternative = Alternative {
+        head: NonterminalId(19),
+        symbols: &[],
+    };
+    static ALT_27: Alternative = Alternative {
+        head: NonterminalId(20),
+        symbols: &["Item"],
+    };
+    static ALT_28: Alternative = Alternative {
+        head: NonterminalId(20),
+        symbols: &[],
+    };
+    static ALT_29: Alternative = Alternative {
+        head: NonterminalId(21),
+        symbols: &["Key", "Layout", "Value"],
+    };
+    static ALT_30: Alternative = Alternative {
+        head: NonterminalId(22),
+        symbols: &["((Key Value))+", "Layout", "(Key Value)"],
+    };
+    static ALT_31: Alternative = Alternative {
+        head: NonterminalId(22),
+        symbols: &["(Key Value)"],
+    };
+    static ALT_32: Alternative = Alternative {
+        head: NonterminalId(23),
+        symbols: &["((Key Value))+"],
+    };
+    static ALT_33: Alternative = Alternative {
+        head: NonterminalId(23),
+        symbols: &[],
+    };
+    static ALT_34: Alternative = Alternative {
+        head: NonterminalId(24),
+        symbols: &["Value", "Layout", "Value"],
+    };
+    static ALT_35: Alternative = Alternative {
+        head: NonterminalId(24),
+        symbols: &[],
+    };
+    static ALT_36: Alternative = Alternative {
+        head: NonterminalId(25),
+        symbols: &[
+            "(Key (Value Value)?)+",
+            "Layout",
+            "Key",
+            "Layout",
+            "(Value Value)?",
+        ],
+    };
+    static ALT_37: Alternative = Alternative {
+        head: NonterminalId(25),
+        symbols: &["Key", "Layout", "(Value Value)?"],
+    };
+    static ALT_38: Alternative = Alternative {
+        head: NonterminalId(26),
+        symbols: &["(Key Choice)+", "Layout", "Key", "Layout", "Choice"],
+    };
+    static ALT_39: Alternative = Alternative {
+        head: NonterminalId(26),
+        symbols: &["Key", "Layout", "Choice"],
+    };
+    static ALT_40: Alternative = Alternative {
+        head: NonterminalId(27),
+        symbols: &["WhiteSpace"],
+    };
+    static ALT_41: Alternative = Alternative {
+        head: NonterminalId(27),
+        symbols: &[],
+    };
+    static ALT_42: Alternative = Alternative {
+        head: NonterminalId(28),
+        symbols: &["Layout", "start:Items", "Layout"],
+    };
+    static ALT_43: Alternative = Alternative {
+        head: NonterminalId(29),
+        symbols: &["Layout", "start:Names", "Layout"],
+    };
+    static ALT_44: Alternative = Alternative {
+        head: NonterminalId(30),
+        symbols: &["Layout", "start:Separated", "Layout"],
+    };
+    static ALT_45: Alternative = Alternative {
+        head: NonterminalId(31),
+        symbols: &["Layout", "start:Pairs", "Layout"],
+    };
+    static ALT_46: Alternative = Alternative {
+        head: NonterminalId(32),
+        symbols: &["Layout", "start:Else", "Layout"],
+    };
+    static ALT_47: Alternative = Alternative {
+        head: NonterminalId(33),
+        symbols: &["Layout", "start:Single", "Layout"],
+    };
+    static ALT_48: Alternative = Alternative {
+        head: NonterminalId(34),
+        symbols: &["Layout", "start:Written", "Layout"],
+    };
+    static ALT_49: Alternative = Alternative {
+        head: NonterminalId(35),
+        symbols: &["Layout", "start:Mixed", "Layout"],
+    };
+    static ALT_50: Alternative = Alternative {
+        head: NonterminalId(36),
+        symbols: &["Layout", "start:Expected", "Layout"],
+    };
+    static ALT_51: Alternative = Alternative {
+        head: NonterminalId(37),
+        symbols: &["Layout", "start:Item", "Layout"],
+    };
+    static ALT_52: Alternative = Alternative {
+        head: NonterminalId(38),
+        symbols: &["Layout", "start:Key", "Layout"],
+    };
+    static ALT_53: Alternative = Alternative {
+        head: NonterminalId(39),
+        symbols: &["Layout", "start:Value", "Layout"],
+    };
+    static ALT_54: Alternative = Alternative {
+        head: NonterminalId(40),
+        symbols: &["Layout", "start:Choice", "Layout"],
+    };
+    static ALT_55: Alternative = Alternative {
+        head: NonterminalId(41),
+        symbols: &["start:Layout"],
+    };
     pub(super) static FIRST_SLOTS: [&[SlotId]; 42] = [
         &[SlotId(0)],
         &[SlotId(4)],
@@ -1120,157 +661,90 @@ pub mod data {
     // error reporting path needs to reach a terminal set from a terminal id. This table, indexed
     // by terminal id, serves only that.
     pub(super) static SINGLE_TERMINAL_SETS: [TerminalSet; 16] = [
-        TerminalSet {
-            id: 35,
-            terminals: &[TerminalId(0)],
-        },
-        TerminalSet {
-            id: 36,
-            terminals: &[TerminalId(1)],
-        },
-        TerminalSet {
-            id: 37,
-            terminals: &[TerminalId(2)],
-        },
-        TerminalSet {
-            id: 38,
-            terminals: &[TerminalId(3)],
-        },
-        TerminalSet {
-            id: 39,
-            terminals: &[TerminalId(4)],
-        },
-        TerminalSet {
-            id: 40,
-            terminals: &[TerminalId(5)],
-        },
-        TerminalSet {
-            id: 41,
-            terminals: &[TerminalId(6)],
-        },
-        TerminalSet {
-            id: 42,
-            terminals: &[TerminalId(7)],
-        },
-        TerminalSet {
-            id: 43,
-            terminals: &[TerminalId(8)],
-        },
-        TerminalSet {
-            id: 44,
-            terminals: &[TerminalId(9)],
-        },
-        TerminalSet {
-            id: 45,
-            terminals: &[TerminalId(10)],
-        },
-        TerminalSet {
-            id: 46,
-            terminals: &[TerminalId(11)],
-        },
-        TerminalSet {
-            id: 47,
-            terminals: &[TerminalId(12)],
-        },
-        TerminalSet {
-            id: 48,
-            terminals: &[TerminalId(13)],
-        },
-        TerminalSet {
-            id: 49,
-            terminals: &[TerminalId(14)],
-        },
-        TerminalSet {
-            id: 50,
-            terminals: &[TerminalId(15)],
-        },
+        TerminalSet::new(35, &[TerminalId(0)]),
+        TerminalSet::new(36, &[TerminalId(1)]),
+        TerminalSet::new(37, &[TerminalId(2)]),
+        TerminalSet::new(38, &[TerminalId(3)]),
+        TerminalSet::new(39, &[TerminalId(4)]),
+        TerminalSet::new(40, &[TerminalId(5)]),
+        TerminalSet::new(41, &[TerminalId(6)]),
+        TerminalSet::new(42, &[TerminalId(7)]),
+        TerminalSet::new(43, &[TerminalId(8)]),
+        TerminalSet::new(44, &[TerminalId(9)]),
+        TerminalSet::new(45, &[TerminalId(10)]),
+        TerminalSet::new(46, &[TerminalId(11)]),
+        TerminalSet::new(47, &[TerminalId(12)]),
+        TerminalSet::new(48, &[TerminalId(13)]),
+        TerminalSet::new(49, &[TerminalId(14)]),
+        TerminalSet::new(50, &[TerminalId(15)]),
     ];
     // Items { WhiteSpace, EOF }
-    pub static FOLLOW_SET_ITEMS: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(0), TerminalId(15)],
-    };
+    pub static FOLLOW_SET_ITEMS: TerminalSet =
+        TerminalSet::new(0, &[TerminalId(0), TerminalId(15)]);
     // Names { WhiteSpace, EOF }
-    pub static FOLLOW_SET_NAMES: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(0), TerminalId(15)],
-    };
+    pub static FOLLOW_SET_NAMES: TerminalSet =
+        TerminalSet::new(0, &[TerminalId(0), TerminalId(15)]);
     // Separated { WhiteSpace, EOF }
-    pub static FOLLOW_SET_SEPARATED: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(0), TerminalId(15)],
-    };
+    pub static FOLLOW_SET_SEPARATED: TerminalSet =
+        TerminalSet::new(0, &[TerminalId(0), TerminalId(15)]);
     // Pairs { WhiteSpace, EOF }
-    pub static FOLLOW_SET_PAIRS: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(0), TerminalId(15)],
-    };
+    pub static FOLLOW_SET_PAIRS: TerminalSet =
+        TerminalSet::new(0, &[TerminalId(0), TerminalId(15)]);
     // Else { WhiteSpace, EOF }
-    pub static FOLLOW_SET_ELSE: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(0), TerminalId(15)],
-    };
+    pub static FOLLOW_SET_ELSE: TerminalSet = TerminalSet::new(0, &[TerminalId(0), TerminalId(15)]);
     // Single { WhiteSpace, EOF }
-    pub static FOLLOW_SET_SINGLE: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(0), TerminalId(15)],
-    };
+    pub static FOLLOW_SET_SINGLE: TerminalSet =
+        TerminalSet::new(0, &[TerminalId(0), TerminalId(15)]);
     // Written { WhiteSpace, EOF }
-    pub static FOLLOW_SET_WRITTEN: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(0), TerminalId(15)],
-    };
+    pub static FOLLOW_SET_WRITTEN: TerminalSet =
+        TerminalSet::new(0, &[TerminalId(0), TerminalId(15)]);
     // Mixed { WhiteSpace, EOF }
-    pub static FOLLOW_SET_MIXED: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(0), TerminalId(15)],
-    };
+    pub static FOLLOW_SET_MIXED: TerminalSet =
+        TerminalSet::new(0, &[TerminalId(0), TerminalId(15)]);
     // Expected { WhiteSpace, EOF }
-    pub static FOLLOW_SET_EXPECTED: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(0), TerminalId(15)],
-    };
+    pub static FOLLOW_SET_EXPECTED: TerminalSet =
+        TerminalSet::new(0, &[TerminalId(0), TerminalId(15)]);
     // Item { WhiteSpace, ",", "else", EOF }
-    pub static FOLLOW_SET_ITEM: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(0), TerminalId(2), TerminalId(5), TerminalId(15)],
-    };
+    pub static FOLLOW_SET_ITEM: TerminalSet = TerminalSet::new(
+        1,
+        &[TerminalId(0), TerminalId(2), TerminalId(5), TerminalId(15)],
+    );
     // Key { WhiteSpace, "k", "v", "w", EOF }
-    pub static FOLLOW_SET_KEY: TerminalSet = TerminalSet {
-        id: 2,
-        terminals: &[
+    pub static FOLLOW_SET_KEY: TerminalSet = TerminalSet::new(
+        2,
+        &[
             TerminalId(0),
             TerminalId(11),
             TerminalId(12),
             TerminalId(13),
             TerminalId(15),
         ],
-    };
+    );
     // Value { WhiteSpace, "k", "v", EOF }
-    pub static FOLLOW_SET_VALUE: TerminalSet = TerminalSet {
-        id: 3,
-        terminals: &[
+    pub static FOLLOW_SET_VALUE: TerminalSet = TerminalSet::new(
+        3,
+        &[
             TerminalId(0),
             TerminalId(11),
             TerminalId(12),
             TerminalId(15),
         ],
-    };
+    );
     // Choice { WhiteSpace, ";", "k", EOF }
-    pub static FOLLOW_SET_CHOICE: TerminalSet = TerminalSet {
-        id: 4,
-        terminals: &[
+    pub static FOLLOW_SET_CHOICE: TerminalSet = TerminalSet::new(
+        4,
+        &[
             TerminalId(0),
             TerminalId(10),
             TerminalId(11),
             TerminalId(15),
         ],
-    };
+    );
     // Layout { WhiteSpace, Name, ",", "names", "if", "else", "single", "written", "mixed",
     // "expect", ";", "k", "v", "w", EOF }
-    pub static FOLLOW_SET_LAYOUT: TerminalSet = TerminalSet {
-        id: 5,
-        terminals: &[
+    pub static FOLLOW_SET_LAYOUT: TerminalSet = TerminalSet::new(
+        5,
+        &[
             TerminalId(0),
             TerminalId(1),
             TerminalId(2),
@@ -1287,87 +761,61 @@ pub mod data {
             TerminalId(13),
             TerminalId(15),
         ],
-    };
+    );
     // Layout : . Opt_3 !>> WhiteSpace !>> { WhiteSpace }
-    pub static FOLLOW_RESTRICTION_LAYOUT_ALT0_POS0: TerminalSet = TerminalSet {
-        id: 6,
-        terminals: &[TerminalId(0)],
-    };
+    pub static FOLLOW_RESTRICTION_LAYOUT_ALT0_POS0: TerminalSet =
+        TerminalSet::new(6, &[TerminalId(0)]);
     // Plus_0 { WhiteSpace, ",", EOF }
-    pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
-        id: 7,
-        terminals: &[TerminalId(0), TerminalId(2), TerminalId(15)],
-    };
+    pub static FOLLOW_SET_PLUS_0: TerminalSet =
+        TerminalSet::new(7, &[TerminalId(0), TerminalId(2), TerminalId(15)]);
     // Star_0 { WhiteSpace, EOF }
-    pub static FOLLOW_SET_STAR_0: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(0), TerminalId(15)],
-    };
+    pub static FOLLOW_SET_STAR_0: TerminalSet =
+        TerminalSet::new(0, &[TerminalId(0), TerminalId(15)]);
     // Plus_1 { WhiteSpace, ",", EOF }
-    pub static FOLLOW_SET_PLUS_1: TerminalSet = TerminalSet {
-        id: 7,
-        terminals: &[TerminalId(0), TerminalId(2), TerminalId(15)],
-    };
+    pub static FOLLOW_SET_PLUS_1: TerminalSet =
+        TerminalSet::new(7, &[TerminalId(0), TerminalId(2), TerminalId(15)]);
     // Star_1 { WhiteSpace, EOF }
-    pub static FOLLOW_SET_STAR_1: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(0), TerminalId(15)],
-    };
+    pub static FOLLOW_SET_STAR_1: TerminalSet =
+        TerminalSet::new(0, &[TerminalId(0), TerminalId(15)]);
     // Plus_2 { WhiteSpace, "k", EOF }
-    pub static FOLLOW_SET_PLUS_2: TerminalSet = TerminalSet {
-        id: 8,
-        terminals: &[TerminalId(0), TerminalId(11), TerminalId(15)],
-    };
+    pub static FOLLOW_SET_PLUS_2: TerminalSet =
+        TerminalSet::new(8, &[TerminalId(0), TerminalId(11), TerminalId(15)]);
     // Opt_0 { WhiteSpace, EOF }
-    pub static FOLLOW_SET_OPT_0: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(0), TerminalId(15)],
-    };
+    pub static FOLLOW_SET_OPT_0: TerminalSet =
+        TerminalSet::new(0, &[TerminalId(0), TerminalId(15)]);
     // Opt_1 { WhiteSpace, EOF }
-    pub static FOLLOW_SET_OPT_1: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(0), TerminalId(15)],
-    };
+    pub static FOLLOW_SET_OPT_1: TerminalSet =
+        TerminalSet::new(0, &[TerminalId(0), TerminalId(15)]);
     // Group_0 { WhiteSpace, "k", EOF }
-    pub static FOLLOW_SET_GROUP_0: TerminalSet = TerminalSet {
-        id: 8,
-        terminals: &[TerminalId(0), TerminalId(11), TerminalId(15)],
-    };
+    pub static FOLLOW_SET_GROUP_0: TerminalSet =
+        TerminalSet::new(8, &[TerminalId(0), TerminalId(11), TerminalId(15)]);
     // Plus_3 { WhiteSpace, "k", EOF }
-    pub static FOLLOW_SET_PLUS_3: TerminalSet = TerminalSet {
-        id: 8,
-        terminals: &[TerminalId(0), TerminalId(11), TerminalId(15)],
-    };
+    pub static FOLLOW_SET_PLUS_3: TerminalSet =
+        TerminalSet::new(8, &[TerminalId(0), TerminalId(11), TerminalId(15)]);
     // Star_2 { WhiteSpace, EOF }
-    pub static FOLLOW_SET_STAR_2: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(0), TerminalId(15)],
-    };
+    pub static FOLLOW_SET_STAR_2: TerminalSet =
+        TerminalSet::new(0, &[TerminalId(0), TerminalId(15)]);
     // Opt_2 { WhiteSpace, "k", EOF }
-    pub static FOLLOW_SET_OPT_2: TerminalSet = TerminalSet {
-        id: 8,
-        terminals: &[TerminalId(0), TerminalId(11), TerminalId(15)],
-    };
+    pub static FOLLOW_SET_OPT_2: TerminalSet =
+        TerminalSet::new(8, &[TerminalId(0), TerminalId(11), TerminalId(15)]);
     // Plus_4 { WhiteSpace, "k", EOF }
-    pub static FOLLOW_SET_PLUS_4: TerminalSet = TerminalSet {
-        id: 8,
-        terminals: &[TerminalId(0), TerminalId(11), TerminalId(15)],
-    };
+    pub static FOLLOW_SET_PLUS_4: TerminalSet =
+        TerminalSet::new(8, &[TerminalId(0), TerminalId(11), TerminalId(15)]);
     // Plus_5 { WhiteSpace, ";", "k", EOF }
-    pub static FOLLOW_SET_PLUS_5: TerminalSet = TerminalSet {
-        id: 4,
-        terminals: &[
+    pub static FOLLOW_SET_PLUS_5: TerminalSet = TerminalSet::new(
+        4,
+        &[
             TerminalId(0),
             TerminalId(10),
             TerminalId(11),
             TerminalId(15),
         ],
-    };
+    );
     // Opt_3 { Name, ",", "names", "if", "else", "single", "written", "mixed", "expect", ";",
     // "k", "v", "w", EOF }
-    pub static FOLLOW_SET_OPT_3: TerminalSet = TerminalSet {
-        id: 9,
-        terminals: &[
+    pub static FOLLOW_SET_OPT_3: TerminalSet = TerminalSet::new(
+        9,
+        &[
             TerminalId(1),
             TerminalId(2),
             TerminalId(3),
@@ -1383,285 +831,131 @@ pub mod data {
             TerminalId(13),
             TerminalId(15),
         ],
-    };
+    );
     // StartItems { EOF }
-    pub static FOLLOW_SET_START_ITEMS: TerminalSet = TerminalSet {
-        id: 10,
-        terminals: &[TerminalId(15)],
-    };
+    pub static FOLLOW_SET_START_ITEMS: TerminalSet = TerminalSet::new(10, &[TerminalId(15)]);
     // StartNames { EOF }
-    pub static FOLLOW_SET_START_NAMES: TerminalSet = TerminalSet {
-        id: 10,
-        terminals: &[TerminalId(15)],
-    };
+    pub static FOLLOW_SET_START_NAMES: TerminalSet = TerminalSet::new(10, &[TerminalId(15)]);
     // StartSeparated { EOF }
-    pub static FOLLOW_SET_START_SEPARATED: TerminalSet = TerminalSet {
-        id: 10,
-        terminals: &[TerminalId(15)],
-    };
+    pub static FOLLOW_SET_START_SEPARATED: TerminalSet = TerminalSet::new(10, &[TerminalId(15)]);
     // StartPairs { EOF }
-    pub static FOLLOW_SET_START_PAIRS: TerminalSet = TerminalSet {
-        id: 10,
-        terminals: &[TerminalId(15)],
-    };
+    pub static FOLLOW_SET_START_PAIRS: TerminalSet = TerminalSet::new(10, &[TerminalId(15)]);
     // StartElse { EOF }
-    pub static FOLLOW_SET_START_ELSE: TerminalSet = TerminalSet {
-        id: 10,
-        terminals: &[TerminalId(15)],
-    };
+    pub static FOLLOW_SET_START_ELSE: TerminalSet = TerminalSet::new(10, &[TerminalId(15)]);
     // StartSingle { EOF }
-    pub static FOLLOW_SET_START_SINGLE: TerminalSet = TerminalSet {
-        id: 10,
-        terminals: &[TerminalId(15)],
-    };
+    pub static FOLLOW_SET_START_SINGLE: TerminalSet = TerminalSet::new(10, &[TerminalId(15)]);
     // StartWritten { EOF }
-    pub static FOLLOW_SET_START_WRITTEN: TerminalSet = TerminalSet {
-        id: 10,
-        terminals: &[TerminalId(15)],
-    };
+    pub static FOLLOW_SET_START_WRITTEN: TerminalSet = TerminalSet::new(10, &[TerminalId(15)]);
     // StartMixed { EOF }
-    pub static FOLLOW_SET_START_MIXED: TerminalSet = TerminalSet {
-        id: 10,
-        terminals: &[TerminalId(15)],
-    };
+    pub static FOLLOW_SET_START_MIXED: TerminalSet = TerminalSet::new(10, &[TerminalId(15)]);
     // StartExpected { EOF }
-    pub static FOLLOW_SET_START_EXPECTED: TerminalSet = TerminalSet {
-        id: 10,
-        terminals: &[TerminalId(15)],
-    };
+    pub static FOLLOW_SET_START_EXPECTED: TerminalSet = TerminalSet::new(10, &[TerminalId(15)]);
     // StartItem { EOF }
-    pub static FOLLOW_SET_START_ITEM: TerminalSet = TerminalSet {
-        id: 10,
-        terminals: &[TerminalId(15)],
-    };
+    pub static FOLLOW_SET_START_ITEM: TerminalSet = TerminalSet::new(10, &[TerminalId(15)]);
     // StartKey { EOF }
-    pub static FOLLOW_SET_START_KEY: TerminalSet = TerminalSet {
-        id: 10,
-        terminals: &[TerminalId(15)],
-    };
+    pub static FOLLOW_SET_START_KEY: TerminalSet = TerminalSet::new(10, &[TerminalId(15)]);
     // StartValue { EOF }
-    pub static FOLLOW_SET_START_VALUE: TerminalSet = TerminalSet {
-        id: 10,
-        terminals: &[TerminalId(15)],
-    };
+    pub static FOLLOW_SET_START_VALUE: TerminalSet = TerminalSet::new(10, &[TerminalId(15)]);
     // StartChoice { EOF }
-    pub static FOLLOW_SET_START_CHOICE: TerminalSet = TerminalSet {
-        id: 10,
-        terminals: &[TerminalId(15)],
-    };
+    pub static FOLLOW_SET_START_CHOICE: TerminalSet = TerminalSet::new(10, &[TerminalId(15)]);
     // StartLayout { EOF }
-    pub static FOLLOW_SET_START_LAYOUT: TerminalSet = TerminalSet {
-        id: 10,
-        terminals: &[TerminalId(15)],
-    };
+    pub static FOLLOW_SET_START_LAYOUT: TerminalSet = TerminalSet::new(10, &[TerminalId(15)]);
     // Items { Name }
-    pub static FIRST_SET_ITEMS: TerminalSet = TerminalSet {
-        id: 11,
-        terminals: &[TerminalId(1)],
-    };
+    pub static FIRST_SET_ITEMS: TerminalSet = TerminalSet::new(11, &[TerminalId(1)]);
     // Names { "names" }
-    pub static FIRST_SET_NAMES: TerminalSet = TerminalSet {
-        id: 12,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FIRST_SET_NAMES: TerminalSet = TerminalSet::new(12, &[TerminalId(3)]);
     // Separated { "," }
-    pub static FIRST_SET_SEPARATED: TerminalSet = TerminalSet {
-        id: 13,
-        terminals: &[TerminalId(2)],
-    };
+    pub static FIRST_SET_SEPARATED: TerminalSet = TerminalSet::new(13, &[TerminalId(2)]);
     // Pairs { "k" }
-    pub static FIRST_SET_PAIRS: TerminalSet = TerminalSet {
-        id: 14,
-        terminals: &[TerminalId(11)],
-    };
+    pub static FIRST_SET_PAIRS: TerminalSet = TerminalSet::new(14, &[TerminalId(11)]);
     // Else { "if" }
-    pub static FIRST_SET_ELSE: TerminalSet = TerminalSet {
-        id: 15,
-        terminals: &[TerminalId(4)],
-    };
+    pub static FIRST_SET_ELSE: TerminalSet = TerminalSet::new(15, &[TerminalId(4)]);
     // Single { "single" }
-    pub static FIRST_SET_SINGLE: TerminalSet = TerminalSet {
-        id: 16,
-        terminals: &[TerminalId(6)],
-    };
+    pub static FIRST_SET_SINGLE: TerminalSet = TerminalSet::new(16, &[TerminalId(6)]);
     // Written { "written" }
-    pub static FIRST_SET_WRITTEN: TerminalSet = TerminalSet {
-        id: 17,
-        terminals: &[TerminalId(7)],
-    };
+    pub static FIRST_SET_WRITTEN: TerminalSet = TerminalSet::new(17, &[TerminalId(7)]);
     // Mixed { "mixed" }
-    pub static FIRST_SET_MIXED: TerminalSet = TerminalSet {
-        id: 18,
-        terminals: &[TerminalId(8)],
-    };
+    pub static FIRST_SET_MIXED: TerminalSet = TerminalSet::new(18, &[TerminalId(8)]);
     // Expected { "expect" }
-    pub static FIRST_SET_EXPECTED: TerminalSet = TerminalSet {
-        id: 19,
-        terminals: &[TerminalId(9)],
-    };
+    pub static FIRST_SET_EXPECTED: TerminalSet = TerminalSet::new(19, &[TerminalId(9)]);
     // Item { Name }
-    pub static FIRST_SET_ITEM: TerminalSet = TerminalSet {
-        id: 11,
-        terminals: &[TerminalId(1)],
-    };
+    pub static FIRST_SET_ITEM: TerminalSet = TerminalSet::new(11, &[TerminalId(1)]);
     // Key { "k" }
-    pub static FIRST_SET_KEY: TerminalSet = TerminalSet {
-        id: 14,
-        terminals: &[TerminalId(11)],
-    };
+    pub static FIRST_SET_KEY: TerminalSet = TerminalSet::new(14, &[TerminalId(11)]);
     // Value { "v" }
-    pub static FIRST_SET_VALUE: TerminalSet = TerminalSet {
-        id: 20,
-        terminals: &[TerminalId(12)],
-    };
+    pub static FIRST_SET_VALUE: TerminalSet = TerminalSet::new(20, &[TerminalId(12)]);
     // Choice { "v", "w" }
-    pub static FIRST_SET_CHOICE: TerminalSet = TerminalSet {
-        id: 21,
-        terminals: &[TerminalId(12), TerminalId(13)],
-    };
+    pub static FIRST_SET_CHOICE: TerminalSet =
+        TerminalSet::new(21, &[TerminalId(12), TerminalId(13)]);
     // Layout { WhiteSpace }
-    pub static FIRST_SET_LAYOUT: TerminalSet = TerminalSet {
-        id: 22,
-        terminals: &[TerminalId(0)],
-    };
+    pub static FIRST_SET_LAYOUT: TerminalSet = TerminalSet::new(22, &[TerminalId(0)]);
     // Plus_0 { "," }
-    pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet {
-        id: 13,
-        terminals: &[TerminalId(2)],
-    };
+    pub static FIRST_SET_PLUS_0: TerminalSet = TerminalSet::new(13, &[TerminalId(2)]);
     // Star_0 { "," }
-    pub static FIRST_SET_STAR_0: TerminalSet = TerminalSet {
-        id: 13,
-        terminals: &[TerminalId(2)],
-    };
+    pub static FIRST_SET_STAR_0: TerminalSet = TerminalSet::new(13, &[TerminalId(2)]);
     // Plus_1 { "," }
-    pub static FIRST_SET_PLUS_1: TerminalSet = TerminalSet {
-        id: 13,
-        terminals: &[TerminalId(2)],
-    };
+    pub static FIRST_SET_PLUS_1: TerminalSet = TerminalSet::new(13, &[TerminalId(2)]);
     // Star_1 { "," }
-    pub static FIRST_SET_STAR_1: TerminalSet = TerminalSet {
-        id: 13,
-        terminals: &[TerminalId(2)],
-    };
+    pub static FIRST_SET_STAR_1: TerminalSet = TerminalSet::new(13, &[TerminalId(2)]);
     // Plus_2 { "k" }
-    pub static FIRST_SET_PLUS_2: TerminalSet = TerminalSet {
-        id: 14,
-        terminals: &[TerminalId(11)],
-    };
+    pub static FIRST_SET_PLUS_2: TerminalSet = TerminalSet::new(14, &[TerminalId(11)]);
     // Opt_0 { "else" }
-    pub static FIRST_SET_OPT_0: TerminalSet = TerminalSet {
-        id: 23,
-        terminals: &[TerminalId(5)],
-    };
+    pub static FIRST_SET_OPT_0: TerminalSet = TerminalSet::new(23, &[TerminalId(5)]);
     // Opt_1 { Name }
-    pub static FIRST_SET_OPT_1: TerminalSet = TerminalSet {
-        id: 11,
-        terminals: &[TerminalId(1)],
-    };
+    pub static FIRST_SET_OPT_1: TerminalSet = TerminalSet::new(11, &[TerminalId(1)]);
     // Group_0 { "k" }
-    pub static FIRST_SET_GROUP_0: TerminalSet = TerminalSet {
-        id: 14,
-        terminals: &[TerminalId(11)],
-    };
+    pub static FIRST_SET_GROUP_0: TerminalSet = TerminalSet::new(14, &[TerminalId(11)]);
     // Plus_3 { "k" }
-    pub static FIRST_SET_PLUS_3: TerminalSet = TerminalSet {
-        id: 14,
-        terminals: &[TerminalId(11)],
-    };
+    pub static FIRST_SET_PLUS_3: TerminalSet = TerminalSet::new(14, &[TerminalId(11)]);
     // Star_2 { "k" }
-    pub static FIRST_SET_STAR_2: TerminalSet = TerminalSet {
-        id: 14,
-        terminals: &[TerminalId(11)],
-    };
+    pub static FIRST_SET_STAR_2: TerminalSet = TerminalSet::new(14, &[TerminalId(11)]);
     // Opt_2 { "v" }
-    pub static FIRST_SET_OPT_2: TerminalSet = TerminalSet {
-        id: 20,
-        terminals: &[TerminalId(12)],
-    };
+    pub static FIRST_SET_OPT_2: TerminalSet = TerminalSet::new(20, &[TerminalId(12)]);
     // Plus_4 { "k" }
-    pub static FIRST_SET_PLUS_4: TerminalSet = TerminalSet {
-        id: 14,
-        terminals: &[TerminalId(11)],
-    };
+    pub static FIRST_SET_PLUS_4: TerminalSet = TerminalSet::new(14, &[TerminalId(11)]);
     // Plus_5 { "k" }
-    pub static FIRST_SET_PLUS_5: TerminalSet = TerminalSet {
-        id: 14,
-        terminals: &[TerminalId(11)],
-    };
+    pub static FIRST_SET_PLUS_5: TerminalSet = TerminalSet::new(14, &[TerminalId(11)]);
     // Opt_3 { WhiteSpace }
-    pub static FIRST_SET_OPT_3: TerminalSet = TerminalSet {
-        id: 22,
-        terminals: &[TerminalId(0)],
-    };
+    pub static FIRST_SET_OPT_3: TerminalSet = TerminalSet::new(22, &[TerminalId(0)]);
     // StartItems { WhiteSpace, Name }
-    pub static FIRST_SET_START_ITEMS: TerminalSet = TerminalSet {
-        id: 24,
-        terminals: &[TerminalId(0), TerminalId(1)],
-    };
+    pub static FIRST_SET_START_ITEMS: TerminalSet =
+        TerminalSet::new(24, &[TerminalId(0), TerminalId(1)]);
     // StartNames { WhiteSpace, "names" }
-    pub static FIRST_SET_START_NAMES: TerminalSet = TerminalSet {
-        id: 25,
-        terminals: &[TerminalId(0), TerminalId(3)],
-    };
+    pub static FIRST_SET_START_NAMES: TerminalSet =
+        TerminalSet::new(25, &[TerminalId(0), TerminalId(3)]);
     // StartSeparated { WhiteSpace, "," }
-    pub static FIRST_SET_START_SEPARATED: TerminalSet = TerminalSet {
-        id: 26,
-        terminals: &[TerminalId(0), TerminalId(2)],
-    };
+    pub static FIRST_SET_START_SEPARATED: TerminalSet =
+        TerminalSet::new(26, &[TerminalId(0), TerminalId(2)]);
     // StartPairs { WhiteSpace, "k" }
-    pub static FIRST_SET_START_PAIRS: TerminalSet = TerminalSet {
-        id: 27,
-        terminals: &[TerminalId(0), TerminalId(11)],
-    };
+    pub static FIRST_SET_START_PAIRS: TerminalSet =
+        TerminalSet::new(27, &[TerminalId(0), TerminalId(11)]);
     // StartElse { WhiteSpace, "if" }
-    pub static FIRST_SET_START_ELSE: TerminalSet = TerminalSet {
-        id: 28,
-        terminals: &[TerminalId(0), TerminalId(4)],
-    };
+    pub static FIRST_SET_START_ELSE: TerminalSet =
+        TerminalSet::new(28, &[TerminalId(0), TerminalId(4)]);
     // StartSingle { WhiteSpace, "single" }
-    pub static FIRST_SET_START_SINGLE: TerminalSet = TerminalSet {
-        id: 29,
-        terminals: &[TerminalId(0), TerminalId(6)],
-    };
+    pub static FIRST_SET_START_SINGLE: TerminalSet =
+        TerminalSet::new(29, &[TerminalId(0), TerminalId(6)]);
     // StartWritten { WhiteSpace, "written" }
-    pub static FIRST_SET_START_WRITTEN: TerminalSet = TerminalSet {
-        id: 30,
-        terminals: &[TerminalId(0), TerminalId(7)],
-    };
+    pub static FIRST_SET_START_WRITTEN: TerminalSet =
+        TerminalSet::new(30, &[TerminalId(0), TerminalId(7)]);
     // StartMixed { WhiteSpace, "mixed" }
-    pub static FIRST_SET_START_MIXED: TerminalSet = TerminalSet {
-        id: 31,
-        terminals: &[TerminalId(0), TerminalId(8)],
-    };
+    pub static FIRST_SET_START_MIXED: TerminalSet =
+        TerminalSet::new(31, &[TerminalId(0), TerminalId(8)]);
     // StartExpected { WhiteSpace, "expect" }
-    pub static FIRST_SET_START_EXPECTED: TerminalSet = TerminalSet {
-        id: 32,
-        terminals: &[TerminalId(0), TerminalId(9)],
-    };
+    pub static FIRST_SET_START_EXPECTED: TerminalSet =
+        TerminalSet::new(32, &[TerminalId(0), TerminalId(9)]);
     // StartItem { WhiteSpace, Name }
-    pub static FIRST_SET_START_ITEM: TerminalSet = TerminalSet {
-        id: 24,
-        terminals: &[TerminalId(0), TerminalId(1)],
-    };
+    pub static FIRST_SET_START_ITEM: TerminalSet =
+        TerminalSet::new(24, &[TerminalId(0), TerminalId(1)]);
     // StartKey { WhiteSpace, "k" }
-    pub static FIRST_SET_START_KEY: TerminalSet = TerminalSet {
-        id: 27,
-        terminals: &[TerminalId(0), TerminalId(11)],
-    };
+    pub static FIRST_SET_START_KEY: TerminalSet =
+        TerminalSet::new(27, &[TerminalId(0), TerminalId(11)]);
     // StartValue { WhiteSpace, "v" }
-    pub static FIRST_SET_START_VALUE: TerminalSet = TerminalSet {
-        id: 33,
-        terminals: &[TerminalId(0), TerminalId(12)],
-    };
+    pub static FIRST_SET_START_VALUE: TerminalSet =
+        TerminalSet::new(33, &[TerminalId(0), TerminalId(12)]);
     // StartChoice { WhiteSpace, "v", "w" }
-    pub static FIRST_SET_START_CHOICE: TerminalSet = TerminalSet {
-        id: 34,
-        terminals: &[TerminalId(0), TerminalId(12), TerminalId(13)],
-    };
+    pub static FIRST_SET_START_CHOICE: TerminalSet =
+        TerminalSet::new(34, &[TerminalId(0), TerminalId(12), TerminalId(13)]);
     // StartLayout { WhiteSpace }
-    pub static FIRST_SET_START_LAYOUT: TerminalSet = TerminalSet {
-        id: 22,
-        terminals: &[TerminalId(0)],
-    };
+    pub static FIRST_SET_START_LAYOUT: TerminalSet = TerminalSet::new(22, &[TerminalId(0)]);
 }

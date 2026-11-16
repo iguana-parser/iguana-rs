@@ -61,7 +61,7 @@ pub fn build_gss_dot_graph<'i, 'arena, P: Parser<'i, 'arena>>(parser: &P) -> GSS
             edges.push(GSSDotEdge {
                 src: id,
                 dest: gss_edge.dest_id,
-                label: P::Grammar::slot_name(gss_edge.return_slot).into(),
+                label: P::Grammar::slot_name(gss_edge.return_slot),
             });
         }
     }

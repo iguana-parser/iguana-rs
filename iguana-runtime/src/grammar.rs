@@ -9,18 +9,65 @@ pub struct Nonterminal {
     pub display_name: &'static str,
 }
 
+impl Nonterminal {
+    pub const fn new(name: &'static str, display_name: &'static str) -> Self {
+        Self { name, display_name }
+    }
+}
+
 /// The runtime's view of `iguana_compiler::grammar::symbols::Terminal`.
 /// It holds only the information the runtime needs.
 pub struct Terminal {
     pub name: &'static str,
 }
 
+impl Terminal {
+    pub const fn new(name: &'static str) -> Self {
+        Self { name }
+    }
+}
+
+/// The runtime's view of `iguana_compiler::grammar::def::Alternative`. It
+/// holds only the information the runtime needs.
+pub struct Alternative {
+    /// The nonterminal the alternative belongs to.
+    pub head: NonterminalId,
+    /// The display name of each symbol, such as `name:Identifier` or `Rule*`.
+    pub symbols: &'static [&'static str],
+}
+
 /// The runtime's view of a grammar slot, a position in an alternative. It
 /// holds only the information the runtime needs.
 pub struct Slot {
-    pub display_name: &'static str,
+    pub alternative: &'static Alternative,
     /// The number of symbols before the slot in its alternative.
     pub position: u16,
+    pub kind: SlotKind,
+}
+
+impl Slot {
+    pub const fn new(alternative: &'static Alternative, position: u16, kind: SlotKind) -> Self {
+        Self {
+            alternative,
+            position,
+            kind,
+        }
+    }
+}
+
+/// What follows a slot in its alternative: a symbol of one of the kinds below,
+/// or the end of the alternative.
+pub enum SlotKind {
+    Terminal(TerminalId),
+    Nonterminal(NonterminalId),
+    /// A condition such as `[p >= 2]`, which does not consume input.
+    Condition,
+    /// A return such as `return p`, which does not consume input.
+    Return,
+    /// The end of the alternative. The last slot of an alternative, as in
+    /// `S : A "b".`, has this kind. An empty alternative has only this slot,
+    /// as in `S : .`.
+    End,
 }
 
 /// The runtime's view of `iguana_compiler::grammar::def::Grammar`. It holds
@@ -91,8 +138,28 @@ pub trait Grammar {
         Self::terminal_name(terminal_id).starts_with('"')
     }
 
-    fn slot_name(slot_id: SlotId) -> &'static str {
-        Self::SLOTS[slot_id.index()].display_name
+    /// The display name of a slot, which is its alternative with a dot before
+    /// the symbol at the slot's position, such as `S : A . "b"`. In the last
+    /// slot of an alternative, the dot follows the last symbol: `S : A "b".`
+    fn slot_name(slot_id: SlotId) -> String {
+        let slot = &Self::SLOTS[slot_id.index()];
+        let alternative = slot.alternative;
+        let symbols = alternative.symbols;
+        let position = usize::from(slot.position);
+        let mut name = format!("{} : ", Self::nonterminal_display_name(alternative.head));
+        for (i, symbol) in symbols.iter().enumerate() {
+            if i == position {
+                name.push_str(". ");
+            }
+            name.push_str(symbol);
+            if i + 1 < symbols.len() {
+                name.push(' ');
+            }
+        }
+        if position == symbols.len() {
+            name.push('.');
+        }
+        name
     }
 
     /// The id of the previous slot. To get the previous slot, we need to move

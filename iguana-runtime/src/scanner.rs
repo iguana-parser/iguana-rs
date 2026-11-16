@@ -234,6 +234,12 @@ pub struct TerminalSet {
     pub terminals: &'static [TerminalId],
 }
 
+impl TerminalSet {
+    pub const fn new(id: usize, terminals: &'static [TerminalId]) -> Self {
+        Self { id, terminals }
+    }
+}
+
 /// A trie of the literals of a grammar's literal sets, which gives each literal
 /// an index. A literal whose letters match in both cases is in the trie in
 /// lowercase, and a lookup that ignores ASCII case reads the input in

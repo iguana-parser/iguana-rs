@@ -47,310 +47,188 @@ impl Grammar for DanglingElseGrammar {
 pub mod data {
     #[allow(unused_imports)]
     use iguana_runtime::{
-        grammar::{Nonterminal, Slot, Terminal},
-        ids::{SlotId, TerminalId},
+        grammar::{Alternative, Nonterminal, Slot, SlotKind, Terminal},
+        ids::{NonterminalId, SlotId, TerminalId},
         prediction::Prediction,
         scanner::TerminalSet,
     };
     pub(super) static NONTERMINALS: [Nonterminal; 10] = [
-        Nonterminal {
-            name: "S",
-            display_name: "S",
-        },
-        Nonterminal {
-            name: "Statement",
-            display_name: "Statement",
-        },
-        Nonterminal {
-            name: "Layout",
-            display_name: "Layout",
-        },
-        Nonterminal {
-            name: "Plus_0",
-            display_name: "Statement+",
-        },
-        Nonterminal {
-            name: "Alt_0",
-            display_name: "(WhiteSpace | Comment)",
-        },
-        Nonterminal {
-            name: "Plus_1",
-            display_name: "(WhiteSpace | Comment)+",
-        },
-        Nonterminal {
-            name: "Star_0",
-            display_name: "(WhiteSpace | Comment)*",
-        },
-        Nonterminal {
-            name: "StartS",
-            display_name: "S",
-        },
-        Nonterminal {
-            name: "StartStatement",
-            display_name: "Statement",
-        },
-        Nonterminal {
-            name: "StartLayout",
-            display_name: "Layout",
-        },
+        Nonterminal::new("S", "S"),
+        Nonterminal::new("Statement", "Statement"),
+        Nonterminal::new("Layout", "Layout"),
+        Nonterminal::new("Plus_0", "Statement+"),
+        Nonterminal::new("Alt_0", "(WhiteSpace | Comment)"),
+        Nonterminal::new("Plus_1", "(WhiteSpace | Comment)+"),
+        Nonterminal::new("Star_0", "(WhiteSpace | Comment)*"),
+        Nonterminal::new("StartS", "S"),
+        Nonterminal::new("StartStatement", "Statement"),
+        Nonterminal::new("StartLayout", "Layout"),
     ];
     pub(super) static DISPLAY_ORDER: [&str; 3] = ["S", "Statement", "Layout"];
     pub(super) static TERMINALS: [Terminal; 12] = [
-        Terminal { name: "Cond" },
-        Terminal { name: "Id" },
-        Terminal { name: "Else" },
-        Terminal { name: "Letter" },
-        Terminal { name: "WhiteSpace" },
-        Terminal { name: "Comment" },
-        Terminal { name: "\"if\"" },
-        Terminal { name: "\"(\"" },
-        Terminal { name: "\")\"" },
-        Terminal { name: "\";\"" },
-        Terminal { name: "Epsilon" },
-        Terminal { name: "EOF" },
+        Terminal::new("Cond"),
+        Terminal::new("Id"),
+        Terminal::new("Else"),
+        Terminal::new("Letter"),
+        Terminal::new("WhiteSpace"),
+        Terminal::new("Comment"),
+        Terminal::new("\"if\""),
+        Terminal::new("\"(\""),
+        Terminal::new("\")\""),
+        Terminal::new("\";\""),
+        Terminal::new("Epsilon"),
+        Terminal::new("EOF"),
     ];
     pub(super) static SLOTS: [Slot; 60] = [
-        Slot {
-            display_name: "S : . Statement+",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : Statement+.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Statement : . \"if\" Layout \"(\" Layout Cond Layout \")\" Layout Statement !>>> Else",
-            position: 0,
-        },
-        Slot {
-            display_name: "Statement : \"if\" . Layout \"(\" Layout Cond Layout \")\" Layout Statement !>>> Else",
-            position: 1,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout . \"(\" Layout Cond Layout \")\" Layout Statement !>>> Else",
-            position: 2,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout \"(\" . Layout Cond Layout \")\" Layout Statement !>>> Else",
-            position: 3,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout \"(\" Layout . Cond Layout \")\" Layout Statement !>>> Else",
-            position: 4,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout \"(\" Layout Cond . Layout \")\" Layout Statement !>>> Else",
-            position: 5,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout \"(\" Layout Cond Layout . \")\" Layout Statement !>>> Else",
-            position: 6,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout \"(\" Layout Cond Layout \")\" . Layout Statement !>>> Else",
-            position: 7,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout \"(\" Layout Cond Layout \")\" Layout . Statement !>>> Else",
-            position: 8,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout \"(\" Layout Cond Layout \")\" Layout Statement !>>> Else.",
-            position: 9,
-        },
-        Slot {
-            display_name: "Statement : . \"if\" Layout \"(\" Layout Cond Layout \")\" Layout Statement Layout Else Layout Statement",
-            position: 0,
-        },
-        Slot {
-            display_name: "Statement : \"if\" . Layout \"(\" Layout Cond Layout \")\" Layout Statement Layout Else Layout Statement",
-            position: 1,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout . \"(\" Layout Cond Layout \")\" Layout Statement Layout Else Layout Statement",
-            position: 2,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout \"(\" . Layout Cond Layout \")\" Layout Statement Layout Else Layout Statement",
-            position: 3,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout \"(\" Layout . Cond Layout \")\" Layout Statement Layout Else Layout Statement",
-            position: 4,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout \"(\" Layout Cond . Layout \")\" Layout Statement Layout Else Layout Statement",
-            position: 5,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout \"(\" Layout Cond Layout . \")\" Layout Statement Layout Else Layout Statement",
-            position: 6,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout \"(\" Layout Cond Layout \")\" . Layout Statement Layout Else Layout Statement",
-            position: 7,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout \"(\" Layout Cond Layout \")\" Layout . Statement Layout Else Layout Statement",
-            position: 8,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout \"(\" Layout Cond Layout \")\" Layout Statement . Layout Else Layout Statement",
-            position: 9,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout \"(\" Layout Cond Layout \")\" Layout Statement Layout . Else Layout Statement",
-            position: 10,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout \"(\" Layout Cond Layout \")\" Layout Statement Layout Else . Layout Statement",
-            position: 11,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout \"(\" Layout Cond Layout \")\" Layout Statement Layout Else Layout . Statement",
-            position: 12,
-        },
-        Slot {
-            display_name: "Statement : \"if\" Layout \"(\" Layout Cond Layout \")\" Layout Statement Layout Else Layout Statement.",
-            position: 13,
-        },
-        Slot {
-            display_name: "Statement : . Id Layout \";\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Statement : Id . Layout \";\"",
-            position: 1,
-        },
-        Slot {
-            display_name: "Statement : Id Layout . \";\"",
-            position: 2,
-        },
-        Slot {
-            display_name: "Statement : Id Layout \";\".",
-            position: 3,
-        },
-        Slot {
-            display_name: "Layout : . (WhiteSpace | Comment)*",
-            position: 0,
-        },
-        Slot {
-            display_name: "Layout : (WhiteSpace | Comment)*.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Statement+ : . Statement+ Layout Statement",
-            position: 0,
-        },
-        Slot {
-            display_name: "Statement+ : Statement+ . Layout Statement",
-            position: 1,
-        },
-        Slot {
-            display_name: "Statement+ : Statement+ Layout . Statement",
-            position: 2,
-        },
-        Slot {
-            display_name: "Statement+ : Statement+ Layout Statement.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Statement+ : . Statement",
-            position: 0,
-        },
-        Slot {
-            display_name: "Statement+ : Statement.",
-            position: 1,
-        },
-        Slot {
-            display_name: "(WhiteSpace | Comment) : . WhiteSpace",
-            position: 0,
-        },
-        Slot {
-            display_name: "(WhiteSpace | Comment) : WhiteSpace.",
-            position: 1,
-        },
-        Slot {
-            display_name: "(WhiteSpace | Comment) : . Comment",
-            position: 0,
-        },
-        Slot {
-            display_name: "(WhiteSpace | Comment) : Comment.",
-            position: 1,
-        },
-        Slot {
-            display_name: "(WhiteSpace | Comment)+ : . (WhiteSpace | Comment)+ (WhiteSpace | Comment)",
-            position: 0,
-        },
-        Slot {
-            display_name: "(WhiteSpace | Comment)+ : (WhiteSpace | Comment)+ . (WhiteSpace | Comment)",
-            position: 1,
-        },
-        Slot {
-            display_name: "(WhiteSpace | Comment)+ : (WhiteSpace | Comment)+ (WhiteSpace | Comment).",
-            position: 2,
-        },
-        Slot {
-            display_name: "(WhiteSpace | Comment)+ : . (WhiteSpace | Comment)",
-            position: 0,
-        },
-        Slot {
-            display_name: "(WhiteSpace | Comment)+ : (WhiteSpace | Comment).",
-            position: 1,
-        },
-        Slot {
-            display_name: "(WhiteSpace | Comment)* : . (WhiteSpace | Comment)+",
-            position: 0,
-        },
-        Slot {
-            display_name: "(WhiteSpace | Comment)* : (WhiteSpace | Comment)+.",
-            position: 1,
-        },
-        Slot {
-            display_name: "(WhiteSpace | Comment)* : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : . Layout start:S Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : Layout . start:S Layout",
-            position: 1,
-        },
-        Slot {
-            display_name: "S : Layout start:S . Layout",
-            position: 2,
-        },
-        Slot {
-            display_name: "S : Layout start:S Layout.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Statement : . Layout start:Statement Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "Statement : Layout . start:Statement Layout",
-            position: 1,
-        },
-        Slot {
-            display_name: "Statement : Layout start:Statement . Layout",
-            position: 2,
-        },
-        Slot {
-            display_name: "Statement : Layout start:Statement Layout.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Layout : . start:Layout",
-            position: 0,
-        },
-        Slot {
-            display_name: "Layout : start:Layout.",
-            position: 1,
-        },
+        Slot::new(&ALT_0, 0, SlotKind::Nonterminal(NonterminalId(3))),
+        Slot::new(&ALT_0, 1, SlotKind::End),
+        Slot::new(&ALT_1, 0, SlotKind::Terminal(TerminalId(6))),
+        Slot::new(&ALT_1, 1, SlotKind::Nonterminal(NonterminalId(2))),
+        Slot::new(&ALT_1, 2, SlotKind::Terminal(TerminalId(7))),
+        Slot::new(&ALT_1, 3, SlotKind::Nonterminal(NonterminalId(2))),
+        Slot::new(&ALT_1, 4, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_1, 5, SlotKind::Nonterminal(NonterminalId(2))),
+        Slot::new(&ALT_1, 6, SlotKind::Terminal(TerminalId(8))),
+        Slot::new(&ALT_1, 7, SlotKind::Nonterminal(NonterminalId(2))),
+        Slot::new(&ALT_1, 8, SlotKind::Nonterminal(NonterminalId(1))),
+        Slot::new(&ALT_1, 9, SlotKind::End),
+        Slot::new(&ALT_2, 0, SlotKind::Terminal(TerminalId(6))),
+        Slot::new(&ALT_2, 1, SlotKind::Nonterminal(NonterminalId(2))),
+        Slot::new(&ALT_2, 2, SlotKind::Terminal(TerminalId(7))),
+        Slot::new(&ALT_2, 3, SlotKind::Nonterminal(NonterminalId(2))),
+        Slot::new(&ALT_2, 4, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_2, 5, SlotKind::Nonterminal(NonterminalId(2))),
+        Slot::new(&ALT_2, 6, SlotKind::Terminal(TerminalId(8))),
+        Slot::new(&ALT_2, 7, SlotKind::Nonterminal(NonterminalId(2))),
+        Slot::new(&ALT_2, 8, SlotKind::Nonterminal(NonterminalId(1))),
+        Slot::new(&ALT_2, 9, SlotKind::Nonterminal(NonterminalId(2))),
+        Slot::new(&ALT_2, 10, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_2, 11, SlotKind::Nonterminal(NonterminalId(2))),
+        Slot::new(&ALT_2, 12, SlotKind::Nonterminal(NonterminalId(1))),
+        Slot::new(&ALT_2, 13, SlotKind::End),
+        Slot::new(&ALT_3, 0, SlotKind::Terminal(TerminalId(1))),
+        Slot::new(&ALT_3, 1, SlotKind::Nonterminal(NonterminalId(2))),
+        Slot::new(&ALT_3, 2, SlotKind::Terminal(TerminalId(9))),
+        Slot::new(&ALT_3, 3, SlotKind::End),
+        Slot::new(&ALT_4, 0, SlotKind::Nonterminal(NonterminalId(6))),
+        Slot::new(&ALT_4, 1, SlotKind::End),
+        Slot::new(&ALT_5, 0, SlotKind::Nonterminal(NonterminalId(3))),
+        Slot::new(&ALT_5, 1, SlotKind::Nonterminal(NonterminalId(2))),
+        Slot::new(&ALT_5, 2, SlotKind::Nonterminal(NonterminalId(1))),
+        Slot::new(&ALT_5, 3, SlotKind::End),
+        Slot::new(&ALT_6, 0, SlotKind::Nonterminal(NonterminalId(1))),
+        Slot::new(&ALT_6, 1, SlotKind::End),
+        Slot::new(&ALT_7, 0, SlotKind::Terminal(TerminalId(4))),
+        Slot::new(&ALT_7, 1, SlotKind::End),
+        Slot::new(&ALT_8, 0, SlotKind::Terminal(TerminalId(5))),
+        Slot::new(&ALT_8, 1, SlotKind::End),
+        Slot::new(&ALT_9, 0, SlotKind::Nonterminal(NonterminalId(5))),
+        Slot::new(&ALT_9, 1, SlotKind::Nonterminal(NonterminalId(4))),
+        Slot::new(&ALT_9, 2, SlotKind::End),
+        Slot::new(&ALT_10, 0, SlotKind::Nonterminal(NonterminalId(4))),
+        Slot::new(&ALT_10, 1, SlotKind::End),
+        Slot::new(&ALT_11, 0, SlotKind::Nonterminal(NonterminalId(5))),
+        Slot::new(&ALT_11, 1, SlotKind::End),
+        Slot::new(&ALT_12, 0, SlotKind::End),
+        Slot::new(&ALT_13, 0, SlotKind::Nonterminal(NonterminalId(2))),
+        Slot::new(&ALT_13, 1, SlotKind::Nonterminal(NonterminalId(0))),
+        Slot::new(&ALT_13, 2, SlotKind::Nonterminal(NonterminalId(2))),
+        Slot::new(&ALT_13, 3, SlotKind::End),
+        Slot::new(&ALT_14, 0, SlotKind::Nonterminal(NonterminalId(2))),
+        Slot::new(&ALT_14, 1, SlotKind::Nonterminal(NonterminalId(1))),
+        Slot::new(&ALT_14, 2, SlotKind::Nonterminal(NonterminalId(2))),
+        Slot::new(&ALT_14, 3, SlotKind::End),
+        Slot::new(&ALT_15, 0, SlotKind::Nonterminal(NonterminalId(2))),
+        Slot::new(&ALT_15, 1, SlotKind::End),
     ];
+    static ALT_0: Alternative = Alternative {
+        head: NonterminalId(0),
+        symbols: &["Statement+"],
+    };
+    static ALT_1: Alternative = Alternative {
+        head: NonterminalId(1),
+        symbols: &[
+            "\"if\"",
+            "Layout",
+            "\"(\"",
+            "Layout",
+            "Cond",
+            "Layout",
+            "\")\"",
+            "Layout",
+            "Statement !>>> Else",
+        ],
+    };
+    static ALT_2: Alternative = Alternative {
+        head: NonterminalId(1),
+        symbols: &[
+            "\"if\"",
+            "Layout",
+            "\"(\"",
+            "Layout",
+            "Cond",
+            "Layout",
+            "\")\"",
+            "Layout",
+            "Statement",
+            "Layout",
+            "Else",
+            "Layout",
+            "Statement",
+        ],
+    };
+    static ALT_3: Alternative = Alternative {
+        head: NonterminalId(1),
+        symbols: &["Id", "Layout", "\";\""],
+    };
+    static ALT_4: Alternative = Alternative {
+        head: NonterminalId(2),
+        symbols: &["(WhiteSpace | Comment)*"],
+    };
+    static ALT_5: Alternative = Alternative {
+        head: NonterminalId(3),
+        symbols: &["Statement+", "Layout", "Statement"],
+    };
+    static ALT_6: Alternative = Alternative {
+        head: NonterminalId(3),
+        symbols: &["Statement"],
+    };
+    static ALT_7: Alternative = Alternative {
+        head: NonterminalId(4),
+        symbols: &["WhiteSpace"],
+    };
+    static ALT_8: Alternative = Alternative {
+        head: NonterminalId(4),
+        symbols: &["Comment"],
+    };
+    static ALT_9: Alternative = Alternative {
+        head: NonterminalId(5),
+        symbols: &["(WhiteSpace | Comment)+", "(WhiteSpace | Comment)"],
+    };
+    static ALT_10: Alternative = Alternative {
+        head: NonterminalId(5),
+        symbols: &["(WhiteSpace | Comment)"],
+    };
+    static ALT_11: Alternative = Alternative {
+        head: NonterminalId(6),
+        symbols: &["(WhiteSpace | Comment)+"],
+    };
+    static ALT_12: Alternative = Alternative {
+        head: NonterminalId(6),
+        symbols: &[],
+    };
+    static ALT_13: Alternative = Alternative {
+        head: NonterminalId(7),
+        symbols: &["Layout", "start:S", "Layout"],
+    };
+    static ALT_14: Alternative = Alternative {
+        head: NonterminalId(8),
+        symbols: &["Layout", "start:Statement", "Layout"],
+    };
+    static ALT_15: Alternative = Alternative {
+        head: NonterminalId(9),
+        symbols: &["start:Layout"],
+    };
     pub(super) static FIRST_SLOTS: [&[SlotId]; 10] = [
         &[SlotId(0)],
         &[SlotId(2), SlotId(12), SlotId(26)],
@@ -367,64 +245,26 @@ pub mod data {
     // error reporting path needs to reach a terminal set from a terminal id. This table, indexed
     // by terminal id, serves only that.
     pub(super) static SINGLE_TERMINAL_SETS: [TerminalSet; 12] = [
-        TerminalSet {
-            id: 9,
-            terminals: &[TerminalId(0)],
-        },
-        TerminalSet {
-            id: 10,
-            terminals: &[TerminalId(1)],
-        },
-        TerminalSet {
-            id: 11,
-            terminals: &[TerminalId(2)],
-        },
-        TerminalSet {
-            id: 12,
-            terminals: &[TerminalId(3)],
-        },
-        TerminalSet {
-            id: 13,
-            terminals: &[TerminalId(4)],
-        },
-        TerminalSet {
-            id: 14,
-            terminals: &[TerminalId(5)],
-        },
-        TerminalSet {
-            id: 15,
-            terminals: &[TerminalId(6)],
-        },
-        TerminalSet {
-            id: 16,
-            terminals: &[TerminalId(7)],
-        },
-        TerminalSet {
-            id: 17,
-            terminals: &[TerminalId(8)],
-        },
-        TerminalSet {
-            id: 18,
-            terminals: &[TerminalId(9)],
-        },
-        TerminalSet {
-            id: 19,
-            terminals: &[TerminalId(10)],
-        },
-        TerminalSet {
-            id: 20,
-            terminals: &[TerminalId(11)],
-        },
+        TerminalSet::new(9, &[TerminalId(0)]),
+        TerminalSet::new(10, &[TerminalId(1)]),
+        TerminalSet::new(11, &[TerminalId(2)]),
+        TerminalSet::new(12, &[TerminalId(3)]),
+        TerminalSet::new(13, &[TerminalId(4)]),
+        TerminalSet::new(14, &[TerminalId(5)]),
+        TerminalSet::new(15, &[TerminalId(6)]),
+        TerminalSet::new(16, &[TerminalId(7)]),
+        TerminalSet::new(17, &[TerminalId(8)]),
+        TerminalSet::new(18, &[TerminalId(9)]),
+        TerminalSet::new(19, &[TerminalId(10)]),
+        TerminalSet::new(20, &[TerminalId(11)]),
     ];
     // S { WhiteSpace, Comment, EOF }
-    pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(4), TerminalId(5), TerminalId(11)],
-    };
+    pub static FOLLOW_SET_S: TerminalSet =
+        TerminalSet::new(0, &[TerminalId(4), TerminalId(5), TerminalId(11)]);
     // Statement { Id, Else, WhiteSpace, Comment, "if", EOF }
-    pub static FOLLOW_SET_STATEMENT: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[
+    pub static FOLLOW_SET_STATEMENT: TerminalSet = TerminalSet::new(
+        1,
+        &[
             TerminalId(1),
             TerminalId(2),
             TerminalId(4),
@@ -432,17 +272,15 @@ pub mod data {
             TerminalId(6),
             TerminalId(11),
         ],
-    };
+    );
     // Statement : "if" Layout "(" Layout Cond Layout ")" Layout . Statement !>>> Else !>>> {
     // Else }
-    pub static LAYOUT_AWARE_FOLLOW_RESTRICTION_STATEMENT_ALT0_POS8: TerminalSet = TerminalSet {
-        id: 2,
-        terminals: &[TerminalId(2)],
-    };
+    pub static LAYOUT_AWARE_FOLLOW_RESTRICTION_STATEMENT_ALT0_POS8: TerminalSet =
+        TerminalSet::new(2, &[TerminalId(2)]);
     // Layout { Cond, Id, Else, "if", "(", ")", ";", EOF }
-    pub static FOLLOW_SET_LAYOUT: TerminalSet = TerminalSet {
-        id: 3,
-        terminals: &[
+    pub static FOLLOW_SET_LAYOUT: TerminalSet = TerminalSet::new(
+        3,
+        &[
             TerminalId(0),
             TerminalId(1),
             TerminalId(2),
@@ -452,22 +290,22 @@ pub mod data {
             TerminalId(9),
             TerminalId(11),
         ],
-    };
+    );
     // Plus_0 { Id, WhiteSpace, Comment, "if", EOF }
-    pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
-        id: 4,
-        terminals: &[
+    pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet::new(
+        4,
+        &[
             TerminalId(1),
             TerminalId(4),
             TerminalId(5),
             TerminalId(6),
             TerminalId(11),
         ],
-    };
+    );
     // Alt_0 { Cond, Id, Else, WhiteSpace, Comment, "if", "(", ")", ";", EOF }
-    pub static FOLLOW_SET_ALT_0: TerminalSet = TerminalSet {
-        id: 5,
-        terminals: &[
+    pub static FOLLOW_SET_ALT_0: TerminalSet = TerminalSet::new(
+        5,
+        &[
             TerminalId(0),
             TerminalId(1),
             TerminalId(2),
@@ -479,11 +317,11 @@ pub mod data {
             TerminalId(9),
             TerminalId(11),
         ],
-    };
+    );
     // Plus_1 { Cond, Id, Else, WhiteSpace, Comment, "if", "(", ")", ";", EOF }
-    pub static FOLLOW_SET_PLUS_1: TerminalSet = TerminalSet {
-        id: 5,
-        terminals: &[
+    pub static FOLLOW_SET_PLUS_1: TerminalSet = TerminalSet::new(
+        5,
+        &[
             TerminalId(0),
             TerminalId(1),
             TerminalId(2),
@@ -495,11 +333,11 @@ pub mod data {
             TerminalId(9),
             TerminalId(11),
         ],
-    };
+    );
     // Star_0 { Cond, Id, Else, "if", "(", ")", ";", EOF }
-    pub static FOLLOW_SET_STAR_0: TerminalSet = TerminalSet {
-        id: 3,
-        terminals: &[
+    pub static FOLLOW_SET_STAR_0: TerminalSet = TerminalSet::new(
+        3,
+        &[
             TerminalId(0),
             TerminalId(1),
             TerminalId(2),
@@ -509,58 +347,31 @@ pub mod data {
             TerminalId(9),
             TerminalId(11),
         ],
-    };
+    );
     // StartS { EOF }
-    pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
-        id: 6,
-        terminals: &[TerminalId(11)],
-    };
+    pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet::new(6, &[TerminalId(11)]);
     // StartStatement { EOF }
-    pub static FOLLOW_SET_START_STATEMENT: TerminalSet = TerminalSet {
-        id: 6,
-        terminals: &[TerminalId(11)],
-    };
+    pub static FOLLOW_SET_START_STATEMENT: TerminalSet = TerminalSet::new(6, &[TerminalId(11)]);
     // StartLayout { EOF }
-    pub static FOLLOW_SET_START_LAYOUT: TerminalSet = TerminalSet {
-        id: 6,
-        terminals: &[TerminalId(11)],
-    };
+    pub static FOLLOW_SET_START_LAYOUT: TerminalSet = TerminalSet::new(6, &[TerminalId(11)]);
     // Statement : "if" Layout "(" Layout Cond Layout ")" Layout Statement . Layout Else Layout
     // Statement lookahead { Else }
-    pub static RETURN_SLOT_LOOKAHEAD_STATEMENT_ALT1_POS9: TerminalSet = TerminalSet {
-        id: 2,
-        terminals: &[TerminalId(2)],
-    };
+    pub static RETURN_SLOT_LOOKAHEAD_STATEMENT_ALT1_POS9: TerminalSet =
+        TerminalSet::new(2, &[TerminalId(2)]);
     // Plus_0 : Plus_0 . Layout Statement lookahead { Id, "if" }
-    pub static RETURN_SLOT_LOOKAHEAD_PLUS_0_ALT0_POS1: TerminalSet = TerminalSet {
-        id: 7,
-        terminals: &[TerminalId(1), TerminalId(6)],
-    };
+    pub static RETURN_SLOT_LOOKAHEAD_PLUS_0_ALT0_POS1: TerminalSet =
+        TerminalSet::new(7, &[TerminalId(1), TerminalId(6)]);
     // Layout { WhiteSpace, Comment }
-    pub static FIRST_SET_LAYOUT: TerminalSet = TerminalSet {
-        id: 8,
-        terminals: &[TerminalId(4), TerminalId(5)],
-    };
+    pub static FIRST_SET_LAYOUT: TerminalSet = TerminalSet::new(8, &[TerminalId(4), TerminalId(5)]);
     // Alt_0 { WhiteSpace, Comment }
-    pub static FIRST_SET_ALT_0: TerminalSet = TerminalSet {
-        id: 8,
-        terminals: &[TerminalId(4), TerminalId(5)],
-    };
+    pub static FIRST_SET_ALT_0: TerminalSet = TerminalSet::new(8, &[TerminalId(4), TerminalId(5)]);
     // Plus_1 { WhiteSpace, Comment }
-    pub static FIRST_SET_PLUS_1: TerminalSet = TerminalSet {
-        id: 8,
-        terminals: &[TerminalId(4), TerminalId(5)],
-    };
+    pub static FIRST_SET_PLUS_1: TerminalSet = TerminalSet::new(8, &[TerminalId(4), TerminalId(5)]);
     // Star_0 { WhiteSpace, Comment }
-    pub static FIRST_SET_STAR_0: TerminalSet = TerminalSet {
-        id: 8,
-        terminals: &[TerminalId(4), TerminalId(5)],
-    };
+    pub static FIRST_SET_STAR_0: TerminalSet = TerminalSet::new(8, &[TerminalId(4), TerminalId(5)]);
     // StartLayout { WhiteSpace, Comment }
-    pub static FIRST_SET_START_LAYOUT: TerminalSet = TerminalSet {
-        id: 8,
-        terminals: &[TerminalId(4), TerminalId(5)],
-    };
+    pub static FIRST_SET_START_LAYOUT: TerminalSet =
+        TerminalSet::new(8, &[TerminalId(4), TerminalId(5)]);
     // S
     // 0: Plus_0
     pub static PREDICTION_S: Prediction = {

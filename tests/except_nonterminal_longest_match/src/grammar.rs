@@ -39,110 +39,72 @@ impl Grammar for ExceptNonterminalLongestMatchGrammar {
 pub mod data {
     #[allow(unused_imports)]
     use iguana_runtime::{
-        grammar::{Nonterminal, Slot, Terminal},
-        ids::{SlotId, TerminalId},
+        grammar::{Alternative, Nonterminal, Slot, SlotKind, Terminal},
+        ids::{NonterminalId, SlotId, TerminalId},
         prediction::Prediction,
         scanner::TerminalSet,
     };
     pub(super) static NONTERMINALS: [Nonterminal; 6] = [
-        Nonterminal {
-            name: "S",
-            display_name: "S",
-        },
-        Nonterminal {
-            name: "Id",
-            display_name: "Id",
-        },
-        Nonterminal {
-            name: "Name",
-            display_name: "Name",
-        },
-        Nonterminal {
-            name: "StartS",
-            display_name: "S",
-        },
-        Nonterminal {
-            name: "StartId",
-            display_name: "Id",
-        },
-        Nonterminal {
-            name: "StartName",
-            display_name: "Name",
-        },
+        Nonterminal::new("S", "S"),
+        Nonterminal::new("Id", "Id"),
+        Nonterminal::new("Name", "Name"),
+        Nonterminal::new("StartS", "S"),
+        Nonterminal::new("StartId", "Id"),
+        Nonterminal::new("StartName", "Name"),
     ];
     pub(super) static DISPLAY_ORDER: [&str; 3] = ["S", "Id", "Name"];
     pub(super) static TERMINALS: [Terminal; 4] = [
-        Terminal { name: "Letter" },
-        Terminal { name: "Keyword" },
-        Terminal { name: "Epsilon" },
-        Terminal { name: "EOF" },
+        Terminal::new("Letter"),
+        Terminal::new("Keyword"),
+        Terminal::new("Epsilon"),
+        Terminal::new("EOF"),
     ];
     pub(super) static SLOTS: [Slot; 16] = [
-        Slot {
-            display_name: "S : . Id Id",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : Id . Id",
-            position: 1,
-        },
-        Slot {
-            display_name: "S : Id Id.",
-            position: 2,
-        },
-        Slot {
-            display_name: "Id : . Name \\ Keyword",
-            position: 0,
-        },
-        Slot {
-            display_name: "Id : Name \\ Keyword.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Name : . Letter Letter",
-            position: 0,
-        },
-        Slot {
-            display_name: "Name : Letter . Letter",
-            position: 1,
-        },
-        Slot {
-            display_name: "Name : Letter Letter.",
-            position: 2,
-        },
-        Slot {
-            display_name: "Name : . Letter",
-            position: 0,
-        },
-        Slot {
-            display_name: "Name : Letter.",
-            position: 1,
-        },
-        Slot {
-            display_name: "S : . start:S",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : start:S.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Id : . start:Id",
-            position: 0,
-        },
-        Slot {
-            display_name: "Id : start:Id.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Name : . start:Name",
-            position: 0,
-        },
-        Slot {
-            display_name: "Name : start:Name.",
-            position: 1,
-        },
+        Slot::new(&ALT_0, 0, SlotKind::Nonterminal(NonterminalId(1))),
+        Slot::new(&ALT_0, 1, SlotKind::Nonterminal(NonterminalId(1))),
+        Slot::new(&ALT_0, 2, SlotKind::End),
+        Slot::new(&ALT_1, 0, SlotKind::Nonterminal(NonterminalId(2))),
+        Slot::new(&ALT_1, 1, SlotKind::End),
+        Slot::new(&ALT_2, 0, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_2, 1, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_2, 2, SlotKind::End),
+        Slot::new(&ALT_3, 0, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_3, 1, SlotKind::End),
+        Slot::new(&ALT_4, 0, SlotKind::Nonterminal(NonterminalId(0))),
+        Slot::new(&ALT_4, 1, SlotKind::End),
+        Slot::new(&ALT_5, 0, SlotKind::Nonterminal(NonterminalId(1))),
+        Slot::new(&ALT_5, 1, SlotKind::End),
+        Slot::new(&ALT_6, 0, SlotKind::Nonterminal(NonterminalId(2))),
+        Slot::new(&ALT_6, 1, SlotKind::End),
     ];
+    static ALT_0: Alternative = Alternative {
+        head: NonterminalId(0),
+        symbols: &["Id", "Id"],
+    };
+    static ALT_1: Alternative = Alternative {
+        head: NonterminalId(1),
+        symbols: &["Name \\ Keyword"],
+    };
+    static ALT_2: Alternative = Alternative {
+        head: NonterminalId(2),
+        symbols: &["Letter", "Letter"],
+    };
+    static ALT_3: Alternative = Alternative {
+        head: NonterminalId(2),
+        symbols: &["Letter"],
+    };
+    static ALT_4: Alternative = Alternative {
+        head: NonterminalId(3),
+        symbols: &["start:S"],
+    };
+    static ALT_5: Alternative = Alternative {
+        head: NonterminalId(4),
+        symbols: &["start:Id"],
+    };
+    static ALT_6: Alternative = Alternative {
+        head: NonterminalId(5),
+        symbols: &["start:Name"],
+    };
     pub(super) static FIRST_SLOTS: [&[SlotId]; 6] = [
         &[SlotId(0)],
         &[SlotId(3)],
@@ -155,63 +117,28 @@ pub mod data {
     // error reporting path needs to reach a terminal set from a terminal id. This table, indexed
     // by terminal id, serves only that.
     pub(super) static SINGLE_TERMINAL_SETS: [TerminalSet; 4] = [
-        TerminalSet {
-            id: 4,
-            terminals: &[TerminalId(0)],
-        },
-        TerminalSet {
-            id: 5,
-            terminals: &[TerminalId(1)],
-        },
-        TerminalSet {
-            id: 6,
-            terminals: &[TerminalId(2)],
-        },
-        TerminalSet {
-            id: 7,
-            terminals: &[TerminalId(3)],
-        },
+        TerminalSet::new(4, &[TerminalId(0)]),
+        TerminalSet::new(5, &[TerminalId(1)]),
+        TerminalSet::new(6, &[TerminalId(2)]),
+        TerminalSet::new(7, &[TerminalId(3)]),
     ];
     // S { EOF }
-    pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_S: TerminalSet = TerminalSet::new(0, &[TerminalId(3)]);
     // Id { Letter, EOF }
-    pub static FOLLOW_SET_ID: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(0), TerminalId(3)],
-    };
+    pub static FOLLOW_SET_ID: TerminalSet = TerminalSet::new(1, &[TerminalId(0), TerminalId(3)]);
     // Name { Letter, EOF }
-    pub static FOLLOW_SET_NAME: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(0), TerminalId(3)],
-    };
+    pub static FOLLOW_SET_NAME: TerminalSet = TerminalSet::new(1, &[TerminalId(0), TerminalId(3)]);
     // StartS { EOF }
-    pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet::new(0, &[TerminalId(3)]);
     // StartId { EOF }
-    pub static FOLLOW_SET_START_ID: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_ID: TerminalSet = TerminalSet::new(0, &[TerminalId(3)]);
     // StartName { EOF }
-    pub static FOLLOW_SET_START_NAME: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_NAME: TerminalSet = TerminalSet::new(0, &[TerminalId(3)]);
     // S : Id . Id lookahead { Letter }
-    pub static RETURN_SLOT_LOOKAHEAD_S_ALT0_POS1: TerminalSet = TerminalSet {
-        id: 2,
-        terminals: &[TerminalId(0)],
-    };
+    pub static RETURN_SLOT_LOOKAHEAD_S_ALT0_POS1: TerminalSet =
+        TerminalSet::new(2, &[TerminalId(0)]);
     // Id : . Name \ Keyword \ { Keyword }
-    pub static EXCEPT_ID_ALT0_POS0: TerminalSet = TerminalSet {
-        id: 3,
-        terminals: &[TerminalId(1)],
-    };
+    pub static EXCEPT_ID_ALT0_POS0: TerminalSet = TerminalSet::new(3, &[TerminalId(1)]);
     // S
     // 0: Id Id
     pub static PREDICTION_S: Prediction = {

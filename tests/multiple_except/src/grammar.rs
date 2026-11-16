@@ -35,158 +35,89 @@ impl Grammar for MultipleExceptGrammar {
 pub mod data {
     #[allow(unused_imports)]
     use iguana_runtime::{
-        grammar::{Nonterminal, Slot, Terminal},
-        ids::{SlotId, TerminalId},
+        grammar::{Alternative, Nonterminal, Slot, SlotKind, Terminal},
+        ids::{NonterminalId, SlotId, TerminalId},
         prediction::Prediction,
         scanner::TerminalSet,
     };
     pub(super) static NONTERMINALS: [Nonterminal; 4] = [
-        Nonterminal {
-            name: "SyntaxIdentifier",
-            display_name: "SyntaxIdentifier",
-        },
-        Nonterminal {
-            name: "LexicalIdentifier",
-            display_name: "LexicalIdentifier",
-        },
-        Nonterminal {
-            name: "StartSyntaxIdentifier",
-            display_name: "SyntaxIdentifier",
-        },
-        Nonterminal {
-            name: "StartLexicalIdentifier",
-            display_name: "LexicalIdentifier",
-        },
+        Nonterminal::new("SyntaxIdentifier", "SyntaxIdentifier"),
+        Nonterminal::new("LexicalIdentifier", "LexicalIdentifier"),
+        Nonterminal::new("StartSyntaxIdentifier", "SyntaxIdentifier"),
+        Nonterminal::new("StartLexicalIdentifier", "LexicalIdentifier"),
     ];
     pub(super) static DISPLAY_ORDER: [&str; 2] = ["SyntaxIdentifier", "LexicalIdentifier"];
     pub(super) static TERMINALS: [Terminal; 7] = [
-        Terminal { name: "Identifier" },
-        Terminal {
-            name: "IdentifierChars",
-        },
-        Terminal { name: "Keyword" },
-        Terminal {
-            name: "BooleanLiteral",
-        },
-        Terminal {
-            name: "NullLiteral",
-        },
-        Terminal { name: "Epsilon" },
-        Terminal { name: "EOF" },
+        Terminal::new("Identifier"),
+        Terminal::new("IdentifierChars"),
+        Terminal::new("Keyword"),
+        Terminal::new("BooleanLiteral"),
+        Terminal::new("NullLiteral"),
+        Terminal::new("Epsilon"),
+        Terminal::new("EOF"),
     ];
     pub(super) static SLOTS: [Slot; 8] = [
-        Slot {
-            display_name: "SyntaxIdentifier : . IdentifierChars \\ Keyword \\ BooleanLiteral \\ NullLiteral",
-            position: 0,
-        },
-        Slot {
-            display_name: "SyntaxIdentifier : IdentifierChars \\ Keyword \\ BooleanLiteral \\ NullLiteral.",
-            position: 1,
-        },
-        Slot {
-            display_name: "LexicalIdentifier : . Identifier",
-            position: 0,
-        },
-        Slot {
-            display_name: "LexicalIdentifier : Identifier.",
-            position: 1,
-        },
-        Slot {
-            display_name: "SyntaxIdentifier : . start:SyntaxIdentifier",
-            position: 0,
-        },
-        Slot {
-            display_name: "SyntaxIdentifier : start:SyntaxIdentifier.",
-            position: 1,
-        },
-        Slot {
-            display_name: "LexicalIdentifier : . start:LexicalIdentifier",
-            position: 0,
-        },
-        Slot {
-            display_name: "LexicalIdentifier : start:LexicalIdentifier.",
-            position: 1,
-        },
+        Slot::new(&ALT_0, 0, SlotKind::Terminal(TerminalId(1))),
+        Slot::new(&ALT_0, 1, SlotKind::End),
+        Slot::new(&ALT_1, 0, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_1, 1, SlotKind::End),
+        Slot::new(&ALT_2, 0, SlotKind::Nonterminal(NonterminalId(0))),
+        Slot::new(&ALT_2, 1, SlotKind::End),
+        Slot::new(&ALT_3, 0, SlotKind::Nonterminal(NonterminalId(1))),
+        Slot::new(&ALT_3, 1, SlotKind::End),
     ];
+    static ALT_0: Alternative = Alternative {
+        head: NonterminalId(0),
+        symbols: &["IdentifierChars \\ Keyword \\ BooleanLiteral \\ NullLiteral"],
+    };
+    static ALT_1: Alternative = Alternative {
+        head: NonterminalId(1),
+        symbols: &["Identifier"],
+    };
+    static ALT_2: Alternative = Alternative {
+        head: NonterminalId(2),
+        symbols: &["start:SyntaxIdentifier"],
+    };
+    static ALT_3: Alternative = Alternative {
+        head: NonterminalId(3),
+        symbols: &["start:LexicalIdentifier"],
+    };
     pub(super) static FIRST_SLOTS: [&[SlotId]; 4] =
         [&[SlotId(0)], &[SlotId(2)], &[SlotId(4)], &[SlotId(6)]];
     // A failed terminal match refers to a static terminal set like every other failure, so the
     // error reporting path needs to reach a terminal set from a terminal id. This table, indexed
     // by terminal id, serves only that.
     pub(super) static SINGLE_TERMINAL_SETS: [TerminalSet; 7] = [
-        TerminalSet {
-            id: 4,
-            terminals: &[TerminalId(0)],
-        },
-        TerminalSet {
-            id: 5,
-            terminals: &[TerminalId(1)],
-        },
-        TerminalSet {
-            id: 6,
-            terminals: &[TerminalId(2)],
-        },
-        TerminalSet {
-            id: 7,
-            terminals: &[TerminalId(3)],
-        },
-        TerminalSet {
-            id: 8,
-            terminals: &[TerminalId(4)],
-        },
-        TerminalSet {
-            id: 9,
-            terminals: &[TerminalId(5)],
-        },
-        TerminalSet {
-            id: 10,
-            terminals: &[TerminalId(6)],
-        },
+        TerminalSet::new(4, &[TerminalId(0)]),
+        TerminalSet::new(5, &[TerminalId(1)]),
+        TerminalSet::new(6, &[TerminalId(2)]),
+        TerminalSet::new(7, &[TerminalId(3)]),
+        TerminalSet::new(8, &[TerminalId(4)]),
+        TerminalSet::new(9, &[TerminalId(5)]),
+        TerminalSet::new(10, &[TerminalId(6)]),
     ];
     // SyntaxIdentifier { EOF }
-    pub static FOLLOW_SET_SYNTAX_IDENTIFIER: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(6)],
-    };
+    pub static FOLLOW_SET_SYNTAX_IDENTIFIER: TerminalSet = TerminalSet::new(0, &[TerminalId(6)]);
     // LexicalIdentifier { EOF }
-    pub static FOLLOW_SET_LEXICAL_IDENTIFIER: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(6)],
-    };
+    pub static FOLLOW_SET_LEXICAL_IDENTIFIER: TerminalSet = TerminalSet::new(0, &[TerminalId(6)]);
     // StartSyntaxIdentifier { EOF }
-    pub static FOLLOW_SET_START_SYNTAX_IDENTIFIER: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(6)],
-    };
+    pub static FOLLOW_SET_START_SYNTAX_IDENTIFIER: TerminalSet =
+        TerminalSet::new(0, &[TerminalId(6)]);
     // StartLexicalIdentifier { EOF }
-    pub static FOLLOW_SET_START_LEXICAL_IDENTIFIER: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(6)],
-    };
+    pub static FOLLOW_SET_START_LEXICAL_IDENTIFIER: TerminalSet =
+        TerminalSet::new(0, &[TerminalId(6)]);
     // SyntaxIdentifier { IdentifierChars }
-    pub static FIRST_SET_SYNTAX_IDENTIFIER: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(1)],
-    };
+    pub static FIRST_SET_SYNTAX_IDENTIFIER: TerminalSet = TerminalSet::new(1, &[TerminalId(1)]);
     // LexicalIdentifier { Identifier }
-    pub static FIRST_SET_LEXICAL_IDENTIFIER: TerminalSet = TerminalSet {
-        id: 2,
-        terminals: &[TerminalId(0)],
-    };
+    pub static FIRST_SET_LEXICAL_IDENTIFIER: TerminalSet = TerminalSet::new(2, &[TerminalId(0)]);
     // StartSyntaxIdentifier { IdentifierChars }
-    pub static FIRST_SET_START_SYNTAX_IDENTIFIER: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(1)],
-    };
+    pub static FIRST_SET_START_SYNTAX_IDENTIFIER: TerminalSet =
+        TerminalSet::new(1, &[TerminalId(1)]);
     // StartLexicalIdentifier { Identifier }
-    pub static FIRST_SET_START_LEXICAL_IDENTIFIER: TerminalSet = TerminalSet {
-        id: 2,
-        terminals: &[TerminalId(0)],
-    };
+    pub static FIRST_SET_START_LEXICAL_IDENTIFIER: TerminalSet =
+        TerminalSet::new(2, &[TerminalId(0)]);
     // SyntaxIdentifier : . IdentifierChars \ Keyword \ BooleanLiteral \ NullLiteral \ { Keyword,
     // BooleanLiteral, NullLiteral }
-    pub static EXCEPT_SYNTAX_IDENTIFIER_ALT0_POS0: TerminalSet = TerminalSet {
-        id: 3,
-        terminals: &[TerminalId(2), TerminalId(3), TerminalId(4)],
-    };
+    pub static EXCEPT_SYNTAX_IDENTIFIER_ALT0_POS0: TerminalSet =
+        TerminalSet::new(3, &[TerminalId(2), TerminalId(3), TerminalId(4)]);
 }

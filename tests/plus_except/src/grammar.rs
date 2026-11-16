@@ -39,128 +39,82 @@ impl Grammar for PlusExceptGrammar {
 pub mod data {
     #[allow(unused_imports)]
     use iguana_runtime::{
-        grammar::{Nonterminal, Slot, Terminal},
-        ids::{SlotId, TerminalId},
+        grammar::{Alternative, Nonterminal, Slot, SlotKind, Terminal},
+        ids::{NonterminalId, SlotId, TerminalId},
         prediction::Prediction,
         scanner::TerminalSet,
     };
     pub(super) static NONTERMINALS: [Nonterminal; 6] = [
-        Nonterminal {
-            name: "Sep",
-            display_name: "Sep",
-        },
-        Nonterminal {
-            name: "Base",
-            display_name: "Base",
-        },
-        Nonterminal {
-            name: "Plus_0",
-            display_name: "{Number Identifier}+",
-        },
-        Nonterminal {
-            name: "Plus_1",
-            display_name: "{Identifier \",\"}+",
-        },
-        Nonterminal {
-            name: "StartSep",
-            display_name: "Sep",
-        },
-        Nonterminal {
-            name: "StartBase",
-            display_name: "Base",
-        },
+        Nonterminal::new("Sep", "Sep"),
+        Nonterminal::new("Base", "Base"),
+        Nonterminal::new("Plus_0", "{Number Identifier}+"),
+        Nonterminal::new("Plus_1", "{Identifier \",\"}+"),
+        Nonterminal::new("StartSep", "Sep"),
+        Nonterminal::new("StartBase", "Base"),
     ];
     pub(super) static DISPLAY_ORDER: [&str; 2] = ["Sep", "Base"];
     pub(super) static TERMINALS: [Terminal; 6] = [
-        Terminal { name: "Number" },
-        Terminal { name: "Identifier" },
-        Terminal { name: "Keyword" },
-        Terminal { name: "\",\"" },
-        Terminal { name: "Epsilon" },
-        Terminal { name: "EOF" },
+        Terminal::new("Number"),
+        Terminal::new("Identifier"),
+        Terminal::new("Keyword"),
+        Terminal::new("\",\""),
+        Terminal::new("Epsilon"),
+        Terminal::new("EOF"),
     ];
     pub(super) static SLOTS: [Slot; 20] = [
-        Slot {
-            display_name: "Sep : . {Number Identifier}+",
-            position: 0,
-        },
-        Slot {
-            display_name: "Sep : {Number Identifier}+.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Base : . {Identifier \",\"}+",
-            position: 0,
-        },
-        Slot {
-            display_name: "Base : {Identifier \",\"}+.",
-            position: 1,
-        },
-        Slot {
-            display_name: "{Number Identifier}+ : . {Number Identifier}+ Identifier \\ Keyword Number",
-            position: 0,
-        },
-        Slot {
-            display_name: "{Number Identifier}+ : {Number Identifier}+ . Identifier \\ Keyword Number",
-            position: 1,
-        },
-        Slot {
-            display_name: "{Number Identifier}+ : {Number Identifier}+ Identifier \\ Keyword . Number",
-            position: 2,
-        },
-        Slot {
-            display_name: "{Number Identifier}+ : {Number Identifier}+ Identifier \\ Keyword Number.",
-            position: 3,
-        },
-        Slot {
-            display_name: "{Number Identifier}+ : . Number",
-            position: 0,
-        },
-        Slot {
-            display_name: "{Number Identifier}+ : Number.",
-            position: 1,
-        },
-        Slot {
-            display_name: "{Identifier \",\"}+ : . {Identifier \",\"}+ \",\" Identifier \\ Keyword",
-            position: 0,
-        },
-        Slot {
-            display_name: "{Identifier \",\"}+ : {Identifier \",\"}+ . \",\" Identifier \\ Keyword",
-            position: 1,
-        },
-        Slot {
-            display_name: "{Identifier \",\"}+ : {Identifier \",\"}+ \",\" . Identifier \\ Keyword",
-            position: 2,
-        },
-        Slot {
-            display_name: "{Identifier \",\"}+ : {Identifier \",\"}+ \",\" Identifier \\ Keyword.",
-            position: 3,
-        },
-        Slot {
-            display_name: "{Identifier \",\"}+ : . Identifier \\ Keyword",
-            position: 0,
-        },
-        Slot {
-            display_name: "{Identifier \",\"}+ : Identifier \\ Keyword.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Sep : . start:Sep",
-            position: 0,
-        },
-        Slot {
-            display_name: "Sep : start:Sep.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Base : . start:Base",
-            position: 0,
-        },
-        Slot {
-            display_name: "Base : start:Base.",
-            position: 1,
-        },
+        Slot::new(&ALT_0, 0, SlotKind::Nonterminal(NonterminalId(2))),
+        Slot::new(&ALT_0, 1, SlotKind::End),
+        Slot::new(&ALT_1, 0, SlotKind::Nonterminal(NonterminalId(3))),
+        Slot::new(&ALT_1, 1, SlotKind::End),
+        Slot::new(&ALT_2, 0, SlotKind::Nonterminal(NonterminalId(2))),
+        Slot::new(&ALT_2, 1, SlotKind::Terminal(TerminalId(1))),
+        Slot::new(&ALT_2, 2, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_2, 3, SlotKind::End),
+        Slot::new(&ALT_3, 0, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_3, 1, SlotKind::End),
+        Slot::new(&ALT_4, 0, SlotKind::Nonterminal(NonterminalId(3))),
+        Slot::new(&ALT_4, 1, SlotKind::Terminal(TerminalId(3))),
+        Slot::new(&ALT_4, 2, SlotKind::Terminal(TerminalId(1))),
+        Slot::new(&ALT_4, 3, SlotKind::End),
+        Slot::new(&ALT_5, 0, SlotKind::Terminal(TerminalId(1))),
+        Slot::new(&ALT_5, 1, SlotKind::End),
+        Slot::new(&ALT_6, 0, SlotKind::Nonterminal(NonterminalId(0))),
+        Slot::new(&ALT_6, 1, SlotKind::End),
+        Slot::new(&ALT_7, 0, SlotKind::Nonterminal(NonterminalId(1))),
+        Slot::new(&ALT_7, 1, SlotKind::End),
     ];
+    static ALT_0: Alternative = Alternative {
+        head: NonterminalId(0),
+        symbols: &["{Number Identifier}+"],
+    };
+    static ALT_1: Alternative = Alternative {
+        head: NonterminalId(1),
+        symbols: &["{Identifier \",\"}+"],
+    };
+    static ALT_2: Alternative = Alternative {
+        head: NonterminalId(2),
+        symbols: &["{Number Identifier}+", "Identifier \\ Keyword", "Number"],
+    };
+    static ALT_3: Alternative = Alternative {
+        head: NonterminalId(2),
+        symbols: &["Number"],
+    };
+    static ALT_4: Alternative = Alternative {
+        head: NonterminalId(3),
+        symbols: &["{Identifier \",\"}+", "\",\"", "Identifier \\ Keyword"],
+    };
+    static ALT_5: Alternative = Alternative {
+        head: NonterminalId(3),
+        symbols: &["Identifier \\ Keyword"],
+    };
+    static ALT_6: Alternative = Alternative {
+        head: NonterminalId(4),
+        symbols: &["start:Sep"],
+    };
+    static ALT_7: Alternative = Alternative {
+        head: NonterminalId(5),
+        symbols: &["start:Base"],
+    };
     pub(super) static FIRST_SLOTS: [&[SlotId]; 6] = [
         &[SlotId(0)],
         &[SlotId(2)],
@@ -173,86 +127,39 @@ pub mod data {
     // error reporting path needs to reach a terminal set from a terminal id. This table, indexed
     // by terminal id, serves only that.
     pub(super) static SINGLE_TERMINAL_SETS: [TerminalSet; 6] = [
-        TerminalSet {
-            id: 6,
-            terminals: &[TerminalId(0)],
-        },
-        TerminalSet {
-            id: 7,
-            terminals: &[TerminalId(1)],
-        },
-        TerminalSet {
-            id: 8,
-            terminals: &[TerminalId(2)],
-        },
-        TerminalSet {
-            id: 9,
-            terminals: &[TerminalId(3)],
-        },
-        TerminalSet {
-            id: 10,
-            terminals: &[TerminalId(4)],
-        },
-        TerminalSet {
-            id: 11,
-            terminals: &[TerminalId(5)],
-        },
+        TerminalSet::new(6, &[TerminalId(0)]),
+        TerminalSet::new(7, &[TerminalId(1)]),
+        TerminalSet::new(8, &[TerminalId(2)]),
+        TerminalSet::new(9, &[TerminalId(3)]),
+        TerminalSet::new(10, &[TerminalId(4)]),
+        TerminalSet::new(11, &[TerminalId(5)]),
     ];
     // Sep { EOF }
-    pub static FOLLOW_SET_SEP: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(5)],
-    };
+    pub static FOLLOW_SET_SEP: TerminalSet = TerminalSet::new(0, &[TerminalId(5)]);
     // Base { EOF }
-    pub static FOLLOW_SET_BASE: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(5)],
-    };
+    pub static FOLLOW_SET_BASE: TerminalSet = TerminalSet::new(0, &[TerminalId(5)]);
     // Plus_0 { Identifier, EOF }
-    pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(1), TerminalId(5)],
-    };
+    pub static FOLLOW_SET_PLUS_0: TerminalSet =
+        TerminalSet::new(1, &[TerminalId(1), TerminalId(5)]);
     // Plus_1 { ",", EOF }
-    pub static FOLLOW_SET_PLUS_1: TerminalSet = TerminalSet {
-        id: 2,
-        terminals: &[TerminalId(3), TerminalId(5)],
-    };
+    pub static FOLLOW_SET_PLUS_1: TerminalSet =
+        TerminalSet::new(2, &[TerminalId(3), TerminalId(5)]);
     // StartSep { EOF }
-    pub static FOLLOW_SET_START_SEP: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(5)],
-    };
+    pub static FOLLOW_SET_START_SEP: TerminalSet = TerminalSet::new(0, &[TerminalId(5)]);
     // StartBase { EOF }
-    pub static FOLLOW_SET_START_BASE: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(5)],
-    };
+    pub static FOLLOW_SET_START_BASE: TerminalSet = TerminalSet::new(0, &[TerminalId(5)]);
     // Plus_0 : Plus_0 . Identifier \ Keyword Number lookahead { Identifier }
-    pub static RETURN_SLOT_LOOKAHEAD_PLUS_0_ALT0_POS1: TerminalSet = TerminalSet {
-        id: 3,
-        terminals: &[TerminalId(1)],
-    };
+    pub static RETURN_SLOT_LOOKAHEAD_PLUS_0_ALT0_POS1: TerminalSet =
+        TerminalSet::new(3, &[TerminalId(1)]);
     // Plus_1 : Plus_1 . "," Identifier \ Keyword lookahead { "," }
-    pub static RETURN_SLOT_LOOKAHEAD_PLUS_1_ALT0_POS1: TerminalSet = TerminalSet {
-        id: 4,
-        terminals: &[TerminalId(3)],
-    };
+    pub static RETURN_SLOT_LOOKAHEAD_PLUS_1_ALT0_POS1: TerminalSet =
+        TerminalSet::new(4, &[TerminalId(3)]);
     // Plus_0 : Plus_0 . Identifier \ Keyword Number \ { Keyword }
-    pub static EXCEPT_PLUS_0_ALT0_POS1: TerminalSet = TerminalSet {
-        id: 5,
-        terminals: &[TerminalId(2)],
-    };
+    pub static EXCEPT_PLUS_0_ALT0_POS1: TerminalSet = TerminalSet::new(5, &[TerminalId(2)]);
     // Plus_1 : Plus_1 "," . Identifier \ Keyword \ { Keyword }
-    pub static EXCEPT_PLUS_1_ALT0_POS2: TerminalSet = TerminalSet {
-        id: 5,
-        terminals: &[TerminalId(2)],
-    };
+    pub static EXCEPT_PLUS_1_ALT0_POS2: TerminalSet = TerminalSet::new(5, &[TerminalId(2)]);
     // Plus_1 : . Identifier \ Keyword \ { Keyword }
-    pub static EXCEPT_PLUS_1_ALT1_POS0: TerminalSet = TerminalSet {
-        id: 5,
-        terminals: &[TerminalId(2)],
-    };
+    pub static EXCEPT_PLUS_1_ALT1_POS0: TerminalSet = TerminalSet::new(5, &[TerminalId(2)]);
     // Sep
     // 0: Plus_0
     pub static PREDICTION_SEP: Prediction = {

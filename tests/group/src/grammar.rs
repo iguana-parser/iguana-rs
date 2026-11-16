@@ -45,139 +45,88 @@ impl Grammar for GroupGrammar {
 pub mod data {
     #[allow(unused_imports)]
     use iguana_runtime::{
-        grammar::{Nonterminal, Slot, Terminal},
-        ids::{SlotId, TerminalId},
+        grammar::{Alternative, Nonterminal, Slot, SlotKind, Terminal},
+        ids::{NonterminalId, SlotId, TerminalId},
         prediction::Prediction,
         scanner::TerminalSet,
     };
     pub(super) static NONTERMINALS: [Nonterminal; 9] = [
-        Nonterminal {
-            name: "A",
-            display_name: "A",
-        },
-        Nonterminal {
-            name: "B",
-            display_name: "B",
-        },
-        Nonterminal {
-            name: "C",
-            display_name: "C",
-        },
-        Nonterminal {
-            name: "D",
-            display_name: "D",
-        },
-        Nonterminal {
-            name: "Group_0",
-            display_name: "(B C D)",
-        },
-        Nonterminal {
-            name: "StartA",
-            display_name: "A",
-        },
-        Nonterminal {
-            name: "StartB",
-            display_name: "B",
-        },
-        Nonterminal {
-            name: "StartC",
-            display_name: "C",
-        },
-        Nonterminal {
-            name: "StartD",
-            display_name: "D",
-        },
+        Nonterminal::new("A", "A"),
+        Nonterminal::new("B", "B"),
+        Nonterminal::new("C", "C"),
+        Nonterminal::new("D", "D"),
+        Nonterminal::new("Group_0", "(B C D)"),
+        Nonterminal::new("StartA", "A"),
+        Nonterminal::new("StartB", "B"),
+        Nonterminal::new("StartC", "C"),
+        Nonterminal::new("StartD", "D"),
     ];
     pub(super) static DISPLAY_ORDER: [&str; 4] = ["A", "B", "C", "D"];
     pub(super) static TERMINALS: [Terminal; 5] = [
-        Terminal { name: "\"b\"" },
-        Terminal { name: "\"c\"" },
-        Terminal { name: "\"d\"" },
-        Terminal { name: "Epsilon" },
-        Terminal { name: "EOF" },
+        Terminal::new("\"b\""),
+        Terminal::new("\"c\""),
+        Terminal::new("\"d\""),
+        Terminal::new("Epsilon"),
+        Terminal::new("EOF"),
     ];
     pub(super) static SLOTS: [Slot; 20] = [
-        Slot {
-            display_name: "A : . (B C D)",
-            position: 0,
-        },
-        Slot {
-            display_name: "A : (B C D).",
-            position: 1,
-        },
-        Slot {
-            display_name: "B : . \"b\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "B : \"b\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "C : . \"c\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "C : \"c\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "D : . \"d\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "D : \"d\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "(B C D) : . B C D",
-            position: 0,
-        },
-        Slot {
-            display_name: "(B C D) : B . C D",
-            position: 1,
-        },
-        Slot {
-            display_name: "(B C D) : B C . D",
-            position: 2,
-        },
-        Slot {
-            display_name: "(B C D) : B C D.",
-            position: 3,
-        },
-        Slot {
-            display_name: "A : . start:A",
-            position: 0,
-        },
-        Slot {
-            display_name: "A : start:A.",
-            position: 1,
-        },
-        Slot {
-            display_name: "B : . start:B",
-            position: 0,
-        },
-        Slot {
-            display_name: "B : start:B.",
-            position: 1,
-        },
-        Slot {
-            display_name: "C : . start:C",
-            position: 0,
-        },
-        Slot {
-            display_name: "C : start:C.",
-            position: 1,
-        },
-        Slot {
-            display_name: "D : . start:D",
-            position: 0,
-        },
-        Slot {
-            display_name: "D : start:D.",
-            position: 1,
-        },
+        Slot::new(&ALT_0, 0, SlotKind::Nonterminal(NonterminalId(4))),
+        Slot::new(&ALT_0, 1, SlotKind::End),
+        Slot::new(&ALT_1, 0, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_1, 1, SlotKind::End),
+        Slot::new(&ALT_2, 0, SlotKind::Terminal(TerminalId(1))),
+        Slot::new(&ALT_2, 1, SlotKind::End),
+        Slot::new(&ALT_3, 0, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_3, 1, SlotKind::End),
+        Slot::new(&ALT_4, 0, SlotKind::Nonterminal(NonterminalId(1))),
+        Slot::new(&ALT_4, 1, SlotKind::Nonterminal(NonterminalId(2))),
+        Slot::new(&ALT_4, 2, SlotKind::Nonterminal(NonterminalId(3))),
+        Slot::new(&ALT_4, 3, SlotKind::End),
+        Slot::new(&ALT_5, 0, SlotKind::Nonterminal(NonterminalId(0))),
+        Slot::new(&ALT_5, 1, SlotKind::End),
+        Slot::new(&ALT_6, 0, SlotKind::Nonterminal(NonterminalId(1))),
+        Slot::new(&ALT_6, 1, SlotKind::End),
+        Slot::new(&ALT_7, 0, SlotKind::Nonterminal(NonterminalId(2))),
+        Slot::new(&ALT_7, 1, SlotKind::End),
+        Slot::new(&ALT_8, 0, SlotKind::Nonterminal(NonterminalId(3))),
+        Slot::new(&ALT_8, 1, SlotKind::End),
     ];
+    static ALT_0: Alternative = Alternative {
+        head: NonterminalId(0),
+        symbols: &["(B C D)"],
+    };
+    static ALT_1: Alternative = Alternative {
+        head: NonterminalId(1),
+        symbols: &["\"b\""],
+    };
+    static ALT_2: Alternative = Alternative {
+        head: NonterminalId(2),
+        symbols: &["\"c\""],
+    };
+    static ALT_3: Alternative = Alternative {
+        head: NonterminalId(3),
+        symbols: &["\"d\""],
+    };
+    static ALT_4: Alternative = Alternative {
+        head: NonterminalId(4),
+        symbols: &["B", "C", "D"],
+    };
+    static ALT_5: Alternative = Alternative {
+        head: NonterminalId(5),
+        symbols: &["start:A"],
+    };
+    static ALT_6: Alternative = Alternative {
+        head: NonterminalId(6),
+        symbols: &["start:B"],
+    };
+    static ALT_7: Alternative = Alternative {
+        head: NonterminalId(7),
+        symbols: &["start:C"],
+    };
+    static ALT_8: Alternative = Alternative {
+        head: NonterminalId(8),
+        symbols: &["start:D"],
+    };
     pub(super) static FIRST_SLOTS: [&[SlotId]; 9] = [
         &[SlotId(0)],
         &[SlotId(2)],
@@ -193,115 +142,46 @@ pub mod data {
     // error reporting path needs to reach a terminal set from a terminal id. This table, indexed
     // by terminal id, serves only that.
     pub(super) static SINGLE_TERMINAL_SETS: [TerminalSet; 5] = [
-        TerminalSet {
-            id: 6,
-            terminals: &[TerminalId(0)],
-        },
-        TerminalSet {
-            id: 7,
-            terminals: &[TerminalId(1)],
-        },
-        TerminalSet {
-            id: 8,
-            terminals: &[TerminalId(2)],
-        },
-        TerminalSet {
-            id: 9,
-            terminals: &[TerminalId(3)],
-        },
-        TerminalSet {
-            id: 10,
-            terminals: &[TerminalId(4)],
-        },
+        TerminalSet::new(6, &[TerminalId(0)]),
+        TerminalSet::new(7, &[TerminalId(1)]),
+        TerminalSet::new(8, &[TerminalId(2)]),
+        TerminalSet::new(9, &[TerminalId(3)]),
+        TerminalSet::new(10, &[TerminalId(4)]),
     ];
     // A { EOF }
-    pub static FOLLOW_SET_A: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(4)],
-    };
+    pub static FOLLOW_SET_A: TerminalSet = TerminalSet::new(0, &[TerminalId(4)]);
     // B { "c", EOF }
-    pub static FOLLOW_SET_B: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(1), TerminalId(4)],
-    };
+    pub static FOLLOW_SET_B: TerminalSet = TerminalSet::new(1, &[TerminalId(1), TerminalId(4)]);
     // C { "d", EOF }
-    pub static FOLLOW_SET_C: TerminalSet = TerminalSet {
-        id: 2,
-        terminals: &[TerminalId(2), TerminalId(4)],
-    };
+    pub static FOLLOW_SET_C: TerminalSet = TerminalSet::new(2, &[TerminalId(2), TerminalId(4)]);
     // D { EOF }
-    pub static FOLLOW_SET_D: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(4)],
-    };
+    pub static FOLLOW_SET_D: TerminalSet = TerminalSet::new(0, &[TerminalId(4)]);
     // Group_0 { EOF }
-    pub static FOLLOW_SET_GROUP_0: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(4)],
-    };
+    pub static FOLLOW_SET_GROUP_0: TerminalSet = TerminalSet::new(0, &[TerminalId(4)]);
     // StartA { EOF }
-    pub static FOLLOW_SET_START_A: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(4)],
-    };
+    pub static FOLLOW_SET_START_A: TerminalSet = TerminalSet::new(0, &[TerminalId(4)]);
     // StartB { EOF }
-    pub static FOLLOW_SET_START_B: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(4)],
-    };
+    pub static FOLLOW_SET_START_B: TerminalSet = TerminalSet::new(0, &[TerminalId(4)]);
     // StartC { EOF }
-    pub static FOLLOW_SET_START_C: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(4)],
-    };
+    pub static FOLLOW_SET_START_C: TerminalSet = TerminalSet::new(0, &[TerminalId(4)]);
     // StartD { EOF }
-    pub static FOLLOW_SET_START_D: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(4)],
-    };
+    pub static FOLLOW_SET_START_D: TerminalSet = TerminalSet::new(0, &[TerminalId(4)]);
     // A { "b" }
-    pub static FIRST_SET_A: TerminalSet = TerminalSet {
-        id: 3,
-        terminals: &[TerminalId(0)],
-    };
+    pub static FIRST_SET_A: TerminalSet = TerminalSet::new(3, &[TerminalId(0)]);
     // B { "b" }
-    pub static FIRST_SET_B: TerminalSet = TerminalSet {
-        id: 3,
-        terminals: &[TerminalId(0)],
-    };
+    pub static FIRST_SET_B: TerminalSet = TerminalSet::new(3, &[TerminalId(0)]);
     // C { "c" }
-    pub static FIRST_SET_C: TerminalSet = TerminalSet {
-        id: 4,
-        terminals: &[TerminalId(1)],
-    };
+    pub static FIRST_SET_C: TerminalSet = TerminalSet::new(4, &[TerminalId(1)]);
     // D { "d" }
-    pub static FIRST_SET_D: TerminalSet = TerminalSet {
-        id: 5,
-        terminals: &[TerminalId(2)],
-    };
+    pub static FIRST_SET_D: TerminalSet = TerminalSet::new(5, &[TerminalId(2)]);
     // Group_0 { "b" }
-    pub static FIRST_SET_GROUP_0: TerminalSet = TerminalSet {
-        id: 3,
-        terminals: &[TerminalId(0)],
-    };
+    pub static FIRST_SET_GROUP_0: TerminalSet = TerminalSet::new(3, &[TerminalId(0)]);
     // StartA { "b" }
-    pub static FIRST_SET_START_A: TerminalSet = TerminalSet {
-        id: 3,
-        terminals: &[TerminalId(0)],
-    };
+    pub static FIRST_SET_START_A: TerminalSet = TerminalSet::new(3, &[TerminalId(0)]);
     // StartB { "b" }
-    pub static FIRST_SET_START_B: TerminalSet = TerminalSet {
-        id: 3,
-        terminals: &[TerminalId(0)],
-    };
+    pub static FIRST_SET_START_B: TerminalSet = TerminalSet::new(3, &[TerminalId(0)]);
     // StartC { "c" }
-    pub static FIRST_SET_START_C: TerminalSet = TerminalSet {
-        id: 4,
-        terminals: &[TerminalId(1)],
-    };
+    pub static FIRST_SET_START_C: TerminalSet = TerminalSet::new(4, &[TerminalId(1)]);
     // StartD { "d" }
-    pub static FIRST_SET_START_D: TerminalSet = TerminalSet {
-        id: 5,
-        terminals: &[TerminalId(2)],
-    };
+    pub static FIRST_SET_START_D: TerminalSet = TerminalSet::new(5, &[TerminalId(2)]);
 }

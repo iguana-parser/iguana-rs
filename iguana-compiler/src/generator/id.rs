@@ -5,7 +5,6 @@ use itertools::Itertools;
 
 use crate::{
     grammar::{
-        def::Grammar,
         slot::Slot,
         symbols::{Nonterminal, Terminal},
     },
@@ -78,22 +77,14 @@ impl NonterminalIds {
     }
 }
 
+#[derive(Default)]
 pub struct SlotIds<'a> {
-    grammar: &'a Grammar,
     value: usize,
     slot_to_id: FxHashMap<Slot<'a>, usize>,
     slots: Vec<Slot<'a>>,
 }
 
 impl<'a> SlotIds<'a> {
-    pub fn new(grammar: &'a Grammar) -> Self {
-        Self {
-            grammar,
-            value: 0,
-            slot_to_id: FxHashMap::default(),
-            slots: vec![],
-        }
-    }
     pub fn insert(&mut self, slot: Slot<'a>) -> SlotId {
         let value = self.value;
         self.value += 1;
@@ -106,9 +97,6 @@ impl<'a> SlotIds<'a> {
             .get(slot)
             .map(|id| SlotId(*id as u16))
             .unwrap_or_else(|| panic!("unknown slot: {}", slot.name()))
-    }
-    pub fn display_name(&self, slot_id: &SlotId) -> String {
-        self.slots[slot_id.index()].display_name(self.grammar)
     }
     pub fn slots(&self) -> impl Iterator<Item = &Slot<'a>> {
         self.slots.iter()

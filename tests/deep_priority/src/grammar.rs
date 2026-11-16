@@ -35,182 +35,101 @@ impl Grammar for DeepPriorityGrammar {
 pub mod data {
     #[allow(unused_imports)]
     use iguana_runtime::{
-        grammar::{Nonterminal, Slot, Terminal},
-        ids::{SlotId, TerminalId},
+        grammar::{Alternative, Nonterminal, Slot, SlotKind, Terminal},
+        ids::{NonterminalId, SlotId, TerminalId},
         prediction::Prediction,
         scanner::TerminalSet,
     };
     pub(super) static NONTERMINALS: [Nonterminal; 4] = [
-        Nonterminal {
-            name: "S",
-            display_name: "S",
-        },
-        Nonterminal {
-            name: "StartS",
-            display_name: "S",
-        },
-        Nonterminal {
-            name: "StartE",
-            display_name: "E(0)",
-        },
-        Nonterminal {
-            name: "E",
-            display_name: "E",
-        },
+        Nonterminal::new("S", "S"),
+        Nonterminal::new("StartS", "S"),
+        Nonterminal::new("StartE", "E(0)"),
+        Nonterminal::new("E", "E"),
     ];
     pub(super) static DISPLAY_ORDER: [&str; 2] = ["S", "E"];
     pub(super) static TERMINALS: [Terminal; 8] = [
-        Terminal { name: "WS" },
-        Terminal { name: "\"a\"" },
-        Terminal { name: "\"+\"" },
-        Terminal { name: "\"if\"" },
-        Terminal { name: "\"then\"" },
-        Terminal { name: "\"else\"" },
-        Terminal { name: "Epsilon" },
-        Terminal { name: "EOF" },
+        Terminal::new("WS"),
+        Terminal::new("\"a\""),
+        Terminal::new("\"+\""),
+        Terminal::new("\"if\""),
+        Terminal::new("\"then\""),
+        Terminal::new("\"else\""),
+        Terminal::new("Epsilon"),
+        Terminal::new("EOF"),
     ];
     pub(super) static SLOTS: [Slot; 35] = [
-        Slot {
-            display_name: "S : . E(0)",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : E(0).",
-            position: 1,
-        },
-        Slot {
-            display_name: "S : . WS start:S WS",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : WS . start:S WS",
-            position: 1,
-        },
-        Slot {
-            display_name: "S : WS start:S . WS",
-            position: 2,
-        },
-        Slot {
-            display_name: "S : WS start:S WS.",
-            position: 3,
-        },
-        Slot {
-            display_name: "E(0) : . WS start:E(0) WS",
-            position: 0,
-        },
-        Slot {
-            display_name: "E(0) : WS . start:E(0) WS",
-            position: 1,
-        },
-        Slot {
-            display_name: "E(0) : WS start:E(0) . WS",
-            position: 2,
-        },
-        Slot {
-            display_name: "E(0) : WS start:E(0) WS.",
-            position: 3,
-        },
-        Slot {
-            display_name: "E : . \"a\" return 0",
-            position: 0,
-        },
-        Slot {
-            display_name: "E : \"a\" . return 0",
-            position: 1,
-        },
-        Slot {
-            display_name: "E : \"a\" return 0.",
-            position: 2,
-        },
-        Slot {
-            display_name: "E : . [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS r_pr=E(2) return (r_pr == 0) ? 2 : min(r_pr, 2)",
-            position: 0,
-        },
-        Slot {
-            display_name: "E : [2 >= p] . l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS r_pr=E(2) return (r_pr == 0) ? 2 : min(r_pr, 2)",
-            position: 1,
-        },
-        Slot {
-            display_name: "E : [2 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS r_pr=E(2) return (r_pr == 0) ? 2 : min(r_pr, 2)",
-            position: 2,
-        },
-        Slot {
-            display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] . WS \"+\" WS r_pr=E(2) return (r_pr == 0) ? 2 : min(r_pr, 2)",
-            position: 3,
-        },
-        Slot {
-            display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS . \"+\" WS r_pr=E(2) return (r_pr == 0) ? 2 : min(r_pr, 2)",
-            position: 4,
-        },
-        Slot {
-            display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" . WS r_pr=E(2) return (r_pr == 0) ? 2 : min(r_pr, 2)",
-            position: 5,
-        },
-        Slot {
-            display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS . r_pr=E(2) return (r_pr == 0) ? 2 : min(r_pr, 2)",
-            position: 6,
-        },
-        Slot {
-            display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS r_pr=E(2) . return (r_pr == 0) ? 2 : min(r_pr, 2)",
-            position: 7,
-        },
-        Slot {
-            display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS r_pr=E(2) return (r_pr == 0) ? 2 : min(r_pr, 2).",
-            position: 8,
-        },
-        Slot {
-            display_name: "E : . \"if\" WS E(0) WS \"then\" WS E(0) WS \"else\" WS E(1) return 1",
-            position: 0,
-        },
-        Slot {
-            display_name: "E : \"if\" . WS E(0) WS \"then\" WS E(0) WS \"else\" WS E(1) return 1",
-            position: 1,
-        },
-        Slot {
-            display_name: "E : \"if\" WS . E(0) WS \"then\" WS E(0) WS \"else\" WS E(1) return 1",
-            position: 2,
-        },
-        Slot {
-            display_name: "E : \"if\" WS E(0) . WS \"then\" WS E(0) WS \"else\" WS E(1) return 1",
-            position: 3,
-        },
-        Slot {
-            display_name: "E : \"if\" WS E(0) WS . \"then\" WS E(0) WS \"else\" WS E(1) return 1",
-            position: 4,
-        },
-        Slot {
-            display_name: "E : \"if\" WS E(0) WS \"then\" . WS E(0) WS \"else\" WS E(1) return 1",
-            position: 5,
-        },
-        Slot {
-            display_name: "E : \"if\" WS E(0) WS \"then\" WS . E(0) WS \"else\" WS E(1) return 1",
-            position: 6,
-        },
-        Slot {
-            display_name: "E : \"if\" WS E(0) WS \"then\" WS E(0) . WS \"else\" WS E(1) return 1",
-            position: 7,
-        },
-        Slot {
-            display_name: "E : \"if\" WS E(0) WS \"then\" WS E(0) WS . \"else\" WS E(1) return 1",
-            position: 8,
-        },
-        Slot {
-            display_name: "E : \"if\" WS E(0) WS \"then\" WS E(0) WS \"else\" . WS E(1) return 1",
-            position: 9,
-        },
-        Slot {
-            display_name: "E : \"if\" WS E(0) WS \"then\" WS E(0) WS \"else\" WS . E(1) return 1",
-            position: 10,
-        },
-        Slot {
-            display_name: "E : \"if\" WS E(0) WS \"then\" WS E(0) WS \"else\" WS E(1) . return 1",
-            position: 11,
-        },
-        Slot {
-            display_name: "E : \"if\" WS E(0) WS \"then\" WS E(0) WS \"else\" WS E(1) return 1.",
-            position: 12,
-        },
+        Slot::new(&ALT_0, 0, SlotKind::Nonterminal(NonterminalId(3))),
+        Slot::new(&ALT_0, 1, SlotKind::End),
+        Slot::new(&ALT_1, 0, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_1, 1, SlotKind::Nonterminal(NonterminalId(0))),
+        Slot::new(&ALT_1, 2, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_1, 3, SlotKind::End),
+        Slot::new(&ALT_2, 0, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_2, 1, SlotKind::Nonterminal(NonterminalId(3))),
+        Slot::new(&ALT_2, 2, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_2, 3, SlotKind::End),
+        Slot::new(&ALT_3, 0, SlotKind::Terminal(TerminalId(1))),
+        Slot::new(&ALT_3, 1, SlotKind::Return),
+        Slot::new(&ALT_3, 2, SlotKind::End),
+        Slot::new(&ALT_4, 0, SlotKind::Condition),
+        Slot::new(&ALT_4, 1, SlotKind::Nonterminal(NonterminalId(3))),
+        Slot::new(&ALT_4, 2, SlotKind::Condition),
+        Slot::new(&ALT_4, 3, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_4, 4, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_4, 5, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_4, 6, SlotKind::Nonterminal(NonterminalId(3))),
+        Slot::new(&ALT_4, 7, SlotKind::Return),
+        Slot::new(&ALT_4, 8, SlotKind::End),
+        Slot::new(&ALT_5, 0, SlotKind::Terminal(TerminalId(3))),
+        Slot::new(&ALT_5, 1, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_5, 2, SlotKind::Nonterminal(NonterminalId(3))),
+        Slot::new(&ALT_5, 3, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_5, 4, SlotKind::Terminal(TerminalId(4))),
+        Slot::new(&ALT_5, 5, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_5, 6, SlotKind::Nonterminal(NonterminalId(3))),
+        Slot::new(&ALT_5, 7, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_5, 8, SlotKind::Terminal(TerminalId(5))),
+        Slot::new(&ALT_5, 9, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_5, 10, SlotKind::Nonterminal(NonterminalId(3))),
+        Slot::new(&ALT_5, 11, SlotKind::Return),
+        Slot::new(&ALT_5, 12, SlotKind::End),
     ];
+    static ALT_0: Alternative = Alternative {
+        head: NonterminalId(0),
+        symbols: &["E(0)"],
+    };
+    static ALT_1: Alternative = Alternative {
+        head: NonterminalId(1),
+        symbols: &["WS", "start:S", "WS"],
+    };
+    static ALT_2: Alternative = Alternative {
+        head: NonterminalId(2),
+        symbols: &["WS", "start:E(0)", "WS"],
+    };
+    static ALT_3: Alternative = Alternative {
+        head: NonterminalId(3),
+        symbols: &["\"a\"", "return 0"],
+    };
+    static ALT_4: Alternative = Alternative {
+        head: NonterminalId(3),
+        symbols: &[
+            "[2 >= p]",
+            "l_pr=E(p)",
+            "[(l_pr == 0) || (l_pr >= 2)]",
+            "WS",
+            "\"+\"",
+            "WS",
+            "r_pr=E(2)",
+            "return (r_pr == 0) ? 2 : min(r_pr, 2)",
+        ],
+    };
+    static ALT_5: Alternative = Alternative {
+        head: NonterminalId(3),
+        symbols: &[
+            "\"if\"", "WS", "E(0)", "WS", "\"then\"", "WS", "E(0)", "WS", "\"else\"", "WS", "E(1)",
+            "return 1",
+        ],
+    };
     pub(super) static FIRST_SLOTS: [&[SlotId]; 4] = [
         &[SlotId(0)],
         &[SlotId(2)],
@@ -221,83 +140,44 @@ pub mod data {
     // error reporting path needs to reach a terminal set from a terminal id. This table, indexed
     // by terminal id, serves only that.
     pub(super) static SINGLE_TERMINAL_SETS: [TerminalSet; 8] = [
-        TerminalSet {
-            id: 6,
-            terminals: &[TerminalId(0)],
-        },
-        TerminalSet {
-            id: 7,
-            terminals: &[TerminalId(1)],
-        },
-        TerminalSet {
-            id: 8,
-            terminals: &[TerminalId(2)],
-        },
-        TerminalSet {
-            id: 9,
-            terminals: &[TerminalId(3)],
-        },
-        TerminalSet {
-            id: 10,
-            terminals: &[TerminalId(4)],
-        },
-        TerminalSet {
-            id: 11,
-            terminals: &[TerminalId(5)],
-        },
-        TerminalSet {
-            id: 12,
-            terminals: &[TerminalId(6)],
-        },
-        TerminalSet {
-            id: 13,
-            terminals: &[TerminalId(7)],
-        },
+        TerminalSet::new(6, &[TerminalId(0)]),
+        TerminalSet::new(7, &[TerminalId(1)]),
+        TerminalSet::new(8, &[TerminalId(2)]),
+        TerminalSet::new(9, &[TerminalId(3)]),
+        TerminalSet::new(10, &[TerminalId(4)]),
+        TerminalSet::new(11, &[TerminalId(5)]),
+        TerminalSet::new(12, &[TerminalId(6)]),
+        TerminalSet::new(13, &[TerminalId(7)]),
     ];
     // S { WS, EOF }
-    pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(0), TerminalId(7)],
-    };
+    pub static FOLLOW_SET_S: TerminalSet = TerminalSet::new(0, &[TerminalId(0), TerminalId(7)]);
     // E { WS, "+", "then", "else", EOF }
-    pub static FOLLOW_SET_E: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[
+    pub static FOLLOW_SET_E: TerminalSet = TerminalSet::new(
+        1,
+        &[
             TerminalId(0),
             TerminalId(2),
             TerminalId(4),
             TerminalId(5),
             TerminalId(7),
         ],
-    };
+    );
     // StartS { EOF }
-    pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
-        id: 2,
-        terminals: &[TerminalId(7)],
-    };
+    pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet::new(2, &[TerminalId(7)]);
     // StartE { EOF }
-    pub static FOLLOW_SET_START_E: TerminalSet = TerminalSet {
-        id: 2,
-        terminals: &[TerminalId(7)],
-    };
+    pub static FOLLOW_SET_START_E: TerminalSet = TerminalSet::new(2, &[TerminalId(7)]);
     // E(p: i32) : [2 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 2)] WS "+" WS r_pr=E(2) return
     // (r_pr == 0) ? 2 : min(r_pr, 2) lookahead { "+" }
-    pub static RETURN_SLOT_LOOKAHEAD_E_ALT1_POS2: TerminalSet = TerminalSet {
-        id: 3,
-        terminals: &[TerminalId(2)],
-    };
+    pub static RETURN_SLOT_LOOKAHEAD_E_ALT1_POS2: TerminalSet =
+        TerminalSet::new(3, &[TerminalId(2)]);
     // E(p: i32) : "if" WS E(0) . WS "then" WS E(0) WS "else" WS E(1) return 1 lookahead { "then"
     // }
-    pub static RETURN_SLOT_LOOKAHEAD_E_ALT2_POS3: TerminalSet = TerminalSet {
-        id: 4,
-        terminals: &[TerminalId(4)],
-    };
+    pub static RETURN_SLOT_LOOKAHEAD_E_ALT2_POS3: TerminalSet =
+        TerminalSet::new(4, &[TerminalId(4)]);
     // E(p: i32) : "if" WS E(0) WS "then" WS E(0) . WS "else" WS E(1) return 1 lookahead { "else"
     // }
-    pub static RETURN_SLOT_LOOKAHEAD_E_ALT2_POS7: TerminalSet = TerminalSet {
-        id: 5,
-        terminals: &[TerminalId(5)],
-    };
+    pub static RETURN_SLOT_LOOKAHEAD_E_ALT2_POS7: TerminalSet =
+        TerminalSet::new(5, &[TerminalId(5)]);
     // S
     // 0: E(0)
     pub static PREDICTION_S: Prediction = {

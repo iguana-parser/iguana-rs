@@ -31,130 +31,68 @@ impl Grammar for ExactKeywordLexicalSetGrammar {
 pub mod data {
     #[allow(unused_imports)]
     use iguana_runtime::{
-        grammar::{Nonterminal, Slot, Terminal},
-        ids::{SlotId, TerminalId},
+        grammar::{Alternative, Nonterminal, Slot, SlotKind, Terminal},
+        ids::{NonterminalId, SlotId, TerminalId},
         prediction::Prediction,
         scanner::TerminalSet,
     };
-    pub(super) static NONTERMINALS: [Nonterminal; 2] = [
-        Nonterminal {
-            name: "S",
-            display_name: "S",
-        },
-        Nonterminal {
-            name: "StartS",
-            display_name: "S",
-        },
-    ];
+    pub(super) static NONTERMINALS: [Nonterminal; 2] =
+        [Nonterminal::new("S", "S"), Nonterminal::new("StartS", "S")];
     pub(super) static DISPLAY_ORDER: [&str; 1] = ["S"];
     pub(super) static TERMINALS: [Terminal; 7] = [
-        Terminal { name: "Bool" },
-        Terminal { name: "Id" },
-        Terminal { name: "WS" },
-        Terminal { name: "\";\"" },
-        Terminal { name: "[a-z]" },
-        Terminal { name: "Epsilon" },
-        Terminal { name: "EOF" },
+        Terminal::new("Bool"),
+        Terminal::new("Id"),
+        Terminal::new("WS"),
+        Terminal::new("\";\""),
+        Terminal::new("[a-z]"),
+        Terminal::new("Epsilon"),
+        Terminal::new("EOF"),
     ];
     pub(super) static SLOTS: [Slot; 12] = [
-        Slot {
-            display_name: "S : . [a-z] !<< Bool !>> [a-z] WS \";\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : [a-z] !<< Bool !>> [a-z] . WS \";\"",
-            position: 1,
-        },
-        Slot {
-            display_name: "S : [a-z] !<< Bool !>> [a-z] WS . \";\"",
-            position: 2,
-        },
-        Slot {
-            display_name: "S : [a-z] !<< Bool !>> [a-z] WS \";\".",
-            position: 3,
-        },
-        Slot {
-            display_name: "S : . Id WS \";\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : Id . WS \";\"",
-            position: 1,
-        },
-        Slot {
-            display_name: "S : Id WS . \";\"",
-            position: 2,
-        },
-        Slot {
-            display_name: "S : Id WS \";\".",
-            position: 3,
-        },
-        Slot {
-            display_name: "S : . WS start:S WS",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : WS . start:S WS",
-            position: 1,
-        },
-        Slot {
-            display_name: "S : WS start:S . WS",
-            position: 2,
-        },
-        Slot {
-            display_name: "S : WS start:S WS.",
-            position: 3,
-        },
+        Slot::new(&ALT_0, 0, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_0, 1, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_0, 2, SlotKind::Terminal(TerminalId(3))),
+        Slot::new(&ALT_0, 3, SlotKind::End),
+        Slot::new(&ALT_1, 0, SlotKind::Terminal(TerminalId(1))),
+        Slot::new(&ALT_1, 1, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_1, 2, SlotKind::Terminal(TerminalId(3))),
+        Slot::new(&ALT_1, 3, SlotKind::End),
+        Slot::new(&ALT_2, 0, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_2, 1, SlotKind::Nonterminal(NonterminalId(0))),
+        Slot::new(&ALT_2, 2, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_2, 3, SlotKind::End),
     ];
+    static ALT_0: Alternative = Alternative {
+        head: NonterminalId(0),
+        symbols: &["[a-z] !<< Bool !>> [a-z]", "WS", "\";\""],
+    };
+    static ALT_1: Alternative = Alternative {
+        head: NonterminalId(0),
+        symbols: &["Id", "WS", "\";\""],
+    };
+    static ALT_2: Alternative = Alternative {
+        head: NonterminalId(1),
+        symbols: &["WS", "start:S", "WS"],
+    };
     pub(super) static FIRST_SLOTS: [&[SlotId]; 2] = [&[SlotId(0), SlotId(4)], &[SlotId(8)]];
     // A failed terminal match refers to a static terminal set like every other failure, so the
     // error reporting path needs to reach a terminal set from a terminal id. This table, indexed
     // by terminal id, serves only that.
     pub(super) static SINGLE_TERMINAL_SETS: [TerminalSet; 7] = [
-        TerminalSet {
-            id: 3,
-            terminals: &[TerminalId(0)],
-        },
-        TerminalSet {
-            id: 4,
-            terminals: &[TerminalId(1)],
-        },
-        TerminalSet {
-            id: 5,
-            terminals: &[TerminalId(2)],
-        },
-        TerminalSet {
-            id: 6,
-            terminals: &[TerminalId(3)],
-        },
-        TerminalSet {
-            id: 7,
-            terminals: &[TerminalId(4)],
-        },
-        TerminalSet {
-            id: 8,
-            terminals: &[TerminalId(5)],
-        },
-        TerminalSet {
-            id: 9,
-            terminals: &[TerminalId(6)],
-        },
+        TerminalSet::new(3, &[TerminalId(0)]),
+        TerminalSet::new(4, &[TerminalId(1)]),
+        TerminalSet::new(5, &[TerminalId(2)]),
+        TerminalSet::new(6, &[TerminalId(3)]),
+        TerminalSet::new(7, &[TerminalId(4)]),
+        TerminalSet::new(8, &[TerminalId(5)]),
+        TerminalSet::new(9, &[TerminalId(6)]),
     ];
     // S { WS, EOF }
-    pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(2), TerminalId(6)],
-    };
+    pub static FOLLOW_SET_S: TerminalSet = TerminalSet::new(0, &[TerminalId(2), TerminalId(6)]);
     // S : . [a-z] !<< Bool !>> [a-z] WS ";" !>> { [a-z] }
-    pub static FOLLOW_RESTRICTION_S_ALT0_POS0: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(4)],
-    };
+    pub static FOLLOW_RESTRICTION_S_ALT0_POS0: TerminalSet = TerminalSet::new(1, &[TerminalId(4)]);
     // StartS { EOF }
-    pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
-        id: 2,
-        terminals: &[TerminalId(6)],
-    };
+    pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet::new(2, &[TerminalId(6)]);
     // S
     // 0: [a-z] !<< Bool !>> [a-z] WS ";" #Bool
     // 1: Id WS ";" #Id

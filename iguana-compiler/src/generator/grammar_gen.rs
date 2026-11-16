@@ -10,7 +10,7 @@ use crate::grammar::first_chars::FirstChars;
 use crate::grammar::first_follow::FirstFollowSets;
 use crate::grammar::regex::CharRange;
 use crate::grammar::slot::Slot;
-use crate::grammar::symbols::{Definition, Nonterminal};
+use crate::grammar::symbols::{Definition, Nonterminal, Symbol};
 use crate::utils::to_snake_case;
 use iguana_runtime::ids::TerminalId;
 
@@ -56,12 +56,7 @@ pub fn generate<'a>(
     let nonterminals = nonterminal_ids.nonterminals().map(|n| {
         let nonterminal_name = &n.name;
         let display_name = n.display_name();
-        quote! {
-            Nonterminal {
-                name: #nonterminal_name,
-                display_name: #display_name,
-            }
-        }
+        quote! { Nonterminal::new(#nonterminal_name, #display_name) }
     });
 
     let layout_name = grammar
@@ -104,17 +99,38 @@ pub fn generate<'a>(
         .terminals()
         .map(|t| {
             let terminal_name = &t.name;
-            quote! { Terminal { name: #terminal_name } }
+            quote! { Terminal::new(#terminal_name) }
         })
         .collect();
 
-    let slots = slot_ids.slots().map(|s| {
-        let display_name = slot_ids.display_name(&slot_ids.get_id(s));
-        let position = Literal::usize_unsuffixed(s.pos());
-        quote! {
-            Slot { display_name: #display_name, position: #position }
-        }
-    });
+    // Each alternative becomes a static `ALT_<n>`, which its slots refer to.
+    // The name is short so that each `Slot::new` call fits on one line. The
+    // slots of an alternative have consecutive ids, starting with the slot at
+    // position 0 (`assign_slot_ids`).
+    let mut alternatives = vec![];
+    let slots: Vec<_> = slot_ids
+        .slots()
+        .map(|s| {
+            if s.pos() == 0 {
+                let name = format_ident!("ALT_{}", alternatives.len());
+                let head = nonterminal_ids.get_id(s.head());
+                let symbols = s
+                    .alternative()
+                    .symbols
+                    .iter()
+                    .map(|symbol| symbol.display_name(grammar));
+                alternatives.push(quote! {
+                    static #name: Alternative = Alternative { head: #head, symbols: &[#(#symbols),*] };
+                });
+            }
+            let alternative_name = format_ident!("ALT_{}", alternatives.len() - 1);
+            let position = Literal::usize_unsuffixed(s.pos());
+            let kind = slot_kind(s, grammar, nonterminal_ids, terminal_ids);
+            quote! {
+                Slot::new(&#alternative_name, #position, #kind)
+            }
+        })
+        .collect();
 
     let first_slots = nonterminal_ids.nonterminals().map(|nonterminal| {
         let slots = grammar
@@ -181,8 +197,8 @@ pub fn generate<'a>(
             // LL(1) functions, for example, does not have a `Prediction` static.
             #[allow(unused_imports)]
             use iguana_runtime::{
-                grammar::{Nonterminal, Slot, Terminal},
-                ids::{SlotId, TerminalId},
+                grammar::{Alternative, Nonterminal, Slot, SlotKind, Terminal},
+                ids::{NonterminalId, SlotId, TerminalId},
                 prediction::Prediction,
                 scanner::TerminalSet,
             };
@@ -193,11 +209,13 @@ pub fn generate<'a>(
 
             pub(super) static TERMINALS: [Terminal; #terminal_count] = [
                 #(#terminals,)*
-                Terminal { name: "Epsilon" },
-                Terminal { name: "EOF" },
+                Terminal::new("Epsilon"),
+                Terminal::new("EOF"),
             ];
 
             pub(super) static SLOTS: [Slot; #slot_count] = [#(#slots),*];
+
+            #(#alternatives)*
 
             pub(super) static FIRST_SLOTS: [&[SlotId]; #nonterminal_count] = [#(#first_slots),*];
 
@@ -218,10 +236,8 @@ pub fn generate<'a>(
 ///
 /// ```text
 /// // Grammar { WS, LineComment, EOF }
-/// pub static FOLLOW_SET_GRAMMAR: TerminalSet = TerminalSet {
-///     id: 0,
-///     terminals: &[TerminalId(8), TerminalId(10), TerminalId(39)],
-/// };
+/// pub static FOLLOW_SET_GRAMMAR: TerminalSet =
+///     TerminalSet::new(0, &[TerminalId(8), TerminalId(10), TerminalId(39)]);
 /// ```
 ///
 /// The parser passes these sets to the scanner for matching, and a recorded
@@ -245,7 +261,7 @@ fn terminal_set_statics(
             let set_id = Literal::usize_unsuffixed(set.id);
             quote! {
                 #[comment = #comment]
-                pub static #name: TerminalSet = TerminalSet { id: #set_id, terminals: &[#(#ids),*] };
+                pub static #name: TerminalSet = TerminalSet::new(#set_id, &[#(#ids),*]);
             }
         })
         .collect()
@@ -271,9 +287,46 @@ fn single_terminal_sets(
         .map(|index| {
             let set_id = Literal::usize_unsuffixed(first_id + index);
             let id = TerminalId(index as u16);
-            quote! { TerminalSet { id: #set_id, terminals: &[#id] } }
+            quote! { TerminalSet::new(#set_id, &[#id]) }
         })
         .collect()
+}
+
+/// The kind of the symbol after a slot, as a `SlotKind` expression such as
+/// `SlotKind::Terminal(TerminalId(3))`.
+fn slot_kind(
+    slot: &Slot,
+    grammar: &Grammar,
+    nonterminal_ids: &NonterminalIds,
+    terminal_ids: &TerminalIds,
+) -> TokenStream {
+    let Some(symbol) = slot.symbol() else {
+        return quote! { SlotKind::End };
+    };
+    if let Symbol::Condition(_) = symbol {
+        return quote! { SlotKind::Condition };
+    }
+    if let Symbol::Return(_) = symbol {
+        return quote! { SlotKind::Return };
+    }
+    // Building the grammar replaces each literal with a reference to a lexical
+    // rule, and the grammar transformations replace each EBNF operator and
+    // each exclusion with a reference to a new nonterminal. A symbol that is
+    // not a condition or a return is therefore a reference, possibly a call
+    // with arguments, and possibly with a field, a binding, or restrictions.
+    let identifier = symbol.as_identifier().unwrap_or_else(|| {
+        panic!("expected a reference to a terminal or nonterminal, but found {symbol}")
+    });
+    match grammar.definition(identifier.resolve()) {
+        Definition::Terminal(terminal) => {
+            let id = terminal_ids.get_id(terminal);
+            quote! { SlotKind::Terminal(#id) }
+        }
+        Definition::Nonterminal(nonterminal) => {
+            let id = nonterminal_ids.get_id(nonterminal);
+            quote! { SlotKind::Nonterminal(#id) }
+        }
+    }
 }
 
 /// The ids of the terminals reachable from the grammar's layout definition,

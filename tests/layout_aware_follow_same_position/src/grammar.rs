@@ -31,114 +31,62 @@ impl Grammar for LayoutAwareFollowSamePositionGrammar {
 pub mod data {
     #[allow(unused_imports)]
     use iguana_runtime::{
-        grammar::{Nonterminal, Slot, Terminal},
-        ids::{SlotId, TerminalId},
+        grammar::{Alternative, Nonterminal, Slot, SlotKind, Terminal},
+        ids::{NonterminalId, SlotId, TerminalId},
         prediction::Prediction,
         scanner::TerminalSet,
     };
-    pub(super) static NONTERMINALS: [Nonterminal; 2] = [
-        Nonterminal {
-            name: "S",
-            display_name: "S",
-        },
-        Nonterminal {
-            name: "StartS",
-            display_name: "S",
-        },
-    ];
+    pub(super) static NONTERMINALS: [Nonterminal; 2] =
+        [Nonterminal::new("S", "S"), Nonterminal::new("StartS", "S")];
     pub(super) static DISPLAY_ORDER: [&str; 1] = ["S"];
     pub(super) static TERMINALS: [Terminal; 6] = [
-        Terminal { name: "Id" },
-        Terminal { name: "Excl" },
-        Terminal { name: "Semi" },
-        Terminal { name: "WS" },
-        Terminal { name: "Epsilon" },
-        Terminal { name: "EOF" },
+        Terminal::new("Id"),
+        Terminal::new("Excl"),
+        Terminal::new("Semi"),
+        Terminal::new("WS"),
+        Terminal::new("Epsilon"),
+        Terminal::new("EOF"),
     ];
     pub(super) static SLOTS: [Slot; 6] = [
-        Slot {
-            display_name: "S : . Id !>> Excl !>>> Semi",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : Id !>> Excl !>>> Semi.",
-            position: 1,
-        },
-        Slot {
-            display_name: "S : . WS start:S WS",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : WS . start:S WS",
-            position: 1,
-        },
-        Slot {
-            display_name: "S : WS start:S . WS",
-            position: 2,
-        },
-        Slot {
-            display_name: "S : WS start:S WS.",
-            position: 3,
-        },
+        Slot::new(&ALT_0, 0, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_0, 1, SlotKind::End),
+        Slot::new(&ALT_1, 0, SlotKind::Terminal(TerminalId(3))),
+        Slot::new(&ALT_1, 1, SlotKind::Nonterminal(NonterminalId(0))),
+        Slot::new(&ALT_1, 2, SlotKind::Terminal(TerminalId(3))),
+        Slot::new(&ALT_1, 3, SlotKind::End),
     ];
+    static ALT_0: Alternative = Alternative {
+        head: NonterminalId(0),
+        symbols: &["Id !>> Excl !>>> Semi"],
+    };
+    static ALT_1: Alternative = Alternative {
+        head: NonterminalId(1),
+        symbols: &["WS", "start:S", "WS"],
+    };
     pub(super) static FIRST_SLOTS: [&[SlotId]; 2] = [&[SlotId(0)], &[SlotId(2)]];
     // A failed terminal match refers to a static terminal set like every other failure, so the
     // error reporting path needs to reach a terminal set from a terminal id. This table, indexed
     // by terminal id, serves only that.
     pub(super) static SINGLE_TERMINAL_SETS: [TerminalSet; 6] = [
-        TerminalSet {
-            id: 6,
-            terminals: &[TerminalId(0)],
-        },
-        TerminalSet {
-            id: 7,
-            terminals: &[TerminalId(1)],
-        },
-        TerminalSet {
-            id: 8,
-            terminals: &[TerminalId(2)],
-        },
-        TerminalSet {
-            id: 9,
-            terminals: &[TerminalId(3)],
-        },
-        TerminalSet {
-            id: 10,
-            terminals: &[TerminalId(4)],
-        },
-        TerminalSet {
-            id: 11,
-            terminals: &[TerminalId(5)],
-        },
+        TerminalSet::new(6, &[TerminalId(0)]),
+        TerminalSet::new(7, &[TerminalId(1)]),
+        TerminalSet::new(8, &[TerminalId(2)]),
+        TerminalSet::new(9, &[TerminalId(3)]),
+        TerminalSet::new(10, &[TerminalId(4)]),
+        TerminalSet::new(11, &[TerminalId(5)]),
     ];
     // S { WS, EOF }
-    pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(3), TerminalId(5)],
-    };
+    pub static FOLLOW_SET_S: TerminalSet = TerminalSet::new(0, &[TerminalId(3), TerminalId(5)]);
     // S : . Id !>> Excl !>>> Semi !>> { Excl }
-    pub static FOLLOW_RESTRICTION_S_ALT0_POS0: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(1)],
-    };
+    pub static FOLLOW_RESTRICTION_S_ALT0_POS0: TerminalSet = TerminalSet::new(1, &[TerminalId(1)]);
     // S : . Id !>> Excl !>>> Semi !>>> { Semi }
-    pub static LAYOUT_AWARE_FOLLOW_RESTRICTION_S_ALT0_POS0: TerminalSet = TerminalSet {
-        id: 2,
-        terminals: &[TerminalId(2)],
-    };
+    pub static LAYOUT_AWARE_FOLLOW_RESTRICTION_S_ALT0_POS0: TerminalSet =
+        TerminalSet::new(2, &[TerminalId(2)]);
     // StartS { EOF }
-    pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
-        id: 3,
-        terminals: &[TerminalId(5)],
-    };
+    pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet::new(3, &[TerminalId(5)]);
     // S { Id }
-    pub static FIRST_SET_S: TerminalSet = TerminalSet {
-        id: 4,
-        terminals: &[TerminalId(0)],
-    };
+    pub static FIRST_SET_S: TerminalSet = TerminalSet::new(4, &[TerminalId(0)]);
     // StartS { Id, WS }
-    pub static FIRST_SET_START_S: TerminalSet = TerminalSet {
-        id: 5,
-        terminals: &[TerminalId(0), TerminalId(3)],
-    };
+    pub static FIRST_SET_START_S: TerminalSet =
+        TerminalSet::new(5, &[TerminalId(0), TerminalId(3)]);
 }

@@ -173,304 +173,85 @@ impl Grammar for CyclesGrammar {
 pub mod data {
     #[allow(unused_imports)]
     use iguana_runtime::{
-        grammar::{Nonterminal, Slot, Terminal},
-        ids::{SlotId, TerminalId},
+        grammar::{Alternative, Nonterminal, Slot, SlotKind, Terminal},
+        ids::{NonterminalId, SlotId, TerminalId},
         prediction::Prediction,
         scanner::TerminalSet,
     };
     pub(super) static NONTERMINALS: [Nonterminal; 73] = [
-        Nonterminal {
-            name: "Direct",
-            display_name: "Direct",
-        },
-        Nonterminal {
-            name: "MutualC",
-            display_name: "MutualC",
-        },
-        Nonterminal {
-            name: "MutualB",
-            display_name: "MutualB",
-        },
-        Nonterminal {
-            name: "ChainC",
-            display_name: "ChainC",
-        },
-        Nonterminal {
-            name: "ChainA",
-            display_name: "ChainA",
-        },
-        Nonterminal {
-            name: "ChainB",
-            display_name: "ChainB",
-        },
-        Nonterminal {
-            name: "SharedS",
-            display_name: "SharedS",
-        },
-        Nonterminal {
-            name: "SharedA",
-            display_name: "SharedA",
-        },
-        Nonterminal {
-            name: "SharedB",
-            display_name: "SharedB",
-        },
-        Nonterminal {
-            name: "TwoExitsC",
-            display_name: "TwoExitsC",
-        },
-        Nonterminal {
-            name: "TwoExitsB",
-            display_name: "TwoExitsB",
-        },
-        Nonterminal {
-            name: "TwoRoutesC",
-            display_name: "TwoRoutesC",
-        },
-        Nonterminal {
-            name: "TwoRoutesA",
-            display_name: "TwoRoutesA",
-        },
-        Nonterminal {
-            name: "TwoRoutesB",
-            display_name: "TwoRoutesB",
-        },
-        Nonterminal {
-            name: "Nullable",
-            display_name: "Nullable",
-        },
-        Nonterminal {
-            name: "SiblingC",
-            display_name: "SiblingC",
-        },
-        Nonterminal {
-            name: "SiblingD",
-            display_name: "SiblingD",
-        },
-        Nonterminal {
-            name: "EmptyE",
-            display_name: "EmptyE",
-        },
-        Nonterminal {
-            name: "EmptyF",
-            display_name: "EmptyF",
-        },
-        Nonterminal {
-            name: "ParentC",
-            display_name: "ParentC",
-        },
-        Nonterminal {
-            name: "ParentD",
-            display_name: "ParentD",
-        },
-        Nonterminal {
-            name: "OverlapC",
-            display_name: "OverlapC",
-        },
-        Nonterminal {
-            name: "OverlapB",
-            display_name: "OverlapB",
-        },
-        Nonterminal {
-            name: "IntermediateY",
-            display_name: "IntermediateY",
-        },
-        Nonterminal {
-            name: "IntermediateA",
-            display_name: "IntermediateA",
-        },
-        Nonterminal {
-            name: "IntermediateB",
-            display_name: "IntermediateB",
-        },
-        Nonterminal {
-            name: "MidInput",
-            display_name: "MidInput",
-        },
-        Nonterminal {
-            name: "Consuming",
-            display_name: "Consuming",
-        },
-        Nonterminal {
-            name: "Ordinary",
-            display_name: "Ordinary",
-        },
-        Nonterminal {
-            name: "NullablePlus",
-            display_name: "NullablePlus",
-        },
-        Nonterminal {
-            name: "NullableStar",
-            display_name: "NullableStar",
-        },
-        Nonterminal {
-            name: "NullableSeparated",
-            display_name: "NullableSeparated",
-        },
-        Nonterminal {
-            name: "Optional",
-            display_name: "Optional",
-        },
-        Nonterminal {
-            name: "Grouped",
-            display_name: "Grouped",
-        },
-        Nonterminal {
-            name: "Plus_0",
-            display_name: "EmptyE+",
-        },
-        Nonterminal {
-            name: "Star_0",
-            display_name: "EmptyE*",
-        },
-        Nonterminal {
-            name: "Plus_1",
-            display_name: "{EmptyE EmptyF}+",
-        },
-        Nonterminal {
-            name: "Opt_0",
-            display_name: "Optional?",
-        },
-        Nonterminal {
-            name: "Group_0",
-            display_name: "(Grouped)",
-        },
-        Nonterminal {
-            name: "StartDirect",
-            display_name: "Direct",
-        },
-        Nonterminal {
-            name: "StartMutualC",
-            display_name: "MutualC",
-        },
-        Nonterminal {
-            name: "StartMutualB",
-            display_name: "MutualB",
-        },
-        Nonterminal {
-            name: "StartChainC",
-            display_name: "ChainC",
-        },
-        Nonterminal {
-            name: "StartChainA",
-            display_name: "ChainA",
-        },
-        Nonterminal {
-            name: "StartChainB",
-            display_name: "ChainB",
-        },
-        Nonterminal {
-            name: "StartSharedS",
-            display_name: "SharedS",
-        },
-        Nonterminal {
-            name: "StartSharedA",
-            display_name: "SharedA",
-        },
-        Nonterminal {
-            name: "StartSharedB",
-            display_name: "SharedB",
-        },
-        Nonterminal {
-            name: "StartTwoExitsC",
-            display_name: "TwoExitsC",
-        },
-        Nonterminal {
-            name: "StartTwoExitsB",
-            display_name: "TwoExitsB",
-        },
-        Nonterminal {
-            name: "StartTwoRoutesC",
-            display_name: "TwoRoutesC",
-        },
-        Nonterminal {
-            name: "StartTwoRoutesA",
-            display_name: "TwoRoutesA",
-        },
-        Nonterminal {
-            name: "StartTwoRoutesB",
-            display_name: "TwoRoutesB",
-        },
-        Nonterminal {
-            name: "StartNullable",
-            display_name: "Nullable",
-        },
-        Nonterminal {
-            name: "StartSiblingC",
-            display_name: "SiblingC",
-        },
-        Nonterminal {
-            name: "StartSiblingD",
-            display_name: "SiblingD",
-        },
-        Nonterminal {
-            name: "StartEmptyE",
-            display_name: "EmptyE",
-        },
-        Nonterminal {
-            name: "StartEmptyF",
-            display_name: "EmptyF",
-        },
-        Nonterminal {
-            name: "StartParentC",
-            display_name: "ParentC",
-        },
-        Nonterminal {
-            name: "StartParentD",
-            display_name: "ParentD",
-        },
-        Nonterminal {
-            name: "StartOverlapC",
-            display_name: "OverlapC",
-        },
-        Nonterminal {
-            name: "StartOverlapB",
-            display_name: "OverlapB",
-        },
-        Nonterminal {
-            name: "StartIntermediateY",
-            display_name: "IntermediateY",
-        },
-        Nonterminal {
-            name: "StartIntermediateA",
-            display_name: "IntermediateA",
-        },
-        Nonterminal {
-            name: "StartIntermediateB",
-            display_name: "IntermediateB",
-        },
-        Nonterminal {
-            name: "StartMidInput",
-            display_name: "MidInput",
-        },
-        Nonterminal {
-            name: "StartConsuming",
-            display_name: "Consuming",
-        },
-        Nonterminal {
-            name: "StartOrdinary",
-            display_name: "Ordinary",
-        },
-        Nonterminal {
-            name: "StartNullablePlus",
-            display_name: "NullablePlus",
-        },
-        Nonterminal {
-            name: "StartNullableStar",
-            display_name: "NullableStar",
-        },
-        Nonterminal {
-            name: "StartNullableSeparated",
-            display_name: "NullableSeparated",
-        },
-        Nonterminal {
-            name: "StartOptional",
-            display_name: "Optional",
-        },
-        Nonterminal {
-            name: "StartGrouped",
-            display_name: "Grouped",
-        },
+        Nonterminal::new("Direct", "Direct"),
+        Nonterminal::new("MutualC", "MutualC"),
+        Nonterminal::new("MutualB", "MutualB"),
+        Nonterminal::new("ChainC", "ChainC"),
+        Nonterminal::new("ChainA", "ChainA"),
+        Nonterminal::new("ChainB", "ChainB"),
+        Nonterminal::new("SharedS", "SharedS"),
+        Nonterminal::new("SharedA", "SharedA"),
+        Nonterminal::new("SharedB", "SharedB"),
+        Nonterminal::new("TwoExitsC", "TwoExitsC"),
+        Nonterminal::new("TwoExitsB", "TwoExitsB"),
+        Nonterminal::new("TwoRoutesC", "TwoRoutesC"),
+        Nonterminal::new("TwoRoutesA", "TwoRoutesA"),
+        Nonterminal::new("TwoRoutesB", "TwoRoutesB"),
+        Nonterminal::new("Nullable", "Nullable"),
+        Nonterminal::new("SiblingC", "SiblingC"),
+        Nonterminal::new("SiblingD", "SiblingD"),
+        Nonterminal::new("EmptyE", "EmptyE"),
+        Nonterminal::new("EmptyF", "EmptyF"),
+        Nonterminal::new("ParentC", "ParentC"),
+        Nonterminal::new("ParentD", "ParentD"),
+        Nonterminal::new("OverlapC", "OverlapC"),
+        Nonterminal::new("OverlapB", "OverlapB"),
+        Nonterminal::new("IntermediateY", "IntermediateY"),
+        Nonterminal::new("IntermediateA", "IntermediateA"),
+        Nonterminal::new("IntermediateB", "IntermediateB"),
+        Nonterminal::new("MidInput", "MidInput"),
+        Nonterminal::new("Consuming", "Consuming"),
+        Nonterminal::new("Ordinary", "Ordinary"),
+        Nonterminal::new("NullablePlus", "NullablePlus"),
+        Nonterminal::new("NullableStar", "NullableStar"),
+        Nonterminal::new("NullableSeparated", "NullableSeparated"),
+        Nonterminal::new("Optional", "Optional"),
+        Nonterminal::new("Grouped", "Grouped"),
+        Nonterminal::new("Plus_0", "EmptyE+"),
+        Nonterminal::new("Star_0", "EmptyE*"),
+        Nonterminal::new("Plus_1", "{EmptyE EmptyF}+"),
+        Nonterminal::new("Opt_0", "Optional?"),
+        Nonterminal::new("Group_0", "(Grouped)"),
+        Nonterminal::new("StartDirect", "Direct"),
+        Nonterminal::new("StartMutualC", "MutualC"),
+        Nonterminal::new("StartMutualB", "MutualB"),
+        Nonterminal::new("StartChainC", "ChainC"),
+        Nonterminal::new("StartChainA", "ChainA"),
+        Nonterminal::new("StartChainB", "ChainB"),
+        Nonterminal::new("StartSharedS", "SharedS"),
+        Nonterminal::new("StartSharedA", "SharedA"),
+        Nonterminal::new("StartSharedB", "SharedB"),
+        Nonterminal::new("StartTwoExitsC", "TwoExitsC"),
+        Nonterminal::new("StartTwoExitsB", "TwoExitsB"),
+        Nonterminal::new("StartTwoRoutesC", "TwoRoutesC"),
+        Nonterminal::new("StartTwoRoutesA", "TwoRoutesA"),
+        Nonterminal::new("StartTwoRoutesB", "TwoRoutesB"),
+        Nonterminal::new("StartNullable", "Nullable"),
+        Nonterminal::new("StartSiblingC", "SiblingC"),
+        Nonterminal::new("StartSiblingD", "SiblingD"),
+        Nonterminal::new("StartEmptyE", "EmptyE"),
+        Nonterminal::new("StartEmptyF", "EmptyF"),
+        Nonterminal::new("StartParentC", "ParentC"),
+        Nonterminal::new("StartParentD", "ParentD"),
+        Nonterminal::new("StartOverlapC", "OverlapC"),
+        Nonterminal::new("StartOverlapB", "OverlapB"),
+        Nonterminal::new("StartIntermediateY", "IntermediateY"),
+        Nonterminal::new("StartIntermediateA", "IntermediateA"),
+        Nonterminal::new("StartIntermediateB", "IntermediateB"),
+        Nonterminal::new("StartMidInput", "MidInput"),
+        Nonterminal::new("StartConsuming", "Consuming"),
+        Nonterminal::new("StartOrdinary", "Ordinary"),
+        Nonterminal::new("StartNullablePlus", "NullablePlus"),
+        Nonterminal::new("StartNullableStar", "NullableStar"),
+        Nonterminal::new("StartNullableSeparated", "NullableSeparated"),
+        Nonterminal::new("StartOptional", "Optional"),
+        Nonterminal::new("StartGrouped", "Grouped"),
     ];
     pub(super) static DISPLAY_ORDER: [&str; 34] = [
         "Direct",
@@ -509,801 +290,598 @@ pub mod data {
         "Grouped",
     ];
     pub(super) static TERMINALS: [Terminal; 4] = [
-        Terminal { name: "\"b\"" },
-        Terminal { name: "\"a\"" },
-        Terminal { name: "Epsilon" },
-        Terminal { name: "EOF" },
+        Terminal::new("\"b\""),
+        Terminal::new("\"a\""),
+        Terminal::new("Epsilon"),
+        Terminal::new("EOF"),
     ];
     pub(super) static SLOTS: [Slot; 197] = [
-        Slot {
-            display_name: "Direct : . Direct",
-            position: 0,
-        },
-        Slot {
-            display_name: "Direct : Direct.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Direct : . \"b\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Direct : \"b\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "MutualC : . MutualB",
-            position: 0,
-        },
-        Slot {
-            display_name: "MutualC : MutualB.",
-            position: 1,
-        },
-        Slot {
-            display_name: "MutualC : . \"b\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "MutualC : \"b\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "MutualB : . MutualC",
-            position: 0,
-        },
-        Slot {
-            display_name: "MutualB : MutualC.",
-            position: 1,
-        },
-        Slot {
-            display_name: "ChainC : . ChainA",
-            position: 0,
-        },
-        Slot {
-            display_name: "ChainC : ChainA.",
-            position: 1,
-        },
-        Slot {
-            display_name: "ChainC : . \"b\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "ChainC : \"b\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "ChainA : . ChainB",
-            position: 0,
-        },
-        Slot {
-            display_name: "ChainA : ChainB.",
-            position: 1,
-        },
-        Slot {
-            display_name: "ChainB : . ChainC",
-            position: 0,
-        },
-        Slot {
-            display_name: "ChainB : ChainC.",
-            position: 1,
-        },
-        Slot {
-            display_name: "SharedS : . SharedA SharedB",
-            position: 0,
-        },
-        Slot {
-            display_name: "SharedS : SharedA . SharedB",
-            position: 1,
-        },
-        Slot {
-            display_name: "SharedS : SharedA SharedB.",
-            position: 2,
-        },
-        Slot {
-            display_name: "SharedA : . SharedB",
-            position: 0,
-        },
-        Slot {
-            display_name: "SharedA : SharedB.",
-            position: 1,
-        },
-        Slot {
-            display_name: "SharedA : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "SharedB : . SharedA",
-            position: 0,
-        },
-        Slot {
-            display_name: "SharedB : SharedA.",
-            position: 1,
-        },
-        Slot {
-            display_name: "TwoExitsC : . TwoExitsB",
-            position: 0,
-        },
-        Slot {
-            display_name: "TwoExitsC : TwoExitsB.",
-            position: 1,
-        },
-        Slot {
-            display_name: "TwoExitsC : . \"b\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "TwoExitsC : \"b\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "TwoExitsB : . TwoExitsC",
-            position: 0,
-        },
-        Slot {
-            display_name: "TwoExitsB : TwoExitsC.",
-            position: 1,
-        },
-        Slot {
-            display_name: "TwoExitsB : . \"b\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "TwoExitsB : \"b\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "TwoRoutesC : . TwoRoutesA",
-            position: 0,
-        },
-        Slot {
-            display_name: "TwoRoutesC : TwoRoutesA.",
-            position: 1,
-        },
-        Slot {
-            display_name: "TwoRoutesC : . TwoRoutesB",
-            position: 0,
-        },
-        Slot {
-            display_name: "TwoRoutesC : TwoRoutesB.",
-            position: 1,
-        },
-        Slot {
-            display_name: "TwoRoutesC : . \"b\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "TwoRoutesC : \"b\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "TwoRoutesA : . TwoRoutesC",
-            position: 0,
-        },
-        Slot {
-            display_name: "TwoRoutesA : TwoRoutesC.",
-            position: 1,
-        },
-        Slot {
-            display_name: "TwoRoutesB : . TwoRoutesC",
-            position: 0,
-        },
-        Slot {
-            display_name: "TwoRoutesB : TwoRoutesC.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Nullable : . Nullable Nullable",
-            position: 0,
-        },
-        Slot {
-            display_name: "Nullable : Nullable . Nullable",
-            position: 1,
-        },
-        Slot {
-            display_name: "Nullable : Nullable Nullable.",
-            position: 2,
-        },
-        Slot {
-            display_name: "Nullable : . \"b\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Nullable : \"b\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "Nullable : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "SiblingC : . SiblingC SiblingD",
-            position: 0,
-        },
-        Slot {
-            display_name: "SiblingC : SiblingC . SiblingD",
-            position: 1,
-        },
-        Slot {
-            display_name: "SiblingC : SiblingC SiblingD.",
-            position: 2,
-        },
-        Slot {
-            display_name: "SiblingC : . \"b\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "SiblingC : \"b\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "SiblingD : . EmptyE",
-            position: 0,
-        },
-        Slot {
-            display_name: "SiblingD : EmptyE.",
-            position: 1,
-        },
-        Slot {
-            display_name: "SiblingD : . EmptyF",
-            position: 0,
-        },
-        Slot {
-            display_name: "SiblingD : EmptyF.",
-            position: 1,
-        },
-        Slot {
-            display_name: "EmptyE : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "EmptyF : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "ParentC : . ParentD \"b\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "ParentC : ParentD . \"b\"",
-            position: 1,
-        },
-        Slot {
-            display_name: "ParentC : ParentD \"b\".",
-            position: 2,
-        },
-        Slot {
-            display_name: "ParentD : . ParentD",
-            position: 0,
-        },
-        Slot {
-            display_name: "ParentD : ParentD.",
-            position: 1,
-        },
-        Slot {
-            display_name: "ParentD : . \"a\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "ParentD : \"a\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "OverlapC : . OverlapB",
-            position: 0,
-        },
-        Slot {
-            display_name: "OverlapC : OverlapB.",
-            position: 1,
-        },
-        Slot {
-            display_name: "OverlapC : . \"b\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "OverlapC : \"b\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "OverlapB : . OverlapB",
-            position: 0,
-        },
-        Slot {
-            display_name: "OverlapB : OverlapB.",
-            position: 1,
-        },
-        Slot {
-            display_name: "OverlapB : . OverlapC",
-            position: 0,
-        },
-        Slot {
-            display_name: "OverlapB : OverlapC.",
-            position: 1,
-        },
-        Slot {
-            display_name: "IntermediateY : . IntermediateA IntermediateY IntermediateB",
-            position: 0,
-        },
-        Slot {
-            display_name: "IntermediateY : IntermediateA . IntermediateY IntermediateB",
-            position: 1,
-        },
-        Slot {
-            display_name: "IntermediateY : IntermediateA IntermediateY . IntermediateB",
-            position: 2,
-        },
-        Slot {
-            display_name: "IntermediateY : IntermediateA IntermediateY IntermediateB.",
-            position: 3,
-        },
-        Slot {
-            display_name: "IntermediateY : . \"a\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "IntermediateY : \"a\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "IntermediateA : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "IntermediateB : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "IntermediateB : . \"b\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "IntermediateB : \"b\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "MidInput : . Direct \"b\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "MidInput : Direct . \"b\"",
-            position: 1,
-        },
-        Slot {
-            display_name: "MidInput : Direct \"b\".",
-            position: 2,
-        },
-        Slot {
-            display_name: "Consuming : . Consuming \"b\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Consuming : Consuming . \"b\"",
-            position: 1,
-        },
-        Slot {
-            display_name: "Consuming : Consuming \"b\".",
-            position: 2,
-        },
-        Slot {
-            display_name: "Consuming : . \"b\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Consuming : \"b\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "Ordinary : . \"b\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Ordinary : \"b\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "NullablePlus : . EmptyE+",
-            position: 0,
-        },
-        Slot {
-            display_name: "NullablePlus : EmptyE+.",
-            position: 1,
-        },
-        Slot {
-            display_name: "NullableStar : . EmptyE*",
-            position: 0,
-        },
-        Slot {
-            display_name: "NullableStar : EmptyE*.",
-            position: 1,
-        },
-        Slot {
-            display_name: "NullableSeparated : . {EmptyE EmptyF}+",
-            position: 0,
-        },
-        Slot {
-            display_name: "NullableSeparated : {EmptyE EmptyF}+.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Optional : . Optional?",
-            position: 0,
-        },
-        Slot {
-            display_name: "Optional : Optional?.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Optional : . \"b\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Optional : \"b\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "Grouped : . (Grouped)",
-            position: 0,
-        },
-        Slot {
-            display_name: "Grouped : (Grouped).",
-            position: 1,
-        },
-        Slot {
-            display_name: "Grouped : . \"b\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Grouped : \"b\".",
-            position: 1,
-        },
-        Slot {
-            display_name: "EmptyE+ : . EmptyE+ EmptyE",
-            position: 0,
-        },
-        Slot {
-            display_name: "EmptyE+ : EmptyE+ . EmptyE",
-            position: 1,
-        },
-        Slot {
-            display_name: "EmptyE+ : EmptyE+ EmptyE.",
-            position: 2,
-        },
-        Slot {
-            display_name: "EmptyE+ : . EmptyE",
-            position: 0,
-        },
-        Slot {
-            display_name: "EmptyE+ : EmptyE.",
-            position: 1,
-        },
-        Slot {
-            display_name: "EmptyE* : . EmptyE+",
-            position: 0,
-        },
-        Slot {
-            display_name: "EmptyE* : EmptyE+.",
-            position: 1,
-        },
-        Slot {
-            display_name: "EmptyE* : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "{EmptyE EmptyF}+ : . {EmptyE EmptyF}+ EmptyF EmptyE",
-            position: 0,
-        },
-        Slot {
-            display_name: "{EmptyE EmptyF}+ : {EmptyE EmptyF}+ . EmptyF EmptyE",
-            position: 1,
-        },
-        Slot {
-            display_name: "{EmptyE EmptyF}+ : {EmptyE EmptyF}+ EmptyF . EmptyE",
-            position: 2,
-        },
-        Slot {
-            display_name: "{EmptyE EmptyF}+ : {EmptyE EmptyF}+ EmptyF EmptyE.",
-            position: 3,
-        },
-        Slot {
-            display_name: "{EmptyE EmptyF}+ : . EmptyE",
-            position: 0,
-        },
-        Slot {
-            display_name: "{EmptyE EmptyF}+ : EmptyE.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Optional? : . Optional",
-            position: 0,
-        },
-        Slot {
-            display_name: "Optional? : Optional.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Optional? : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "(Grouped) : . Grouped",
-            position: 0,
-        },
-        Slot {
-            display_name: "(Grouped) : Grouped.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Direct : . start:Direct",
-            position: 0,
-        },
-        Slot {
-            display_name: "Direct : start:Direct.",
-            position: 1,
-        },
-        Slot {
-            display_name: "MutualC : . start:MutualC",
-            position: 0,
-        },
-        Slot {
-            display_name: "MutualC : start:MutualC.",
-            position: 1,
-        },
-        Slot {
-            display_name: "MutualB : . start:MutualB",
-            position: 0,
-        },
-        Slot {
-            display_name: "MutualB : start:MutualB.",
-            position: 1,
-        },
-        Slot {
-            display_name: "ChainC : . start:ChainC",
-            position: 0,
-        },
-        Slot {
-            display_name: "ChainC : start:ChainC.",
-            position: 1,
-        },
-        Slot {
-            display_name: "ChainA : . start:ChainA",
-            position: 0,
-        },
-        Slot {
-            display_name: "ChainA : start:ChainA.",
-            position: 1,
-        },
-        Slot {
-            display_name: "ChainB : . start:ChainB",
-            position: 0,
-        },
-        Slot {
-            display_name: "ChainB : start:ChainB.",
-            position: 1,
-        },
-        Slot {
-            display_name: "SharedS : . start:SharedS",
-            position: 0,
-        },
-        Slot {
-            display_name: "SharedS : start:SharedS.",
-            position: 1,
-        },
-        Slot {
-            display_name: "SharedA : . start:SharedA",
-            position: 0,
-        },
-        Slot {
-            display_name: "SharedA : start:SharedA.",
-            position: 1,
-        },
-        Slot {
-            display_name: "SharedB : . start:SharedB",
-            position: 0,
-        },
-        Slot {
-            display_name: "SharedB : start:SharedB.",
-            position: 1,
-        },
-        Slot {
-            display_name: "TwoExitsC : . start:TwoExitsC",
-            position: 0,
-        },
-        Slot {
-            display_name: "TwoExitsC : start:TwoExitsC.",
-            position: 1,
-        },
-        Slot {
-            display_name: "TwoExitsB : . start:TwoExitsB",
-            position: 0,
-        },
-        Slot {
-            display_name: "TwoExitsB : start:TwoExitsB.",
-            position: 1,
-        },
-        Slot {
-            display_name: "TwoRoutesC : . start:TwoRoutesC",
-            position: 0,
-        },
-        Slot {
-            display_name: "TwoRoutesC : start:TwoRoutesC.",
-            position: 1,
-        },
-        Slot {
-            display_name: "TwoRoutesA : . start:TwoRoutesA",
-            position: 0,
-        },
-        Slot {
-            display_name: "TwoRoutesA : start:TwoRoutesA.",
-            position: 1,
-        },
-        Slot {
-            display_name: "TwoRoutesB : . start:TwoRoutesB",
-            position: 0,
-        },
-        Slot {
-            display_name: "TwoRoutesB : start:TwoRoutesB.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Nullable : . start:Nullable",
-            position: 0,
-        },
-        Slot {
-            display_name: "Nullable : start:Nullable.",
-            position: 1,
-        },
-        Slot {
-            display_name: "SiblingC : . start:SiblingC",
-            position: 0,
-        },
-        Slot {
-            display_name: "SiblingC : start:SiblingC.",
-            position: 1,
-        },
-        Slot {
-            display_name: "SiblingD : . start:SiblingD",
-            position: 0,
-        },
-        Slot {
-            display_name: "SiblingD : start:SiblingD.",
-            position: 1,
-        },
-        Slot {
-            display_name: "EmptyE : . start:EmptyE",
-            position: 0,
-        },
-        Slot {
-            display_name: "EmptyE : start:EmptyE.",
-            position: 1,
-        },
-        Slot {
-            display_name: "EmptyF : . start:EmptyF",
-            position: 0,
-        },
-        Slot {
-            display_name: "EmptyF : start:EmptyF.",
-            position: 1,
-        },
-        Slot {
-            display_name: "ParentC : . start:ParentC",
-            position: 0,
-        },
-        Slot {
-            display_name: "ParentC : start:ParentC.",
-            position: 1,
-        },
-        Slot {
-            display_name: "ParentD : . start:ParentD",
-            position: 0,
-        },
-        Slot {
-            display_name: "ParentD : start:ParentD.",
-            position: 1,
-        },
-        Slot {
-            display_name: "OverlapC : . start:OverlapC",
-            position: 0,
-        },
-        Slot {
-            display_name: "OverlapC : start:OverlapC.",
-            position: 1,
-        },
-        Slot {
-            display_name: "OverlapB : . start:OverlapB",
-            position: 0,
-        },
-        Slot {
-            display_name: "OverlapB : start:OverlapB.",
-            position: 1,
-        },
-        Slot {
-            display_name: "IntermediateY : . start:IntermediateY",
-            position: 0,
-        },
-        Slot {
-            display_name: "IntermediateY : start:IntermediateY.",
-            position: 1,
-        },
-        Slot {
-            display_name: "IntermediateA : . start:IntermediateA",
-            position: 0,
-        },
-        Slot {
-            display_name: "IntermediateA : start:IntermediateA.",
-            position: 1,
-        },
-        Slot {
-            display_name: "IntermediateB : . start:IntermediateB",
-            position: 0,
-        },
-        Slot {
-            display_name: "IntermediateB : start:IntermediateB.",
-            position: 1,
-        },
-        Slot {
-            display_name: "MidInput : . start:MidInput",
-            position: 0,
-        },
-        Slot {
-            display_name: "MidInput : start:MidInput.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Consuming : . start:Consuming",
-            position: 0,
-        },
-        Slot {
-            display_name: "Consuming : start:Consuming.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Ordinary : . start:Ordinary",
-            position: 0,
-        },
-        Slot {
-            display_name: "Ordinary : start:Ordinary.",
-            position: 1,
-        },
-        Slot {
-            display_name: "NullablePlus : . start:NullablePlus",
-            position: 0,
-        },
-        Slot {
-            display_name: "NullablePlus : start:NullablePlus.",
-            position: 1,
-        },
-        Slot {
-            display_name: "NullableStar : . start:NullableStar",
-            position: 0,
-        },
-        Slot {
-            display_name: "NullableStar : start:NullableStar.",
-            position: 1,
-        },
-        Slot {
-            display_name: "NullableSeparated : . start:NullableSeparated",
-            position: 0,
-        },
-        Slot {
-            display_name: "NullableSeparated : start:NullableSeparated.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Optional : . start:Optional",
-            position: 0,
-        },
-        Slot {
-            display_name: "Optional : start:Optional.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Grouped : . start:Grouped",
-            position: 0,
-        },
-        Slot {
-            display_name: "Grouped : start:Grouped.",
-            position: 1,
-        },
+        Slot::new(&ALT_0, 0, SlotKind::Nonterminal(NonterminalId(0))),
+        Slot::new(&ALT_0, 1, SlotKind::End),
+        Slot::new(&ALT_1, 0, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_1, 1, SlotKind::End),
+        Slot::new(&ALT_2, 0, SlotKind::Nonterminal(NonterminalId(2))),
+        Slot::new(&ALT_2, 1, SlotKind::End),
+        Slot::new(&ALT_3, 0, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_3, 1, SlotKind::End),
+        Slot::new(&ALT_4, 0, SlotKind::Nonterminal(NonterminalId(1))),
+        Slot::new(&ALT_4, 1, SlotKind::End),
+        Slot::new(&ALT_5, 0, SlotKind::Nonterminal(NonterminalId(4))),
+        Slot::new(&ALT_5, 1, SlotKind::End),
+        Slot::new(&ALT_6, 0, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_6, 1, SlotKind::End),
+        Slot::new(&ALT_7, 0, SlotKind::Nonterminal(NonterminalId(5))),
+        Slot::new(&ALT_7, 1, SlotKind::End),
+        Slot::new(&ALT_8, 0, SlotKind::Nonterminal(NonterminalId(3))),
+        Slot::new(&ALT_8, 1, SlotKind::End),
+        Slot::new(&ALT_9, 0, SlotKind::Nonterminal(NonterminalId(7))),
+        Slot::new(&ALT_9, 1, SlotKind::Nonterminal(NonterminalId(8))),
+        Slot::new(&ALT_9, 2, SlotKind::End),
+        Slot::new(&ALT_10, 0, SlotKind::Nonterminal(NonterminalId(8))),
+        Slot::new(&ALT_10, 1, SlotKind::End),
+        Slot::new(&ALT_11, 0, SlotKind::End),
+        Slot::new(&ALT_12, 0, SlotKind::Nonterminal(NonterminalId(7))),
+        Slot::new(&ALT_12, 1, SlotKind::End),
+        Slot::new(&ALT_13, 0, SlotKind::Nonterminal(NonterminalId(10))),
+        Slot::new(&ALT_13, 1, SlotKind::End),
+        Slot::new(&ALT_14, 0, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_14, 1, SlotKind::End),
+        Slot::new(&ALT_15, 0, SlotKind::Nonterminal(NonterminalId(9))),
+        Slot::new(&ALT_15, 1, SlotKind::End),
+        Slot::new(&ALT_16, 0, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_16, 1, SlotKind::End),
+        Slot::new(&ALT_17, 0, SlotKind::Nonterminal(NonterminalId(12))),
+        Slot::new(&ALT_17, 1, SlotKind::End),
+        Slot::new(&ALT_18, 0, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_18, 1, SlotKind::End),
+        Slot::new(&ALT_19, 0, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_19, 1, SlotKind::End),
+        Slot::new(&ALT_20, 0, SlotKind::Nonterminal(NonterminalId(11))),
+        Slot::new(&ALT_20, 1, SlotKind::End),
+        Slot::new(&ALT_21, 0, SlotKind::Nonterminal(NonterminalId(11))),
+        Slot::new(&ALT_21, 1, SlotKind::End),
+        Slot::new(&ALT_22, 0, SlotKind::Nonterminal(NonterminalId(14))),
+        Slot::new(&ALT_22, 1, SlotKind::Nonterminal(NonterminalId(14))),
+        Slot::new(&ALT_22, 2, SlotKind::End),
+        Slot::new(&ALT_23, 0, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_23, 1, SlotKind::End),
+        Slot::new(&ALT_24, 0, SlotKind::End),
+        Slot::new(&ALT_25, 0, SlotKind::Nonterminal(NonterminalId(15))),
+        Slot::new(&ALT_25, 1, SlotKind::Nonterminal(NonterminalId(16))),
+        Slot::new(&ALT_25, 2, SlotKind::End),
+        Slot::new(&ALT_26, 0, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_26, 1, SlotKind::End),
+        Slot::new(&ALT_27, 0, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_27, 1, SlotKind::End),
+        Slot::new(&ALT_28, 0, SlotKind::Nonterminal(NonterminalId(18))),
+        Slot::new(&ALT_28, 1, SlotKind::End),
+        Slot::new(&ALT_29, 0, SlotKind::End),
+        Slot::new(&ALT_30, 0, SlotKind::End),
+        Slot::new(&ALT_31, 0, SlotKind::Nonterminal(NonterminalId(20))),
+        Slot::new(&ALT_31, 1, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_31, 2, SlotKind::End),
+        Slot::new(&ALT_32, 0, SlotKind::Nonterminal(NonterminalId(20))),
+        Slot::new(&ALT_32, 1, SlotKind::End),
+        Slot::new(&ALT_33, 0, SlotKind::Terminal(TerminalId(1))),
+        Slot::new(&ALT_33, 1, SlotKind::End),
+        Slot::new(&ALT_34, 0, SlotKind::Nonterminal(NonterminalId(22))),
+        Slot::new(&ALT_34, 1, SlotKind::End),
+        Slot::new(&ALT_35, 0, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_35, 1, SlotKind::End),
+        Slot::new(&ALT_36, 0, SlotKind::Nonterminal(NonterminalId(22))),
+        Slot::new(&ALT_36, 1, SlotKind::End),
+        Slot::new(&ALT_37, 0, SlotKind::Nonterminal(NonterminalId(21))),
+        Slot::new(&ALT_37, 1, SlotKind::End),
+        Slot::new(&ALT_38, 0, SlotKind::Nonterminal(NonterminalId(24))),
+        Slot::new(&ALT_38, 1, SlotKind::Nonterminal(NonterminalId(23))),
+        Slot::new(&ALT_38, 2, SlotKind::Nonterminal(NonterminalId(25))),
+        Slot::new(&ALT_38, 3, SlotKind::End),
+        Slot::new(&ALT_39, 0, SlotKind::Terminal(TerminalId(1))),
+        Slot::new(&ALT_39, 1, SlotKind::End),
+        Slot::new(&ALT_40, 0, SlotKind::End),
+        Slot::new(&ALT_41, 0, SlotKind::End),
+        Slot::new(&ALT_42, 0, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_42, 1, SlotKind::End),
+        Slot::new(&ALT_43, 0, SlotKind::Nonterminal(NonterminalId(0))),
+        Slot::new(&ALT_43, 1, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_43, 2, SlotKind::End),
+        Slot::new(&ALT_44, 0, SlotKind::Nonterminal(NonterminalId(27))),
+        Slot::new(&ALT_44, 1, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_44, 2, SlotKind::End),
+        Slot::new(&ALT_45, 0, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_45, 1, SlotKind::End),
+        Slot::new(&ALT_46, 0, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_46, 1, SlotKind::End),
+        Slot::new(&ALT_47, 0, SlotKind::Nonterminal(NonterminalId(34))),
+        Slot::new(&ALT_47, 1, SlotKind::End),
+        Slot::new(&ALT_48, 0, SlotKind::Nonterminal(NonterminalId(35))),
+        Slot::new(&ALT_48, 1, SlotKind::End),
+        Slot::new(&ALT_49, 0, SlotKind::Nonterminal(NonterminalId(36))),
+        Slot::new(&ALT_49, 1, SlotKind::End),
+        Slot::new(&ALT_50, 0, SlotKind::Nonterminal(NonterminalId(37))),
+        Slot::new(&ALT_50, 1, SlotKind::End),
+        Slot::new(&ALT_51, 0, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_51, 1, SlotKind::End),
+        Slot::new(&ALT_52, 0, SlotKind::Nonterminal(NonterminalId(38))),
+        Slot::new(&ALT_52, 1, SlotKind::End),
+        Slot::new(&ALT_53, 0, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_53, 1, SlotKind::End),
+        Slot::new(&ALT_54, 0, SlotKind::Nonterminal(NonterminalId(34))),
+        Slot::new(&ALT_54, 1, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_54, 2, SlotKind::End),
+        Slot::new(&ALT_55, 0, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_55, 1, SlotKind::End),
+        Slot::new(&ALT_56, 0, SlotKind::Nonterminal(NonterminalId(34))),
+        Slot::new(&ALT_56, 1, SlotKind::End),
+        Slot::new(&ALT_57, 0, SlotKind::End),
+        Slot::new(&ALT_58, 0, SlotKind::Nonterminal(NonterminalId(36))),
+        Slot::new(&ALT_58, 1, SlotKind::Nonterminal(NonterminalId(18))),
+        Slot::new(&ALT_58, 2, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_58, 3, SlotKind::End),
+        Slot::new(&ALT_59, 0, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_59, 1, SlotKind::End),
+        Slot::new(&ALT_60, 0, SlotKind::Nonterminal(NonterminalId(32))),
+        Slot::new(&ALT_60, 1, SlotKind::End),
+        Slot::new(&ALT_61, 0, SlotKind::End),
+        Slot::new(&ALT_62, 0, SlotKind::Nonterminal(NonterminalId(33))),
+        Slot::new(&ALT_62, 1, SlotKind::End),
+        Slot::new(&ALT_63, 0, SlotKind::Nonterminal(NonterminalId(0))),
+        Slot::new(&ALT_63, 1, SlotKind::End),
+        Slot::new(&ALT_64, 0, SlotKind::Nonterminal(NonterminalId(1))),
+        Slot::new(&ALT_64, 1, SlotKind::End),
+        Slot::new(&ALT_65, 0, SlotKind::Nonterminal(NonterminalId(2))),
+        Slot::new(&ALT_65, 1, SlotKind::End),
+        Slot::new(&ALT_66, 0, SlotKind::Nonterminal(NonterminalId(3))),
+        Slot::new(&ALT_66, 1, SlotKind::End),
+        Slot::new(&ALT_67, 0, SlotKind::Nonterminal(NonterminalId(4))),
+        Slot::new(&ALT_67, 1, SlotKind::End),
+        Slot::new(&ALT_68, 0, SlotKind::Nonterminal(NonterminalId(5))),
+        Slot::new(&ALT_68, 1, SlotKind::End),
+        Slot::new(&ALT_69, 0, SlotKind::Nonterminal(NonterminalId(6))),
+        Slot::new(&ALT_69, 1, SlotKind::End),
+        Slot::new(&ALT_70, 0, SlotKind::Nonterminal(NonterminalId(7))),
+        Slot::new(&ALT_70, 1, SlotKind::End),
+        Slot::new(&ALT_71, 0, SlotKind::Nonterminal(NonterminalId(8))),
+        Slot::new(&ALT_71, 1, SlotKind::End),
+        Slot::new(&ALT_72, 0, SlotKind::Nonterminal(NonterminalId(9))),
+        Slot::new(&ALT_72, 1, SlotKind::End),
+        Slot::new(&ALT_73, 0, SlotKind::Nonterminal(NonterminalId(10))),
+        Slot::new(&ALT_73, 1, SlotKind::End),
+        Slot::new(&ALT_74, 0, SlotKind::Nonterminal(NonterminalId(11))),
+        Slot::new(&ALT_74, 1, SlotKind::End),
+        Slot::new(&ALT_75, 0, SlotKind::Nonterminal(NonterminalId(12))),
+        Slot::new(&ALT_75, 1, SlotKind::End),
+        Slot::new(&ALT_76, 0, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_76, 1, SlotKind::End),
+        Slot::new(&ALT_77, 0, SlotKind::Nonterminal(NonterminalId(14))),
+        Slot::new(&ALT_77, 1, SlotKind::End),
+        Slot::new(&ALT_78, 0, SlotKind::Nonterminal(NonterminalId(15))),
+        Slot::new(&ALT_78, 1, SlotKind::End),
+        Slot::new(&ALT_79, 0, SlotKind::Nonterminal(NonterminalId(16))),
+        Slot::new(&ALT_79, 1, SlotKind::End),
+        Slot::new(&ALT_80, 0, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_80, 1, SlotKind::End),
+        Slot::new(&ALT_81, 0, SlotKind::Nonterminal(NonterminalId(18))),
+        Slot::new(&ALT_81, 1, SlotKind::End),
+        Slot::new(&ALT_82, 0, SlotKind::Nonterminal(NonterminalId(19))),
+        Slot::new(&ALT_82, 1, SlotKind::End),
+        Slot::new(&ALT_83, 0, SlotKind::Nonterminal(NonterminalId(20))),
+        Slot::new(&ALT_83, 1, SlotKind::End),
+        Slot::new(&ALT_84, 0, SlotKind::Nonterminal(NonterminalId(21))),
+        Slot::new(&ALT_84, 1, SlotKind::End),
+        Slot::new(&ALT_85, 0, SlotKind::Nonterminal(NonterminalId(22))),
+        Slot::new(&ALT_85, 1, SlotKind::End),
+        Slot::new(&ALT_86, 0, SlotKind::Nonterminal(NonterminalId(23))),
+        Slot::new(&ALT_86, 1, SlotKind::End),
+        Slot::new(&ALT_87, 0, SlotKind::Nonterminal(NonterminalId(24))),
+        Slot::new(&ALT_87, 1, SlotKind::End),
+        Slot::new(&ALT_88, 0, SlotKind::Nonterminal(NonterminalId(25))),
+        Slot::new(&ALT_88, 1, SlotKind::End),
+        Slot::new(&ALT_89, 0, SlotKind::Nonterminal(NonterminalId(26))),
+        Slot::new(&ALT_89, 1, SlotKind::End),
+        Slot::new(&ALT_90, 0, SlotKind::Nonterminal(NonterminalId(27))),
+        Slot::new(&ALT_90, 1, SlotKind::End),
+        Slot::new(&ALT_91, 0, SlotKind::Nonterminal(NonterminalId(28))),
+        Slot::new(&ALT_91, 1, SlotKind::End),
+        Slot::new(&ALT_92, 0, SlotKind::Nonterminal(NonterminalId(29))),
+        Slot::new(&ALT_92, 1, SlotKind::End),
+        Slot::new(&ALT_93, 0, SlotKind::Nonterminal(NonterminalId(30))),
+        Slot::new(&ALT_93, 1, SlotKind::End),
+        Slot::new(&ALT_94, 0, SlotKind::Nonterminal(NonterminalId(31))),
+        Slot::new(&ALT_94, 1, SlotKind::End),
+        Slot::new(&ALT_95, 0, SlotKind::Nonterminal(NonterminalId(32))),
+        Slot::new(&ALT_95, 1, SlotKind::End),
+        Slot::new(&ALT_96, 0, SlotKind::Nonterminal(NonterminalId(33))),
+        Slot::new(&ALT_96, 1, SlotKind::End),
     ];
+    static ALT_0: Alternative = Alternative {
+        head: NonterminalId(0),
+        symbols: &["Direct"],
+    };
+    static ALT_1: Alternative = Alternative {
+        head: NonterminalId(0),
+        symbols: &["\"b\""],
+    };
+    static ALT_2: Alternative = Alternative {
+        head: NonterminalId(1),
+        symbols: &["MutualB"],
+    };
+    static ALT_3: Alternative = Alternative {
+        head: NonterminalId(1),
+        symbols: &["\"b\""],
+    };
+    static ALT_4: Alternative = Alternative {
+        head: NonterminalId(2),
+        symbols: &["MutualC"],
+    };
+    static ALT_5: Alternative = Alternative {
+        head: NonterminalId(3),
+        symbols: &["ChainA"],
+    };
+    static ALT_6: Alternative = Alternative {
+        head: NonterminalId(3),
+        symbols: &["\"b\""],
+    };
+    static ALT_7: Alternative = Alternative {
+        head: NonterminalId(4),
+        symbols: &["ChainB"],
+    };
+    static ALT_8: Alternative = Alternative {
+        head: NonterminalId(5),
+        symbols: &["ChainC"],
+    };
+    static ALT_9: Alternative = Alternative {
+        head: NonterminalId(6),
+        symbols: &["SharedA", "SharedB"],
+    };
+    static ALT_10: Alternative = Alternative {
+        head: NonterminalId(7),
+        symbols: &["SharedB"],
+    };
+    static ALT_11: Alternative = Alternative {
+        head: NonterminalId(7),
+        symbols: &[],
+    };
+    static ALT_12: Alternative = Alternative {
+        head: NonterminalId(8),
+        symbols: &["SharedA"],
+    };
+    static ALT_13: Alternative = Alternative {
+        head: NonterminalId(9),
+        symbols: &["TwoExitsB"],
+    };
+    static ALT_14: Alternative = Alternative {
+        head: NonterminalId(9),
+        symbols: &["\"b\""],
+    };
+    static ALT_15: Alternative = Alternative {
+        head: NonterminalId(10),
+        symbols: &["TwoExitsC"],
+    };
+    static ALT_16: Alternative = Alternative {
+        head: NonterminalId(10),
+        symbols: &["\"b\""],
+    };
+    static ALT_17: Alternative = Alternative {
+        head: NonterminalId(11),
+        symbols: &["TwoRoutesA"],
+    };
+    static ALT_18: Alternative = Alternative {
+        head: NonterminalId(11),
+        symbols: &["TwoRoutesB"],
+    };
+    static ALT_19: Alternative = Alternative {
+        head: NonterminalId(11),
+        symbols: &["\"b\""],
+    };
+    static ALT_20: Alternative = Alternative {
+        head: NonterminalId(12),
+        symbols: &["TwoRoutesC"],
+    };
+    static ALT_21: Alternative = Alternative {
+        head: NonterminalId(13),
+        symbols: &["TwoRoutesC"],
+    };
+    static ALT_22: Alternative = Alternative {
+        head: NonterminalId(14),
+        symbols: &["Nullable", "Nullable"],
+    };
+    static ALT_23: Alternative = Alternative {
+        head: NonterminalId(14),
+        symbols: &["\"b\""],
+    };
+    static ALT_24: Alternative = Alternative {
+        head: NonterminalId(14),
+        symbols: &[],
+    };
+    static ALT_25: Alternative = Alternative {
+        head: NonterminalId(15),
+        symbols: &["SiblingC", "SiblingD"],
+    };
+    static ALT_26: Alternative = Alternative {
+        head: NonterminalId(15),
+        symbols: &["\"b\""],
+    };
+    static ALT_27: Alternative = Alternative {
+        head: NonterminalId(16),
+        symbols: &["EmptyE"],
+    };
+    static ALT_28: Alternative = Alternative {
+        head: NonterminalId(16),
+        symbols: &["EmptyF"],
+    };
+    static ALT_29: Alternative = Alternative {
+        head: NonterminalId(17),
+        symbols: &[],
+    };
+    static ALT_30: Alternative = Alternative {
+        head: NonterminalId(18),
+        symbols: &[],
+    };
+    static ALT_31: Alternative = Alternative {
+        head: NonterminalId(19),
+        symbols: &["ParentD", "\"b\""],
+    };
+    static ALT_32: Alternative = Alternative {
+        head: NonterminalId(20),
+        symbols: &["ParentD"],
+    };
+    static ALT_33: Alternative = Alternative {
+        head: NonterminalId(20),
+        symbols: &["\"a\""],
+    };
+    static ALT_34: Alternative = Alternative {
+        head: NonterminalId(21),
+        symbols: &["OverlapB"],
+    };
+    static ALT_35: Alternative = Alternative {
+        head: NonterminalId(21),
+        symbols: &["\"b\""],
+    };
+    static ALT_36: Alternative = Alternative {
+        head: NonterminalId(22),
+        symbols: &["OverlapB"],
+    };
+    static ALT_37: Alternative = Alternative {
+        head: NonterminalId(22),
+        symbols: &["OverlapC"],
+    };
+    static ALT_38: Alternative = Alternative {
+        head: NonterminalId(23),
+        symbols: &["IntermediateA", "IntermediateY", "IntermediateB"],
+    };
+    static ALT_39: Alternative = Alternative {
+        head: NonterminalId(23),
+        symbols: &["\"a\""],
+    };
+    static ALT_40: Alternative = Alternative {
+        head: NonterminalId(24),
+        symbols: &[],
+    };
+    static ALT_41: Alternative = Alternative {
+        head: NonterminalId(25),
+        symbols: &[],
+    };
+    static ALT_42: Alternative = Alternative {
+        head: NonterminalId(25),
+        symbols: &["\"b\""],
+    };
+    static ALT_43: Alternative = Alternative {
+        head: NonterminalId(26),
+        symbols: &["Direct", "\"b\""],
+    };
+    static ALT_44: Alternative = Alternative {
+        head: NonterminalId(27),
+        symbols: &["Consuming", "\"b\""],
+    };
+    static ALT_45: Alternative = Alternative {
+        head: NonterminalId(27),
+        symbols: &["\"b\""],
+    };
+    static ALT_46: Alternative = Alternative {
+        head: NonterminalId(28),
+        symbols: &["\"b\""],
+    };
+    static ALT_47: Alternative = Alternative {
+        head: NonterminalId(29),
+        symbols: &["EmptyE+"],
+    };
+    static ALT_48: Alternative = Alternative {
+        head: NonterminalId(30),
+        symbols: &["EmptyE*"],
+    };
+    static ALT_49: Alternative = Alternative {
+        head: NonterminalId(31),
+        symbols: &["{EmptyE EmptyF}+"],
+    };
+    static ALT_50: Alternative = Alternative {
+        head: NonterminalId(32),
+        symbols: &["Optional?"],
+    };
+    static ALT_51: Alternative = Alternative {
+        head: NonterminalId(32),
+        symbols: &["\"b\""],
+    };
+    static ALT_52: Alternative = Alternative {
+        head: NonterminalId(33),
+        symbols: &["(Grouped)"],
+    };
+    static ALT_53: Alternative = Alternative {
+        head: NonterminalId(33),
+        symbols: &["\"b\""],
+    };
+    static ALT_54: Alternative = Alternative {
+        head: NonterminalId(34),
+        symbols: &["EmptyE+", "EmptyE"],
+    };
+    static ALT_55: Alternative = Alternative {
+        head: NonterminalId(34),
+        symbols: &["EmptyE"],
+    };
+    static ALT_56: Alternative = Alternative {
+        head: NonterminalId(35),
+        symbols: &["EmptyE+"],
+    };
+    static ALT_57: Alternative = Alternative {
+        head: NonterminalId(35),
+        symbols: &[],
+    };
+    static ALT_58: Alternative = Alternative {
+        head: NonterminalId(36),
+        symbols: &["{EmptyE EmptyF}+", "EmptyF", "EmptyE"],
+    };
+    static ALT_59: Alternative = Alternative {
+        head: NonterminalId(36),
+        symbols: &["EmptyE"],
+    };
+    static ALT_60: Alternative = Alternative {
+        head: NonterminalId(37),
+        symbols: &["Optional"],
+    };
+    static ALT_61: Alternative = Alternative {
+        head: NonterminalId(37),
+        symbols: &[],
+    };
+    static ALT_62: Alternative = Alternative {
+        head: NonterminalId(38),
+        symbols: &["Grouped"],
+    };
+    static ALT_63: Alternative = Alternative {
+        head: NonterminalId(39),
+        symbols: &["start:Direct"],
+    };
+    static ALT_64: Alternative = Alternative {
+        head: NonterminalId(40),
+        symbols: &["start:MutualC"],
+    };
+    static ALT_65: Alternative = Alternative {
+        head: NonterminalId(41),
+        symbols: &["start:MutualB"],
+    };
+    static ALT_66: Alternative = Alternative {
+        head: NonterminalId(42),
+        symbols: &["start:ChainC"],
+    };
+    static ALT_67: Alternative = Alternative {
+        head: NonterminalId(43),
+        symbols: &["start:ChainA"],
+    };
+    static ALT_68: Alternative = Alternative {
+        head: NonterminalId(44),
+        symbols: &["start:ChainB"],
+    };
+    static ALT_69: Alternative = Alternative {
+        head: NonterminalId(45),
+        symbols: &["start:SharedS"],
+    };
+    static ALT_70: Alternative = Alternative {
+        head: NonterminalId(46),
+        symbols: &["start:SharedA"],
+    };
+    static ALT_71: Alternative = Alternative {
+        head: NonterminalId(47),
+        symbols: &["start:SharedB"],
+    };
+    static ALT_72: Alternative = Alternative {
+        head: NonterminalId(48),
+        symbols: &["start:TwoExitsC"],
+    };
+    static ALT_73: Alternative = Alternative {
+        head: NonterminalId(49),
+        symbols: &["start:TwoExitsB"],
+    };
+    static ALT_74: Alternative = Alternative {
+        head: NonterminalId(50),
+        symbols: &["start:TwoRoutesC"],
+    };
+    static ALT_75: Alternative = Alternative {
+        head: NonterminalId(51),
+        symbols: &["start:TwoRoutesA"],
+    };
+    static ALT_76: Alternative = Alternative {
+        head: NonterminalId(52),
+        symbols: &["start:TwoRoutesB"],
+    };
+    static ALT_77: Alternative = Alternative {
+        head: NonterminalId(53),
+        symbols: &["start:Nullable"],
+    };
+    static ALT_78: Alternative = Alternative {
+        head: NonterminalId(54),
+        symbols: &["start:SiblingC"],
+    };
+    static ALT_79: Alternative = Alternative {
+        head: NonterminalId(55),
+        symbols: &["start:SiblingD"],
+    };
+    static ALT_80: Alternative = Alternative {
+        head: NonterminalId(56),
+        symbols: &["start:EmptyE"],
+    };
+    static ALT_81: Alternative = Alternative {
+        head: NonterminalId(57),
+        symbols: &["start:EmptyF"],
+    };
+    static ALT_82: Alternative = Alternative {
+        head: NonterminalId(58),
+        symbols: &["start:ParentC"],
+    };
+    static ALT_83: Alternative = Alternative {
+        head: NonterminalId(59),
+        symbols: &["start:ParentD"],
+    };
+    static ALT_84: Alternative = Alternative {
+        head: NonterminalId(60),
+        symbols: &["start:OverlapC"],
+    };
+    static ALT_85: Alternative = Alternative {
+        head: NonterminalId(61),
+        symbols: &["start:OverlapB"],
+    };
+    static ALT_86: Alternative = Alternative {
+        head: NonterminalId(62),
+        symbols: &["start:IntermediateY"],
+    };
+    static ALT_87: Alternative = Alternative {
+        head: NonterminalId(63),
+        symbols: &["start:IntermediateA"],
+    };
+    static ALT_88: Alternative = Alternative {
+        head: NonterminalId(64),
+        symbols: &["start:IntermediateB"],
+    };
+    static ALT_89: Alternative = Alternative {
+        head: NonterminalId(65),
+        symbols: &["start:MidInput"],
+    };
+    static ALT_90: Alternative = Alternative {
+        head: NonterminalId(66),
+        symbols: &["start:Consuming"],
+    };
+    static ALT_91: Alternative = Alternative {
+        head: NonterminalId(67),
+        symbols: &["start:Ordinary"],
+    };
+    static ALT_92: Alternative = Alternative {
+        head: NonterminalId(68),
+        symbols: &["start:NullablePlus"],
+    };
+    static ALT_93: Alternative = Alternative {
+        head: NonterminalId(69),
+        symbols: &["start:NullableStar"],
+    };
+    static ALT_94: Alternative = Alternative {
+        head: NonterminalId(70),
+        symbols: &["start:NullableSeparated"],
+    };
+    static ALT_95: Alternative = Alternative {
+        head: NonterminalId(71),
+        symbols: &["start:Optional"],
+    };
+    static ALT_96: Alternative = Alternative {
+        head: NonterminalId(72),
+        symbols: &["start:Grouped"],
+    };
     pub(super) static FIRST_SLOTS: [&[SlotId]; 73] = [
         &[SlotId(0), SlotId(2)],
         &[SlotId(4), SlotId(6)],
@@ -1383,443 +961,190 @@ pub mod data {
     // error reporting path needs to reach a terminal set from a terminal id. This table, indexed
     // by terminal id, serves only that.
     pub(super) static SINGLE_TERMINAL_SETS: [TerminalSet; 4] = [
-        TerminalSet {
-            id: 6,
-            terminals: &[TerminalId(0)],
-        },
-        TerminalSet {
-            id: 7,
-            terminals: &[TerminalId(1)],
-        },
-        TerminalSet {
-            id: 8,
-            terminals: &[TerminalId(2)],
-        },
-        TerminalSet {
-            id: 9,
-            terminals: &[TerminalId(3)],
-        },
+        TerminalSet::new(6, &[TerminalId(0)]),
+        TerminalSet::new(7, &[TerminalId(1)]),
+        TerminalSet::new(8, &[TerminalId(2)]),
+        TerminalSet::new(9, &[TerminalId(3)]),
     ];
     // Direct { "b", EOF }
-    pub static FOLLOW_SET_DIRECT: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(0), TerminalId(3)],
-    };
+    pub static FOLLOW_SET_DIRECT: TerminalSet =
+        TerminalSet::new(0, &[TerminalId(0), TerminalId(3)]);
     // MutualC { EOF }
-    pub static FOLLOW_SET_MUTUAL_C: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_MUTUAL_C: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // MutualB { EOF }
-    pub static FOLLOW_SET_MUTUAL_B: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_MUTUAL_B: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // ChainC { EOF }
-    pub static FOLLOW_SET_CHAIN_C: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_CHAIN_C: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // ChainA { EOF }
-    pub static FOLLOW_SET_CHAIN_A: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_CHAIN_A: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // ChainB { EOF }
-    pub static FOLLOW_SET_CHAIN_B: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_CHAIN_B: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // SharedS { EOF }
-    pub static FOLLOW_SET_SHARED_S: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_SHARED_S: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // SharedA { EOF }
-    pub static FOLLOW_SET_SHARED_A: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_SHARED_A: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // SharedB { EOF }
-    pub static FOLLOW_SET_SHARED_B: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_SHARED_B: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // TwoExitsC { EOF }
-    pub static FOLLOW_SET_TWO_EXITS_C: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_TWO_EXITS_C: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // TwoExitsB { EOF }
-    pub static FOLLOW_SET_TWO_EXITS_B: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_TWO_EXITS_B: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // TwoRoutesC { EOF }
-    pub static FOLLOW_SET_TWO_ROUTES_C: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_TWO_ROUTES_C: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // TwoRoutesA { EOF }
-    pub static FOLLOW_SET_TWO_ROUTES_A: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_TWO_ROUTES_A: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // TwoRoutesB { EOF }
-    pub static FOLLOW_SET_TWO_ROUTES_B: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_TWO_ROUTES_B: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // Nullable { "b", EOF }
-    pub static FOLLOW_SET_NULLABLE: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(0), TerminalId(3)],
-    };
+    pub static FOLLOW_SET_NULLABLE: TerminalSet =
+        TerminalSet::new(0, &[TerminalId(0), TerminalId(3)]);
     // SiblingC { EOF }
-    pub static FOLLOW_SET_SIBLING_C: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_SIBLING_C: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // SiblingD { EOF }
-    pub static FOLLOW_SET_SIBLING_D: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_SIBLING_D: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // EmptyE { EOF }
-    pub static FOLLOW_SET_EMPTY_E: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_EMPTY_E: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // EmptyF { EOF }
-    pub static FOLLOW_SET_EMPTY_F: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_EMPTY_F: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // ParentC { EOF }
-    pub static FOLLOW_SET_PARENT_C: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_PARENT_C: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // ParentD { "b", EOF }
-    pub static FOLLOW_SET_PARENT_D: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(0), TerminalId(3)],
-    };
+    pub static FOLLOW_SET_PARENT_D: TerminalSet =
+        TerminalSet::new(0, &[TerminalId(0), TerminalId(3)]);
     // OverlapC { EOF }
-    pub static FOLLOW_SET_OVERLAP_C: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_OVERLAP_C: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // OverlapB { EOF }
-    pub static FOLLOW_SET_OVERLAP_B: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_OVERLAP_B: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // IntermediateY { "b", EOF }
-    pub static FOLLOW_SET_INTERMEDIATE_Y: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(0), TerminalId(3)],
-    };
+    pub static FOLLOW_SET_INTERMEDIATE_Y: TerminalSet =
+        TerminalSet::new(0, &[TerminalId(0), TerminalId(3)]);
     // IntermediateA { "a", EOF }
-    pub static FOLLOW_SET_INTERMEDIATE_A: TerminalSet = TerminalSet {
-        id: 2,
-        terminals: &[TerminalId(1), TerminalId(3)],
-    };
+    pub static FOLLOW_SET_INTERMEDIATE_A: TerminalSet =
+        TerminalSet::new(2, &[TerminalId(1), TerminalId(3)]);
     // IntermediateB { "b", EOF }
-    pub static FOLLOW_SET_INTERMEDIATE_B: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(0), TerminalId(3)],
-    };
+    pub static FOLLOW_SET_INTERMEDIATE_B: TerminalSet =
+        TerminalSet::new(0, &[TerminalId(0), TerminalId(3)]);
     // MidInput { EOF }
-    pub static FOLLOW_SET_MID_INPUT: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_MID_INPUT: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // Consuming { "b", EOF }
-    pub static FOLLOW_SET_CONSUMING: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(0), TerminalId(3)],
-    };
+    pub static FOLLOW_SET_CONSUMING: TerminalSet =
+        TerminalSet::new(0, &[TerminalId(0), TerminalId(3)]);
     // Ordinary { EOF }
-    pub static FOLLOW_SET_ORDINARY: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_ORDINARY: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // NullablePlus { EOF }
-    pub static FOLLOW_SET_NULLABLE_PLUS: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_NULLABLE_PLUS: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // NullableStar { EOF }
-    pub static FOLLOW_SET_NULLABLE_STAR: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_NULLABLE_STAR: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // NullableSeparated { EOF }
-    pub static FOLLOW_SET_NULLABLE_SEPARATED: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_NULLABLE_SEPARATED: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // Optional { EOF }
-    pub static FOLLOW_SET_OPTIONAL: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_OPTIONAL: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // Grouped { EOF }
-    pub static FOLLOW_SET_GROUPED: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_GROUPED: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // Plus_0 { EOF }
-    pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // Star_0 { EOF }
-    pub static FOLLOW_SET_STAR_0: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_STAR_0: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // Plus_1 { EOF }
-    pub static FOLLOW_SET_PLUS_1: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_PLUS_1: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // Opt_0 { EOF }
-    pub static FOLLOW_SET_OPT_0: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_OPT_0: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // Group_0 { EOF }
-    pub static FOLLOW_SET_GROUP_0: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_GROUP_0: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // StartDirect { EOF }
-    pub static FOLLOW_SET_START_DIRECT: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_DIRECT: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // StartMutualC { EOF }
-    pub static FOLLOW_SET_START_MUTUAL_C: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_MUTUAL_C: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // StartMutualB { EOF }
-    pub static FOLLOW_SET_START_MUTUAL_B: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_MUTUAL_B: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // StartChainC { EOF }
-    pub static FOLLOW_SET_START_CHAIN_C: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_CHAIN_C: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // StartChainA { EOF }
-    pub static FOLLOW_SET_START_CHAIN_A: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_CHAIN_A: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // StartChainB { EOF }
-    pub static FOLLOW_SET_START_CHAIN_B: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_CHAIN_B: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // StartSharedS { EOF }
-    pub static FOLLOW_SET_START_SHARED_S: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_SHARED_S: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // StartSharedA { EOF }
-    pub static FOLLOW_SET_START_SHARED_A: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_SHARED_A: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // StartSharedB { EOF }
-    pub static FOLLOW_SET_START_SHARED_B: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_SHARED_B: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // StartTwoExitsC { EOF }
-    pub static FOLLOW_SET_START_TWO_EXITS_C: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_TWO_EXITS_C: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // StartTwoExitsB { EOF }
-    pub static FOLLOW_SET_START_TWO_EXITS_B: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_TWO_EXITS_B: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // StartTwoRoutesC { EOF }
-    pub static FOLLOW_SET_START_TWO_ROUTES_C: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_TWO_ROUTES_C: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // StartTwoRoutesA { EOF }
-    pub static FOLLOW_SET_START_TWO_ROUTES_A: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_TWO_ROUTES_A: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // StartTwoRoutesB { EOF }
-    pub static FOLLOW_SET_START_TWO_ROUTES_B: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_TWO_ROUTES_B: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // StartNullable { EOF }
-    pub static FOLLOW_SET_START_NULLABLE: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_NULLABLE: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // StartSiblingC { EOF }
-    pub static FOLLOW_SET_START_SIBLING_C: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_SIBLING_C: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // StartSiblingD { EOF }
-    pub static FOLLOW_SET_START_SIBLING_D: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_SIBLING_D: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // StartEmptyE { EOF }
-    pub static FOLLOW_SET_START_EMPTY_E: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_EMPTY_E: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // StartEmptyF { EOF }
-    pub static FOLLOW_SET_START_EMPTY_F: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_EMPTY_F: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // StartParentC { EOF }
-    pub static FOLLOW_SET_START_PARENT_C: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_PARENT_C: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // StartParentD { EOF }
-    pub static FOLLOW_SET_START_PARENT_D: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_PARENT_D: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // StartOverlapC { EOF }
-    pub static FOLLOW_SET_START_OVERLAP_C: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_OVERLAP_C: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // StartOverlapB { EOF }
-    pub static FOLLOW_SET_START_OVERLAP_B: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_OVERLAP_B: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // StartIntermediateY { EOF }
-    pub static FOLLOW_SET_START_INTERMEDIATE_Y: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_INTERMEDIATE_Y: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // StartIntermediateA { EOF }
-    pub static FOLLOW_SET_START_INTERMEDIATE_A: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_INTERMEDIATE_A: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // StartIntermediateB { EOF }
-    pub static FOLLOW_SET_START_INTERMEDIATE_B: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_INTERMEDIATE_B: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // StartMidInput { EOF }
-    pub static FOLLOW_SET_START_MID_INPUT: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_MID_INPUT: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // StartConsuming { EOF }
-    pub static FOLLOW_SET_START_CONSUMING: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_CONSUMING: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // StartOrdinary { EOF }
-    pub static FOLLOW_SET_START_ORDINARY: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_ORDINARY: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // StartNullablePlus { EOF }
-    pub static FOLLOW_SET_START_NULLABLE_PLUS: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_NULLABLE_PLUS: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // StartNullableStar { EOF }
-    pub static FOLLOW_SET_START_NULLABLE_STAR: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_NULLABLE_STAR: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // StartNullableSeparated { EOF }
-    pub static FOLLOW_SET_START_NULLABLE_SEPARATED: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_NULLABLE_SEPARATED: TerminalSet =
+        TerminalSet::new(1, &[TerminalId(3)]);
     // StartOptional { EOF }
-    pub static FOLLOW_SET_START_OPTIONAL: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_OPTIONAL: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // StartGrouped { EOF }
-    pub static FOLLOW_SET_START_GROUPED: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_GROUPED: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // ParentC : ParentD . "b" lookahead { "b" }
-    pub static RETURN_SLOT_LOOKAHEAD_PARENT_C_ALT0_POS1: TerminalSet = TerminalSet {
-        id: 3,
-        terminals: &[TerminalId(0)],
-    };
+    pub static RETURN_SLOT_LOOKAHEAD_PARENT_C_ALT0_POS1: TerminalSet =
+        TerminalSet::new(3, &[TerminalId(0)]);
     // MidInput : Direct . "b" lookahead { "b" }
-    pub static RETURN_SLOT_LOOKAHEAD_MID_INPUT_ALT0_POS1: TerminalSet = TerminalSet {
-        id: 3,
-        terminals: &[TerminalId(0)],
-    };
+    pub static RETURN_SLOT_LOOKAHEAD_MID_INPUT_ALT0_POS1: TerminalSet =
+        TerminalSet::new(3, &[TerminalId(0)]);
     // Consuming : Consuming . "b" lookahead { "b" }
-    pub static RETURN_SLOT_LOOKAHEAD_CONSUMING_ALT0_POS1: TerminalSet = TerminalSet {
-        id: 3,
-        terminals: &[TerminalId(0)],
-    };
+    pub static RETURN_SLOT_LOOKAHEAD_CONSUMING_ALT0_POS1: TerminalSet =
+        TerminalSet::new(3, &[TerminalId(0)]);
     // EmptyE { }
-    pub static FIRST_SET_EMPTY_E: TerminalSet = TerminalSet {
-        id: 4,
-        terminals: &[],
-    };
+    pub static FIRST_SET_EMPTY_E: TerminalSet = TerminalSet::new(4, &[]);
     // EmptyF { }
-    pub static FIRST_SET_EMPTY_F: TerminalSet = TerminalSet {
-        id: 4,
-        terminals: &[],
-    };
+    pub static FIRST_SET_EMPTY_F: TerminalSet = TerminalSet::new(4, &[]);
     // IntermediateA { }
-    pub static FIRST_SET_INTERMEDIATE_A: TerminalSet = TerminalSet {
-        id: 4,
-        terminals: &[],
-    };
+    pub static FIRST_SET_INTERMEDIATE_A: TerminalSet = TerminalSet::new(4, &[]);
     // Ordinary { "b" }
-    pub static FIRST_SET_ORDINARY: TerminalSet = TerminalSet {
-        id: 5,
-        terminals: &[TerminalId(0)],
-    };
+    pub static FIRST_SET_ORDINARY: TerminalSet = TerminalSet::new(5, &[TerminalId(0)]);
     // StartEmptyE { }
-    pub static FIRST_SET_START_EMPTY_E: TerminalSet = TerminalSet {
-        id: 4,
-        terminals: &[],
-    };
+    pub static FIRST_SET_START_EMPTY_E: TerminalSet = TerminalSet::new(4, &[]);
     // StartEmptyF { }
-    pub static FIRST_SET_START_EMPTY_F: TerminalSet = TerminalSet {
-        id: 4,
-        terminals: &[],
-    };
+    pub static FIRST_SET_START_EMPTY_F: TerminalSet = TerminalSet::new(4, &[]);
     // StartIntermediateA { }
-    pub static FIRST_SET_START_INTERMEDIATE_A: TerminalSet = TerminalSet {
-        id: 4,
-        terminals: &[],
-    };
+    pub static FIRST_SET_START_INTERMEDIATE_A: TerminalSet = TerminalSet::new(4, &[]);
     // StartOrdinary { "b" }
-    pub static FIRST_SET_START_ORDINARY: TerminalSet = TerminalSet {
-        id: 5,
-        terminals: &[TerminalId(0)],
-    };
+    pub static FIRST_SET_START_ORDINARY: TerminalSet = TerminalSet::new(5, &[TerminalId(0)]);
     // Direct
     // 0: Direct #C1
     // 1: "b" #C2

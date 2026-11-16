@@ -37,146 +37,84 @@ impl Grammar for ExactKeywordNoLayoutGrammar {
 pub mod data {
     #[allow(unused_imports)]
     use iguana_runtime::{
-        grammar::{Nonterminal, Slot, Terminal},
-        ids::{SlotId, TerminalId},
+        grammar::{Alternative, Nonterminal, Slot, SlotKind, Terminal},
+        ids::{NonterminalId, SlotId, TerminalId},
         prediction::Prediction,
         scanner::TerminalSet,
     };
     pub(super) static NONTERMINALS: [Nonterminal; 5] = [
-        Nonterminal {
-            name: "S",
-            display_name: "S",
-        },
-        Nonterminal {
-            name: "Word",
-            display_name: "Word",
-        },
-        Nonterminal {
-            name: "Plus_0",
-            display_name: "Letter+",
-        },
-        Nonterminal {
-            name: "StartS",
-            display_name: "S",
-        },
-        Nonterminal {
-            name: "StartWord",
-            display_name: "Word",
-        },
+        Nonterminal::new("S", "S"),
+        Nonterminal::new("Word", "Word"),
+        Nonterminal::new("Plus_0", "Letter+"),
+        Nonterminal::new("StartS", "S"),
+        Nonterminal::new("StartWord", "Word"),
     ];
     pub(super) static DISPLAY_ORDER: [&str; 2] = ["S", "Word"];
     pub(super) static TERMINALS: [Terminal; 8] = [
-        Terminal { name: "Id" },
-        Terminal { name: "Letter" },
-        Terminal { name: "WS" },
-        Terminal { name: "\";\"" },
-        Terminal { name: "\"@\"" },
-        Terminal { name: "\"go\"" },
-        Terminal { name: "Epsilon" },
-        Terminal { name: "EOF" },
+        Terminal::new("Id"),
+        Terminal::new("Letter"),
+        Terminal::new("WS"),
+        Terminal::new("\";\""),
+        Terminal::new("\"@\""),
+        Terminal::new("\"go\""),
+        Terminal::new("Epsilon"),
+        Terminal::new("EOF"),
     ];
     pub(super) static SLOTS: [Slot; 25] = [
-        Slot {
-            display_name: "S : . Word WS \";\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : Word . WS \";\"",
-            position: 1,
-        },
-        Slot {
-            display_name: "S : Word WS . \";\"",
-            position: 2,
-        },
-        Slot {
-            display_name: "S : Word WS \";\".",
-            position: 3,
-        },
-        Slot {
-            display_name: "S : . Id WS \";\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : Id . WS \";\"",
-            position: 1,
-        },
-        Slot {
-            display_name: "S : Id WS . \";\"",
-            position: 2,
-        },
-        Slot {
-            display_name: "S : Id WS \";\".",
-            position: 3,
-        },
-        Slot {
-            display_name: "Word : . \"@\" \"go\" Letter+",
-            position: 0,
-        },
-        Slot {
-            display_name: "Word : \"@\" . \"go\" Letter+",
-            position: 1,
-        },
-        Slot {
-            display_name: "Word : \"@\" \"go\" . Letter+",
-            position: 2,
-        },
-        Slot {
-            display_name: "Word : \"@\" \"go\" Letter+.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Letter+ : . Letter+ Letter",
-            position: 0,
-        },
-        Slot {
-            display_name: "Letter+ : Letter+ . Letter",
-            position: 1,
-        },
-        Slot {
-            display_name: "Letter+ : Letter+ Letter.",
-            position: 2,
-        },
-        Slot {
-            display_name: "Letter+ : . Letter",
-            position: 0,
-        },
-        Slot {
-            display_name: "Letter+ : Letter.",
-            position: 1,
-        },
-        Slot {
-            display_name: "S : . WS start:S WS",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : WS . start:S WS",
-            position: 1,
-        },
-        Slot {
-            display_name: "S : WS start:S . WS",
-            position: 2,
-        },
-        Slot {
-            display_name: "S : WS start:S WS.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Word : . WS start:Word WS",
-            position: 0,
-        },
-        Slot {
-            display_name: "Word : WS . start:Word WS",
-            position: 1,
-        },
-        Slot {
-            display_name: "Word : WS start:Word . WS",
-            position: 2,
-        },
-        Slot {
-            display_name: "Word : WS start:Word WS.",
-            position: 3,
-        },
+        Slot::new(&ALT_0, 0, SlotKind::Nonterminal(NonterminalId(1))),
+        Slot::new(&ALT_0, 1, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_0, 2, SlotKind::Terminal(TerminalId(3))),
+        Slot::new(&ALT_0, 3, SlotKind::End),
+        Slot::new(&ALT_1, 0, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_1, 1, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_1, 2, SlotKind::Terminal(TerminalId(3))),
+        Slot::new(&ALT_1, 3, SlotKind::End),
+        Slot::new(&ALT_2, 0, SlotKind::Terminal(TerminalId(4))),
+        Slot::new(&ALT_2, 1, SlotKind::Terminal(TerminalId(5))),
+        Slot::new(&ALT_2, 2, SlotKind::Nonterminal(NonterminalId(2))),
+        Slot::new(&ALT_2, 3, SlotKind::End),
+        Slot::new(&ALT_3, 0, SlotKind::Nonterminal(NonterminalId(2))),
+        Slot::new(&ALT_3, 1, SlotKind::Terminal(TerminalId(1))),
+        Slot::new(&ALT_3, 2, SlotKind::End),
+        Slot::new(&ALT_4, 0, SlotKind::Terminal(TerminalId(1))),
+        Slot::new(&ALT_4, 1, SlotKind::End),
+        Slot::new(&ALT_5, 0, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_5, 1, SlotKind::Nonterminal(NonterminalId(0))),
+        Slot::new(&ALT_5, 2, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_5, 3, SlotKind::End),
+        Slot::new(&ALT_6, 0, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_6, 1, SlotKind::Nonterminal(NonterminalId(1))),
+        Slot::new(&ALT_6, 2, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_6, 3, SlotKind::End),
     ];
+    static ALT_0: Alternative = Alternative {
+        head: NonterminalId(0),
+        symbols: &["Word", "WS", "\";\""],
+    };
+    static ALT_1: Alternative = Alternative {
+        head: NonterminalId(0),
+        symbols: &["Id", "WS", "\";\""],
+    };
+    static ALT_2: Alternative = Alternative {
+        head: NonterminalId(1),
+        symbols: &["\"@\"", "\"go\"", "Letter+"],
+    };
+    static ALT_3: Alternative = Alternative {
+        head: NonterminalId(2),
+        symbols: &["Letter+", "Letter"],
+    };
+    static ALT_4: Alternative = Alternative {
+        head: NonterminalId(2),
+        symbols: &["Letter"],
+    };
+    static ALT_5: Alternative = Alternative {
+        head: NonterminalId(3),
+        symbols: &["WS", "start:S", "WS"],
+    };
+    static ALT_6: Alternative = Alternative {
+        head: NonterminalId(4),
+        symbols: &["WS", "start:Word", "WS"],
+    };
     pub(super) static FIRST_SLOTS: [&[SlotId]; 5] = [
         &[SlotId(0), SlotId(4)],
         &[SlotId(8)],
@@ -188,74 +126,35 @@ pub mod data {
     // error reporting path needs to reach a terminal set from a terminal id. This table, indexed
     // by terminal id, serves only that.
     pub(super) static SINGLE_TERMINAL_SETS: [TerminalSet; 8] = [
-        TerminalSet {
-            id: 6,
-            terminals: &[TerminalId(0)],
-        },
-        TerminalSet {
-            id: 7,
-            terminals: &[TerminalId(1)],
-        },
-        TerminalSet {
-            id: 8,
-            terminals: &[TerminalId(2)],
-        },
-        TerminalSet {
-            id: 9,
-            terminals: &[TerminalId(3)],
-        },
-        TerminalSet {
-            id: 10,
-            terminals: &[TerminalId(4)],
-        },
-        TerminalSet {
-            id: 11,
-            terminals: &[TerminalId(5)],
-        },
-        TerminalSet {
-            id: 12,
-            terminals: &[TerminalId(6)],
-        },
-        TerminalSet {
-            id: 13,
-            terminals: &[TerminalId(7)],
-        },
+        TerminalSet::new(6, &[TerminalId(0)]),
+        TerminalSet::new(7, &[TerminalId(1)]),
+        TerminalSet::new(8, &[TerminalId(2)]),
+        TerminalSet::new(9, &[TerminalId(3)]),
+        TerminalSet::new(10, &[TerminalId(4)]),
+        TerminalSet::new(11, &[TerminalId(5)]),
+        TerminalSet::new(12, &[TerminalId(6)]),
+        TerminalSet::new(13, &[TerminalId(7)]),
     ];
     // S { WS, EOF }
-    pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(2), TerminalId(7)],
-    };
+    pub static FOLLOW_SET_S: TerminalSet = TerminalSet::new(0, &[TerminalId(2), TerminalId(7)]);
     // Word { WS, ";", EOF }
-    pub static FOLLOW_SET_WORD: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(2), TerminalId(3), TerminalId(7)],
-    };
+    pub static FOLLOW_SET_WORD: TerminalSet =
+        TerminalSet::new(1, &[TerminalId(2), TerminalId(3), TerminalId(7)]);
     // Plus_0 { Letter, WS, ";", EOF }
-    pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
-        id: 2,
-        terminals: &[TerminalId(1), TerminalId(2), TerminalId(3), TerminalId(7)],
-    };
+    pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet::new(
+        2,
+        &[TerminalId(1), TerminalId(2), TerminalId(3), TerminalId(7)],
+    );
     // StartS { EOF }
-    pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
-        id: 3,
-        terminals: &[TerminalId(7)],
-    };
+    pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet::new(3, &[TerminalId(7)]);
     // StartWord { EOF }
-    pub static FOLLOW_SET_START_WORD: TerminalSet = TerminalSet {
-        id: 3,
-        terminals: &[TerminalId(7)],
-    };
+    pub static FOLLOW_SET_START_WORD: TerminalSet = TerminalSet::new(3, &[TerminalId(7)]);
     // S : Word . WS ";" lookahead { ";" }
-    pub static RETURN_SLOT_LOOKAHEAD_S_ALT0_POS1: TerminalSet = TerminalSet {
-        id: 4,
-        terminals: &[TerminalId(3)],
-    };
+    pub static RETURN_SLOT_LOOKAHEAD_S_ALT0_POS1: TerminalSet =
+        TerminalSet::new(4, &[TerminalId(3)]);
     // Plus_0 : Plus_0 . Letter lookahead { Letter }
-    pub static RETURN_SLOT_LOOKAHEAD_PLUS_0_ALT0_POS1: TerminalSet = TerminalSet {
-        id: 5,
-        terminals: &[TerminalId(1)],
-    };
+    pub static RETURN_SLOT_LOOKAHEAD_PLUS_0_ALT0_POS1: TerminalSet =
+        TerminalSet::new(5, &[TerminalId(1)]);
     // S
     // 0: Word WS ";" #Word
     // 1: Id WS ";" #Id

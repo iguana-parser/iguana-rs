@@ -43,268 +43,163 @@ impl Grammar for ExactKeywordGrammar {
 pub mod data {
     #[allow(unused_imports)]
     use iguana_runtime::{
-        grammar::{Nonterminal, Slot, Terminal},
-        ids::{SlotId, TerminalId},
+        grammar::{Alternative, Nonterminal, Slot, SlotKind, Terminal},
+        ids::{NonterminalId, SlotId, TerminalId},
         prediction::Prediction,
         scanner::TerminalSet,
     };
     pub(super) static NONTERMINALS: [Nonterminal; 8] = [
-        Nonterminal {
-            name: "Program",
-            display_name: "Program",
-        },
-        Nonterminal {
-            name: "Stmt",
-            display_name: "Stmt",
-        },
-        Nonterminal {
-            name: "Expr",
-            display_name: "Expr",
-        },
-        Nonterminal {
-            name: "Plus_0",
-            display_name: "Stmt+",
-        },
-        Nonterminal {
-            name: "Opt_0",
-            display_name: "(\"else\" Stmt)?",
-        },
-        Nonterminal {
-            name: "StartProgram",
-            display_name: "Program",
-        },
-        Nonterminal {
-            name: "StartStmt",
-            display_name: "Stmt",
-        },
-        Nonterminal {
-            name: "StartExpr",
-            display_name: "Expr",
-        },
+        Nonterminal::new("Program", "Program"),
+        Nonterminal::new("Stmt", "Stmt"),
+        Nonterminal::new("Expr", "Expr"),
+        Nonterminal::new("Plus_0", "Stmt+"),
+        Nonterminal::new("Opt_0", "(\"else\" Stmt)?"),
+        Nonterminal::new("StartProgram", "Program"),
+        Nonterminal::new("StartStmt", "Stmt"),
+        Nonterminal::new("StartExpr", "Expr"),
     ];
     pub(super) static DISPLAY_ORDER: [&str; 3] = ["Program", "Stmt", "Expr"];
     pub(super) static TERMINALS: [Terminal; 12] = [
-        Terminal { name: "Id" },
-        Terminal { name: "Num" },
-        Terminal { name: "WS" },
-        Terminal { name: "\";\"" },
-        Terminal { name: "\"if\"" },
-        Terminal { name: "\"(\"" },
-        Terminal { name: "\")\"" },
-        Terminal { name: "\"else\"" },
-        Terminal { name: "\"assert\"" },
-        Terminal {
-            name: "[0-9 A-Z _ a-z]",
-        },
-        Terminal { name: "Epsilon" },
-        Terminal { name: "EOF" },
+        Terminal::new("Id"),
+        Terminal::new("Num"),
+        Terminal::new("WS"),
+        Terminal::new("\";\""),
+        Terminal::new("\"if\""),
+        Terminal::new("\"(\""),
+        Terminal::new("\")\""),
+        Terminal::new("\"else\""),
+        Terminal::new("\"assert\""),
+        Terminal::new("[0-9 A-Z _ a-z]"),
+        Terminal::new("Epsilon"),
+        Terminal::new("EOF"),
     ];
     pub(super) static SLOTS: [Slot; 51] = [
-        Slot {
-            display_name: "Program : . Stmt+",
-            position: 0,
-        },
-        Slot {
-            display_name: "Program : Stmt+.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Stmt : . Expr WS \";\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Stmt : Expr . WS \";\"",
-            position: 1,
-        },
-        Slot {
-            display_name: "Stmt : Expr WS . \";\"",
-            position: 2,
-        },
-        Slot {
-            display_name: "Stmt : Expr WS \";\".",
-            position: 3,
-        },
-        Slot {
-            display_name: "Stmt : . [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" WS Expr WS \")\" WS Stmt WS (\"else\" Stmt)?",
-            position: 0,
-        },
-        Slot {
-            display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] . WS \"(\" WS Expr WS \")\" WS Stmt WS (\"else\" Stmt)?",
-            position: 1,
-        },
-        Slot {
-            display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS . \"(\" WS Expr WS \")\" WS Stmt WS (\"else\" Stmt)?",
-            position: 2,
-        },
-        Slot {
-            display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" . WS Expr WS \")\" WS Stmt WS (\"else\" Stmt)?",
-            position: 3,
-        },
-        Slot {
-            display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" WS . Expr WS \")\" WS Stmt WS (\"else\" Stmt)?",
-            position: 4,
-        },
-        Slot {
-            display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" WS Expr . WS \")\" WS Stmt WS (\"else\" Stmt)?",
-            position: 5,
-        },
-        Slot {
-            display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" WS Expr WS . \")\" WS Stmt WS (\"else\" Stmt)?",
-            position: 6,
-        },
-        Slot {
-            display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" WS Expr WS \")\" . WS Stmt WS (\"else\" Stmt)?",
-            position: 7,
-        },
-        Slot {
-            display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" WS Expr WS \")\" WS . Stmt WS (\"else\" Stmt)?",
-            position: 8,
-        },
-        Slot {
-            display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" WS Expr WS \")\" WS Stmt . WS (\"else\" Stmt)?",
-            position: 9,
-        },
-        Slot {
-            display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" WS Expr WS \")\" WS Stmt WS . (\"else\" Stmt)?",
-            position: 10,
-        },
-        Slot {
-            display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z] WS \"(\" WS Expr WS \")\" WS Stmt WS (\"else\" Stmt)?.",
-            position: 11,
-        },
-        Slot {
-            display_name: "Stmt : . [0-9 A-Z _ a-z] !<< \"assert\" !>> [0-9 A-Z _ a-z] WS Expr WS \";\"",
-            position: 0,
-        },
-        Slot {
-            display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"assert\" !>> [0-9 A-Z _ a-z] . WS Expr WS \";\"",
-            position: 1,
-        },
-        Slot {
-            display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"assert\" !>> [0-9 A-Z _ a-z] WS . Expr WS \";\"",
-            position: 2,
-        },
-        Slot {
-            display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"assert\" !>> [0-9 A-Z _ a-z] WS Expr . WS \";\"",
-            position: 3,
-        },
-        Slot {
-            display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"assert\" !>> [0-9 A-Z _ a-z] WS Expr WS . \";\"",
-            position: 4,
-        },
-        Slot {
-            display_name: "Stmt : [0-9 A-Z _ a-z] !<< \"assert\" !>> [0-9 A-Z _ a-z] WS Expr WS \";\".",
-            position: 5,
-        },
-        Slot {
-            display_name: "Expr : . Id",
-            position: 0,
-        },
-        Slot {
-            display_name: "Expr : Id.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Expr : . Num",
-            position: 0,
-        },
-        Slot {
-            display_name: "Expr : Num.",
-            position: 1,
-        },
-        Slot {
-            display_name: "Stmt+ : . Stmt+ WS Stmt",
-            position: 0,
-        },
-        Slot {
-            display_name: "Stmt+ : Stmt+ . WS Stmt",
-            position: 1,
-        },
-        Slot {
-            display_name: "Stmt+ : Stmt+ WS . Stmt",
-            position: 2,
-        },
-        Slot {
-            display_name: "Stmt+ : Stmt+ WS Stmt.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Stmt+ : . Stmt",
-            position: 0,
-        },
-        Slot {
-            display_name: "Stmt+ : Stmt.",
-            position: 1,
-        },
-        Slot {
-            display_name: "(\"else\" Stmt)? : . [0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] WS Stmt",
-            position: 0,
-        },
-        Slot {
-            display_name: "(\"else\" Stmt)? : [0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] . WS Stmt",
-            position: 1,
-        },
-        Slot {
-            display_name: "(\"else\" Stmt)? : [0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] WS . Stmt",
-            position: 2,
-        },
-        Slot {
-            display_name: "(\"else\" Stmt)? : [0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z] WS Stmt.",
-            position: 3,
-        },
-        Slot {
-            display_name: "(\"else\" Stmt)? : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "Program : . WS start:Program WS",
-            position: 0,
-        },
-        Slot {
-            display_name: "Program : WS . start:Program WS",
-            position: 1,
-        },
-        Slot {
-            display_name: "Program : WS start:Program . WS",
-            position: 2,
-        },
-        Slot {
-            display_name: "Program : WS start:Program WS.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Stmt : . WS start:Stmt WS",
-            position: 0,
-        },
-        Slot {
-            display_name: "Stmt : WS . start:Stmt WS",
-            position: 1,
-        },
-        Slot {
-            display_name: "Stmt : WS start:Stmt . WS",
-            position: 2,
-        },
-        Slot {
-            display_name: "Stmt : WS start:Stmt WS.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Expr : . WS start:Expr WS",
-            position: 0,
-        },
-        Slot {
-            display_name: "Expr : WS . start:Expr WS",
-            position: 1,
-        },
-        Slot {
-            display_name: "Expr : WS start:Expr . WS",
-            position: 2,
-        },
-        Slot {
-            display_name: "Expr : WS start:Expr WS.",
-            position: 3,
-        },
+        Slot::new(&ALT_0, 0, SlotKind::Nonterminal(NonterminalId(3))),
+        Slot::new(&ALT_0, 1, SlotKind::End),
+        Slot::new(&ALT_1, 0, SlotKind::Nonterminal(NonterminalId(2))),
+        Slot::new(&ALT_1, 1, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_1, 2, SlotKind::Terminal(TerminalId(3))),
+        Slot::new(&ALT_1, 3, SlotKind::End),
+        Slot::new(&ALT_2, 0, SlotKind::Terminal(TerminalId(4))),
+        Slot::new(&ALT_2, 1, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_2, 2, SlotKind::Terminal(TerminalId(5))),
+        Slot::new(&ALT_2, 3, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_2, 4, SlotKind::Nonterminal(NonterminalId(2))),
+        Slot::new(&ALT_2, 5, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_2, 6, SlotKind::Terminal(TerminalId(6))),
+        Slot::new(&ALT_2, 7, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_2, 8, SlotKind::Nonterminal(NonterminalId(1))),
+        Slot::new(&ALT_2, 9, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_2, 10, SlotKind::Nonterminal(NonterminalId(4))),
+        Slot::new(&ALT_2, 11, SlotKind::End),
+        Slot::new(&ALT_3, 0, SlotKind::Terminal(TerminalId(8))),
+        Slot::new(&ALT_3, 1, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_3, 2, SlotKind::Nonterminal(NonterminalId(2))),
+        Slot::new(&ALT_3, 3, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_3, 4, SlotKind::Terminal(TerminalId(3))),
+        Slot::new(&ALT_3, 5, SlotKind::End),
+        Slot::new(&ALT_4, 0, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_4, 1, SlotKind::End),
+        Slot::new(&ALT_5, 0, SlotKind::Terminal(TerminalId(1))),
+        Slot::new(&ALT_5, 1, SlotKind::End),
+        Slot::new(&ALT_6, 0, SlotKind::Nonterminal(NonterminalId(3))),
+        Slot::new(&ALT_6, 1, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_6, 2, SlotKind::Nonterminal(NonterminalId(1))),
+        Slot::new(&ALT_6, 3, SlotKind::End),
+        Slot::new(&ALT_7, 0, SlotKind::Nonterminal(NonterminalId(1))),
+        Slot::new(&ALT_7, 1, SlotKind::End),
+        Slot::new(&ALT_8, 0, SlotKind::Terminal(TerminalId(7))),
+        Slot::new(&ALT_8, 1, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_8, 2, SlotKind::Nonterminal(NonterminalId(1))),
+        Slot::new(&ALT_8, 3, SlotKind::End),
+        Slot::new(&ALT_9, 0, SlotKind::End),
+        Slot::new(&ALT_10, 0, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_10, 1, SlotKind::Nonterminal(NonterminalId(0))),
+        Slot::new(&ALT_10, 2, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_10, 3, SlotKind::End),
+        Slot::new(&ALT_11, 0, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_11, 1, SlotKind::Nonterminal(NonterminalId(1))),
+        Slot::new(&ALT_11, 2, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_11, 3, SlotKind::End),
+        Slot::new(&ALT_12, 0, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_12, 1, SlotKind::Nonterminal(NonterminalId(2))),
+        Slot::new(&ALT_12, 2, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_12, 3, SlotKind::End),
     ];
+    static ALT_0: Alternative = Alternative {
+        head: NonterminalId(0),
+        symbols: &["Stmt+"],
+    };
+    static ALT_1: Alternative = Alternative {
+        head: NonterminalId(1),
+        symbols: &["Expr", "WS", "\";\""],
+    };
+    static ALT_2: Alternative = Alternative {
+        head: NonterminalId(1),
+        symbols: &[
+            "[0-9 A-Z _ a-z] !<< \"if\" !>> [0-9 A-Z _ a-z]",
+            "WS",
+            "\"(\"",
+            "WS",
+            "Expr",
+            "WS",
+            "\")\"",
+            "WS",
+            "Stmt",
+            "WS",
+            "(\"else\" Stmt)?",
+        ],
+    };
+    static ALT_3: Alternative = Alternative {
+        head: NonterminalId(1),
+        symbols: &[
+            "[0-9 A-Z _ a-z] !<< \"assert\" !>> [0-9 A-Z _ a-z]",
+            "WS",
+            "Expr",
+            "WS",
+            "\";\"",
+        ],
+    };
+    static ALT_4: Alternative = Alternative {
+        head: NonterminalId(2),
+        symbols: &["Id"],
+    };
+    static ALT_5: Alternative = Alternative {
+        head: NonterminalId(2),
+        symbols: &["Num"],
+    };
+    static ALT_6: Alternative = Alternative {
+        head: NonterminalId(3),
+        symbols: &["Stmt+", "WS", "Stmt"],
+    };
+    static ALT_7: Alternative = Alternative {
+        head: NonterminalId(3),
+        symbols: &["Stmt"],
+    };
+    static ALT_8: Alternative = Alternative {
+        head: NonterminalId(4),
+        symbols: &[
+            "[0-9 A-Z _ a-z] !<< \"else\" !>> [0-9 A-Z _ a-z]",
+            "WS",
+            "Stmt",
+        ],
+    };
+    static ALT_9: Alternative = Alternative {
+        head: NonterminalId(4),
+        symbols: &[],
+    };
+    static ALT_10: Alternative = Alternative {
+        head: NonterminalId(5),
+        symbols: &["WS", "start:Program", "WS"],
+    };
+    static ALT_11: Alternative = Alternative {
+        head: NonterminalId(6),
+        symbols: &["WS", "start:Stmt", "WS"],
+    };
+    static ALT_12: Alternative = Alternative {
+        head: NonterminalId(7),
+        symbols: &["WS", "start:Expr", "WS"],
+    };
     pub(super) static FIRST_SLOTS: [&[SlotId]; 8] = [
         &[SlotId(0)],
         &[SlotId(2), SlotId(6), SlotId(18)],
@@ -319,64 +214,26 @@ pub mod data {
     // error reporting path needs to reach a terminal set from a terminal id. This table, indexed
     // by terminal id, serves only that.
     pub(super) static SINGLE_TERMINAL_SETS: [TerminalSet; 12] = [
-        TerminalSet {
-            id: 9,
-            terminals: &[TerminalId(0)],
-        },
-        TerminalSet {
-            id: 10,
-            terminals: &[TerminalId(1)],
-        },
-        TerminalSet {
-            id: 11,
-            terminals: &[TerminalId(2)],
-        },
-        TerminalSet {
-            id: 12,
-            terminals: &[TerminalId(3)],
-        },
-        TerminalSet {
-            id: 13,
-            terminals: &[TerminalId(4)],
-        },
-        TerminalSet {
-            id: 14,
-            terminals: &[TerminalId(5)],
-        },
-        TerminalSet {
-            id: 15,
-            terminals: &[TerminalId(6)],
-        },
-        TerminalSet {
-            id: 16,
-            terminals: &[TerminalId(7)],
-        },
-        TerminalSet {
-            id: 17,
-            terminals: &[TerminalId(8)],
-        },
-        TerminalSet {
-            id: 18,
-            terminals: &[TerminalId(9)],
-        },
-        TerminalSet {
-            id: 19,
-            terminals: &[TerminalId(10)],
-        },
-        TerminalSet {
-            id: 20,
-            terminals: &[TerminalId(11)],
-        },
+        TerminalSet::new(9, &[TerminalId(0)]),
+        TerminalSet::new(10, &[TerminalId(1)]),
+        TerminalSet::new(11, &[TerminalId(2)]),
+        TerminalSet::new(12, &[TerminalId(3)]),
+        TerminalSet::new(13, &[TerminalId(4)]),
+        TerminalSet::new(14, &[TerminalId(5)]),
+        TerminalSet::new(15, &[TerminalId(6)]),
+        TerminalSet::new(16, &[TerminalId(7)]),
+        TerminalSet::new(17, &[TerminalId(8)]),
+        TerminalSet::new(18, &[TerminalId(9)]),
+        TerminalSet::new(19, &[TerminalId(10)]),
+        TerminalSet::new(20, &[TerminalId(11)]),
     ];
     // Program { WS, EOF }
-    pub static FOLLOW_SET_PROGRAM: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(2), TerminalId(11)],
-    };
+    pub static FOLLOW_SET_PROGRAM: TerminalSet =
+        TerminalSet::new(0, &[TerminalId(2), TerminalId(11)]);
     // Stmt { Id, Num, WS, "if", "else", "assert", EOF }
-    pub static FOLLOW_SET_STMT: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[
+    pub static FOLLOW_SET_STMT: TerminalSet = TerminalSet::new(
+        1,
+        &[
             TerminalId(0),
             TerminalId(1),
             TerminalId(2),
@@ -385,28 +242,24 @@ pub mod data {
             TerminalId(8),
             TerminalId(11),
         ],
-    };
+    );
     // Stmt : . [0-9 A-Z _ a-z] !<< "if" !>> [0-9 A-Z _ a-z] WS "(" WS Expr WS ")" WS Stmt WS
     // Opt_0 !>> { [0-9 A-Z _ a-z] }
-    pub static FOLLOW_RESTRICTION_STMT_ALT1_POS0: TerminalSet = TerminalSet {
-        id: 2,
-        terminals: &[TerminalId(9)],
-    };
+    pub static FOLLOW_RESTRICTION_STMT_ALT1_POS0: TerminalSet =
+        TerminalSet::new(2, &[TerminalId(9)]);
     // Stmt : . [0-9 A-Z _ a-z] !<< "assert" !>> [0-9 A-Z _ a-z] WS Expr WS ";" !>> { [0-9 A-Z _
     // a-z] }
-    pub static FOLLOW_RESTRICTION_STMT_ALT2_POS0: TerminalSet = TerminalSet {
-        id: 2,
-        terminals: &[TerminalId(9)],
-    };
+    pub static FOLLOW_RESTRICTION_STMT_ALT2_POS0: TerminalSet =
+        TerminalSet::new(2, &[TerminalId(9)]);
     // Expr { WS, ";", ")", EOF }
-    pub static FOLLOW_SET_EXPR: TerminalSet = TerminalSet {
-        id: 3,
-        terminals: &[TerminalId(2), TerminalId(3), TerminalId(6), TerminalId(11)],
-    };
+    pub static FOLLOW_SET_EXPR: TerminalSet = TerminalSet::new(
+        3,
+        &[TerminalId(2), TerminalId(3), TerminalId(6), TerminalId(11)],
+    );
     // Plus_0 { Id, Num, WS, "if", "assert", EOF }
-    pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
-        id: 4,
-        terminals: &[
+    pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet::new(
+        4,
+        &[
             TerminalId(0),
             TerminalId(1),
             TerminalId(2),
@@ -414,11 +267,11 @@ pub mod data {
             TerminalId(8),
             TerminalId(11),
         ],
-    };
+    );
     // Opt_0 { Id, Num, WS, "if", "else", "assert", EOF }
-    pub static FOLLOW_SET_OPT_0: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[
+    pub static FOLLOW_SET_OPT_0: TerminalSet = TerminalSet::new(
+        1,
+        &[
             TerminalId(0),
             TerminalId(1),
             TerminalId(2),
@@ -427,42 +280,26 @@ pub mod data {
             TerminalId(8),
             TerminalId(11),
         ],
-    };
+    );
     // Opt_0 : . [0-9 A-Z _ a-z] !<< "else" !>> [0-9 A-Z _ a-z] WS Stmt !>> { [0-9 A-Z _ a-z] }
-    pub static FOLLOW_RESTRICTION_OPT_0_ALT0_POS0: TerminalSet = TerminalSet {
-        id: 2,
-        terminals: &[TerminalId(9)],
-    };
+    pub static FOLLOW_RESTRICTION_OPT_0_ALT0_POS0: TerminalSet =
+        TerminalSet::new(2, &[TerminalId(9)]);
     // StartProgram { EOF }
-    pub static FOLLOW_SET_START_PROGRAM: TerminalSet = TerminalSet {
-        id: 5,
-        terminals: &[TerminalId(11)],
-    };
+    pub static FOLLOW_SET_START_PROGRAM: TerminalSet = TerminalSet::new(5, &[TerminalId(11)]);
     // StartStmt { EOF }
-    pub static FOLLOW_SET_START_STMT: TerminalSet = TerminalSet {
-        id: 5,
-        terminals: &[TerminalId(11)],
-    };
+    pub static FOLLOW_SET_START_STMT: TerminalSet = TerminalSet::new(5, &[TerminalId(11)]);
     // StartExpr { EOF }
-    pub static FOLLOW_SET_START_EXPR: TerminalSet = TerminalSet {
-        id: 5,
-        terminals: &[TerminalId(11)],
-    };
+    pub static FOLLOW_SET_START_EXPR: TerminalSet = TerminalSet::new(5, &[TerminalId(11)]);
     // Plus_0 : Plus_0 . WS Stmt lookahead { Id, Num, "if", "assert" }
-    pub static RETURN_SLOT_LOOKAHEAD_PLUS_0_ALT0_POS1: TerminalSet = TerminalSet {
-        id: 6,
-        terminals: &[TerminalId(0), TerminalId(1), TerminalId(4), TerminalId(8)],
-    };
+    pub static RETURN_SLOT_LOOKAHEAD_PLUS_0_ALT0_POS1: TerminalSet = TerminalSet::new(
+        6,
+        &[TerminalId(0), TerminalId(1), TerminalId(4), TerminalId(8)],
+    );
     // Expr { Id, Num }
-    pub static FIRST_SET_EXPR: TerminalSet = TerminalSet {
-        id: 7,
-        terminals: &[TerminalId(0), TerminalId(1)],
-    };
+    pub static FIRST_SET_EXPR: TerminalSet = TerminalSet::new(7, &[TerminalId(0), TerminalId(1)]);
     // StartExpr { Id, Num, WS }
-    pub static FIRST_SET_START_EXPR: TerminalSet = TerminalSet {
-        id: 8,
-        terminals: &[TerminalId(0), TerminalId(1), TerminalId(2)],
-    };
+    pub static FIRST_SET_START_EXPR: TerminalSet =
+        TerminalSet::new(8, &[TerminalId(0), TerminalId(1), TerminalId(2)]);
     // Program
     // 0: Plus_0
     pub static PREDICTION_PROGRAM: Prediction = {

@@ -35,148 +35,101 @@ impl Grammar for ExcludeByLabelGrammar {
 pub mod data {
     #[allow(unused_imports)]
     use iguana_runtime::{
-        grammar::{Nonterminal, Slot, Terminal},
-        ids::{SlotId, TerminalId},
+        grammar::{Alternative, Nonterminal, Slot, SlotKind, Terminal},
+        ids::{NonterminalId, SlotId, TerminalId},
         prediction::Prediction,
         scanner::TerminalSet,
     };
     pub(super) static NONTERMINALS: [Nonterminal; 4] = [
-        Nonterminal {
-            name: "Expr",
-            display_name: "Expr",
-        },
-        Nonterminal {
-            name: "Plus_0",
-            display_name: "{Expr !comma \",\"}+",
-        },
-        Nonterminal {
-            name: "Star_0",
-            display_name: "{Expr !comma \",\"}*",
-        },
-        Nonterminal {
-            name: "StartExpr",
-            display_name: "Expr",
-        },
+        Nonterminal::new("Expr", "Expr"),
+        Nonterminal::new("Plus_0", "{Expr !comma \",\"}+"),
+        Nonterminal::new("Star_0", "{Expr !comma \",\"}*"),
+        Nonterminal::new("StartExpr", "Expr"),
     ];
     pub(super) static DISPLAY_ORDER: [&str; 1] = ["Expr"];
     pub(super) static TERMINALS: [Terminal; 6] = [
-        Terminal { name: "Id" },
-        Terminal { name: "\"(\"" },
-        Terminal { name: "\",\"" },
-        Terminal { name: "\")\"" },
-        Terminal { name: "Epsilon" },
-        Terminal { name: "EOF" },
+        Terminal::new("Id"),
+        Terminal::new("\"(\""),
+        Terminal::new("\",\""),
+        Terminal::new("\")\""),
+        Terminal::new("Epsilon"),
+        Terminal::new("EOF"),
     ];
     pub(super) static SLOTS: [Slot; 27] = [
-        Slot {
-            display_name: "Expr : . Id return (0, 0)",
-            position: 0,
-        },
-        Slot {
-            display_name: "Expr : Id . return (0, 0)",
-            position: 1,
-        },
-        Slot {
-            display_name: "Expr : Id return (0, 0).",
-            position: 2,
-        },
-        Slot {
-            display_name: "Expr : . Expr \"(\" {Expr !comma \",\"}* \")\" return (0, 1)",
-            position: 0,
-        },
-        Slot {
-            display_name: "Expr : Expr . \"(\" {Expr !comma \",\"}* \")\" return (0, 1)",
-            position: 1,
-        },
-        Slot {
-            display_name: "Expr : Expr \"(\" . {Expr !comma \",\"}* \")\" return (0, 1)",
-            position: 2,
-        },
-        Slot {
-            display_name: "Expr : Expr \"(\" {Expr !comma \",\"}* . \")\" return (0, 1)",
-            position: 3,
-        },
-        Slot {
-            display_name: "Expr : Expr \"(\" {Expr !comma \",\"}* \")\" . return (0, 1)",
-            position: 4,
-        },
-        Slot {
-            display_name: "Expr : Expr \"(\" {Expr !comma \",\"}* \")\" return (0, 1).",
-            position: 5,
-        },
-        Slot {
-            display_name: "Expr : . Expr \",\" Expr return (0, 2)",
-            position: 0,
-        },
-        Slot {
-            display_name: "Expr : Expr . \",\" Expr return (0, 2)",
-            position: 1,
-        },
-        Slot {
-            display_name: "Expr : Expr \",\" . Expr return (0, 2)",
-            position: 2,
-        },
-        Slot {
-            display_name: "Expr : Expr \",\" Expr . return (0, 2)",
-            position: 3,
-        },
-        Slot {
-            display_name: "Expr : Expr \",\" Expr return (0, 2).",
-            position: 4,
-        },
-        Slot {
-            display_name: "{Expr !comma \",\"}+ : . {Expr !comma \",\"}+ \",\" (x_pr, x_label)=Expr [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)]",
-            position: 0,
-        },
-        Slot {
-            display_name: "{Expr !comma \",\"}+ : {Expr !comma \",\"}+ . \",\" (x_pr, x_label)=Expr [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)]",
-            position: 1,
-        },
-        Slot {
-            display_name: "{Expr !comma \",\"}+ : {Expr !comma \",\"}+ \",\" . (x_pr, x_label)=Expr [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)]",
-            position: 2,
-        },
-        Slot {
-            display_name: "{Expr !comma \",\"}+ : {Expr !comma \",\"}+ \",\" (x_pr, x_label)=Expr . [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)]",
-            position: 3,
-        },
-        Slot {
-            display_name: "{Expr !comma \",\"}+ : {Expr !comma \",\"}+ \",\" (x_pr, x_label)=Expr [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)].",
-            position: 4,
-        },
-        Slot {
-            display_name: "{Expr !comma \",\"}+ : . (x_pr, x_label)=Expr [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)]",
-            position: 0,
-        },
-        Slot {
-            display_name: "{Expr !comma \",\"}+ : (x_pr, x_label)=Expr . [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)]",
-            position: 1,
-        },
-        Slot {
-            display_name: "{Expr !comma \",\"}+ : (x_pr, x_label)=Expr [(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)].",
-            position: 2,
-        },
-        Slot {
-            display_name: "{Expr !comma \",\"}* : . {Expr !comma \",\"}+",
-            position: 0,
-        },
-        Slot {
-            display_name: "{Expr !comma \",\"}* : {Expr !comma \",\"}+.",
-            position: 1,
-        },
-        Slot {
-            display_name: "{Expr !comma \",\"}* : .",
-            position: 0,
-        },
-        Slot {
-            display_name: "Expr : . start:Expr",
-            position: 0,
-        },
-        Slot {
-            display_name: "Expr : start:Expr.",
-            position: 1,
-        },
+        Slot::new(&ALT_0, 0, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_0, 1, SlotKind::Return),
+        Slot::new(&ALT_0, 2, SlotKind::End),
+        Slot::new(&ALT_1, 0, SlotKind::Nonterminal(NonterminalId(0))),
+        Slot::new(&ALT_1, 1, SlotKind::Terminal(TerminalId(1))),
+        Slot::new(&ALT_1, 2, SlotKind::Nonterminal(NonterminalId(2))),
+        Slot::new(&ALT_1, 3, SlotKind::Terminal(TerminalId(3))),
+        Slot::new(&ALT_1, 4, SlotKind::Return),
+        Slot::new(&ALT_1, 5, SlotKind::End),
+        Slot::new(&ALT_2, 0, SlotKind::Nonterminal(NonterminalId(0))),
+        Slot::new(&ALT_2, 1, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_2, 2, SlotKind::Nonterminal(NonterminalId(0))),
+        Slot::new(&ALT_2, 3, SlotKind::Return),
+        Slot::new(&ALT_2, 4, SlotKind::End),
+        Slot::new(&ALT_3, 0, SlotKind::Nonterminal(NonterminalId(1))),
+        Slot::new(&ALT_3, 1, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_3, 2, SlotKind::Nonterminal(NonterminalId(0))),
+        Slot::new(&ALT_3, 3, SlotKind::Condition),
+        Slot::new(&ALT_3, 4, SlotKind::End),
+        Slot::new(&ALT_4, 0, SlotKind::Nonterminal(NonterminalId(0))),
+        Slot::new(&ALT_4, 1, SlotKind::Condition),
+        Slot::new(&ALT_4, 2, SlotKind::End),
+        Slot::new(&ALT_5, 0, SlotKind::Nonterminal(NonterminalId(1))),
+        Slot::new(&ALT_5, 1, SlotKind::End),
+        Slot::new(&ALT_6, 0, SlotKind::End),
+        Slot::new(&ALT_7, 0, SlotKind::Nonterminal(NonterminalId(0))),
+        Slot::new(&ALT_7, 1, SlotKind::End),
     ];
+    static ALT_0: Alternative = Alternative {
+        head: NonterminalId(0),
+        symbols: &["Id", "return (0, 0)"],
+    };
+    static ALT_1: Alternative = Alternative {
+        head: NonterminalId(0),
+        symbols: &[
+            "Expr",
+            "\"(\"",
+            "{Expr !comma \",\"}*",
+            "\")\"",
+            "return (0, 1)",
+        ],
+    };
+    static ALT_2: Alternative = Alternative {
+        head: NonterminalId(0),
+        symbols: &["Expr", "\",\"", "Expr", "return (0, 2)"],
+    };
+    static ALT_3: Alternative = Alternative {
+        head: NonterminalId(1),
+        symbols: &[
+            "{Expr !comma \",\"}+",
+            "\",\"",
+            "(x_pr, x_label)=Expr",
+            "[(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)]",
+        ],
+    };
+    static ALT_4: Alternative = Alternative {
+        head: NonterminalId(1),
+        symbols: &[
+            "(x_pr, x_label)=Expr",
+            "[(x_label == NO_LABEL) || ((4 >> x_label) & 1 == 0)]",
+        ],
+    };
+    static ALT_5: Alternative = Alternative {
+        head: NonterminalId(2),
+        symbols: &["{Expr !comma \",\"}+"],
+    };
+    static ALT_6: Alternative = Alternative {
+        head: NonterminalId(2),
+        symbols: &[],
+    };
+    static ALT_7: Alternative = Alternative {
+        head: NonterminalId(3),
+        symbols: &["start:Expr"],
+    };
     pub(super) static FIRST_SLOTS: [&[SlotId]; 4] = [
         &[SlotId(0), SlotId(3), SlotId(9)],
         &[SlotId(14), SlotId(19)],
@@ -187,72 +140,39 @@ pub mod data {
     // error reporting path needs to reach a terminal set from a terminal id. This table, indexed
     // by terminal id, serves only that.
     pub(super) static SINGLE_TERMINAL_SETS: [TerminalSet; 6] = [
-        TerminalSet {
-            id: 7,
-            terminals: &[TerminalId(0)],
-        },
-        TerminalSet {
-            id: 8,
-            terminals: &[TerminalId(1)],
-        },
-        TerminalSet {
-            id: 9,
-            terminals: &[TerminalId(2)],
-        },
-        TerminalSet {
-            id: 10,
-            terminals: &[TerminalId(3)],
-        },
-        TerminalSet {
-            id: 11,
-            terminals: &[TerminalId(4)],
-        },
-        TerminalSet {
-            id: 12,
-            terminals: &[TerminalId(5)],
-        },
+        TerminalSet::new(7, &[TerminalId(0)]),
+        TerminalSet::new(8, &[TerminalId(1)]),
+        TerminalSet::new(9, &[TerminalId(2)]),
+        TerminalSet::new(10, &[TerminalId(3)]),
+        TerminalSet::new(11, &[TerminalId(4)]),
+        TerminalSet::new(12, &[TerminalId(5)]),
     ];
     // Expr { "(", ",", ")", EOF }
-    pub static FOLLOW_SET_EXPR: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(1), TerminalId(2), TerminalId(3), TerminalId(5)],
-    };
+    pub static FOLLOW_SET_EXPR: TerminalSet = TerminalSet::new(
+        0,
+        &[TerminalId(1), TerminalId(2), TerminalId(3), TerminalId(5)],
+    );
     // Plus_0 { ",", ")", EOF }
-    pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(2), TerminalId(3), TerminalId(5)],
-    };
+    pub static FOLLOW_SET_PLUS_0: TerminalSet =
+        TerminalSet::new(1, &[TerminalId(2), TerminalId(3), TerminalId(5)]);
     // Star_0 { ")", EOF }
-    pub static FOLLOW_SET_STAR_0: TerminalSet = TerminalSet {
-        id: 2,
-        terminals: &[TerminalId(3), TerminalId(5)],
-    };
+    pub static FOLLOW_SET_STAR_0: TerminalSet =
+        TerminalSet::new(2, &[TerminalId(3), TerminalId(5)]);
     // StartExpr { EOF }
-    pub static FOLLOW_SET_START_EXPR: TerminalSet = TerminalSet {
-        id: 3,
-        terminals: &[TerminalId(5)],
-    };
+    pub static FOLLOW_SET_START_EXPR: TerminalSet = TerminalSet::new(3, &[TerminalId(5)]);
     // Expr : Expr . "(" Star_0 ")" return (0, 1) lookahead { "(" }
-    pub static RETURN_SLOT_LOOKAHEAD_EXPR_ALT1_POS1: TerminalSet = TerminalSet {
-        id: 4,
-        terminals: &[TerminalId(1)],
-    };
+    pub static RETURN_SLOT_LOOKAHEAD_EXPR_ALT1_POS1: TerminalSet =
+        TerminalSet::new(4, &[TerminalId(1)]);
     // Expr : Expr "(" Star_0 . ")" return (0, 1) lookahead { ")" }
-    pub static RETURN_SLOT_LOOKAHEAD_EXPR_ALT1_POS3: TerminalSet = TerminalSet {
-        id: 5,
-        terminals: &[TerminalId(3)],
-    };
+    pub static RETURN_SLOT_LOOKAHEAD_EXPR_ALT1_POS3: TerminalSet =
+        TerminalSet::new(5, &[TerminalId(3)]);
     // Expr : Expr . "," Expr return (0, 2) lookahead { "," }
-    pub static RETURN_SLOT_LOOKAHEAD_EXPR_ALT2_POS1: TerminalSet = TerminalSet {
-        id: 6,
-        terminals: &[TerminalId(2)],
-    };
+    pub static RETURN_SLOT_LOOKAHEAD_EXPR_ALT2_POS1: TerminalSet =
+        TerminalSet::new(6, &[TerminalId(2)]);
     // Plus_0 : Plus_0 . "," (x_pr, x_label)=Expr [(x_label == NO_LABEL) || ((4 >> x_label) & 1
     // == 0)] lookahead { "," }
-    pub static RETURN_SLOT_LOOKAHEAD_PLUS_0_ALT0_POS1: TerminalSet = TerminalSet {
-        id: 6,
-        terminals: &[TerminalId(2)],
-    };
+    pub static RETURN_SLOT_LOOKAHEAD_PLUS_0_ALT0_POS1: TerminalSet =
+        TerminalSet::new(6, &[TerminalId(2)]);
     // Expr
     // 0: Id return (0, 0) #id
     // 1: Expr "(" Star_0 ")" return (0, 1) #call

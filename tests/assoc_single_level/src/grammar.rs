@@ -39,190 +39,121 @@ impl Grammar for AssocSingleLevelGrammar {
 pub mod data {
     #[allow(unused_imports)]
     use iguana_runtime::{
-        grammar::{Nonterminal, Slot, Terminal},
-        ids::{SlotId, TerminalId},
+        grammar::{Alternative, Nonterminal, Slot, SlotKind, Terminal},
+        ids::{NonterminalId, SlotId, TerminalId},
         prediction::Prediction,
         scanner::TerminalSet,
     };
     pub(super) static NONTERMINALS: [Nonterminal; 6] = [
-        Nonterminal {
-            name: "StartE",
-            display_name: "E(0)",
-        },
-        Nonterminal {
-            name: "StartF",
-            display_name: "F(0)",
-        },
-        Nonterminal {
-            name: "StartG",
-            display_name: "G(0)",
-        },
-        Nonterminal {
-            name: "E",
-            display_name: "E",
-        },
-        Nonterminal {
-            name: "F",
-            display_name: "F",
-        },
-        Nonterminal {
-            name: "G",
-            display_name: "G",
-        },
+        Nonterminal::new("StartE", "E(0)"),
+        Nonterminal::new("StartF", "F(0)"),
+        Nonterminal::new("StartG", "G(0)"),
+        Nonterminal::new("E", "E"),
+        Nonterminal::new("F", "F"),
+        Nonterminal::new("G", "G"),
     ];
     pub(super) static DISPLAY_ORDER: [&str; 3] = ["E", "F", "G"];
     pub(super) static TERMINALS: [Terminal; 4] = [
-        Terminal { name: "\"<\"" },
-        Terminal { name: "\"a\"" },
-        Terminal { name: "Epsilon" },
-        Terminal { name: "EOF" },
+        Terminal::new("\"<\""),
+        Terminal::new("\"a\""),
+        Terminal::new("Epsilon"),
+        Terminal::new("EOF"),
     ];
     pub(super) static SLOTS: [Slot; 36] = [
-        Slot {
-            display_name: "E(0) : . start:E(0)",
-            position: 0,
-        },
-        Slot {
-            display_name: "E(0) : start:E(0).",
-            position: 1,
-        },
-        Slot {
-            display_name: "F(0) : . start:F(0)",
-            position: 0,
-        },
-        Slot {
-            display_name: "F(0) : start:F(0).",
-            position: 1,
-        },
-        Slot {
-            display_name: "G(0) : . start:G(0)",
-            position: 0,
-        },
-        Slot {
-            display_name: "G(0) : start:G(0).",
-            position: 1,
-        },
-        Slot {
-            display_name: "E : . [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] \"<\" E(2) return 1",
-            position: 0,
-        },
-        Slot {
-            display_name: "E : [1 >= p] . l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] \"<\" E(2) return 1",
-            position: 1,
-        },
-        Slot {
-            display_name: "E : [1 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 1)] \"<\" E(2) return 1",
-            position: 2,
-        },
-        Slot {
-            display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] . \"<\" E(2) return 1",
-            position: 3,
-        },
-        Slot {
-            display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] \"<\" . E(2) return 1",
-            position: 4,
-        },
-        Slot {
-            display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] \"<\" E(2) . return 1",
-            position: 5,
-        },
-        Slot {
-            display_name: "E : [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] \"<\" E(2) return 1.",
-            position: 6,
-        },
-        Slot {
-            display_name: "E : . \"a\" return 0",
-            position: 0,
-        },
-        Slot {
-            display_name: "E : \"a\" . return 0",
-            position: 1,
-        },
-        Slot {
-            display_name: "E : \"a\" return 0.",
-            position: 2,
-        },
-        Slot {
-            display_name: "F : . [1 >= p] l_pr=F(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" F(1) return 1",
-            position: 0,
-        },
-        Slot {
-            display_name: "F : [1 >= p] . l_pr=F(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" F(1) return 1",
-            position: 1,
-        },
-        Slot {
-            display_name: "F : [1 >= p] l_pr=F(p) . [(l_pr == 0) || (l_pr >= 2)] \"<\" F(1) return 1",
-            position: 2,
-        },
-        Slot {
-            display_name: "F : [1 >= p] l_pr=F(p) [(l_pr == 0) || (l_pr >= 2)] . \"<\" F(1) return 1",
-            position: 3,
-        },
-        Slot {
-            display_name: "F : [1 >= p] l_pr=F(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" . F(1) return 1",
-            position: 4,
-        },
-        Slot {
-            display_name: "F : [1 >= p] l_pr=F(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" F(1) . return 1",
-            position: 5,
-        },
-        Slot {
-            display_name: "F : [1 >= p] l_pr=F(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" F(1) return 1.",
-            position: 6,
-        },
-        Slot {
-            display_name: "F : . \"a\" return 0",
-            position: 0,
-        },
-        Slot {
-            display_name: "F : \"a\" . return 0",
-            position: 1,
-        },
-        Slot {
-            display_name: "F : \"a\" return 0.",
-            position: 2,
-        },
-        Slot {
-            display_name: "G : . [1 >= p] l_pr=G(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" G(2) return 1",
-            position: 0,
-        },
-        Slot {
-            display_name: "G : [1 >= p] . l_pr=G(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" G(2) return 1",
-            position: 1,
-        },
-        Slot {
-            display_name: "G : [1 >= p] l_pr=G(p) . [(l_pr == 0) || (l_pr >= 2)] \"<\" G(2) return 1",
-            position: 2,
-        },
-        Slot {
-            display_name: "G : [1 >= p] l_pr=G(p) [(l_pr == 0) || (l_pr >= 2)] . \"<\" G(2) return 1",
-            position: 3,
-        },
-        Slot {
-            display_name: "G : [1 >= p] l_pr=G(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" . G(2) return 1",
-            position: 4,
-        },
-        Slot {
-            display_name: "G : [1 >= p] l_pr=G(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" G(2) . return 1",
-            position: 5,
-        },
-        Slot {
-            display_name: "G : [1 >= p] l_pr=G(p) [(l_pr == 0) || (l_pr >= 2)] \"<\" G(2) return 1.",
-            position: 6,
-        },
-        Slot {
-            display_name: "G : . \"a\" return 0",
-            position: 0,
-        },
-        Slot {
-            display_name: "G : \"a\" . return 0",
-            position: 1,
-        },
-        Slot {
-            display_name: "G : \"a\" return 0.",
-            position: 2,
-        },
+        Slot::new(&ALT_0, 0, SlotKind::Nonterminal(NonterminalId(3))),
+        Slot::new(&ALT_0, 1, SlotKind::End),
+        Slot::new(&ALT_1, 0, SlotKind::Nonterminal(NonterminalId(4))),
+        Slot::new(&ALT_1, 1, SlotKind::End),
+        Slot::new(&ALT_2, 0, SlotKind::Nonterminal(NonterminalId(5))),
+        Slot::new(&ALT_2, 1, SlotKind::End),
+        Slot::new(&ALT_3, 0, SlotKind::Condition),
+        Slot::new(&ALT_3, 1, SlotKind::Nonterminal(NonterminalId(3))),
+        Slot::new(&ALT_3, 2, SlotKind::Condition),
+        Slot::new(&ALT_3, 3, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_3, 4, SlotKind::Nonterminal(NonterminalId(3))),
+        Slot::new(&ALT_3, 5, SlotKind::Return),
+        Slot::new(&ALT_3, 6, SlotKind::End),
+        Slot::new(&ALT_4, 0, SlotKind::Terminal(TerminalId(1))),
+        Slot::new(&ALT_4, 1, SlotKind::Return),
+        Slot::new(&ALT_4, 2, SlotKind::End),
+        Slot::new(&ALT_5, 0, SlotKind::Condition),
+        Slot::new(&ALT_5, 1, SlotKind::Nonterminal(NonterminalId(4))),
+        Slot::new(&ALT_5, 2, SlotKind::Condition),
+        Slot::new(&ALT_5, 3, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_5, 4, SlotKind::Nonterminal(NonterminalId(4))),
+        Slot::new(&ALT_5, 5, SlotKind::Return),
+        Slot::new(&ALT_5, 6, SlotKind::End),
+        Slot::new(&ALT_6, 0, SlotKind::Terminal(TerminalId(1))),
+        Slot::new(&ALT_6, 1, SlotKind::Return),
+        Slot::new(&ALT_6, 2, SlotKind::End),
+        Slot::new(&ALT_7, 0, SlotKind::Condition),
+        Slot::new(&ALT_7, 1, SlotKind::Nonterminal(NonterminalId(5))),
+        Slot::new(&ALT_7, 2, SlotKind::Condition),
+        Slot::new(&ALT_7, 3, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_7, 4, SlotKind::Nonterminal(NonterminalId(5))),
+        Slot::new(&ALT_7, 5, SlotKind::Return),
+        Slot::new(&ALT_7, 6, SlotKind::End),
+        Slot::new(&ALT_8, 0, SlotKind::Terminal(TerminalId(1))),
+        Slot::new(&ALT_8, 1, SlotKind::Return),
+        Slot::new(&ALT_8, 2, SlotKind::End),
     ];
+    static ALT_0: Alternative = Alternative {
+        head: NonterminalId(0),
+        symbols: &["start:E(0)"],
+    };
+    static ALT_1: Alternative = Alternative {
+        head: NonterminalId(1),
+        symbols: &["start:F(0)"],
+    };
+    static ALT_2: Alternative = Alternative {
+        head: NonterminalId(2),
+        symbols: &["start:G(0)"],
+    };
+    static ALT_3: Alternative = Alternative {
+        head: NonterminalId(3),
+        symbols: &[
+            "[1 >= p]",
+            "l_pr=E(p)",
+            "[(l_pr == 0) || (l_pr >= 1)]",
+            "\"<\"",
+            "E(2)",
+            "return 1",
+        ],
+    };
+    static ALT_4: Alternative = Alternative {
+        head: NonterminalId(3),
+        symbols: &["\"a\"", "return 0"],
+    };
+    static ALT_5: Alternative = Alternative {
+        head: NonterminalId(4),
+        symbols: &[
+            "[1 >= p]",
+            "l_pr=F(p)",
+            "[(l_pr == 0) || (l_pr >= 2)]",
+            "\"<\"",
+            "F(1)",
+            "return 1",
+        ],
+    };
+    static ALT_6: Alternative = Alternative {
+        head: NonterminalId(4),
+        symbols: &["\"a\"", "return 0"],
+    };
+    static ALT_7: Alternative = Alternative {
+        head: NonterminalId(5),
+        symbols: &[
+            "[1 >= p]",
+            "l_pr=G(p)",
+            "[(l_pr == 0) || (l_pr >= 2)]",
+            "\"<\"",
+            "G(2)",
+            "return 1",
+        ],
+    };
+    static ALT_8: Alternative = Alternative {
+        head: NonterminalId(5),
+        symbols: &["\"a\"", "return 0"],
+    };
     pub(super) static FIRST_SLOTS: [&[SlotId]; 6] = [
         &[SlotId(0)],
         &[SlotId(2)],
@@ -235,71 +166,35 @@ pub mod data {
     // error reporting path needs to reach a terminal set from a terminal id. This table, indexed
     // by terminal id, serves only that.
     pub(super) static SINGLE_TERMINAL_SETS: [TerminalSet; 4] = [
-        TerminalSet {
-            id: 3,
-            terminals: &[TerminalId(0)],
-        },
-        TerminalSet {
-            id: 4,
-            terminals: &[TerminalId(1)],
-        },
-        TerminalSet {
-            id: 5,
-            terminals: &[TerminalId(2)],
-        },
-        TerminalSet {
-            id: 6,
-            terminals: &[TerminalId(3)],
-        },
+        TerminalSet::new(3, &[TerminalId(0)]),
+        TerminalSet::new(4, &[TerminalId(1)]),
+        TerminalSet::new(5, &[TerminalId(2)]),
+        TerminalSet::new(6, &[TerminalId(3)]),
     ];
     // E { "<", EOF }
-    pub static FOLLOW_SET_E: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(0), TerminalId(3)],
-    };
+    pub static FOLLOW_SET_E: TerminalSet = TerminalSet::new(0, &[TerminalId(0), TerminalId(3)]);
     // F { "<", EOF }
-    pub static FOLLOW_SET_F: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(0), TerminalId(3)],
-    };
+    pub static FOLLOW_SET_F: TerminalSet = TerminalSet::new(0, &[TerminalId(0), TerminalId(3)]);
     // G { "<", EOF }
-    pub static FOLLOW_SET_G: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(0), TerminalId(3)],
-    };
+    pub static FOLLOW_SET_G: TerminalSet = TerminalSet::new(0, &[TerminalId(0), TerminalId(3)]);
     // StartE { EOF }
-    pub static FOLLOW_SET_START_E: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_E: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // StartF { EOF }
-    pub static FOLLOW_SET_START_F: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_F: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // StartG { EOF }
-    pub static FOLLOW_SET_START_G: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(3)],
-    };
+    pub static FOLLOW_SET_START_G: TerminalSet = TerminalSet::new(1, &[TerminalId(3)]);
     // E(p: i32) : [1 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 1)] "<" E(2) return 1 lookahead
     // { "<" }
-    pub static RETURN_SLOT_LOOKAHEAD_E_ALT0_POS2: TerminalSet = TerminalSet {
-        id: 2,
-        terminals: &[TerminalId(0)],
-    };
+    pub static RETURN_SLOT_LOOKAHEAD_E_ALT0_POS2: TerminalSet =
+        TerminalSet::new(2, &[TerminalId(0)]);
     // F(p: i32) : [1 >= p] l_pr=F(p) . [(l_pr == 0) || (l_pr >= 2)] "<" F(1) return 1 lookahead
     // { "<" }
-    pub static RETURN_SLOT_LOOKAHEAD_F_ALT0_POS2: TerminalSet = TerminalSet {
-        id: 2,
-        terminals: &[TerminalId(0)],
-    };
+    pub static RETURN_SLOT_LOOKAHEAD_F_ALT0_POS2: TerminalSet =
+        TerminalSet::new(2, &[TerminalId(0)]);
     // G(p: i32) : [1 >= p] l_pr=G(p) . [(l_pr == 0) || (l_pr >= 2)] "<" G(2) return 1 lookahead
     // { "<" }
-    pub static RETURN_SLOT_LOOKAHEAD_G_ALT0_POS2: TerminalSet = TerminalSet {
-        id: 2,
-        terminals: &[TerminalId(0)],
-    };
+    pub static RETURN_SLOT_LOOKAHEAD_G_ALT0_POS2: TerminalSet =
+        TerminalSet::new(2, &[TerminalId(0)]);
     // E
     // 0: [1 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 1)] "<" E(2) return 1
     // 1: "a" return 0

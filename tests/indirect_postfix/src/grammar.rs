@@ -43,228 +43,129 @@ impl Grammar for IndirectPostfixGrammar {
 pub mod data {
     #[allow(unused_imports)]
     use iguana_runtime::{
-        grammar::{Nonterminal, Slot, Terminal},
-        ids::{SlotId, TerminalId},
+        grammar::{Alternative, Nonterminal, Slot, SlotKind, Terminal},
+        ids::{NonterminalId, SlotId, TerminalId},
         prediction::Prediction,
         scanner::TerminalSet,
     };
     pub(super) static NONTERMINALS: [Nonterminal; 8] = [
-        Nonterminal {
-            name: "S",
-            display_name: "S",
-        },
-        Nonterminal {
-            name: "StartS",
-            display_name: "S",
-        },
-        Nonterminal {
-            name: "StartE",
-            display_name: "E(0)",
-        },
-        Nonterminal {
-            name: "StartPostfix",
-            display_name: "Postfix(0)",
-        },
-        Nonterminal {
-            name: "StartBody",
-            display_name: "Body(0)",
-        },
-        Nonterminal {
-            name: "E",
-            display_name: "E",
-        },
-        Nonterminal {
-            name: "Postfix",
-            display_name: "Postfix",
-        },
-        Nonterminal {
-            name: "Body",
-            display_name: "Body",
-        },
+        Nonterminal::new("S", "S"),
+        Nonterminal::new("StartS", "S"),
+        Nonterminal::new("StartE", "E(0)"),
+        Nonterminal::new("StartPostfix", "Postfix(0)"),
+        Nonterminal::new("StartBody", "Body(0)"),
+        Nonterminal::new("E", "E"),
+        Nonterminal::new("Postfix", "Postfix"),
+        Nonterminal::new("Body", "Body"),
     ];
     pub(super) static DISPLAY_ORDER: [&str; 4] = ["S", "E", "Postfix", "Body"];
     pub(super) static TERMINALS: [Terminal; 6] = [
-        Terminal { name: "WS" },
-        Terminal { name: "\"a\"" },
-        Terminal { name: "\"+\"" },
-        Terminal { name: "\"!\"" },
-        Terminal { name: "Epsilon" },
-        Terminal { name: "EOF" },
+        Terminal::new("WS"),
+        Terminal::new("\"a\""),
+        Terminal::new("\"+\""),
+        Terminal::new("\"!\""),
+        Terminal::new("Epsilon"),
+        Terminal::new("EOF"),
     ];
     pub(super) static SLOTS: [Slot; 43] = [
-        Slot {
-            display_name: "S : . E(0)",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : E(0).",
-            position: 1,
-        },
-        Slot {
-            display_name: "S : . WS start:S WS",
-            position: 0,
-        },
-        Slot {
-            display_name: "S : WS . start:S WS",
-            position: 1,
-        },
-        Slot {
-            display_name: "S : WS start:S . WS",
-            position: 2,
-        },
-        Slot {
-            display_name: "S : WS start:S WS.",
-            position: 3,
-        },
-        Slot {
-            display_name: "E(0) : . WS start:E(0) WS",
-            position: 0,
-        },
-        Slot {
-            display_name: "E(0) : WS . start:E(0) WS",
-            position: 1,
-        },
-        Slot {
-            display_name: "E(0) : WS start:E(0) . WS",
-            position: 2,
-        },
-        Slot {
-            display_name: "E(0) : WS start:E(0) WS.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Postfix(0) : . WS start:Postfix(0) WS",
-            position: 0,
-        },
-        Slot {
-            display_name: "Postfix(0) : WS . start:Postfix(0) WS",
-            position: 1,
-        },
-        Slot {
-            display_name: "Postfix(0) : WS start:Postfix(0) . WS",
-            position: 2,
-        },
-        Slot {
-            display_name: "Postfix(0) : WS start:Postfix(0) WS.",
-            position: 3,
-        },
-        Slot {
-            display_name: "Body(0) : . WS start:Body(0) WS",
-            position: 0,
-        },
-        Slot {
-            display_name: "Body(0) : WS . start:Body(0) WS",
-            position: 1,
-        },
-        Slot {
-            display_name: "Body(0) : WS start:Body(0) . WS",
-            position: 2,
-        },
-        Slot {
-            display_name: "Body(0) : WS start:Body(0) WS.",
-            position: 3,
-        },
-        Slot {
-            display_name: "E : . \"a\" return 0",
-            position: 0,
-        },
-        Slot {
-            display_name: "E : \"a\" . return 0",
-            position: 1,
-        },
-        Slot {
-            display_name: "E : \"a\" return 0.",
-            position: 2,
-        },
-        Slot {
-            display_name: "E : . [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS E(2) return 2",
-            position: 0,
-        },
-        Slot {
-            display_name: "E : [2 >= p] . l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS E(2) return 2",
-            position: 1,
-        },
-        Slot {
-            display_name: "E : [2 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS E(2) return 2",
-            position: 2,
-        },
-        Slot {
-            display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] . WS \"+\" WS E(2) return 2",
-            position: 3,
-        },
-        Slot {
-            display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS . \"+\" WS E(2) return 2",
-            position: 4,
-        },
-        Slot {
-            display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" . WS E(2) return 2",
-            position: 5,
-        },
-        Slot {
-            display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS . E(2) return 2",
-            position: 6,
-        },
-        Slot {
-            display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS E(2) . return 2",
-            position: 7,
-        },
-        Slot {
-            display_name: "E : [2 >= p] l_pr=E(p) [(l_pr == 0) || (l_pr >= 2)] WS \"+\" WS E(2) return 2.",
-            position: 8,
-        },
-        Slot {
-            display_name: "E : . [1 >= p] l_pr=Postfix(p) [(l_pr == 0) || (l_pr >= 1)] return 0",
-            position: 0,
-        },
-        Slot {
-            display_name: "E : [1 >= p] . l_pr=Postfix(p) [(l_pr == 0) || (l_pr >= 1)] return 0",
-            position: 1,
-        },
-        Slot {
-            display_name: "E : [1 >= p] l_pr=Postfix(p) . [(l_pr == 0) || (l_pr >= 1)] return 0",
-            position: 2,
-        },
-        Slot {
-            display_name: "E : [1 >= p] l_pr=Postfix(p) [(l_pr == 0) || (l_pr >= 1)] . return 0",
-            position: 3,
-        },
-        Slot {
-            display_name: "E : [1 >= p] l_pr=Postfix(p) [(l_pr == 0) || (l_pr >= 1)] return 0.",
-            position: 4,
-        },
-        Slot {
-            display_name: "Postfix : . l_pr=Body(p) WS \"!\" return l_pr",
-            position: 0,
-        },
-        Slot {
-            display_name: "Postfix : l_pr=Body(p) . WS \"!\" return l_pr",
-            position: 1,
-        },
-        Slot {
-            display_name: "Postfix : l_pr=Body(p) WS . \"!\" return l_pr",
-            position: 2,
-        },
-        Slot {
-            display_name: "Postfix : l_pr=Body(p) WS \"!\" . return l_pr",
-            position: 3,
-        },
-        Slot {
-            display_name: "Postfix : l_pr=Body(p) WS \"!\" return l_pr.",
-            position: 4,
-        },
-        Slot {
-            display_name: "Body : . l_pr=E(p) return l_pr",
-            position: 0,
-        },
-        Slot {
-            display_name: "Body : l_pr=E(p) . return l_pr",
-            position: 1,
-        },
-        Slot {
-            display_name: "Body : l_pr=E(p) return l_pr.",
-            position: 2,
-        },
+        Slot::new(&ALT_0, 0, SlotKind::Nonterminal(NonterminalId(5))),
+        Slot::new(&ALT_0, 1, SlotKind::End),
+        Slot::new(&ALT_1, 0, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_1, 1, SlotKind::Nonterminal(NonterminalId(0))),
+        Slot::new(&ALT_1, 2, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_1, 3, SlotKind::End),
+        Slot::new(&ALT_2, 0, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_2, 1, SlotKind::Nonterminal(NonterminalId(5))),
+        Slot::new(&ALT_2, 2, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_2, 3, SlotKind::End),
+        Slot::new(&ALT_3, 0, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_3, 1, SlotKind::Nonterminal(NonterminalId(6))),
+        Slot::new(&ALT_3, 2, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_3, 3, SlotKind::End),
+        Slot::new(&ALT_4, 0, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_4, 1, SlotKind::Nonterminal(NonterminalId(7))),
+        Slot::new(&ALT_4, 2, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_4, 3, SlotKind::End),
+        Slot::new(&ALT_5, 0, SlotKind::Terminal(TerminalId(1))),
+        Slot::new(&ALT_5, 1, SlotKind::Return),
+        Slot::new(&ALT_5, 2, SlotKind::End),
+        Slot::new(&ALT_6, 0, SlotKind::Condition),
+        Slot::new(&ALT_6, 1, SlotKind::Nonterminal(NonterminalId(5))),
+        Slot::new(&ALT_6, 2, SlotKind::Condition),
+        Slot::new(&ALT_6, 3, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_6, 4, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_6, 5, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_6, 6, SlotKind::Nonterminal(NonterminalId(5))),
+        Slot::new(&ALT_6, 7, SlotKind::Return),
+        Slot::new(&ALT_6, 8, SlotKind::End),
+        Slot::new(&ALT_7, 0, SlotKind::Condition),
+        Slot::new(&ALT_7, 1, SlotKind::Nonterminal(NonterminalId(6))),
+        Slot::new(&ALT_7, 2, SlotKind::Condition),
+        Slot::new(&ALT_7, 3, SlotKind::Return),
+        Slot::new(&ALT_7, 4, SlotKind::End),
+        Slot::new(&ALT_8, 0, SlotKind::Nonterminal(NonterminalId(7))),
+        Slot::new(&ALT_8, 1, SlotKind::Terminal(TerminalId(0))),
+        Slot::new(&ALT_8, 2, SlotKind::Terminal(TerminalId(3))),
+        Slot::new(&ALT_8, 3, SlotKind::Return),
+        Slot::new(&ALT_8, 4, SlotKind::End),
+        Slot::new(&ALT_9, 0, SlotKind::Nonterminal(NonterminalId(5))),
+        Slot::new(&ALT_9, 1, SlotKind::Return),
+        Slot::new(&ALT_9, 2, SlotKind::End),
     ];
+    static ALT_0: Alternative = Alternative {
+        head: NonterminalId(0),
+        symbols: &["E(0)"],
+    };
+    static ALT_1: Alternative = Alternative {
+        head: NonterminalId(1),
+        symbols: &["WS", "start:S", "WS"],
+    };
+    static ALT_2: Alternative = Alternative {
+        head: NonterminalId(2),
+        symbols: &["WS", "start:E(0)", "WS"],
+    };
+    static ALT_3: Alternative = Alternative {
+        head: NonterminalId(3),
+        symbols: &["WS", "start:Postfix(0)", "WS"],
+    };
+    static ALT_4: Alternative = Alternative {
+        head: NonterminalId(4),
+        symbols: &["WS", "start:Body(0)", "WS"],
+    };
+    static ALT_5: Alternative = Alternative {
+        head: NonterminalId(5),
+        symbols: &["\"a\"", "return 0"],
+    };
+    static ALT_6: Alternative = Alternative {
+        head: NonterminalId(5),
+        symbols: &[
+            "[2 >= p]",
+            "l_pr=E(p)",
+            "[(l_pr == 0) || (l_pr >= 2)]",
+            "WS",
+            "\"+\"",
+            "WS",
+            "E(2)",
+            "return 2",
+        ],
+    };
+    static ALT_7: Alternative = Alternative {
+        head: NonterminalId(5),
+        symbols: &[
+            "[1 >= p]",
+            "l_pr=Postfix(p)",
+            "[(l_pr == 0) || (l_pr >= 1)]",
+            "return 0",
+        ],
+    };
+    static ALT_8: Alternative = Alternative {
+        head: NonterminalId(6),
+        symbols: &["l_pr=Body(p)", "WS", "\"!\"", "return l_pr"],
+    };
+    static ALT_9: Alternative = Alternative {
+        head: NonterminalId(7),
+        symbols: &["l_pr=E(p)", "return l_pr"],
+    };
     pub(super) static FIRST_SLOTS: [&[SlotId]; 8] = [
         &[SlotId(0)],
         &[SlotId(2)],
@@ -279,82 +180,43 @@ pub mod data {
     // error reporting path needs to reach a terminal set from a terminal id. This table, indexed
     // by terminal id, serves only that.
     pub(super) static SINGLE_TERMINAL_SETS: [TerminalSet; 6] = [
-        TerminalSet {
-            id: 6,
-            terminals: &[TerminalId(0)],
-        },
-        TerminalSet {
-            id: 7,
-            terminals: &[TerminalId(1)],
-        },
-        TerminalSet {
-            id: 8,
-            terminals: &[TerminalId(2)],
-        },
-        TerminalSet {
-            id: 9,
-            terminals: &[TerminalId(3)],
-        },
-        TerminalSet {
-            id: 10,
-            terminals: &[TerminalId(4)],
-        },
-        TerminalSet {
-            id: 11,
-            terminals: &[TerminalId(5)],
-        },
+        TerminalSet::new(6, &[TerminalId(0)]),
+        TerminalSet::new(7, &[TerminalId(1)]),
+        TerminalSet::new(8, &[TerminalId(2)]),
+        TerminalSet::new(9, &[TerminalId(3)]),
+        TerminalSet::new(10, &[TerminalId(4)]),
+        TerminalSet::new(11, &[TerminalId(5)]),
     ];
     // S { WS, EOF }
-    pub static FOLLOW_SET_S: TerminalSet = TerminalSet {
-        id: 0,
-        terminals: &[TerminalId(0), TerminalId(5)],
-    };
+    pub static FOLLOW_SET_S: TerminalSet = TerminalSet::new(0, &[TerminalId(0), TerminalId(5)]);
     // E { WS, "+", "!", EOF }
-    pub static FOLLOW_SET_E: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(0), TerminalId(2), TerminalId(3), TerminalId(5)],
-    };
+    pub static FOLLOW_SET_E: TerminalSet = TerminalSet::new(
+        1,
+        &[TerminalId(0), TerminalId(2), TerminalId(3), TerminalId(5)],
+    );
     // Postfix { WS, "+", "!", EOF }
-    pub static FOLLOW_SET_POSTFIX: TerminalSet = TerminalSet {
-        id: 1,
-        terminals: &[TerminalId(0), TerminalId(2), TerminalId(3), TerminalId(5)],
-    };
+    pub static FOLLOW_SET_POSTFIX: TerminalSet = TerminalSet::new(
+        1,
+        &[TerminalId(0), TerminalId(2), TerminalId(3), TerminalId(5)],
+    );
     // Body { WS, "!", EOF }
-    pub static FOLLOW_SET_BODY: TerminalSet = TerminalSet {
-        id: 2,
-        terminals: &[TerminalId(0), TerminalId(3), TerminalId(5)],
-    };
+    pub static FOLLOW_SET_BODY: TerminalSet =
+        TerminalSet::new(2, &[TerminalId(0), TerminalId(3), TerminalId(5)]);
     // StartS { EOF }
-    pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet {
-        id: 3,
-        terminals: &[TerminalId(5)],
-    };
+    pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet::new(3, &[TerminalId(5)]);
     // StartE { EOF }
-    pub static FOLLOW_SET_START_E: TerminalSet = TerminalSet {
-        id: 3,
-        terminals: &[TerminalId(5)],
-    };
+    pub static FOLLOW_SET_START_E: TerminalSet = TerminalSet::new(3, &[TerminalId(5)]);
     // StartPostfix { EOF }
-    pub static FOLLOW_SET_START_POSTFIX: TerminalSet = TerminalSet {
-        id: 3,
-        terminals: &[TerminalId(5)],
-    };
+    pub static FOLLOW_SET_START_POSTFIX: TerminalSet = TerminalSet::new(3, &[TerminalId(5)]);
     // StartBody { EOF }
-    pub static FOLLOW_SET_START_BODY: TerminalSet = TerminalSet {
-        id: 3,
-        terminals: &[TerminalId(5)],
-    };
+    pub static FOLLOW_SET_START_BODY: TerminalSet = TerminalSet::new(3, &[TerminalId(5)]);
     // E(p: i32) : [2 >= p] l_pr=E(p) . [(l_pr == 0) || (l_pr >= 2)] WS "+" WS E(2) return 2
     // lookahead { "+" }
-    pub static RETURN_SLOT_LOOKAHEAD_E_ALT1_POS2: TerminalSet = TerminalSet {
-        id: 4,
-        terminals: &[TerminalId(2)],
-    };
+    pub static RETURN_SLOT_LOOKAHEAD_E_ALT1_POS2: TerminalSet =
+        TerminalSet::new(4, &[TerminalId(2)]);
     // Postfix(p: i32) : l_pr=Body(p) . WS "!" return l_pr lookahead { "!" }
-    pub static RETURN_SLOT_LOOKAHEAD_POSTFIX_ALT0_POS1: TerminalSet = TerminalSet {
-        id: 5,
-        terminals: &[TerminalId(3)],
-    };
+    pub static RETURN_SLOT_LOOKAHEAD_POSTFIX_ALT0_POS1: TerminalSet =
+        TerminalSet::new(5, &[TerminalId(3)]);
     // S
     // 0: E(0)
     pub static PREDICTION_S: Prediction = {

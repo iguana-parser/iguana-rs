@@ -14,7 +14,7 @@ use crate::{
     arena::Arena,
     grammar::Grammar,
     gss::GSSNode,
-    ids::GssNodeId,
+    ids::{GssNodeId, SlotId},
     input::Input,
     parse_tree::{DisplayOptions, to_json, to_sexpr_with},
     parser::{GLLResult, Parser},
@@ -104,9 +104,8 @@ fn run<'i, 'arena, P: Parser<'i, 'arena>>() -> io::Result<()> {
                 .iter()
                 .map(|t| t.name.to_string())
                 .collect(),
-            slots: P::Grammar::SLOTS
-                .iter()
-                .map(|s| s.display_name.to_string())
+            slots: (0..P::Grammar::SLOTS.len())
+                .map(|index| P::Grammar::slot_name(SlotId(index as u16)))
                 .collect(),
         };
         let file = File::create(path)?;
