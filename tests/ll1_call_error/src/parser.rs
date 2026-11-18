@@ -697,7 +697,7 @@ impl<'i, 'arena> Ll1CallErrorParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_s(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_S, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_S.terminals, i)?;
         match matched {
             TerminalId(0) => {
                 let mut j = i;
@@ -821,7 +821,7 @@ impl<'i, 'arena> Ll1CallErrorParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_alt_0(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_ALT_0, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_ALT_0.terminals, i)?;
         match matched {
             TerminalId(1) => {
                 let mut j = i;
@@ -940,7 +940,7 @@ impl<'i, 'arena> Ll1CallErrorParser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(4), i));
-        let Some(matched) = self.scanner.longest_match(&FIRST_SET_STAR_0, i) else {
+        let Some((matched, _)) = self.scanner.longest_match(FIRST_SET_STAR_0.terminals, i) else {
             return {
                 let epsilon_node_id = self.get_or_create_epsilon_node(i);
                 Some((

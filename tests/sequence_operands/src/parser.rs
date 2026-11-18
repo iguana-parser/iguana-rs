@@ -1152,7 +1152,7 @@ impl<'i, 'arena> SequenceOperandsParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_items(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_ITEMS, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_ITEMS.terminals, i)?;
         match matched {
             TerminalId(1) => {
                 let mut j = i;
@@ -1230,7 +1230,7 @@ impl<'i, 'arena> SequenceOperandsParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_names(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_NAMES, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_NAMES.terminals, i)?;
         match matched {
             TerminalId(3) => {
                 let mut j = i;
@@ -1308,7 +1308,9 @@ impl<'i, 'arena> SequenceOperandsParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_separated(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_SEPARATED, i)?;
+        let (matched, _) = self
+            .scanner
+            .longest_match(FIRST_SET_SEPARATED.terminals, i)?;
         match matched {
             TerminalId(2) => {
                 let mut j = i;
@@ -1360,7 +1362,7 @@ impl<'i, 'arena> SequenceOperandsParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_pairs(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_PAIRS, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_PAIRS.terminals, i)?;
         match matched {
             TerminalId(11) => {
                 let mut j = i;
@@ -1412,7 +1414,7 @@ impl<'i, 'arena> SequenceOperandsParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_else(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_ELSE, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_ELSE.terminals, i)?;
         match matched {
             TerminalId(4) => {
                 let mut j = i;
@@ -1517,7 +1519,7 @@ impl<'i, 'arena> SequenceOperandsParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_single(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_SINGLE, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_SINGLE.terminals, i)?;
         match matched {
             TerminalId(6) => {
                 let mut j = i;
@@ -1596,7 +1598,7 @@ impl<'i, 'arena> SequenceOperandsParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_written(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_WRITTEN, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_WRITTEN.terminals, i)?;
         match matched {
             TerminalId(7) => {
                 let mut j = i;
@@ -1675,7 +1677,7 @@ impl<'i, 'arena> SequenceOperandsParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_mixed(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_MIXED, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_MIXED.terminals, i)?;
         match matched {
             TerminalId(8) => {
                 let mut j = i;
@@ -1754,7 +1756,9 @@ impl<'i, 'arena> SequenceOperandsParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_expected(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_EXPECTED, i)?;
+        let (matched, _) = self
+            .scanner
+            .longest_match(FIRST_SET_EXPECTED.terminals, i)?;
         match matched {
             TerminalId(9) => {
                 let mut j = i;
@@ -1860,7 +1864,7 @@ impl<'i, 'arena> SequenceOperandsParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_item(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_ITEM, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_ITEM.terminals, i)?;
         match matched {
             TerminalId(1) => {
                 let mut j = i;
@@ -1913,7 +1917,7 @@ impl<'i, 'arena> SequenceOperandsParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_key(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_KEY, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_KEY.terminals, i)?;
         match matched {
             TerminalId(11) => {
                 let mut j = i;
@@ -1966,7 +1970,7 @@ impl<'i, 'arena> SequenceOperandsParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_value(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_VALUE, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_VALUE.terminals, i)?;
         match matched {
             TerminalId(12) => {
                 let mut j = i;
@@ -2019,7 +2023,7 @@ impl<'i, 'arena> SequenceOperandsParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_choice(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_CHOICE, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_CHOICE.terminals, i)?;
         match matched {
             TerminalId(12) => {
                 let mut j = i;
@@ -2218,7 +2222,7 @@ impl<'i, 'arena> SequenceOperandsParser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(15), i));
-        let Some(matched) = self.scanner.longest_match(&FIRST_SET_STAR_0, i) else {
+        let Some((matched, _)) = self.scanner.longest_match(FIRST_SET_STAR_0.terminals, i) else {
             return {
                 let epsilon_node_id = self.get_or_create_epsilon_node(i);
                 Some((
@@ -2364,7 +2368,7 @@ impl<'i, 'arena> SequenceOperandsParser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(17), i));
-        let Some(matched) = self.scanner.longest_match(&FIRST_SET_STAR_1, i) else {
+        let Some((matched, _)) = self.scanner.longest_match(FIRST_SET_STAR_1.terminals, i) else {
             return {
                 let epsilon_node_id = self.get_or_create_epsilon_node(i);
                 Some((
@@ -2507,7 +2511,7 @@ impl<'i, 'arena> SequenceOperandsParser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(19), i));
-        let Some(matched) = self.scanner.longest_match(&FIRST_SET_OPT_0, i) else {
+        let Some((matched, _)) = self.scanner.longest_match(FIRST_SET_OPT_0.terminals, i) else {
             return {
                 let epsilon_node_id = self.get_or_create_epsilon_node(i);
                 Some((
@@ -2588,7 +2592,7 @@ impl<'i, 'arena> SequenceOperandsParser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(20), i));
-        let Some(matched) = self.scanner.longest_match(&FIRST_SET_OPT_1, i) else {
+        let Some((matched, _)) = self.scanner.longest_match(FIRST_SET_OPT_1.terminals, i) else {
             return {
                 let epsilon_node_id = self.get_or_create_epsilon_node(i);
                 Some((
@@ -2657,7 +2661,7 @@ impl<'i, 'arena> SequenceOperandsParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_group_0(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_GROUP_0, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_GROUP_0.terminals, i)?;
         match matched {
             TerminalId(11) => {
                 let mut j = i;
@@ -2783,7 +2787,7 @@ impl<'i, 'arena> SequenceOperandsParser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(23), i));
-        let Some(matched) = self.scanner.longest_match(&FIRST_SET_STAR_2, i) else {
+        let Some((matched, _)) = self.scanner.longest_match(FIRST_SET_STAR_2.terminals, i) else {
             return {
                 let epsilon_node_id = self.get_or_create_epsilon_node(i);
                 Some((
@@ -2837,7 +2841,7 @@ impl<'i, 'arena> SequenceOperandsParser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(24), i));
-        let Some(matched) = self.scanner.longest_match(&FIRST_SET_OPT_2, i) else {
+        let Some((matched, _)) = self.scanner.longest_match(FIRST_SET_OPT_2.terminals, i) else {
             return {
                 let epsilon_node_id = self.get_or_create_epsilon_node(i);
                 Some((
@@ -3095,7 +3099,7 @@ impl<'i, 'arena> SequenceOperandsParser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(27), i));
-        let Some(matched) = self.scanner.longest_match(&FIRST_SET_OPT_3, i) else {
+        let Some((matched, _)) = self.scanner.longest_match(FIRST_SET_OPT_3.terminals, i) else {
             return {
                 let epsilon_node_id = self.get_or_create_epsilon_node(i);
                 Some((

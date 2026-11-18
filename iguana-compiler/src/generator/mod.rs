@@ -287,6 +287,7 @@ pub fn generate_sources(
     let (terminal_sets, match_any_count) =
         terminal_sets(grammar, &ff, &terminal_ids, &ll1_nonterminals);
     let first_chars = FirstChars::new(grammar);
+    let terminal_first_chars = grammar_gen::terminal_first_chars(&terminal_ids, &first_chars);
 
     let mut parser_gen = ParserGen::new(
         grammar,
@@ -306,7 +307,7 @@ pub fn generate_sources(
             &ScannerGen::new(
                 grammar,
                 &terminal_ids,
-                &first_chars,
+                &terminal_first_chars,
                 &terminal_sets,
                 match_any_count,
                 config,
@@ -338,6 +339,7 @@ pub fn generate_sources(
                 &terminal_ids,
                 &slot_ids,
                 &terminal_sets,
+                &terminal_first_chars,
                 &ll1_nonterminals,
             )
             .to_string(),

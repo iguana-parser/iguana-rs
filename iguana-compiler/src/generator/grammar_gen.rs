@@ -4,6 +4,7 @@ use rustc_hash::FxHashSet;
 
 use crate::generator::grammar_utils::{grammar_ident, prediction_ident};
 use crate::generator::id::{NonterminalIds, SlotIds, TerminalIds};
+use crate::generator::scanner_gen::gen_char_set;
 use crate::generator::terminal_sets::{TerminalSet, TerminalSetKind};
 use crate::grammar::def::Grammar;
 use crate::grammar::first_chars::FirstChars;
@@ -23,10 +24,11 @@ use iguana_runtime::ids::TerminalId;
 /// `FirstSetExpr` does not collide with the static `SLOTS` or `FIRST_SET_EXPR`.
 /// The only top-level constants are the nonterminal id constants.
 ///
-/// The `Grammar` data, such as `SLOTS`, is visible only in `grammar.rs`. The
-/// terminal sets and predictions are public because the parser references
-/// only some of them, and a private unused static fails the denied dead-code
-/// lint.
+/// The `Grammar` data, such as `SLOTS`, is visible only in `grammar.rs`.
+/// `TERMINAL_FIRST_CHARS` is visible in the crate, because the scanner tests
+/// it before it matches a terminal. The terminal sets and predictions are
+/// public because the parser references only some of them, and a private
+/// unused static fails the denied dead-code lint.
 #[allow(clippy::too_many_arguments)]
 pub fn generate<'a>(
     grammar: &'a Grammar,
@@ -36,6 +38,7 @@ pub fn generate<'a>(
     terminal_ids: &TerminalIds,
     slot_ids: &SlotIds<'a>,
     terminal_sets: &[TerminalSet],
+    terminal_first_chars: &[Vec<CharRange>],
     ll1_nonterminals: &FxHashSet<&Nonterminal>,
 ) -> TokenStream {
     let grammar_type = grammar_ident(&grammar.name);
@@ -43,6 +46,10 @@ pub fn generate<'a>(
 
     let terminal_set_statics = terminal_set_statics(grammar, terminal_ids, terminal_sets);
     let single_terminal_sets = single_terminal_sets(terminal_ids, terminal_sets);
+    let terminal_first_chars_count = Literal::usize_unsuffixed(terminal_first_chars.len());
+    let terminal_first_chars = terminal_first_chars
+        .iter()
+        .map(|ranges| gen_char_set(ranges));
     let prediction_statics =
         prediction_statics(grammar, ff, first_chars, terminal_ids, ll1_nonterminals);
     // The width of `Grammar::Alternatives` in 64-bit words: enough for the
@@ -95,11 +102,25 @@ pub fn generate<'a>(
         })
         .collect();
 
+    // The terminals that a syntax rule uses directly. The layout insertion has
+    // put the layout in the syntax rules.
+    let tokens: FxHashSet<TerminalId> = slot_ids
+        .slots()
+        .filter_map(|s| s.symbol()?.as_identifier())
+        .filter_map(
+            |identifier| match grammar.definition(identifier.resolve()) {
+                Definition::Terminal(terminal) => Some(terminal_ids.get_id(terminal)),
+                Definition::Nonterminal(_) => None,
+            },
+        )
+        .collect();
     let terminals: Vec<_> = terminal_ids
         .terminals()
         .map(|t| {
             let terminal_name = &t.name;
-            quote! { Terminal::new(#terminal_name) }
+            let literal = t.is_literal();
+            let token = tokens.contains(&terminal_ids.get_id(t));
+            quote! { Terminal::new(#terminal_name, #literal, #token) }
         })
         .collect();
 
@@ -120,7 +141,7 @@ pub fn generate<'a>(
                     .iter()
                     .map(|symbol| symbol.display_name(grammar));
                 alternatives.push(quote! {
-                    static #name: Alternative = Alternative { head: #head, symbols: &[#(#symbols),*] };
+                    static #name: Alternative = Alternative::new(#head, &[#(#symbols),*]);
                 });
             }
             let alternative_name = format_ident!("ALT_{}", alternatives.len() - 1);
@@ -153,6 +174,7 @@ pub fn generate<'a>(
 
     quote! {
         use iguana_runtime::{
+            char_set::CharSet,
             grammar::{Grammar, Nonterminal, Slot, Terminal},
             ids::{NonterminalId, SlotId, TerminalId},
             scanner::TerminalSet,
@@ -184,6 +206,8 @@ pub fn generate<'a>(
 
             const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &data::SINGLE_TERMINAL_SETS;
 
+            const TERMINAL_FIRST_CHARS: &'static [CharSet<'static>] = &data::TERMINAL_FIRST_CHARS;
+
             fn nonterminal_id(name: &str) -> Option<NonterminalId> {
                 match name {
                     #(#nonterminal_id_arms)*
@@ -197,6 +221,7 @@ pub fn generate<'a>(
             // LL(1) functions, for example, does not have a `Prediction` static.
             #[allow(unused_imports)]
             use iguana_runtime::{
+                char_set::{CharRange, CharSet},
                 grammar::{Alternative, Nonterminal, Slot, SlotKind, Terminal},
                 ids::{NonterminalId, SlotId, TerminalId},
                 prediction::Prediction,
@@ -209,8 +234,8 @@ pub fn generate<'a>(
 
             pub(super) static TERMINALS: [Terminal; #terminal_count] = [
                 #(#terminals,)*
-                Terminal::new("Epsilon"),
-                Terminal::new("EOF"),
+                Terminal::new("Epsilon", false, false),
+                Terminal::new("EOF", false, false),
             ];
 
             pub(super) static SLOTS: [Slot; #slot_count] = [#(#slots),*];
@@ -225,11 +250,47 @@ pub fn generate<'a>(
             pub(super) static SINGLE_TERMINAL_SETS: [TerminalSet; #single_terminal_set_count] =
                 [#(#single_terminal_sets),*];
 
+            #[comment = "Indexed by terminal id. `TERMINAL_FIRST_CHARS[t]` holds the characters that can begin a
+                         match of the terminal `t`. A nullable terminal can match at every position, so its entry
+                         holds every character. The scanner's `match_token` tests the character at a position
+                         against it before it matches the terminal."]
+            pub(crate) static TERMINAL_FIRST_CHARS: [CharSet; #terminal_first_chars_count] =
+                [#(#terminal_first_chars),*];
+
             #(#terminal_set_statics)*
 
             #(#prediction_statics)*
         }
     }
+}
+
+/// The characters that can begin a match of each terminal, indexed by
+/// terminal id, as sorted and disjoint ranges.
+pub(super) fn terminal_first_chars(
+    terminal_ids: &TerminalIds,
+    first_chars: &FirstChars,
+) -> Vec<Vec<CharRange>> {
+    let all = vec![CharRange {
+        start: '\0',
+        end: char::MAX,
+    }];
+    let mut terminals: Vec<Vec<CharRange>> = terminal_ids
+        .terminals()
+        .map(|terminal| {
+            if first_chars.is_nullable(terminal) {
+                all.clone()
+            } else {
+                first_chars.first_chars(terminal).to_vec()
+            }
+        })
+        .collect();
+    // The synthetic epsilon and end-of-input terminals come after the grammar's
+    // terminals. The scanner never asks for epsilon. If it did, the full set
+    // would let the call reach the dispatch, which panics. The end-of-input
+    // terminal matches no character, and its entry is the empty set.
+    terminals.push(all);
+    terminals.push(vec![]);
+    terminals
 }
 
 /// The statics for the terminal sets, for example:

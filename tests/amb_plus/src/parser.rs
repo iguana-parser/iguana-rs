@@ -782,7 +782,7 @@ impl<'i, 'arena> AmbPlusParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_x(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_X, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_X.terminals, i)?;
         match matched {
             TerminalId(0) => {
                 let mut j = i;
@@ -834,7 +834,7 @@ impl<'i, 'arena> AmbPlusParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_y(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_Y, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_Y.terminals, i)?;
         match matched {
             TerminalId(0) => {
                 let mut j = i;

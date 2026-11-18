@@ -1012,7 +1012,7 @@ impl<'i, 'arena> ExactKeywordParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_expr(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_EXPR, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_EXPR.terminals, i)?;
         match matched {
             TerminalId(0) => {
                 let mut j = i;

@@ -1661,7 +1661,7 @@ impl<'a> ParserGen<'a> {
     /// nonterminal X, and defines where the failures are recorded.
     ///
     /// `ll1_parse_X` predicts its alternative with one lookahead token:
-    /// `longest_match(&FIRST_SET_X, i)`. When no alternative can be predicted,
+    /// `longest_match(FIRST_SET_X.terminals, i)`. When no alternative can be predicted,
     /// `ll1_parse_X` returns None, recording a failure only when the caller
     /// supplies a failure context. On success, `ll1_parse_X` returns the right
     /// extent with the node, as `match_terminal` does, so the caller does not
@@ -1845,7 +1845,7 @@ impl<'a> ParserGen<'a> {
                 // the method then records `expected FIRST(X)` if the caller
                 // supplied a failure context. See gen_parse_method_ll1.
                 quote! {
-                    let matched = self.scanner.longest_match(&#first_set_name, i)?;
+                    let (matched, _) = self.scanner.longest_match(#first_set_name.terminals, i)?;
                     match matched {
                         #(#arms)*
                         _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
@@ -1860,7 +1860,7 @@ impl<'a> ParserGen<'a> {
                 );
                 let nullable_body = self.gen_alt_body_ll1(nonterminal, nullable, nonterminal_id);
                 quote! {
-                    let Some(matched) = self.scanner.longest_match(&#first_set_name, i) else {
+                    let Some((matched, _)) = self.scanner.longest_match(#first_set_name.terminals, i) else {
                         return { #nullable_body };
                     };
                     match matched {

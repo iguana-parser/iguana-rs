@@ -778,7 +778,7 @@ impl<'i, 'arena> AltSeqParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_s(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_S, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_S.terminals, i)?;
         match matched {
             TerminalId(1) | TerminalId(3) => {
                 let mut j = i;
@@ -856,7 +856,7 @@ impl<'i, 'arena> AltSeqParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_a(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_A, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_A.terminals, i)?;
         match matched {
             TerminalId(1) => {
                 let mut j = i;
@@ -908,7 +908,7 @@ impl<'i, 'arena> AltSeqParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_b(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_B, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_B.terminals, i)?;
         match matched {
             TerminalId(2) => {
                 let mut j = i;
@@ -960,7 +960,7 @@ impl<'i, 'arena> AltSeqParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_c(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_C, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_C.terminals, i)?;
         match matched {
             TerminalId(3) => {
                 let mut j = i;
@@ -1012,7 +1012,7 @@ impl<'i, 'arena> AltSeqParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_d(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_D, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_D.terminals, i)?;
         match matched {
             TerminalId(4) => {
                 let mut j = i;
@@ -1065,7 +1065,7 @@ impl<'i, 'arena> AltSeqParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_e(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_E, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_E.terminals, i)?;
         match matched {
             TerminalId(5) => {
                 let mut j = i;
@@ -1118,7 +1118,7 @@ impl<'i, 'arena> AltSeqParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_f(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_F, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_F.terminals, i)?;
         match matched {
             TerminalId(6) => {
                 let mut j = i;
@@ -1171,7 +1171,7 @@ impl<'i, 'arena> AltSeqParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_alt_0(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_ALT_0, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_ALT_0.terminals, i)?;
         match matched {
             TerminalId(1) => {
                 let mut j = i;
@@ -1260,7 +1260,7 @@ impl<'i, 'arena> AltSeqParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_alt_1(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_ALT_1, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_ALT_1.terminals, i)?;
         match matched {
             TerminalId(4) => {
                 let mut j = i;

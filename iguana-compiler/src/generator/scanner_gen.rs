@@ -8,14 +8,13 @@ use crate::{
     dfa::{Dfa, dfa::State},
     generator::{
         GenConfig,
-        grammar_utils::scanner_ident,
+        grammar_utils::{grammar_ident, scanner_ident},
         id::TerminalIds,
         literal_set::{LiteralSet, gen_literal_set, gen_literal_trie, literal_trie_ident},
         terminal_sets::TerminalSet,
     },
     grammar::{
         def::Grammar,
-        first_chars::FirstChars,
         regex::{CharRange, Regex, merge_ranges},
         symbols::{Definition, Identifier, Terminal},
     },
@@ -25,9 +24,14 @@ use crate::{
 pub struct ScannerGen<'a> {
     grammar: &'a Grammar,
     terminal_ids: &'a TerminalIds,
-    first_chars: &'a FirstChars,
+    /// The characters that can begin each terminal, indexed by terminal id
+    /// (`grammar_gen::terminal_first_chars`).
+    terminal_first_chars: &'a [Vec<CharRange>],
     terminal_sets: &'a [TerminalSet<'a>],
     match_any_count: usize,
+    /// The characters that can begin a match of a terminal of each
+    /// `match_any` set, indexed by set id, as sorted and disjoint ranges.
+    match_any_first_chars: Vec<Vec<CharRange>>,
     config: GenConfig,
     /// The scan id of each terminal, indexed by terminal id. The scan
     /// recognizes the terminal's regex without its excepts, and terminals with
@@ -68,7 +72,7 @@ impl<'a> ScannerGen<'a> {
     pub fn new(
         grammar: &'a Grammar,
         terminal_ids: &'a TerminalIds,
-        first_chars: &'a FirstChars,
+        terminal_first_chars: &'a [Vec<CharRange>],
         terminal_sets: &'a [TerminalSet<'a>],
         match_any_count: usize,
         config: GenConfig,
@@ -105,12 +109,23 @@ impl<'a> ScannerGen<'a> {
             }
             trie_literals.clear();
         }
+        let mut match_any_first_chars = vec![vec![]; match_any_count];
+        for set in terminal_sets.iter().filter(|set| set.id < match_any_count) {
+            let ranges = set
+                .terminals
+                .iter()
+                .flat_map(|terminal| &terminal_first_chars[terminal_ids.get_id(terminal).index()])
+                .copied()
+                .collect();
+            match_any_first_chars[set.id] = merge_ranges(ranges);
+        }
         ScannerGen {
             grammar,
             terminal_ids,
-            first_chars,
+            terminal_first_chars,
             terminal_sets,
             match_any_count,
+            match_any_first_chars,
             config,
             scan_ids,
             scans: scans.into_values().collect(),
@@ -121,7 +136,7 @@ impl<'a> ScannerGen<'a> {
     pub fn generate(&self) -> TokenStream {
         let imports = self.gen_imports();
         let memo_words = self.gen_memo_words_const();
-        let first_chars_statics = self.gen_first_chars_statics();
+        let match_any_first_chars_static = self.gen_match_any_first_chars_static();
         let match_any_masks_static = self.gen_match_any_masks_static();
         let first_char_masks_static = self.gen_first_char_masks_static();
         let scanner_struct = self.gen_scanner_struct();
@@ -131,7 +146,7 @@ impl<'a> ScannerGen<'a> {
         quote! {
             #imports
             #memo_words
-            #first_chars_statics
+            #match_any_first_chars_static
             #match_any_masks_static
             #first_char_masks_static
             #literal_sets
@@ -159,7 +174,16 @@ impl<'a> ScannerGen<'a> {
         };
         let bit_set_import =
             (literal_sets || self.config.match_memo).then(|| quote! { utils::bit_set::BitSet, });
-        let mut char_set_imports = vec![quote! { CharRange }, quote! { CharSet }];
+        // `CharRange` appears only in the non-ASCII ranges of a `match_any` set.
+        let non_ascii = self
+            .match_any_first_chars
+            .iter()
+            .flatten()
+            .any(|range| !range.end.is_ascii());
+        let mut char_set_imports = vec![quote! { CharSet }];
+        if non_ascii {
+            char_set_imports.insert(0, quote! { CharRange });
+        }
         if literal_sets {
             char_set_imports.insert(0, quote! { Alphabet });
         }
@@ -173,6 +197,7 @@ impl<'a> ScannerGen<'a> {
                 scanner::{#(#scanner_imports),*},
                 #bit_set_import
             };
+            use crate::grammar::data::TERMINAL_FIRST_CHARS;
         }
     }
 
@@ -349,68 +374,18 @@ impl<'a> ScannerGen<'a> {
         except_ids
     }
 
-    /// Emits `TERMINAL_FIRST_CHARS`, the characters that can begin a match of
-    /// each terminal, indexed by terminal id, and `MATCH_ANY_FIRST_CHARS`, the
-    /// characters that can begin a match of a terminal of each `match_any` set,
-    /// indexed by set id.
-    ///
-    /// A nullable terminal matches at every position, so its entry is the full
-    /// set, which contains every character, and the test always passes.
-    fn gen_first_chars_statics(&self) -> TokenStream {
-        let terminals = self.terminal_first_chars();
-        let mut sets = vec![vec![]; self.match_any_count];
-        for set in self
-            .terminal_sets
-            .iter()
-            .filter(|set| set.id < self.match_any_count)
-        {
-            let ranges = set
-                .terminals
-                .iter()
-                .flat_map(|terminal| &terminals[self.terminal_ids.get_id(terminal).index()])
-                .copied()
-                .collect();
-            sets[set.id] = merge_ranges(ranges);
-        }
-        let terminal_count = Literal::usize_unsuffixed(terminals.len());
+    /// Emits `MATCH_ANY_FIRST_CHARS`, the characters that can begin a match of a
+    /// terminal of each `match_any` set, indexed by set id: the union of the
+    /// grammar's `TERMINAL_FIRST_CHARS` of the set's terminals.
+    fn gen_match_any_first_chars_static(&self) -> TokenStream {
         let set_count = Literal::usize_unsuffixed(self.match_any_count);
-        let terminals = terminals.iter().map(|ranges| gen_char_set(ranges));
-        let sets = sets.iter().map(|ranges| gen_char_set(ranges));
+        let sets = self
+            .match_any_first_chars
+            .iter()
+            .map(|ranges| gen_char_set(ranges));
         quote! {
-            #[comment = "Indexed by terminal id. `TERMINAL_FIRST_CHARS[t]` holds the characters that can begin a
-                         match of the terminal `t`. A nullable terminal can match at every position, so its entry
-                         holds every character. `match_token` tests the character at a position against it before it
-                         matches the terminal."]
-            static TERMINAL_FIRST_CHARS: [CharSet; #terminal_count] = [#(#terminals),*];
             static MATCH_ANY_FIRST_CHARS: [CharSet; #set_count] = [#(#sets),*];
         }
-    }
-
-    /// The characters that can begin a match of each terminal, indexed by terminal
-    /// id, as sorted and disjoint ranges.
-    fn terminal_first_chars(&self) -> Vec<Vec<CharRange>> {
-        let all = vec![CharRange {
-            start: '\0',
-            end: char::MAX,
-        }];
-        let mut terminals: Vec<Vec<CharRange>> = self
-            .terminal_ids
-            .terminals()
-            .map(|terminal| {
-                if self.first_chars.is_nullable(terminal) {
-                    all.clone()
-                } else {
-                    self.first_chars.first_chars(terminal).to_vec()
-                }
-            })
-            .collect();
-        // The synthetic epsilon and end-of-input terminals come after the grammar's
-        // terminals. The scanner never asks for epsilon. If it did, the full set
-        // would let the call reach the dispatch, which panics. The end-of-input
-        // terminal matches no character, and its entry is the empty set.
-        terminals.push(all);
-        terminals.push(vec![]);
-        terminals
     }
 
     /// Emits `FIRST_CHAR_MASKS`, indexed by ASCII character. `FIRST_CHAR_MASKS[c]`
@@ -422,10 +397,10 @@ impl<'a> ScannerGen<'a> {
         if !self.config.match_memo {
             return quote! {};
         }
-        let terminals = self.terminal_first_chars();
         let epsilon = self.terminal_ids.len();
         let masks = (0..128u32).map(|c| {
-            let members = terminals
+            let members = self
+                .terminal_first_chars
                 .iter()
                 .enumerate()
                 .filter(|&(i, ranges)| {
@@ -628,6 +603,7 @@ impl<'a> ScannerGen<'a> {
         let predict_method = self.gen_predict_method();
         let char_at_method = gen_char_at_method();
         let scanner_name = scanner_ident(&self.grammar.name);
+        let grammar_type = grammar_ident(&self.grammar.name);
         let scanner_ty = if self.config.match_memo {
             quote! { #scanner_name<'_, '_> }
         } else {
@@ -635,6 +611,8 @@ impl<'a> ScannerGen<'a> {
         };
         quote! {
             impl Scanner for #scanner_ty {
+                type Grammar = crate::grammar::#grammar_type;
+
                 #match_token_method
                 #predict_method
                 #char_at_method
@@ -910,7 +888,7 @@ fn gen_bit_set(mut members: Vec<usize>) -> TokenStream {
 
 /// Emits the `CharSet` of `ranges`, which are sorted and disjoint. The ASCII
 /// characters become the bitmask, and the other characters become ranges.
-fn gen_char_set(ranges: &[CharRange]) -> TokenStream {
+pub(super) fn gen_char_set(ranges: &[CharRange]) -> TokenStream {
     let mut ascii: u128 = 0;
     let mut non_ascii = Vec::new();
     for range in ranges {

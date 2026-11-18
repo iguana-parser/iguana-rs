@@ -969,7 +969,7 @@ impl<'i, 'arena> GeneratedNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_fields(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_FIELDS, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_FIELDS.terminals, i)?;
         match matched {
             TerminalId(2) => {
                 let mut j = i;
@@ -1073,7 +1073,7 @@ impl<'i, 'arena> GeneratedNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_box(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_BOX, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_BOX.terminals, i)?;
         match matched {
             TerminalId(2) => {
                 let mut j = i;
@@ -1126,7 +1126,7 @@ impl<'i, 'arena> GeneratedNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_boxes(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_BOXES, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_BOXES.terminals, i)?;
         match matched {
             TerminalId(3) => {
                 let mut j = i;
@@ -1179,7 +1179,7 @@ impl<'i, 'arena> GeneratedNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_a(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_A, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_A.terminals, i)?;
         match matched {
             TerminalId(4) => {
                 let mut j = i;
@@ -1232,7 +1232,7 @@ impl<'i, 'arena> GeneratedNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_b(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_B, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_B.terminals, i)?;
         match matched {
             TerminalId(7) => {
                 let mut j = i;
@@ -1285,7 +1285,7 @@ impl<'i, 'arena> GeneratedNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_c(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_C, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_C.terminals, i)?;
         match matched {
             TerminalId(8) => {
                 let mut j = i;
@@ -1453,7 +1453,7 @@ impl<'i, 'arena> GeneratedNamesParser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(10), i));
-        let Some(matched) = self.scanner.longest_match(&FIRST_SET_STAR_0, i) else {
+        let Some((matched, _)) = self.scanner.longest_match(FIRST_SET_STAR_0.terminals, i) else {
             return {
                 let epsilon_node_id = self.get_or_create_epsilon_node(i);
                 Some((
@@ -1522,7 +1522,7 @@ impl<'i, 'arena> GeneratedNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_alt_1(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_ALT_1, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_ALT_1.terminals, i)?;
         match matched {
             TerminalId(5) => {
                 let mut j = i;
@@ -1600,7 +1600,7 @@ impl<'i, 'arena> GeneratedNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_alt_2(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_ALT_2, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_ALT_2.terminals, i)?;
         match matched {
             TerminalId(2) => {
                 let mut j = i;

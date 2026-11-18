@@ -2071,7 +2071,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_s(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_S, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_S.terminals, i)?;
         match matched {
             TerminalId(0) => {
                 let mut j = i;
@@ -2175,7 +2175,9 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_runtime_items(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_RUNTIME_ITEMS, i)?;
+        let (matched, _) = self
+            .scanner
+            .longest_match(FIRST_SET_RUNTIME_ITEMS.terminals, i)?;
         match matched {
             TerminalId(0) => {
                 let mut j = i;
@@ -2474,7 +2476,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_parse(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_PARSE, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_PARSE.terminals, i)?;
         match matched {
             TerminalId(0) => {
                 let mut j = i;
@@ -2527,7 +2529,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_parser(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_PARSER, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_PARSER.terminals, i)?;
         match matched {
             TerminalId(1) => {
                 let mut j = i;
@@ -2580,7 +2582,9 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_sppf_node(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_SPPF_NODE, i)?;
+        let (matched, _) = self
+            .scanner
+            .longest_match(FIRST_SET_SPPF_NODE.terminals, i)?;
         match matched {
             TerminalId(2) => {
                 let mut j = i;
@@ -2633,7 +2637,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_input(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_INPUT, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_INPUT.terminals, i)?;
         match matched {
             TerminalId(3) => {
                 let mut j = i;
@@ -2686,7 +2690,9 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_parse_error(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_PARSE_ERROR, i)?;
+        let (matched, _) = self
+            .scanner
+            .longest_match(FIRST_SET_PARSE_ERROR.terminals, i)?;
         match matched {
             TerminalId(4) => {
                 let mut j = i;
@@ -2739,7 +2745,9 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_parse_success(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_PARSE_SUCCESS, i)?;
+        let (matched, _) = self
+            .scanner
+            .longest_match(FIRST_SET_PARSE_SUCCESS.terminals, i)?;
         match matched {
             TerminalId(5) => {
                 let mut j = i;
@@ -2792,7 +2800,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_grammar(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_GRAMMAR, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_GRAMMAR.terminals, i)?;
         match matched {
             TerminalId(6) => {
                 let mut j = i;
@@ -2845,7 +2853,9 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_nonterminal(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_NONTERMINAL, i)?;
+        let (matched, _) = self
+            .scanner
+            .longest_match(FIRST_SET_NONTERMINAL.terminals, i)?;
         match matched {
             TerminalId(7) => {
                 let mut j = i;
@@ -2898,7 +2908,9 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_terminal(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_TERMINAL, i)?;
+        let (matched, _) = self
+            .scanner
+            .longest_match(FIRST_SET_TERMINAL.terminals, i)?;
         match matched {
             TerminalId(8) => {
                 let mut j = i;
@@ -2951,7 +2963,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_slot(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_SLOT, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_SLOT.terminals, i)?;
         match matched {
             TerminalId(9) => {
                 let mut j = i;
@@ -3004,7 +3016,9 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_terminal_set(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_TERMINAL_SET, i)?;
+        let (matched, _) = self
+            .scanner
+            .longest_match(FIRST_SET_TERMINAL_SET.terminals, i)?;
         match matched {
             TerminalId(10) => {
                 let mut j = i;
@@ -3057,7 +3071,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_arena(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_ARENA, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_ARENA.terminals, i)?;
         match matched {
             TerminalId(11) => {
                 let mut j = i;
@@ -3110,7 +3124,9 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_node_kind(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_NODE_KIND, i)?;
+        let (matched, _) = self
+            .scanner
+            .longest_match(FIRST_SET_NODE_KIND.terminals, i)?;
         match matched {
             TerminalId(12) => {
                 let mut j = i;
@@ -3163,9 +3179,9 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_parse_tree_builder(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self
+        let (matched, _) = self
             .scanner
-            .longest_match(&FIRST_SET_PARSE_TREE_BUILDER, i)?;
+            .longest_match(FIRST_SET_PARSE_TREE_BUILDER.terminals, i)?;
         match matched {
             TerminalId(13) => {
                 let mut j = i;
@@ -3218,7 +3234,9 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_parse_tree_node(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_PARSE_TREE_NODE, i)?;
+        let (matched, _) = self
+            .scanner
+            .longest_match(FIRST_SET_PARSE_TREE_NODE.terminals, i)?;
         match matched {
             TerminalId(14) => {
                 let mut j = i;
@@ -3271,7 +3289,9 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_nonterminal_id(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_NONTERMINAL_ID, i)?;
+        let (matched, _) = self
+            .scanner
+            .longest_match(FIRST_SET_NONTERMINAL_ID.terminals, i)?;
         match matched {
             TerminalId(15) => {
                 let mut j = i;
@@ -3324,7 +3344,9 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_terminal_id(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_TERMINAL_ID, i)?;
+        let (matched, _) = self
+            .scanner
+            .longest_match(FIRST_SET_TERMINAL_ID.terminals, i)?;
         match matched {
             TerminalId(16) => {
                 let mut j = i;
@@ -3377,7 +3399,9 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_sppf_node_id(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_SPPF_NODE_ID, i)?;
+        let (matched, _) = self
+            .scanner
+            .longest_match(FIRST_SET_SPPF_NODE_ID.terminals, i)?;
         match matched {
             TerminalId(17) => {
                 let mut j = i;
@@ -3430,7 +3454,9 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_nonterminal_node(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_NONTERMINAL_NODE, i)?;
+        let (matched, _) = self
+            .scanner
+            .longest_match(FIRST_SET_NONTERMINAL_NODE.terminals, i)?;
         match matched {
             TerminalId(18) => {
                 let mut j = i;
@@ -3483,7 +3509,9 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_terminal_node(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_TERMINAL_NODE, i)?;
+        let (matched, _) = self
+            .scanner
+            .longest_match(FIRST_SET_TERMINAL_NODE.terminals, i)?;
         match matched {
             TerminalId(19) => {
                 let mut j = i;
@@ -3536,7 +3564,9 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_generated_types(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_GENERATED_TYPES, i)?;
+        let (matched, _) = self
+            .scanner
+            .longest_match(FIRST_SET_GENERATED_TYPES.terminals, i)?;
         match matched {
             TerminalId(20) => {
                 let mut j = i;
@@ -3603,9 +3633,9 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_import_names_grammar(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self
+        let (matched, _) = self
             .scanner
-            .longest_match(&FIRST_SET_IMPORT_NAMES_GRAMMAR, i)?;
+            .longest_match(FIRST_SET_IMPORT_NAMES_GRAMMAR.terminals, i)?;
         match matched {
             TerminalId(20) => {
                 let mut j = i;
@@ -3658,9 +3688,9 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_import_names_parser(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self
+        let (matched, _) = self
             .scanner
-            .longest_match(&FIRST_SET_IMPORT_NAMES_PARSER, i)?;
+            .longest_match(FIRST_SET_IMPORT_NAMES_PARSER.terminals, i)?;
         match matched {
             TerminalId(21) => {
                 let mut j = i;
@@ -3713,7 +3743,9 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_grammar_data(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_GRAMMAR_DATA, i)?;
+        let (matched, _) = self
+            .scanner
+            .longest_match(FIRST_SET_GRAMMAR_DATA.terminals, i)?;
         match matched {
             TerminalId(22) => {
                 let mut j = i;
@@ -3857,7 +3889,9 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_nonterminals(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_NONTERMINALS, i)?;
+        let (matched, _) = self
+            .scanner
+            .longest_match(FIRST_SET_NONTERMINALS.terminals, i)?;
         match matched {
             TerminalId(22) => {
                 let mut j = i;
@@ -3910,7 +3944,9 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_terminals(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_TERMINALS, i)?;
+        let (matched, _) = self
+            .scanner
+            .longest_match(FIRST_SET_TERMINALS.terminals, i)?;
         match matched {
             TerminalId(23) => {
                 let mut j = i;
@@ -3963,7 +3999,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_slots(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_SLOTS, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_SLOTS.terminals, i)?;
         match matched {
             TerminalId(24) => {
                 let mut j = i;
@@ -4016,7 +4052,9 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_display_order(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_DISPLAY_ORDER, i)?;
+        let (matched, _) = self
+            .scanner
+            .longest_match(FIRST_SET_DISPLAY_ORDER.terminals, i)?;
         match matched {
             TerminalId(25) => {
                 let mut j = i;
@@ -4069,7 +4107,9 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_first_slots(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_FIRST_SLOTS, i)?;
+        let (matched, _) = self
+            .scanner
+            .longest_match(FIRST_SET_FIRST_SLOTS.terminals, i)?;
         match matched {
             TerminalId(26) => {
                 let mut j = i;
@@ -4122,9 +4162,9 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_single_terminal_sets(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self
+        let (matched, _) = self
             .scanner
-            .longest_match(&FIRST_SET_SINGLE_TERMINAL_SETS, i)?;
+            .longest_match(FIRST_SET_SINGLE_TERMINAL_SETS.terminals, i)?;
         match matched {
             TerminalId(27) => {
                 let mut j = i;
@@ -4177,7 +4217,9 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_first_set_s(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_FIRST_SET_S, i)?;
+        let (matched, _) = self
+            .scanner
+            .longest_match(FIRST_SET_FIRST_SET_S.terminals, i)?;
         match matched {
             TerminalId(28) => {
                 let mut j = i;
@@ -4230,7 +4272,9 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_follow_set_s(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_FOLLOW_SET_S, i)?;
+        let (matched, _) = self
+            .scanner
+            .longest_match(FIRST_SET_FOLLOW_SET_S.terminals, i)?;
         match matched {
             TerminalId(29) => {
                 let mut j = i;
@@ -4283,7 +4327,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_locals(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_LOCALS, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_LOCALS.terminals, i)?;
         match matched {
             TerminalId(31) => {
                 let mut j = i;
@@ -4349,7 +4393,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_index(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_INDEX, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_INDEX.terminals, i)?;
         match matched {
             TerminalId(31) => {
                 let mut j = i;
@@ -4402,7 +4446,9 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_parser_methods(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_PARSER_METHODS, i)?;
+        let (matched, _) = self
+            .scanner
+            .longest_match(FIRST_SET_PARSER_METHODS.terminals, i)?;
         match matched {
             TerminalId(32) => {
                 let mut j = i;
@@ -4494,7 +4540,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_a(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_A, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_A.terminals, i)?;
         match matched {
             TerminalId(32) => {
                 let mut j = i;
@@ -4547,7 +4593,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_a_ll1(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_A_LL1, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_A_LL1.terminals, i)?;
         match matched {
             TerminalId(33) => {
                 let mut j = i;
@@ -4600,7 +4646,7 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_a_body(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_A_BODY, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_A_BODY.terminals, i)?;
         match matched {
             TerminalId(34) => {
                 let mut j = i;
@@ -4653,9 +4699,9 @@ impl<'i, 'arena> ImportNamesParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_start_without_layout(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self
+        let (matched, _) = self
             .scanner
-            .longest_match(&FIRST_SET_START_WITHOUT_LAYOUT, i)?;
+            .longest_match(FIRST_SET_START_WITHOUT_LAYOUT.terminals, i)?;
         match matched {
             TerminalId(35) => {
                 let mut j = i;

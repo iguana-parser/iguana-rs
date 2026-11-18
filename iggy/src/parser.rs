@@ -2674,7 +2674,9 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_annotation(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_ANNOTATION, i)?;
+        let (matched, _) = self
+            .scanner
+            .longest_match(FIRST_SET_ANNOTATION.terminals, i)?;
         match matched {
             TerminalId(14) => {
                 let mut j = i;
@@ -2752,9 +2754,9 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_regex_pre_condition(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self
+        let (matched, _) = self
             .scanner
-            .longest_match(&FIRST_SET_REGEX_PRE_CONDITION, i)?;
+            .longest_match(FIRST_SET_REGEX_PRE_CONDITION.terminals, i)?;
         match matched {
             TerminalId(2) => {
                 let mut j = i;
@@ -2834,9 +2836,9 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_regex_post_condition(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self
+        let (matched, _) = self
             .scanner
-            .longest_match(&FIRST_SET_REGEX_POST_CONDITION, i)?;
+            .longest_match(FIRST_SET_REGEX_POST_CONDITION.terminals, i)?;
         match matched {
             TerminalId(20) => {
                 let mut j = i;
@@ -2968,7 +2970,9 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_associativity(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_ASSOCIATIVITY, i)?;
+        let (matched, _) = self
+            .scanner
+            .longest_match(FIRST_SET_ASSOCIATIVITY.terminals, i)?;
         match matched {
             TerminalId(22) => {
                 let mut j = i;
@@ -3071,7 +3075,9 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_pre_condition(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_PRE_CONDITION, i)?;
+        let (matched, _) = self
+            .scanner
+            .longest_match(FIRST_SET_PRE_CONDITION.terminals, i)?;
         match matched {
             TerminalId(2) => {
                 let mut j = i;
@@ -3151,7 +3157,7 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_range(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_RANGE, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_RANGE.terminals, i)?;
         match matched {
             TerminalId(6) => {
                 let mut j = i;
@@ -3289,7 +3295,7 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(19), i));
-        let Some(matched) = self.scanner.longest_match(&FIRST_SET_OPT_0, i) else {
+        let Some((matched, _)) = self.scanner.longest_match(FIRST_SET_OPT_0.terminals, i) else {
             return {
                 let epsilon_node_id = self.get_or_create_epsilon_node(i);
                 Some((
@@ -3343,7 +3349,7 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(22), i));
-        let Some(matched) = self.scanner.longest_match(&FIRST_SET_OPT_1, i) else {
+        let Some((matched, _)) = self.scanner.longest_match(FIRST_SET_OPT_1.terminals, i) else {
             return {
                 let epsilon_node_id = self.get_or_create_epsilon_node(i);
                 Some((
@@ -3398,7 +3404,7 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(23), i));
-        let Some(matched) = self.scanner.longest_match(&FIRST_SET_OPT_2, i) else {
+        let Some((matched, _)) = self.scanner.longest_match(FIRST_SET_OPT_2.terminals, i) else {
             return {
                 let epsilon_node_id = self.get_or_create_epsilon_node(i);
                 Some((
@@ -3516,7 +3522,7 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(28), i));
-        let Some(matched) = self.scanner.longest_match(&FIRST_SET_STAR_2, i) else {
+        let Some((matched, _)) = self.scanner.longest_match(FIRST_SET_STAR_2.terminals, i) else {
             return {
                 let epsilon_node_id = self.get_or_create_epsilon_node(i);
                 Some((
@@ -3570,7 +3576,7 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(33), i));
-        let Some(matched) = self.scanner.longest_match(&FIRST_SET_OPT_5, i) else {
+        let Some((matched, _)) = self.scanner.longest_match(FIRST_SET_OPT_5.terminals, i) else {
             return {
                 let epsilon_node_id = self.get_or_create_epsilon_node(i);
                 Some((
@@ -3625,7 +3631,7 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(37), i));
-        let Some(matched) = self.scanner.longest_match(&FIRST_SET_OPT_6, i) else {
+        let Some((matched, _)) = self.scanner.longest_match(FIRST_SET_OPT_6.terminals, i) else {
             return {
                 let epsilon_node_id = self.get_or_create_epsilon_node(i);
                 Some((
@@ -3695,7 +3701,7 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_alt_0(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_ALT_0, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_ALT_0.terminals, i)?;
         match matched {
             TerminalId(8) => {
                 let mut j = i;
@@ -3816,7 +3822,7 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(41), i));
-        let Some(matched) = self.scanner.longest_match(&FIRST_SET_STAR_4, i) else {
+        let Some((matched, _)) = self.scanner.longest_match(FIRST_SET_STAR_4.terminals, i) else {
             return {
                 let epsilon_node_id = self.get_or_create_epsilon_node(i);
                 Some((

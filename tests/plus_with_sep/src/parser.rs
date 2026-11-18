@@ -638,7 +638,7 @@ impl<'i, 'arena> PlusWithSepParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_s(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_S, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_S.terminals, i)?;
         match matched {
             TerminalId(1) => {
                 let mut j = i;
@@ -690,7 +690,7 @@ impl<'i, 'arena> PlusWithSepParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_a(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_A, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_A.terminals, i)?;
         match matched {
             TerminalId(1) => {
                 let mut j = i;

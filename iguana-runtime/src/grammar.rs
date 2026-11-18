@@ -1,3 +1,4 @@
+use crate::char_set::CharSet;
 use crate::ids::{NonterminalId, SlotId, TerminalId};
 use crate::prediction::AlternativeSet;
 use crate::scanner::TerminalSet;
@@ -19,11 +20,21 @@ impl Nonterminal {
 /// It holds only the information the runtime needs.
 pub struct Terminal {
     pub name: &'static str,
+    /// Whether the terminal is a literal written in the grammar, such as
+    /// `"else"`, rather than a lexical rule.
+    pub literal: bool,
+    /// Whether the terminal can become a token. Only a terminal that is
+    /// directly used in a syntax rule, or is the layout, can become a token.
+    pub token: bool,
 }
 
 impl Terminal {
-    pub const fn new(name: &'static str) -> Self {
-        Self { name }
+    pub const fn new(name: &'static str, literal: bool, token: bool) -> Self {
+        Self {
+            name,
+            literal,
+            token,
+        }
     }
 }
 
@@ -34,6 +45,12 @@ pub struct Alternative {
     pub head: NonterminalId,
     /// The display name of each symbol, such as `name:Identifier` or `Rule*`.
     pub symbols: &'static [&'static str],
+}
+
+impl Alternative {
+    pub const fn new(head: NonterminalId, symbols: &'static [&'static str]) -> Self {
+        Self { head, symbols }
+    }
 }
 
 /// The runtime's view of a grammar slot, a position in an alternative. It
@@ -106,6 +123,10 @@ pub trait Grammar {
     /// reporting path needs a way from the id to a set. This slice serves
     /// only that; the scanner never matches against these sets.
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet];
+    /// The characters that can begin each terminal, indexed by `TerminalId`.
+    /// A nullable terminal can match at every position, so its entry holds
+    /// every character.
+    const TERMINAL_FIRST_CHARS: &'static [CharSet<'static>];
 
     /// The id of the nonterminal with the given name.
     fn nonterminal_id(name: &str) -> Option<NonterminalId>;
@@ -132,10 +153,18 @@ pub trait Grammar {
     }
 
     /// Whether the terminal is a literal written in the grammar, such as
-    /// `"else"`, rather than a named lexical definition. Literal terminal
-    /// names retain their leading quote, so this test is exact.
+    /// `"else"`, rather than a named lexical definition.
     fn is_literal(terminal_id: TerminalId) -> bool {
-        Self::terminal_name(terminal_id).starts_with('"')
+        Self::TERMINALS[terminal_id.index()].literal
+    }
+
+    /// The terminals that can start with `c`, in id order, without the
+    /// synthetic epsilon and end-of-file terminals. A nullable terminal can
+    /// start with every character.
+    fn terminals_starting_with(c: char) -> impl Iterator<Item = TerminalId> {
+        (0..Self::terminal_count())
+            .map(TerminalId)
+            .filter(move |&terminal| Self::TERMINAL_FIRST_CHARS[terminal.index()].contains(c))
     }
 
     /// The display name of a slot, which is its alternative with a dot before

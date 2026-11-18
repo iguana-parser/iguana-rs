@@ -669,7 +669,7 @@ impl<'i, 'arena> StarParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_a(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_A, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_A.terminals, i)?;
         match matched {
             TerminalId(0) => {
                 let mut j = i;
@@ -764,7 +764,7 @@ impl<'i, 'arena> StarParser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(3), i));
-        let Some(matched) = self.scanner.longest_match(&FIRST_SET_STAR_0, i) else {
+        let Some((matched, _)) = self.scanner.longest_match(FIRST_SET_STAR_0.terminals, i) else {
             return {
                 let epsilon_node_id = self.get_or_create_epsilon_node(i);
                 Some((

@@ -886,7 +886,7 @@ impl<'i, 'arena> ReturnSlotLookaheadGllLayoutParser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(2), i));
-        let Some(matched) = self.scanner.longest_match(&FIRST_SET_B, i) else {
+        let Some((matched, _)) = self.scanner.longest_match(FIRST_SET_B.terminals, i) else {
             return {
                 let epsilon_node_id = self.get_or_create_epsilon_node(i);
                 Some((

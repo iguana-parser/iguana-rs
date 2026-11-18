@@ -1856,7 +1856,7 @@ impl<'i, 'arena> ErrorUnionParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_q(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_Q, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_Q.terminals, i)?;
         match matched {
             TerminalId(9) => {
                 let mut j = i;
@@ -1955,7 +1955,7 @@ impl<'i, 'arena> ErrorUnionParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_alt_0(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self.scanner.longest_match(&FIRST_SET_ALT_0, i)?;
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_ALT_0.terminals, i)?;
         match matched {
             TerminalId(4) => {
                 let mut j = i;
@@ -2076,7 +2076,7 @@ impl<'i, 'arena> ErrorUnionParser<'i, 'arena> {
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
         self.ll1_call_log.push((NonterminalId(21), i));
-        let Some(matched) = self.scanner.longest_match(&FIRST_SET_STAR_0, i) else {
+        let Some((matched, _)) = self.scanner.longest_match(FIRST_SET_STAR_0.terminals, i) else {
             return {
                 let epsilon_node_id = self.get_or_create_epsilon_node(i);
                 Some((

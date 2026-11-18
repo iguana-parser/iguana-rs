@@ -682,9 +682,9 @@ impl<'i, 'arena> MultipleExceptParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_syntax_identifier(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self
+        let (matched, _) = self
             .scanner
-            .longest_match(&FIRST_SET_SYNTAX_IDENTIFIER, i)?;
+            .longest_match(FIRST_SET_SYNTAX_IDENTIFIER.terminals, i)?;
         match matched {
             TerminalId(1) => {
                 let mut j = i;
@@ -740,9 +740,9 @@ impl<'i, 'arena> MultipleExceptParser<'i, 'arena> {
     }
     #[inline(always)]
     fn ll1_body_lexical_identifier(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
-        let matched = self
+        let (matched, _) = self
             .scanner
-            .longest_match(&FIRST_SET_LEXICAL_IDENTIFIER, i)?;
+            .longest_match(FIRST_SET_LEXICAL_IDENTIFIER.terminals, i)?;
         match matched {
             TerminalId(0) => {
                 let mut j = i;

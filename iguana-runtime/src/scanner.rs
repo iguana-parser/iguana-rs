@@ -1,20 +1,19 @@
+use rustc_hash::FxHashMap;
+
 use crate::{
     arena::{Arena, ArenaVec},
     char_set::Alphabet,
+    grammar::Grammar,
     ids::TerminalId,
-    input::Input,
+    input::{Input, Span},
     prediction::{AlternativeSet, Prediction},
     utils::bit_set::BitSet,
 };
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Token {
-    pub token_type: TerminalId,
-    pub range: Range,
-}
-
-pub struct Range {
-    pub start: u32,
-    pub end: u32,
+    pub terminal: TerminalId,
+    pub span: Span,
 }
 
 /// Recorded result of a previous `match_token` call.
@@ -227,7 +226,8 @@ impl<'arena, const W: usize> MatchMemo<'arena, W> {
 ///
 /// `id` is a content-deduplicated id within the set's family. `match_any`
 /// indexes its first-character sets and terminal masks by it; `longest_match`
-/// ignores it, but the field is kept so every set has the same shape.
+/// takes only the set's terminals, but the field is kept so every set has the
+/// same shape.
 #[derive(Debug, PartialEq, Eq)]
 pub struct TerminalSet {
     pub id: usize,
@@ -364,13 +364,20 @@ impl LiteralTrie {
 }
 
 pub trait Scanner {
+    type Grammar: Grammar;
+
     fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32>;
-    /// Returns the terminal in `set` that produces the longest match at
-    /// `input_index`, or `None` if none match.
-    fn longest_match(&mut self, set: &TerminalSet, input_index: u32) -> Option<TerminalId> {
+    /// Returns the terminal in `terminals` that produces the longest match at
+    /// `input_index`, and the end of its match, or `None` if none match. Of
+    /// two matches with the same end, the earlier terminal in `terminals` wins.
+    fn longest_match(
+        &mut self,
+        terminals: &[TerminalId],
+        input_index: u32,
+    ) -> Option<(TerminalId, u32)> {
         let mut terminal_id = None;
         let mut longest = 0;
-        for &id in set.terminals {
+        for &id in terminals {
             if let Some(end) = self.match_token(id, input_index) {
                 if terminal_id.is_none() || end > longest {
                     terminal_id = Some(id);
@@ -378,7 +385,7 @@ pub trait Scanner {
                 }
             }
         }
-        terminal_id
+        terminal_id.map(|id| (id, longest))
     }
     /// The alternatives that `prediction` predicts at `input_index`: those
     /// predicted by a terminal that matches there. Empty when no terminal of
@@ -400,11 +407,161 @@ pub trait Scanner {
         alternatives
     }
     fn char_at(&self, i: u32) -> Option<char>;
+
+    /// Turns the input to a vector of tokens. This method should be used when
+    /// the parse tree is not available, e.g., in case of a parse error.
+    ///
+    /// This method takes the longest matching terminal at each input position.
+    /// When no terminal matches, it moves advances one character and tries again.
+    /// When two terminals match the same length, a literal is
+    /// taken over a lexical rule, so `if` is a keyword and not an identifier,
+    /// and of two lexical rules, the one with the lower id.
+    fn tokens(&mut self) -> Vec<Token> {
+        let mut tokens = Vec::new();
+        // The terminals that can become tokens and can start with a character,
+        // filled the first time the scan sees the character.
+        let mut candidates: FxHashMap<char, Vec<TerminalId>> = FxHashMap::default();
+        let mut position = 0;
+        while let Some(c) = self.char_at(position) {
+            let terminals = candidates.entry(c).or_insert_with(|| {
+                let mut terminals: Vec<TerminalId> = Self::Grammar::terminals_starting_with(c)
+                    .filter(|&terminal| Self::Grammar::TERMINALS[terminal.index()].token)
+                    .collect();
+                // Of two matches with the same end, `longest_match` takes the
+                // earlier terminal: literals come first, and the stable sort
+                // keeps the id order within each.
+                terminals.sort_by_key(|&terminal| !Self::Grammar::is_literal(terminal));
+                terminals
+            });
+            match self.longest_match(terminals, position) {
+                Some((terminal, end)) if end > position => {
+                    let span = Span::new(position, end);
+                    position = end;
+                    tokens.push(Token { terminal, span });
+                }
+                _ => position += 1,
+            }
+        }
+        tokens
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{
+        char_set::CharSet,
+        grammar::{Nonterminal, Slot, Terminal},
+        ids::{NonterminalId, SlotId},
+    };
+
+    /// A grammar whose terminals are `Helper = [a-z]+`, `Identifier =
+    /// [a-z]+`, `Name = [a-z]+`, `Label = [a-z]+ ":"`, and `"if"`. `Helper`
+    /// cannot become a token, as if it existed only for a restriction. It has
+    /// the lowest id, and the literal comes after the lexical rules, so that
+    /// neither the token test nor the literal's priority follows from the id
+    /// order.
+    struct Words;
+
+    impl Grammar for Words {
+        type Alternatives = BitSet<1>;
+        const NAME: &'static str = "Words";
+        const NONTERMINALS: &'static [Nonterminal] = &[];
+        const DISPLAY_ORDER: &'static [&'static str] = &[];
+        const TERMINALS: &'static [Terminal] = &[
+            Terminal::new("Helper", false, false),
+            Terminal::new("Identifier", false, true),
+            Terminal::new("Name", false, true),
+            Terminal::new("Label", false, true),
+            Terminal::new("\"if\"", true, true),
+            Terminal::new("Epsilon", false, false),
+            Terminal::new("EOF", false, false),
+        ];
+        const SLOTS: &'static [Slot] = &[];
+        const FIRST_SLOTS: &'static [&'static [SlotId]] = &[];
+        const LAYOUT_NAME: Option<&'static str> = None;
+        const LAYOUT_TERMINALS: &'static [TerminalId] = &[];
+        const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &[];
+        // Each terminal begins with a letter from `a` to `z`. The scan never
+        // tries Epsilon and EOF, whose entries are empty.
+        const TERMINAL_FIRST_CHARS: &'static [CharSet<'static>] = &[
+            CharSet::new(((1 << 26) - 1) << 'a' as u32, &[]),
+            CharSet::new(((1 << 26) - 1) << 'a' as u32, &[]),
+            CharSet::new(((1 << 26) - 1) << 'a' as u32, &[]),
+            CharSet::new(((1 << 26) - 1) << 'a' as u32, &[]),
+            CharSet::new(((1 << 26) - 1) << 'a' as u32, &[]),
+            CharSet::new(0, &[]),
+            CharSet::new(0, &[]),
+        ];
+
+        fn nonterminal_id(_name: &str) -> Option<NonterminalId> {
+            None
+        }
+    }
+
+    struct WordsScanner<'i>(&'i Input);
+
+    impl Scanner for WordsScanner<'_> {
+        type Grammar = Words;
+
+        fn match_token(&mut self, terminal_id: TerminalId, input_index: u32) -> Option<u32> {
+            let mut end = input_index;
+            while self.0.char_at(end).is_some_and(|c| c.is_ascii_lowercase()) {
+                end += 1;
+            }
+            let word = self.0.text(Span::new(input_index, end));
+            match terminal_id.0 {
+                0..=2 => (end > input_index).then_some(end),
+                3 => (end > input_index && self.0.char_at(end) == Some(':')).then_some(end + 1),
+                4 => word.starts_with("if").then_some(input_index + 2),
+                _ => None,
+            }
+        }
+
+        fn char_at(&self, i: u32) -> Option<char> {
+            self.0.char_at(i)
+        }
+    }
+
+    /// The text and terminal of each token of `text`.
+    fn tokens(text: &str) -> Vec<(String, &'static str)> {
+        let input = Input::from(text);
+        WordsScanner(&input)
+            .tokens()
+            .into_iter()
+            .map(|token| (input.text(token.span), Words::terminal_name(token.terminal)))
+            .collect()
+    }
+
+    #[test]
+    fn the_scan_takes_the_longest_match_and_skips_what_does_not_match() {
+        assert_eq!(
+            tokens("ab: cd"),
+            [
+                ("ab:".to_string(), "Label"),
+                ("cd".to_string(), "Identifier")
+            ]
+        );
+    }
+
+    #[test]
+    fn of_two_matches_of_the_same_text_a_literal_wins() {
+        assert_eq!(tokens("if"), [("if".to_string(), "\"if\"")]);
+    }
+
+    #[test]
+    fn of_two_lexical_rules_that_match_the_same_text_the_lower_id_wins() {
+        assert_eq!(tokens("ab"), [("ab".to_string(), "Identifier")]);
+    }
+
+    #[test]
+    fn a_terminal_that_cannot_become_a_token_is_not_a_token() {
+        // `Helper` matches `ab` like `Identifier` and `Name`, but a parse
+        // never produces it as a token.
+        let input = Input::from("ab");
+        let tokens = WordsScanner(&input).tokens();
+        assert!(tokens.iter().all(|token| token.terminal != TerminalId(0)));
+    }
 
     /// The trie of the literals `ab` (index 0) and `b` (index 1).
     fn ab_b_trie() -> LiteralTrie {
