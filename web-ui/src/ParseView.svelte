@@ -39,7 +39,7 @@
     type ParseTreeNodeData as ParseTreeNode,
   } from "./parse-tree-graph";
   import { downloadPng } from "./png";
-  import { utf16Offset } from "./char-offsets";
+  import { TextPositions } from "./text-positions";
   import { onThemeChange, themeGraphStyles } from "./theme";
   import NonterminalPicker from "./NonterminalPicker.svelte";
   import "./graph.css";
@@ -611,21 +611,22 @@
   // A parse failure, laid out for the result pane the way the runtime's
   // ParseError::render prints it: the position, the failing line with a caret
   // under the span, and the message. Positions come from the input the parse
-  // ran on, not the current one, which may have changed since. The text is
-  // sliced at UTF-16 offsets, and the column and the caret count characters, as
-  // the runtime does.
+  // ran on, not the current one, which may have changed since. The line is
+  // sliced at columns in UTF-16, because a JavaScript string is UTF-16, and the
+  // reported column and the caret are in characters, as the runtime's are.
   let errorReport = $derived.by(() => {
     if (!parseError || parsedInput == null) return null;
     const text = parsedInput;
-    const start = utf16Offset(text, parseError.span.left_extent);
-    const end = utf16Offset(text, parseError.span.right_extent);
-    const lineStart = text.lastIndexOf("\n", start - 1) + 1;
-    const newline = text.indexOf("\n", start);
-    const lineEnd = newline === -1 ? text.length : newline;
-    const source = text.slice(lineStart, lineEnd);
-    const line = text.slice(0, start).split("\n").length;
-    const before = Array.from(text.slice(lineStart, start));
-    const spanned = Array.from(text.slice(start, Math.min(end, lineEnd))).length;
+    const positions = new TextPositions(text);
+    const [startLine, startColumn] = positions.position(parseError.span.left_extent);
+    const [endLine, endColumn] = positions.position(parseError.span.right_extent);
+    positions.free();
+    const source = text.split("\n")[startLine] ?? "";
+    const line = startLine + 1;
+    const before = Array.from(source.slice(0, startColumn));
+    // A span past the end of its line is cut at the line end.
+    const spanEnd = endLine === startLine ? endColumn : source.length;
+    const spanned = Array.from(source.slice(startColumn, spanEnd)).length;
     return {
       line,
       column: before.length + 1,

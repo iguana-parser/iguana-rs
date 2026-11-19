@@ -24,7 +24,7 @@
   import { HighlightStyle, StreamLanguage, syntaxHighlighting } from "@codemirror/language";
   import { tags } from "@lezer/highlight";
   import type { ParseError } from "./backend";
-  import { charIndex, utf16Offset } from "./char-offsets";
+  import { TextPositions } from "./text-positions";
   import { CODE_FONT } from "./theme";
 
   interface HighlightSpan {
@@ -248,11 +248,17 @@
     const len = doc.length;
     const ranges = [];
     let gutter: RangeSet<GutterMarker> = RangeSet.empty;
-    // The parser's spans count characters, and the document counts UTF-16
-    // code units.
+    // The parser's offsets are in characters, and a column in a CodeMirror
+    // document is in UTF-16 code units. `at` gives the document offset of a
+    // parser offset.
+    const positions = new TextPositions(doc);
+    const at = (offset: number) => {
+      const [line, column] = positions.position(offset);
+      return state.doc.line(line + 1).from + column;
+    };
     if (highlightSpan) {
-      const s = utf16Offset(doc, highlightSpan.start);
-      const e = Math.max(s, utf16Offset(doc, highlightSpan.end));
+      const s = at(highlightSpan.start);
+      const e = Math.max(s, at(highlightSpan.end));
       if (e > s) ranges.push(Decoration.mark({ class: "cme-span" }).range(s, e));
       else ranges.push(Decoration.widget({ widget: new SpanCaret(), side: -1 }).range(s));
     }
@@ -262,9 +268,9 @@
     // the input, or only line breaks) gets the end-of-line squiggle at its start.
     const messages: Message[] = [];
     const squiggle = (start: number, end: number, kind: string, text: string) => {
-      const s = Math.min(utf16Offset(doc, start), len);
-      let e = Math.min(Math.max(s, utf16Offset(doc, end)), len);
-      if (e === s && s < len && doc[s] !== "\n") e = utf16Offset(doc, start + 1);
+      const s = at(start);
+      let e = Math.max(s, at(end));
+      if (e === s && s < len && doc[s] !== "\n") e = at(start + 1);
       if (/^\n*$/.test(doc.slice(s, e))) {
         ranges.push(Decoration.widget({ widget: new EndOfLineMark(kind), side: 1 }).range(s));
         messages.push({ from: s, to: s, text });
@@ -279,6 +285,7 @@
       gutter = RangeSet.of(errorLine.range(state.doc.lineAt(s).from));
     }
     for (const a of ambiguities) squiggle(a.start, a.end, "cme-amb", a.message);
+    positions.free();
     return { deco: Decoration.set(ranges, true), gutter, messages };
   }
 
@@ -339,7 +346,12 @@
           }),
           EditorView.domEventHandlers({
             click: (_e, v) => {
-              onclick?.(charIndex(v.state.doc.toString(), v.state.selection.main.head));
+              if (!onclick) return false;
+              const head = v.state.selection.main.head;
+              const line = v.state.doc.lineAt(head);
+              const positions = new TextPositions(v.state.doc.toString());
+              onclick(positions.offset(line.number - 1, head - line.from));
+              positions.free();
               return false;
             },
           }),

@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use iguana_compiler::grammar::symbols::DefinitionId;
 use iguana_compiler::spans::build_spans;
-use iguana_runtime::{arena::Arena, input::Input};
+use iguana_runtime::{arena::Arena, input::Input, utf16::Utf16Columns};
 use lsp_types::{Diagnostic, DocumentSymbol, FoldingRange, Position, Range, SemanticToken};
 
 use crate::diagnostics::{diagnostics, to_diagnostic};
@@ -10,7 +10,7 @@ use crate::document_symbols::document_symbols;
 use crate::folding::folding_ranges;
 use crate::name_resolution::NameResolutionIndex;
 use crate::semantic_tokens::semantic_tokens;
-use crate::{BuildResult, build, build_grammar_def, to_range};
+use crate::{BuildResult, build, build_grammar_def, to_offset, to_range};
 
 #[derive(Clone, Copy)]
 pub struct ParseDurations {
@@ -26,6 +26,7 @@ pub struct Analysis {
     source: String,
     parse_durations: Option<ParseDurations>,
     input: Input,
+    columns: Utf16Columns,
     names: NameResolutionIndex,
     semantic_tokens: Vec<SemanticToken>,
     document_symbols: Vec<DocumentSymbol>,
@@ -36,6 +37,7 @@ pub struct Analysis {
 impl Analysis {
     pub fn new(source: &str) -> Self {
         let input = Input::from(source);
+        let columns = Utf16Columns::new(&input);
         let tree_arena = Arena::new();
         match build(&input, &tree_arena) {
             BuildResult::Success {
@@ -52,26 +54,33 @@ impl Analysis {
                         tree_construction: tree_construction_duration,
                     }),
                     names: NameResolutionIndex::new(&grammar_def, &spans),
-                    semantic_tokens: semantic_tokens(tree, &input),
-                    document_symbols: document_symbols(&grammar_def, &spans, &input),
+                    semantic_tokens: semantic_tokens(tree, &input, &columns),
+                    document_symbols: document_symbols(&grammar_def, &spans, &input, &columns),
                     folding_ranges: folding_ranges(&grammar_def, &spans, &input),
-                    diagnostics: diagnostics(&grammar_def, &spans, &input),
+                    diagnostics: diagnostics(&grammar_def, &spans, &input, &columns),
                     input,
+                    columns,
                 }
             }
-            BuildResult::Ambiguous => Self::without_grammar(source, input, vec![]),
+            BuildResult::Ambiguous => Self::without_grammar(source, input, columns, vec![]),
             BuildResult::Error(error) => {
-                let diagnostic = to_diagnostic(error, &input);
-                Self::without_grammar(source, input, vec![diagnostic])
+                let diagnostic = to_diagnostic(error, &input, &columns);
+                Self::without_grammar(source, input, columns, vec![diagnostic])
             }
         }
     }
 
-    fn without_grammar(source: &str, input: Input, diagnostics: Vec<Diagnostic>) -> Self {
+    fn without_grammar(
+        source: &str,
+        input: Input,
+        columns: Utf16Columns,
+        diagnostics: Vec<Diagnostic>,
+    ) -> Self {
         Self {
             source: source.to_string(),
             parse_durations: None,
             input,
+            columns,
             names: NameResolutionIndex::default(),
             semantic_tokens: vec![],
             document_symbols: vec![],
@@ -111,7 +120,7 @@ impl Analysis {
     pub fn definition(&self, position: Position) -> Option<Range> {
         let definition = self.definition_id_at(position)?;
         let &head = self.names.definitions.get(&definition)?;
-        Some(to_range(head, &self.input))
+        Some(to_range(head, &self.input, &self.columns))
     }
 
     /// The references to the name at `position`, in source order. The list
@@ -125,19 +134,19 @@ impl Analysis {
         let mut ranges = vec![];
         if include_declaration {
             if let Some(&head) = self.names.definitions.get(&definition) {
-                ranges.push(to_range(head, &self.input));
+                ranges.push(to_range(head, &self.input, &self.columns));
             }
         }
         if let Some(references) = self.names.references.get(&definition) {
             for &span in references {
-                ranges.push(to_range(span, &self.input));
+                ranges.push(to_range(span, &self.input, &self.columns));
             }
         }
         ranges
     }
 
     fn definition_id_at(&self, position: Position) -> Option<DefinitionId> {
-        let offset = self.input.offset(position.line, position.character)?;
+        let offset = to_offset(position, &self.input, &self.columns)?;
         self.names.definition_id_at(offset)
     }
 }
@@ -381,6 +390,17 @@ Long
         assert!(find_refs(source, 0, 11, true).is_empty());
     }
 
+    // A position's character is a column in UTF-16. The emoji is two code
+    // units, so `B` is at character 9.
+    #[test]
+    fn a_position_is_in_utf16_code_units() {
+        let source = "grammar G\nA = \"😀\" B\nB = \"b\"";
+        let range = find_def(source, 1, 9).unwrap();
+        assert_eq!(range.start, Position::new(2, 0));
+        let refs = find_refs(source, 2, 0, false);
+        assert_eq!(refs[0].start, Position::new(1, 9));
+    }
+
     #[test]
     fn parse_error_has_one_diagnostic_and_no_other_answers() {
         let analysis = Analysis::new("grammar");
@@ -436,6 +456,7 @@ Long
         let analysis = Analysis::new(&source);
 
         let input = Input::from(source.as_str());
+        let columns = Utf16Columns::new(&input);
         let tree_arena = Arena::new();
         let BuildResult::Success { tree, .. } = build(&input, &tree_arena) else {
             panic!("{} does not parse", path.display());
@@ -445,28 +466,31 @@ Long
         let names = NameResolutionIndex::new(&grammar_def, &spans);
 
         for offset in 0..input.len() {
-            let (line, column) = input.line_column(offset);
-            let position = Position::new(line, column);
+            let position = crate::to_position(offset, &input, &columns);
             let definition = scan_for_definition(&names, &spans, offset);
             let head = definition.and_then(|id| names.definitions.get(&id));
             let references: Vec<_> = definition
                 .and_then(|id| names.references.get(&id))
                 .into_iter()
                 .flatten()
-                .map(|&span| to_range(span, &input))
+                .map(|&span| to_range(span, &input, &columns))
                 .collect();
 
             assert_eq!(
                 analysis.definition(position),
-                head.map(|&span| to_range(span, &input)),
-                "{}:{line}:{column}",
+                head.map(|&span| to_range(span, &input, &columns)),
+                "{}:{}:{}",
                 path.display(),
+                position.line,
+                position.character,
             );
             assert_eq!(
                 analysis.references(position, false),
                 references,
-                "{}:{line}:{column}",
+                "{}:{}:{}",
                 path.display(),
+                position.line,
+                position.character,
             );
         }
     }

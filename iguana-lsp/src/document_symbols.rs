@@ -11,14 +11,16 @@
 use iguana_compiler::grammar::def::{GrammarDef, LayoutStrategy};
 use iguana_compiler::spans::GrammarSpans;
 use iguana_runtime::input::Input;
-use lsp_types::{DocumentSymbol, Position, SymbolKind};
+use iguana_runtime::utf16::Utf16Columns;
+use lsp_types::{DocumentSymbol, SymbolKind};
 
-use crate::to_range;
+use crate::{to_position, to_range};
 
 pub fn document_symbols(
     grammar_def: &GrammarDef,
     spans: &GrammarSpans<'_>,
     input: &Input,
+    columns: &Utf16Columns,
 ) -> Vec<DocumentSymbol> {
     let mut out = Vec::new();
 
@@ -26,14 +28,12 @@ pub fn document_symbols(
         let region = spans.syntax_rule(rule);
         let rule_span = region.span;
 
-        let mut range = to_range(rule_span, input);
+        let mut range = to_range(rule_span, input, columns);
         if let Some(first) = region.leading_comments.first() {
-            let (l, c) = input.line_column(first.left_extent);
-            range.start = Position::new(l, c);
+            range.start = to_position(first.left_extent, input, columns);
         }
         if let Some(trailing) = region.trailing_comment {
-            let (l, c) = input.line_column(trailing.right_extent);
-            range.end = Position::new(l, c);
+            range.end = to_position(trailing.right_extent, input, columns);
         }
 
         let head_span = spans.nonterminal(&rule.head).span;
@@ -50,8 +50,8 @@ pub fn document_symbols(
                         kind: SymbolKind::CONSTRUCTOR,
                         tags: None,
                         deprecated: None,
-                        range: to_range(alt_span, input),
-                        selection_range: to_range(alt_span, input),
+                        range: to_range(alt_span, input, columns),
+                        selection_range: to_range(alt_span, input, columns),
                         children: None,
                     });
                 }
@@ -72,7 +72,7 @@ pub fn document_symbols(
             tags: None,
             deprecated: None,
             range,
-            selection_range: to_range(head_span, input),
+            selection_range: to_range(head_span, input, columns),
             children: if children.is_empty() {
                 None
             } else {
@@ -85,14 +85,12 @@ pub fn document_symbols(
         let region = spans.lexical_rule(rule);
         let rule_span = region.span;
 
-        let mut range = to_range(rule_span, input);
+        let mut range = to_range(rule_span, input, columns);
         if let Some(first) = region.leading_comments.first() {
-            let (l, c) = input.line_column(first.left_extent);
-            range.start = Position::new(l, c);
+            range.start = to_position(first.left_extent, input, columns);
         }
         if let Some(trailing) = region.trailing_comment {
-            let (l, c) = input.line_column(trailing.right_extent);
-            range.end = Position::new(l, c);
+            range.end = to_position(trailing.right_extent, input, columns);
         }
 
         let head_span = spans.terminal(&rule.head).span;
@@ -105,7 +103,7 @@ pub fn document_symbols(
             tags: None,
             deprecated: None,
             range,
-            selection_range: to_range(head_span, input),
+            selection_range: to_range(head_span, input, columns),
             children: None,
         });
     }
@@ -128,7 +126,7 @@ mod tests {
         };
         let grammar_def = crate::build_grammar_def(tree, &input);
         let spans = build_spans(&grammar_def, tree, &input);
-        document_symbols(&grammar_def, &spans, &input)
+        document_symbols(&grammar_def, &spans, &input, &Utf16Columns::new(&input))
     }
 
     #[test]

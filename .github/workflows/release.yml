@@ -223,7 +223,7 @@ jobs:
         run: |
           if [ "$CREATE" = true ]; then
             "$RELEASE_HELPER" release --root "$GITHUB_WORKSPACE" prepare "$RELEASE_VERSION"
-            for manifest in Cargo.toml tests/Cargo.toml iguana-lsp/wasm/Cargo.toml terrarium/src-tauri/Cargo.toml; do
+            for manifest in Cargo.toml tests/Cargo.toml iguana-lsp/wasm/Cargo.toml iguana-runtime/wasm/Cargo.toml terrarium/src-tauri/Cargo.toml; do
               cargo update --workspace --manifest-path "$manifest"
             done
             # Fresh processes rebuild the compiler with the new embedded version.

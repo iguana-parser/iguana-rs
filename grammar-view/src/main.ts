@@ -221,8 +221,8 @@ const theme = EditorView.theme({
   },
 });
 
-// LSP positions are zero-based lines and characters; the grammars are ASCII, so
-// a character is a UTF-16 code unit.
+// LSP positions are zero-based lines and characters, and a character is a
+// column in UTF-16, as `pos - line.from` in CodeMirror is.
 const toOffset = (doc: Text, p: LspPosition) => doc.line(p.line + 1).from + p.character;
 const toLsp = (doc: Text, pos: number): LspPosition => {
   const line = doc.lineAt(pos);

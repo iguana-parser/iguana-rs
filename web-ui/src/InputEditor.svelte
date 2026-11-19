@@ -3,8 +3,8 @@
   import * as monaco from "monaco-editor";
 
   import type { ParseError } from "./backend";
-  import { charIndex, utf16OffsetTable } from "./char-offsets";
   import { codeFont, defineInputTheme, onThemeChange, remeasureOnFontLoad } from "./theme";
+  import { TextPositions } from "./text-positions";
 
   interface HighlightSpan {
     start: number;
@@ -106,7 +106,7 @@
       const pos = e.target.position;
       const model = editor.getModel();
       if (!pos || !model) return;
-      onclick(charIndex(model.getValue(), model.getOffsetAt(pos)));
+      onclick(positions(model).offset(pos.lineNumber - 1, pos.column - 1));
     });
 
     editor.onKeyDown((e) => {
@@ -156,21 +156,25 @@
     editor?.updateOptions({ readOnly });
   });
 
-  // The runtime reports positions as character indexes, so every marker and
-  // decoration converts through the offset table before asking Monaco for a
-  // position; the click handler converts the other way. The table is rebuilt
-  // only when the model text changes, so resolving many markers stays linear
-  // in the marker count instead of rescanning the input per marker.
-  let offsetTable: { versionId: number; offsets: Uint32Array | null } | null = null;
+  // The runtime's offsets are in characters, and a Monaco column is in UTF-16
+  // code units. Every marker and decoration gets its position from the model's
+  // `TextPositions`, and the click handler converts the other way. The
+  // positions are rebuilt only when the model text changes.
+  let modelPositions: { versionId: number; positions: TextPositions } | null = null;
 
-  function positionAt(model: monaco.editor.ITextModel, index: number): monaco.Position {
+  function positions(model: monaco.editor.ITextModel): TextPositions {
     const versionId = model.getVersionId();
-    if (offsetTable === null || offsetTable.versionId !== versionId) {
-      offsetTable = { versionId, offsets: utf16OffsetTable(model.getValue()) };
+    if (modelPositions === null || modelPositions.versionId !== versionId) {
+      modelPositions?.positions.free();
+      modelPositions = { versionId, positions: new TextPositions(model.getValue()) };
     }
-    const { offsets } = offsetTable;
-    const offset = offsets === null ? index : offsets[Math.min(index, offsets.length - 1)];
-    return model.getPositionAt(offset);
+    return modelPositions.positions;
+  }
+
+  // Monaco counts lines and columns from 1.
+  function positionAt(model: monaco.editor.ITextModel, index: number): monaco.Position {
+    const [line, column] = positions(model).position(index);
+    return new monaco.Position(line + 1, column + 1);
   }
 
   // Update error markers

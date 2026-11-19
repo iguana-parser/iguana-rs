@@ -14,6 +14,7 @@ use iguana_runtime::{
     arena::Arena,
     input::{Input, Span},
     parse_tree::ParseTreeNode,
+    utf16::Utf16Columns,
 };
 use lsp_types::{Position, Range};
 use std::time::Duration;
@@ -74,11 +75,22 @@ pub(crate) fn build<'a>(input: &Input, tree_arena: &'a Arena) -> BuildResult<'a>
     }
 }
 
-pub(crate) fn to_range(span: Span, input: &Input) -> Range {
-    let (start_line, start_column) = input.line_column(span.left_extent);
-    let (end_line, end_column) = input.line_column(span.right_extent);
+pub(crate) fn to_range(span: Span, input: &Input, columns: &Utf16Columns) -> Range {
     Range {
-        start: Position::new(start_line, start_column),
-        end: Position::new(end_line, end_column),
+        start: to_position(span.left_extent, input, columns),
+        end: to_position(span.right_extent, input, columns),
     }
+}
+
+/// In an LSP position, `character` is a column in UTF-16.
+pub(crate) fn to_position(offset: u32, input: &Input, columns: &Utf16Columns) -> Position {
+    let (line, column) = input.line_column(offset);
+    Position::new(line, columns.utf16_column(line, column))
+}
+
+/// The input offset of the LSP position `position`, or `None` when the
+/// position is not on a character of its line.
+pub(crate) fn to_offset(position: Position, input: &Input, columns: &Utf16Columns) -> Option<u32> {
+    let column = columns.char_column(position.line, position.character);
+    input.offset(position.line, column)
 }

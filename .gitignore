@@ -8,6 +8,7 @@ node_modules/
 terrarium/.svelte-kit
 terrarium/src-tauri/target
 iguana-lsp/wasm/target
+iguana-runtime/wasm/target
 # wasm-pack output for the lsp-wasm bundle
 iguana-lsp/wasm/pkg
 editors/vscode/out

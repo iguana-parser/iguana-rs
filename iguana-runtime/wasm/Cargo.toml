@@ -1,0 +1,32 @@
+# The crate ships for wasm through wasm-pack. A self-contained workspace keeps
+# the crate off the main workspace's build graph and out of rust-analyzer.
+[workspace]
+
+# Mirrors the root workspace lint policy (see the root Cargo.toml).
+[workspace.lints.rust]
+warnings = "deny"
+# No unsafe anywhere in the codebase; `forbid` so it cannot be re-enabled locally.
+unsafe_code = "forbid"
+
+[package]
+name = "iguana-runtime-wasm"
+version = "0.1.0"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+publish = false
+
+[lints]
+workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wasm-bindgen = "0.2"
+iguana-runtime = { path = ".." }
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"

@@ -2,6 +2,7 @@ use iggy::parse_tree::{Grammar, Layout, ParseTree, Start, Token};
 use iguana_runtime::{
     input::{Input, Span},
     parse_tree::ParseTreeNode,
+    utf16::Utf16Columns,
 };
 use lsp_types::{SemanticToken, SemanticTokenType, SemanticTokensLegend};
 
@@ -34,6 +35,7 @@ const TOKEN_LABEL: u32 = 6;
 pub(crate) fn semantic_tokens(
     tree: &Start<&Grammar<'_>, &Layout<'_>>,
     input: &Input,
+    columns: &Utf16Columns,
 ) -> Vec<SemanticToken> {
     let mut builder = SemanticTokensBuilder::new();
 
@@ -45,7 +47,7 @@ pub(crate) fn semantic_tokens(
         visit(child, &mut |node| match node {
             ParseTree::Token(token) => {
                 if let Some(token_type) = classify_token(&token) {
-                    builder.push_span(token.span(), token_type, input);
+                    builder.push_span(token.span(), token_type, input, columns);
                 }
                 false
             }
@@ -110,18 +112,22 @@ impl SemanticTokensBuilder {
     /// Pushes one token per line of `span`, because an LSP client does not have
     /// to support a token that spans lines. A string literal can contain a
     /// newline.
-    fn push_span(&mut self, span: Span, token_type: u32, input: &Input) {
+    fn push_span(&mut self, span: Span, token_type: u32, input: &Input, columns: &Utf16Columns) {
         let mut start = span.left_extent;
         while start < span.right_extent {
             let end = input.line_end(start).min(span.right_extent);
             if start < end {
                 let (line, column) = input.line_column(start);
-                self.push(line, column, end - start, token_type);
+                let utf16_start = columns.utf16_column(line, column);
+                let utf16_end = columns.utf16_column(line, column + (end - start));
+                self.push(line, utf16_start, utf16_end - utf16_start, token_type);
             }
             start = end + 1;
         }
     }
 
+    /// Pushes a token at `line` and the column in UTF-16 `column`, `length`
+    /// code units long, and encodes it relative to the previous token.
     fn push(&mut self, line: u32, column: u32, length: u32, token_type: u32) {
         let mut delta_line = line;
         let mut delta_start = column;
@@ -157,6 +163,46 @@ mod tests {
 
     fn tokenize(source: &str) -> Vec<SemanticToken> {
         Analysis::new(source).semantic_tokens().to_vec()
+    }
+
+    /// The text and token type of each token of `source`, in order. A token's
+    /// column and length are in UTF-16 code units.
+    fn tokens_of(source: &str) -> Vec<(String, u32)> {
+        let lines: Vec<Vec<u16>> = source
+            .split('\n')
+            .map(|line| line.encode_utf16().collect())
+            .collect();
+        let (mut line, mut column) = (0, 0);
+        tokenize(source)
+            .iter()
+            .map(|token| {
+                if token.delta_line > 0 {
+                    column = 0;
+                }
+                line += token.delta_line;
+                column += token.delta_start;
+                let units = &lines[line as usize][column as usize..][..token.length as usize];
+                (String::from_utf16(units).unwrap(), token.token_type)
+            })
+            .collect()
+    }
+
+    // A column and a length are in UTF-16 code units. The emoji is one
+    // character and two code units, so the tokens after it are one column
+    // further than in characters.
+    #[test]
+    fn a_column_is_in_utf16_code_units() {
+        let source = "grammar G\nS = \"😀\" #A | \"x\"";
+        let expected = [
+            ("S", TOKEN_TYPE),
+            ("=", TOKEN_OPERATOR),
+            ("\"😀\"", TOKEN_STRING),
+            ("#A", TOKEN_LABEL),
+            ("|", TOKEN_OPERATOR),
+            ("\"x\"", TOKEN_STRING),
+        ]
+        .map(|(text, token_type)| (text.to_string(), token_type));
+        assert_eq!(tokens_of(source)[2..], expected);
     }
 
     #[test]

@@ -6,6 +6,7 @@ use iguana_compiler::grammar::def::GrammarDef;
 use iguana_compiler::spans::GrammarSpans;
 use iguana_compiler::validation::{GrammarError, validate};
 use iguana_runtime::input::Input;
+use iguana_runtime::utf16::Utf16Columns;
 use lsp_types::{Diagnostic, DiagnosticSeverity};
 
 use crate::to_range;
@@ -14,18 +15,19 @@ pub fn diagnostics<'a>(
     grammar_def: &'a GrammarDef,
     spans: &GrammarSpans<'a>,
     input: &Input,
+    columns: &Utf16Columns,
 ) -> Vec<Diagnostic> {
     validate(grammar_def, spans)
         .into_iter()
-        .map(|error| to_diagnostic(error, input))
+        .map(|error| to_diagnostic(error, input, columns))
         .collect()
 }
 
 /// A grammar error as an editor diagnostic, with the span converted to a
 /// range of line and column positions.
-pub fn to_diagnostic(error: GrammarError, input: &Input) -> Diagnostic {
+pub fn to_diagnostic(error: GrammarError, input: &Input, columns: &Utf16Columns) -> Diagnostic {
     Diagnostic {
-        range: to_range(error.span, input),
+        range: to_range(error.span, input, columns),
         severity: Some(DiagnosticSeverity::ERROR),
         message: error.message,
         ..Default::default()
@@ -48,7 +50,7 @@ mod tests {
         };
         let grammar_def = crate::build_grammar_def(tree, &input);
         let spans = build_spans(&grammar_def, tree, &input);
-        diagnostics(&grammar_def, &spans, &input)
+        diagnostics(&grammar_def, &spans, &input, &Utf16Columns::new(&input))
     }
 
     /// A parse failure at the end of the input has the empty span at the
@@ -61,7 +63,7 @@ mod tests {
         let crate::BuildResult::Error(error) = crate::build(&input, &tree_arena) else {
             panic!("expected a parse error");
         };
-        let d = to_diagnostic(error, &input);
+        let d = to_diagnostic(error, &input, &Utf16Columns::new(&input));
         assert_eq!(d.range.start, Position::new(0, 7));
         assert_eq!(d.range.end, Position::new(0, 7));
     }
@@ -73,7 +75,7 @@ mod tests {
         let crate::BuildResult::Error(error) = crate::build(&input, &tree_arena) else {
             panic!("expected a parse error for the removed annotation");
         };
-        let d = to_diagnostic(error, &input);
+        let d = to_diagnostic(error, &input, &Utf16Columns::new(&input));
         assert_eq!(d.severity, Some(DiagnosticSeverity::ERROR));
         assert_eq!(d.range.start, Position::new(2, 0));
         assert_eq!(d.range.end, Position::new(2, 1));

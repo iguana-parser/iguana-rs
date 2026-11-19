@@ -152,6 +152,7 @@ website.
 | `cargo xtask test-gen-all` | Run `test-gen` for every directory under `tests/` that has a grammar file. |
 | `cargo xtask test-rm <name>` | Remove a grammar test: delete the directory and remove the crate from the grammar-test workspace's `members`. |
 | `cargo xtask wasm [test]` | Generate a WebAssembly bundle for Iggy, or for the named grammar test, under `target/wasm/` and build it with `wasm-pack` against the local runtime. Requires `wasm-pack` and the `wasm32-unknown-unknown` target. |
+| `cargo xtask runtime-wasm` | Rebuild the runtime's wasm package in `web-ui/src/runtime-wasm`. Requires `wasm-pack` and the `wasm32-unknown-unknown` target. |
 | `cargo xtask terrarium` | Install `iguana`, then launch the Terrarium dev server. |
 
 ## Bootstrapping
@@ -189,6 +190,7 @@ directory containing the changed code:
 | Generated Rust or scaffolding shared by grammar tests | Run `cargo xtask test-gen-all`. | Rewrites every generated parser crate under `tests/`. |
 | Grammar-test s-expression expectations | Run `cargo xtask test --regen`. | Rewrites the golden files without running the Rust tests. |
 | A generated WebAssembly parser, wrapper, or manifest | Run `cargo xtask wasm [test]`. | Rebuilds the selected bundle under the ignored `target/wasm/` directory. |
+| The runtime's wasm package | Run `cargo xtask runtime-wasm`, then rebuild the viewer. | Rewrites the committed `web-ui/src/runtime-wasm/` package. |
 | The static viewer embedded in the `iguana` binary | Run `npm run build --workspace web-viewer`. | Rewrites the committed `iguana/viewer-dist/` bundle. |
 | Terrarium's Rust-to-TypeScript command bindings | Start a debug build with `npm run tauri dev` in `terrarium/`. | Specta rewrites `terrarium/src/bindings.ts` when the app starts. |
 

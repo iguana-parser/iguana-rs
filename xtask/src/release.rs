@@ -23,10 +23,11 @@ const PACKAGES: [&str; 5] = [
     "iguana-lsp",
 ];
 const INTERNAL_KEYS: [&str; 3] = ["iguana-runtime", "iggy", "iguana-compiler"];
-const LOCKFILES: [&str; 4] = [
+const LOCKFILES: [&str; 5] = [
     "Cargo.lock",
     "tests/Cargo.lock",
     "iguana-lsp/wasm/Cargo.lock",
+    "iguana-runtime/wasm/Cargo.lock",
     "terrarium/src-tauri/Cargo.lock",
 ];
 

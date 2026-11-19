@@ -74,6 +74,7 @@ jobs:
       - run: cargo fmt --manifest-path tests/Cargo.toml --all --check
       - run: cargo fmt --manifest-path terrarium/src-tauri/Cargo.toml --all --check
       - run: cargo fmt --manifest-path iguana-lsp/wasm/Cargo.toml --all --check
+      - run: cargo fmt --manifest-path iguana-runtime/wasm/Cargo.toml --all --check
 
   check:
     name: cargo check
@@ -135,11 +136,15 @@ jobs:
           targets: wasm32-unknown-unknown
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: iguana-lsp/wasm
-      # The crate ships for wasm32 through wasm-pack. Clippy checks the same
+          workspaces: |
+            iguana-lsp/wasm
+            iguana-runtime/wasm
+      # The crates ship for wasm32 through wasm-pack. Clippy checks the same
       # target.
       - run: cargo clippy --manifest-path iguana-lsp/wasm/Cargo.toml --target wasm32-unknown-unknown --all-targets
       - run: cargo test --manifest-path iguana-lsp/wasm/Cargo.toml
+      - run: cargo clippy --manifest-path iguana-runtime/wasm/Cargo.toml --target wasm32-unknown-unknown --all-targets
+      - run: cargo test --manifest-path iguana-runtime/wasm/Cargo.toml
 
   npm-check:
     name: svelte-check

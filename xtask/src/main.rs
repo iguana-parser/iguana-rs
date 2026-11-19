@@ -81,6 +81,9 @@ enum Commands {
         /// Name of a grammar test under tests/ (defaults to the iggy grammar)
         test: Option<String>,
     },
+    /// Rebuild the runtime's wasm module for the browser editors
+    /// (iguana-runtime/wasm) into web-ui/src/runtime-wasm
+    RuntimeWasm,
 }
 
 fn main() -> ExitCode {
@@ -109,6 +112,7 @@ fn run() -> io::Result<()> {
         Commands::InstallVscodeExtension => install_vscode_extension(),
         Commands::Terrarium => terrarium(),
         Commands::Wasm { test } => wasm(test.as_deref()),
+        Commands::RuntimeWasm => runtime_wasm(),
     }
 }
 
@@ -610,6 +614,135 @@ fn viewer() -> io::Result<()> {
     Ok(())
 }
 
+/// Rebuild the runtime's wasm module (iguana-runtime/wasm) with wasm-pack into
+/// web-ui/src/runtime-wasm, inside the package that imports it. The package is
+/// committed, because web-ui bundles it into the committed viewer
+/// (iguana/viewer-dist), and a viewer build then needs no Rust toolchain. Only
+/// the JavaScript glue and its type declarations are kept, with the module's
+/// bytes in a JavaScript module (below); wasm-pack's `.gitignore` would hide
+/// the package from git.
+///
+/// The module's bytes are written as a JavaScript module of one base64
+/// string, `iguana_runtime_wasm_bytes.js`, in place of the `.wasm` file.
+/// web-ui imports it and initializes the module when it loads, which a bundler
+/// and a test runner both handle without configuration for `.wasm` files. The
+/// glue's default path to the `.wasm` file is removed, as wasm-bindgen's
+/// `--omit-default-module-path` would, since a bundler would otherwise ship
+/// the file a second time.
+///
+/// The module holds the paths of its source files, in its panic locations.
+/// The build remaps the home directory to `~`, the standard library's sources
+/// to `/rustc/<commit>`, and the repository to `iguana-rs`, so the committed
+/// module does not contain this machine's paths.
+fn runtime_wasm() -> io::Result<()> {
+    let crate_dir = workspace_root().join("iguana-runtime/wasm");
+    // Of two remappings that match a path, rustc applies the later one, so the
+    // ones inside the home directory come after the home directory's.
+    let mut rustflags = vec![];
+    if let Some(home) = std::env::home_dir() {
+        rustflags.push(format!("--remap-path-prefix={}=~", home.display()));
+    }
+    // A path into the standard library's sources names the toolchain's
+    // directory, and with it the host. The precompiled standard library has
+    // `/rustc/<commit>` in its paths, and the remapping uses the same prefix.
+    let sysroot = rustc_output(&crate_dir, &["--print", "sysroot"])?;
+    let version = rustc_output(&crate_dir, &["-vV"])?;
+    let commit = version
+        .lines()
+        .find_map(|line| line.strip_prefix("commit-hash: "))
+        .ok_or_else(|| io::Error::other("rustc -vV did not print a commit hash"))?;
+    rustflags.push(format!(
+        "--remap-path-prefix={}/lib/rustlib/src/rust=/rustc/{commit}",
+        sysroot.trim()
+    ));
+    rustflags.push(format!(
+        "--remap-path-prefix={}=iguana-rs",
+        workspace_root().display()
+    ));
+    println!("Building the runtime wasm module...");
+    let status = Command::new("wasm-pack")
+        .current_dir(&crate_dir)
+        // Separated by 0x1f, so a path may contain spaces.
+        .env("CARGO_ENCODED_RUSTFLAGS", rustflags.join("\x1f"))
+        .args(["build", "--target", "web", "--release", "--out-dir"])
+        .arg(workspace_root().join("web-ui/src/runtime-wasm"))
+        .status()
+        .map_err(|e| match e.kind() {
+            io::ErrorKind::NotFound => io::Error::other("wasm-pack not found on PATH"),
+            _ => e,
+        })?;
+    if !status.success() {
+        return Err(io::Error::other("wasm-pack build failed"));
+    }
+    let pkg = workspace_root().join("web-ui/src/runtime-wasm");
+    for file in [".gitignore", "package.json", "README.md"] {
+        let path = pkg.join(file);
+        if path.exists() {
+            fs::remove_file(path)?;
+        }
+    }
+    let glue_path = pkg.join("iguana_runtime_wasm.js");
+    let glue = fs::read_to_string(&glue_path)?;
+    let default_path = "module_or_path = new URL('iguana_runtime_wasm_bg.wasm', import.meta.url);";
+    if glue.matches(default_path).count() != 1 {
+        return Err(io::Error::other(
+            "the wasm-bindgen glue does not have its default module path in the expected form",
+        ));
+    }
+    fs::write(
+        &glue_path,
+        glue.replace(
+            default_path,
+            "throw new Error('the module is initialized with initSync');",
+        ),
+    )?;
+    let wasm_path = pkg.join("iguana_runtime_wasm_bg.wasm");
+    let bytes = fs::read(&wasm_path)?;
+    fs::remove_file(&wasm_path)?;
+    fs::remove_file(pkg.join("iguana_runtime_wasm_bg.wasm.d.ts"))?;
+    fs::write(
+        pkg.join("iguana_runtime_wasm_bytes.js"),
+        format!(
+            "// The bytes of the wasm module in base64, written by \
+             `cargo xtask runtime-wasm`.\nexport default \"{}\";\n",
+            base64(&bytes)
+        ),
+    )?;
+    fs::write(
+        pkg.join("iguana_runtime_wasm_bytes.d.ts"),
+        "declare const bytes: string;\nexport default bytes;\n",
+    )?;
+    Ok(())
+}
+
+/// The output of `rustc` with `args`, run in `dir`, so a toolchain file there
+/// selects the same toolchain as the build.
+fn rustc_output(dir: &Path, args: &[&str]) -> io::Result<String> {
+    let output = Command::new("rustc").current_dir(dir).args(args).output()?;
+    if !output.status.success() {
+        return Err(io::Error::other(format!("rustc {} failed", args.join(" "))));
+    }
+    String::from_utf8(output.stdout).map_err(io::Error::other)
+}
+
+fn base64(bytes: &[u8]) -> String {
+    const ALPHABET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    let mut encoded = String::with_capacity(bytes.len().div_ceil(3) * 4);
+    for chunk in bytes.chunks(3) {
+        let group = chunk.iter().enumerate().fold(0u32, |group, (i, &byte)| {
+            group | (byte as u32) << (16 - 8 * i)
+        });
+        for i in 0..4 {
+            if i <= chunk.len() {
+                encoded.push(ALPHABET[(group >> (18 - 6 * i) & 63) as usize] as char);
+            } else {
+                encoded.push('=');
+            }
+        }
+    }
+    encoded
+}
+
 fn install() -> io::Result<()> {
     viewer()?;
     install_workspace_binary("iguana", "iguana")?;
@@ -777,4 +910,16 @@ fn workspace_root() -> &'static Path {
             .expect("xtask must live one level below the workspace root")
             .to_path_buf()
     })
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn base64_pads_the_last_group() {
+        assert_eq!(super::base64(b""), "");
+        assert_eq!(super::base64(b"f"), "Zg==");
+        assert_eq!(super::base64(b"fo"), "Zm8=");
+        assert_eq!(super::base64(b"foo"), "Zm9v");
+        assert_eq!(super::base64(b"foobar"), "Zm9vYmFy");
+    }
 }

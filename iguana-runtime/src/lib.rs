@@ -16,6 +16,7 @@ pub mod result;
 pub mod scanner;
 pub mod sppf;
 pub mod trace;
+pub mod utf16;
 pub mod utils;
 pub mod visualization;
 
