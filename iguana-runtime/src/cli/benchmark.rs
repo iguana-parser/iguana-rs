@@ -44,6 +44,8 @@ pub(super) fn run<'i, 'arena, P: Parser<'i, 'arena>>(args: &Args) -> io::Result<
             warmup: args.warmup.unwrap_or(10) as usize,
             save: args.save.clone(),
             baseline: args.baseline.clone(),
+            memory: false,
+            size_classes: None,
         };
         eprintln!(
             "Benchmarking {} over {} {}...",
@@ -66,8 +68,12 @@ pub(super) fn run<'i, 'arena, P: Parser<'i, 'arena>>(args: &Args) -> io::Result<
                 &mut tree_arena,
                 &mut parser_arena,
                 &mut stats,
+                None,
             );
-            stats
+            PassResult {
+                phases: stats,
+                classes: None,
+            }
         });
     }
     let config = BenchConfig {
@@ -76,6 +82,15 @@ pub(super) fn run<'i, 'arena, P: Parser<'i, 'arena>>(args: &Args) -> io::Result<
         warmup: args.warmup.unwrap_or(0) as usize,
         save: args.save.clone(),
         baseline: args.baseline.clone(),
+        memory: args.memory,
+        size_classes: if args.histogram {
+            Some(match args.size_classes.as_deref() {
+                Some(kib) => SizeClasses::new(kib)?,
+                None => SizeClasses::default(),
+            })
+        } else {
+            None
+        },
     };
     let mut groups: Vec<(String, Vec<(PathBuf, NonterminalId)>)> = Vec::new();
     if let Some(list) = args.files_from.as_ref() {
@@ -170,6 +185,11 @@ pub(super) fn run<'i, 'arena, P: Parser<'i, 'arena>>(args: &Args) -> io::Result<
     let mut pass = 0usize;
     let mut tree_arena = Arena::new();
     let mut parser_arena = Arena::new();
+    // With --histogram, the successful files of a measured pass, reserved
+    // once for every file so that no pass allocates while it parses.
+    let size_classes = config.size_classes.clone();
+    let histogram = size_classes.is_some();
+    let mut file_samples = Vec::with_capacity(if histogram { total_files } else { 0 });
     run_benchmark(config, move || {
         if pass > 0 {
             eprintln!();
@@ -189,6 +209,7 @@ pub(super) fn run<'i, 'arena, P: Parser<'i, 'arena>>(args: &Args) -> io::Result<
         );
         pass += 1;
         let mut stats = Pass::default();
+        file_samples.clear();
         for (label, files) in &groups {
             eprint!("  {}...", label);
             let _ = io::stderr().flush();
@@ -200,6 +221,7 @@ pub(super) fn run<'i, 'arena, P: Parser<'i, 'arena>>(args: &Args) -> io::Result<
                     &mut tree_arena,
                     &mut parser_arena,
                     &mut stats,
+                    (histogram && !is_warmup).then_some(&mut file_samples),
                 );
             }
             let source_time = total_time(&stats) - time_before;
@@ -217,7 +239,13 @@ pub(super) fn run<'i, 'arena, P: Parser<'i, 'arena>>(args: &Args) -> io::Result<
             run_num,
             group_digits(&format!("{:.0}", run_ms))
         );
-        stats
+        PassResult {
+            phases: stats,
+            classes: size_classes
+                .as_ref()
+                .filter(|_| !is_warmup)
+                .map(|classes| classify(&file_samples, classes)),
+        }
     })
 }
 
@@ -234,12 +262,16 @@ pub(super) fn file_list(text: &str) -> Vec<PathBuf> {
 /// `prepare` phase is measured. The caller's arenas are reused across files
 /// and reset between them, so they keep their chunks and teardown is a bulk
 /// reset rather than a per-file free, the pattern the arena is built for.
+/// With `samples`, a file of the Success group is also added to it, after
+/// its timers stop. The caller reserves the capacity before the pass, so the
+/// push does not allocate.
 fn bench_parse_file<'i, 'arena, P: Parser<'i, 'arena>>(
     path: &Path,
     start_nonterminal_id: NonterminalId,
     tree_arena: &mut Arena,
     parser_arena: &mut Arena,
     pass: &mut Pass,
+    samples: Option<&mut Vec<FileSample>>,
 ) {
     // Reading the file is deliberately not included in benchmarks. It
     // measures the file system rather than the parser, and its time varies
@@ -297,6 +329,12 @@ fn bench_parse_file<'i, 'arena, P: Parser<'i, 'arena>>(
     record(pass, Phase::Parse, parse, bytes);
     record(pass, Phase::Tree, tree, bytes);
     record(pass, Phase::Drop, drop, bytes);
+    if let Some(samples) = samples {
+        samples.push(FileSample {
+            bytes,
+            times: [init, parse, tree, drop],
+        });
+    }
 }
 
 /// The mode of a benchmark: a single file, or every file of a directory, a
@@ -313,6 +351,52 @@ struct BenchConfig {
     warmup: usize,
     save: Option<PathBuf>,
     baseline: Option<PathBuf>,
+    /// Whether to read the memory of the process after each pass.
+    memory: bool,
+    /// The size classes of `--histogram`, without it none.
+    size_classes: Option<SizeClasses>,
+}
+
+/// The memory of the process after a pass, in bytes, read outside the
+/// timers: the peak resident set size so far, and on Linux the current one.
+#[derive(Clone, Copy)]
+struct MemoryReading {
+    max_rss: Option<u64>,
+    rss: Option<u64>,
+}
+
+fn read_memory() -> MemoryReading {
+    MemoryReading {
+        max_rss: max_rss(),
+        rss: current_rss(),
+    }
+}
+
+/// The peak resident set size of the process so far.
+#[cfg(unix)]
+fn max_rss() -> Option<u64> {
+    use nix::sys::resource::{UsageWho, getrusage};
+    let max_rss = u64::try_from(getrusage(UsageWho::RUSAGE_SELF).ok()?.max_rss()).ok()?;
+    // macOS reports bytes, Linux and the BSDs kilobytes.
+    Some(if cfg!(target_vendor = "apple") {
+        max_rss
+    } else {
+        max_rss * 1024
+    })
+}
+
+#[cfg(not(unix))]
+fn max_rss() -> Option<u64> {
+    None
+}
+
+/// The current resident set size of the process, from `/proc/self/status`,
+/// which only Linux has.
+fn current_rss() -> Option<u64> {
+    let status = fs::read_to_string("/proc/self/status").ok()?;
+    let line = status.lines().find(|line| line.starts_with("VmRSS:"))?;
+    let kilobytes: u64 = line.split_whitespace().nth(1)?.parse().ok()?;
+    Some(kilobytes * 1024)
 }
 
 struct BenchSummary {
@@ -391,6 +475,137 @@ struct PhaseStats {
 /// The stats of one pass over the files of a benchmark, indexed by `Phase`.
 type Pass = [PhaseStats; Phase::COUNT];
 
+/// The size classes of `--histogram` and of the throughput table of `--dir`:
+/// the exclusive upper bound of each class in bytes, and its label.
+const SIZE_CLASSES: [(u64, &str); 7] = [
+    (1 << 10, "< 1 KiB"),
+    (4 << 10, "1-4 KiB"),
+    (16 << 10, "4-16 KiB"),
+    (64 << 10, "16-64 KiB"),
+    (256 << 10, "64-256 KiB"),
+    (1 << 20, "256 KiB-1 MiB"),
+    (u64::MAX, ">= 1 MiB"),
+];
+
+/// The size classes of `--histogram`: the exclusive upper bound of each
+/// class in bytes, the last one `u64::MAX`, and the label of each.
+#[derive(Clone)]
+pub(super) struct SizeClasses {
+    limits: Vec<u64>,
+    pub(super) labels: Vec<String>,
+}
+
+/// The classes of `SIZE_CLASSES`.
+impl Default for SizeClasses {
+    fn default() -> Self {
+        Self {
+            limits: SIZE_CLASSES.iter().map(|(limit, _)| *limit).collect(),
+            labels: SIZE_CLASSES
+                .iter()
+                .map(|(_, label)| label.to_string())
+                .collect(),
+        }
+    }
+}
+
+impl SizeClasses {
+    /// The classes of `--size-classes`, from their upper bounds in KiB.
+    fn new(kib: &[u64]) -> io::Result<Self> {
+        let valid = !kib.is_empty()
+            && kib[0] > 0
+            && kib.windows(2).all(|pair| pair[0] < pair[1])
+            && kib[kib.len() - 1] < 1 << 40;
+        if !valid {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "--size-classes takes increasing bounds in KiB, the first above 0 and the last below 2^40",
+            ));
+        }
+        // A bound in MiB when it is a whole number of MiB, and a range
+        // names its unit once when both bounds share it: 4-16 KiB,
+        // 256 KiB-1 MiB.
+        let mib = |k: u64| k.is_multiple_of(1024);
+        let size = |k: u64| {
+            if mib(k) {
+                format!("{} MiB", k / 1024)
+            } else {
+                format!("{} KiB", k)
+            }
+        };
+        let mut labels = vec![format!("< {}", size(kib[0]))];
+        for pair in kib.windows(2) {
+            let (low, high) = (pair[0], pair[1]);
+            labels.push(if mib(low) == mib(high) {
+                let low = if mib(low) { low / 1024 } else { low };
+                format!("{}-{}", low, size(high))
+            } else {
+                format!("{}-{}", size(low), size(high))
+            });
+        }
+        labels.push(format!(">= {}", size(kib[kib.len() - 1])));
+        let mut limits: Vec<u64> = kib.iter().map(|k| k << 10).collect();
+        limits.push(u64::MAX);
+        Ok(Self { limits, labels })
+    }
+
+    /// The index of the class of a file of `bytes` bytes.
+    pub(super) fn index(&self, bytes: u64) -> usize {
+        self.limits
+            .iter()
+            .position(|limit| bytes < *limit)
+            .unwrap_or(self.limits.len() - 1)
+    }
+}
+
+/// The phases of the Success group that the total counts, in the order of
+/// the times of `FileSample` and `ClassStats`.
+const TIMED: [Phase; 4] = [Phase::Init, Phase::Parse, Phase::Tree, Phase::Drop];
+
+/// The index of `Phase::Parse` in `TIMED`, for the parse throughput.
+const TIMED_PARSE: usize = 1;
+const _: () = assert!(matches!(TIMED[TIMED_PARSE], Phase::Parse));
+
+/// A file of the Success group, kept for `--histogram`: its size and the time
+/// of each `TIMED` phase.
+#[derive(Clone, Copy)]
+struct FileSample {
+    bytes: u64,
+    times: [Duration; 4],
+}
+
+/// The files of one size class in one pass: their number, their size, and
+/// the time of each `TIMED` phase.
+#[derive(Clone, Copy, Default)]
+struct ClassStats {
+    files: usize,
+    bytes: u64,
+    times: [Duration; 4],
+}
+
+/// The size classes of one pass, indexed like the classes of `SizeClasses`.
+type ClassPass = Vec<ClassStats>;
+
+/// Adds up the files of a pass by size class.
+fn classify(samples: &[FileSample], size_classes: &SizeClasses) -> ClassPass {
+    let mut classes = vec![ClassStats::default(); size_classes.labels.len()];
+    for sample in samples {
+        let class = &mut classes[size_classes.index(sample.bytes)];
+        class.files += 1;
+        class.bytes += sample.bytes;
+        for (total, time) in class.times.iter_mut().zip(sample.times) {
+            *total += time;
+        }
+    }
+    classes
+}
+
+/// The result of one pass: the stats of its phases, and with `--histogram`
+/// the stats of its size classes.
+struct PassResult {
+    phases: Pass,
+    classes: Option<ClassPass>,
+}
+
 /// Adds a file of `bytes` bytes that took `time` in `phase` to `pass`.
 fn record(pass: &mut Pass, phase: Phase, time: Duration, bytes: u64) {
     let stats = &mut pass[phase as usize];
@@ -427,9 +642,16 @@ fn as_ms(time: Duration) -> f64 {
 /// JSON. If `config.baseline` is set, loads a prior run and reports the mean
 /// delta on the reported total with a 95% CI on the difference (Welch's SE
 /// for unequal variances).
-fn run_benchmark(config: BenchConfig, mut parse_once: impl FnMut() -> Pass) -> io::Result<()> {
+fn run_benchmark(
+    config: BenchConfig,
+    mut parse_once: impl FnMut() -> PassResult,
+) -> io::Result<()> {
     // The time of each phase in each measured pass, indexed by `Phase`.
     let mut samples: [Vec<f64>; Phase::COUNT] = Default::default();
+    // The size classes of each measured pass, with --histogram.
+    let mut class_passes: Vec<ClassPass> = Vec::new();
+    // The memory after each pass, warmups included, with --memory.
+    let mut memory: Vec<MemoryReading> = Vec::new();
     // The time of the parsed files and of all files in each measured pass.
     // Neither counts input preparation, so the two reconcile: the time of
     // all files is the total plus the time of the files that failed.
@@ -440,8 +662,15 @@ fn run_benchmark(config: BenchConfig, mut parse_once: impl FnMut() -> Pass) -> i
     let mut last_pass = Pass::default();
 
     for i in 0..(config.warmup + config.iters) {
-        let pass = parse_once();
+        let PassResult {
+            phases: pass,
+            classes,
+        } = parse_once();
+        if config.memory {
+            memory.push(read_memory());
+        }
         if i >= config.warmup {
+            class_passes.extend(classes);
             for (phase_samples, stats) in samples.iter_mut().zip(&pass) {
                 phase_samples.push(as_ms(stats.time));
             }
@@ -588,6 +817,19 @@ fn run_benchmark(config: BenchConfig, mut parse_once: impl FnMut() -> Pass) -> i
         );
     }
 
+    let size_classes = config
+        .size_classes
+        .as_ref()
+        .map_or_else(Vec::new, |classes| {
+            summarize_classes(&class_passes, classes)
+        });
+    if !class_passes.is_empty() {
+        print_size_classes(&size_classes, &color);
+    }
+    if config.memory {
+        print_memory(&memory, config.warmup, &color);
+    }
+
     if let Some(ref path) = config.save {
         let mut json = serde_json::json!({
             "files": success.files,
@@ -603,6 +845,40 @@ fn run_benchmark(config: BenchConfig, mut parse_once: impl FnMut() -> Pass) -> i
         }
         if config.mode == BenchMode::Single {
             json["status"] = status.into();
+        }
+        if !class_passes.is_empty() {
+            json["size_classes"] = size_classes
+                .iter()
+                .map(|row| {
+                    let mut entry = serde_json::json!({
+                        "class": row.label,
+                        "files": row.files,
+                        "bytes": row.bytes,
+                        "total_ms": row.total_ms,
+                        "mb_per_s": mb_per_s(row.bytes, row.total_ms),
+                        "parse_mb_per_s": mb_per_s(row.bytes, row.phase_ms[TIMED_PARSE]),
+                    });
+                    for (phase, ms) in TIMED.iter().zip(row.phase_ms) {
+                        entry[format!("{}_ms", phase.name())] = ms.into();
+                    }
+                    entry
+                })
+                .collect::<Vec<_>>()
+                .into();
+        }
+        if config.memory {
+            json["memory"] = memory
+                .iter()
+                .enumerate()
+                .map(|(i, reading)| {
+                    serde_json::json!({
+                        "kind": if i < config.warmup { "warmup" } else { "run" },
+                        "max_rss_bytes": reading.max_rss,
+                        "rss_bytes": reading.rss,
+                    })
+                })
+                .collect::<Vec<_>>()
+                .into();
         }
         fs::write(path, serde_json::to_string_pretty(&json).unwrap())?;
         eprintln!("Saved baseline to {}", path.display());
@@ -670,6 +946,125 @@ fn run_benchmark(config: BenchConfig, mut parse_once: impl FnMut() -> Pass) -> i
     }
 
     Ok(())
+}
+
+/// A size class over the measured passes: its files and size, which every
+/// pass shares, and the median over the passes of the time of each `TIMED`
+/// phase and of their sum.
+struct ClassRow {
+    label: String,
+    files: usize,
+    bytes: u64,
+    phase_ms: [f64; 4],
+    total_ms: f64,
+}
+
+/// The rows of the size classes that have files. Each time is the median of
+/// the class's sums over the passes, as the total of the benchmark is the
+/// median of its sums, so the classes need not add up to that total.
+fn summarize_classes(passes: &[ClassPass], size_classes: &SizeClasses) -> Vec<ClassRow> {
+    let Some(last) = passes.last() else {
+        return Vec::new();
+    };
+    let median = |ms: Vec<f64>| summarize(&ms).median;
+    size_classes
+        .labels
+        .iter()
+        .enumerate()
+        .filter(|(class, _)| last[*class].files > 0)
+        .map(|(class, label)| ClassRow {
+            label: label.clone(),
+            files: last[class].files,
+            bytes: last[class].bytes,
+            phase_ms: std::array::from_fn(|phase| {
+                median(
+                    passes
+                        .iter()
+                        .map(|p| as_ms(p[class].times[phase]))
+                        .collect(),
+                )
+            }),
+            total_ms: median(
+                passes
+                    .iter()
+                    .map(|p| as_ms(p[class].times.iter().sum()))
+                    .collect(),
+            ),
+        })
+        .collect()
+}
+
+/// Prints the throughput table of `--histogram`.
+fn print_size_classes(rows: &[ClassRow], color: &Color) {
+    println!();
+    println!(
+        "Throughput of the Success group by file size (median of the measured iterations, times in ms):"
+    );
+    println!();
+    println!(
+        "  {}{:<13}{:>9}{:>15}{:>10}{:>10}{:>10}{:>10}{:>11}{:>9}{:>12}{}",
+        color.bold,
+        "size class",
+        "files",
+        "bytes",
+        "init",
+        "parse",
+        "tree",
+        "drop",
+        "total",
+        "MB/s",
+        "parse MB/s",
+        color.reset
+    );
+    let decimals = ms_decimals(rows.iter().map(|r| r.total_ms).fold(0.0, f64::max));
+    for row in rows {
+        println!(
+            "  {:<13}{:>9}{:>15}{:>10}{:>10}{:>10}{:>10}{:>11}{:>9.2}{:>12.2}",
+            row.label,
+            group_digits(&row.files.to_string()),
+            group_digits(&row.bytes.to_string()),
+            fmt_ms(row.phase_ms[0], decimals),
+            fmt_ms(row.phase_ms[1], decimals),
+            fmt_ms(row.phase_ms[2], decimals),
+            fmt_ms(row.phase_ms[3], decimals),
+            fmt_ms(row.total_ms, decimals),
+            mb_per_s(row.bytes, row.total_ms),
+            mb_per_s(row.bytes, row.phase_ms[TIMED_PARSE]),
+        );
+    }
+    println!();
+    println!(
+        "Each time is the median of the class's sums over the iterations, so the\n\
+         classes need not add up to the median total."
+    );
+}
+
+/// Prints the memory readings of `--memory`, one row per pass.
+fn print_memory(readings: &[MemoryReading], warmup: usize, color: &Color) {
+    let mb = |bytes: Option<u64>| match bytes {
+        Some(bytes) => format!("{:.1}", bytes as f64 / 1_000_000.0),
+        None => "-".to_string(),
+    };
+    println!();
+    println!("Memory after each iteration (MB; peak RSS so far, and the current RSS on Linux):");
+    println!();
+    println!(
+        "  {}{:<12}{:>14}{:>14}{}",
+        color.bold, "iteration", "peak RSS", "RSS", color.reset
+    );
+    for (i, reading) in readings.iter().enumerate() {
+        let label = if i < warmup {
+            format!("warmup {}", i + 1)
+        } else {
+            format!("run {}", i - warmup + 1)
+        };
+        println!(
+            "  {:<12}{:>14}{:>14}",
+            label,
+            mb(reading.max_rss),
+            mb(reading.rss)
+        );
+    }
 }
 
 /// Prints the header of a phase table, bold on a terminal.
@@ -799,6 +1194,93 @@ mod tests {
                 PathBuf::from("sub/c.sql"),
             ]
         );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn the_peak_rss_is_read_in_bytes() {
+        // A process of this test binary holds at least a megabyte.
+        assert!(max_rss().unwrap() > 1_000_000);
+    }
+
+    #[test]
+    fn size_class_bounds_are_exclusive() {
+        let classes = SizeClasses::default();
+        let size_class = |bytes| classes.index(bytes);
+        assert_eq!(size_class(0), 0);
+        assert_eq!(size_class(1023), 0);
+        assert_eq!(size_class(1024), 1);
+        assert_eq!(size_class(256 * 1024 - 1), 4);
+        assert_eq!(size_class(1024 * 1024 - 1), 5);
+        assert_eq!(size_class(1024 * 1024), 6);
+        assert_eq!(size_class(u64::MAX), 6);
+        assert_eq!(classes.labels[6], ">= 1 MiB");
+    }
+
+    #[test]
+    fn size_classes_from_bounds_in_kib() {
+        let classes = SizeClasses::new(&[4, 16, 64, 256]).unwrap();
+        assert_eq!(
+            classes.labels,
+            [
+                "< 4 KiB",
+                "4-16 KiB",
+                "16-64 KiB",
+                "64-256 KiB",
+                ">= 256 KiB"
+            ]
+        );
+        assert_eq!(classes.index(0), 0);
+        assert_eq!(classes.index(4 * 1024 - 1), 0);
+        assert_eq!(classes.index(4 * 1024), 1);
+        assert_eq!(classes.index(256 * 1024 - 1), 3);
+        assert_eq!(classes.index(256 * 1024), 4);
+        assert_eq!(classes.index(u64::MAX), 4);
+        let large = SizeClasses::new(&[256, 1024, 4096]).unwrap();
+        assert_eq!(
+            large.labels,
+            ["< 256 KiB", "256 KiB-1 MiB", "1-4 MiB", ">= 4 MiB"]
+        );
+        for bad in [&[][..], &[0, 4], &[4, 4], &[16, 4]] {
+            assert!(SizeClasses::new(bad).is_err());
+        }
+    }
+
+    #[test]
+    fn classify_adds_up_the_files_of_each_class() {
+        let ms = Duration::from_millis;
+        let sample = |bytes, t| FileSample {
+            bytes,
+            times: [ms(t), ms(2 * t), ms(3 * t), ms(4 * t)],
+        };
+        let classes = classify(
+            &[sample(10, 1), sample(1000, 2), sample(5000, 3)],
+            &SizeClasses::default(),
+        );
+        let small = classes[0];
+        assert_eq!((small.files, small.bytes), (2, 1010));
+        assert_eq!(small.times, [ms(3), ms(6), ms(9), ms(12)]);
+        assert_eq!((classes[2].files, classes[2].bytes), (1, 5000));
+        assert_eq!(classes[1].files, 0);
+    }
+
+    #[test]
+    fn class_times_are_medians_over_the_passes() {
+        let ms = Duration::from_millis;
+        let pass = |t| {
+            let mut classes = vec![ClassStats::default(); SIZE_CLASSES.len()];
+            classes[0] = ClassStats {
+                files: 1,
+                bytes: 1_000_000,
+                times: [ms(0), ms(t), ms(0), ms(0)],
+            };
+            classes
+        };
+        let rows = summarize_classes(&[pass(30), pass(10), pass(20)], &SizeClasses::default());
+        assert_eq!(rows.len(), 1);
+        assert_eq!(rows[0].phase_ms[1], 20.0);
+        assert_eq!(rows[0].total_ms, 20.0);
+        assert_eq!(mb_per_s(rows[0].bytes, rows[0].total_ms), 50.0);
     }
 
     #[test]

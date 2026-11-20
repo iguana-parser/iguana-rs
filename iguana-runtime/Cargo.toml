@@ -15,7 +15,7 @@ categories = ["parsing"]
 debug-trace = []
 instrument = []
 # The command-line interface of a generated parser (`cli::main`).
-cli = ["dep:clap"]
+cli = ["dep:clap", "dep:nix"]
 # Heap profiling with dhat, part of the command-line interface.
 dhat-heap = ["cli", "dep:dhat"]
 
@@ -40,3 +40,7 @@ web-time.workspace = true
 env_logger = "0.11.8"
 clap = { workspace = true, optional = true }
 dhat = { version = "0.3", optional = true }
+
+# `getrusage` for the peak memory of `--benchmark --memory`, without unsafe code.
+[target.'cfg(unix)'.dependencies]
+nix = { version = "0.30", default-features = false, features = ["resource"], optional = true }

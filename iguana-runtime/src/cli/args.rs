@@ -176,6 +176,37 @@ pub struct Args {
         help_heading = "Benchmarking"
     )]
     pub baseline: Option<PathBuf>,
+    /// Report the throughput of a --dir, file list or corpus benchmark by file size
+    ///
+    /// Counts the files of the Success group, those parsed to a single parse tree, as the total does; with failures, the classes do not add up to the corpus. Each measured iteration adds up the time of the files of each size class, and a class is reported with the median of those sums. A file is written into memory reserved once before the first iteration, outside its timers, and the classes are computed after the iteration. --save writes the table
+    #[arg(
+        long,
+        requires = "benchmark",
+        conflicts_with = "file",
+        help_heading = "Benchmarking"
+    )]
+    pub histogram: bool,
+    /// Set the size classes of --histogram by their upper bounds in KiB, comma-separated
+    ///
+    /// For example, 4,16,64,256 makes the classes < 4 KiB, 4-16 KiB, 16-64 KiB, 64-256 KiB and >= 256 KiB. The bounds must increase. Without it, --histogram uses the classes of --dir
+    #[arg(
+        long,
+        value_name = "KIB",
+        value_delimiter = ',',
+        requires = "histogram",
+        help_heading = "Benchmarking"
+    )]
+    pub size_classes: Option<Vec<u64>>,
+    /// Report the memory of the process after each iteration of a --dir, file list or corpus benchmark
+    ///
+    /// The peak resident set size of the process so far, from getrusage (Unix only), and on Linux the current resident set size. Memory is read between iterations, never while a file is parsed. --save writes the readings
+    #[arg(
+        long,
+        requires = "benchmark",
+        conflicts_with = "file",
+        help_heading = "Benchmarking"
+    )]
+    pub memory: bool,
     /// Write a CPU profile of the parser to FILE, recorded by samply
     ///
     /// Profiles a single file (the positional argument), parsed --iters times, or every file of a --dir or a file list (--files-from), parsed once. Each successful parse builds its parse tree. Open the profile with `samply load FILE`. Requires samply: cargo install --locked samply

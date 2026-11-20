@@ -9,8 +9,10 @@ use crate::{
 };
 
 use super::{
-    Color, args::Args, benchmark::mb_per_s, collect_files, start_nonterminal_id,
-    start_nonterminal_name,
+    Color,
+    args::Args,
+    benchmark::{SizeClasses, mb_per_s},
+    collect_files, start_nonterminal_id, start_nonterminal_name,
 };
 
 /// Runs `--dir`: parses every file under the directory, prints a status line
@@ -198,24 +200,17 @@ fn run_batch<'i, 'arena, P: Parser<'i, 'arena>>(
             parsed, total_bytes, throughput, throughput_total
         );
         if !per_file.is_empty() {
-            let buckets: &[(&str, u64, u64)] = &[
-                ("< 1 KB", 0, 1024),
-                ("1-4 KB", 1024, 4 * 1024),
-                ("4-16 KB", 4 * 1024, 16 * 1024),
-                ("16-64 KB", 16 * 1024, 64 * 1024),
-                ("64-256 KB", 64 * 1024, 256 * 1024),
-                ("> 256 KB", 256 * 1024, u64::MAX),
-            ];
             println!();
             println!("[throughput by file size]");
             println!(
-                "  {:<12} {:>6} {:>12} {:>12} {:>8} {:>12} {:>10}",
+                "  {:<13} {:>6} {:>12} {:>12} {:>8} {:>12} {:>10}",
                 "size class", "files", "bytes", "parse ms", "MB/s", "median ms", "p90 ms"
             );
-            for (label, lo, hi) in buckets {
+            let classes = SizeClasses::default();
+            for (class, label) in classes.labels.iter().enumerate() {
                 let mut bucket: Vec<&(u64, f64)> = per_file
                     .iter()
-                    .filter(|(b, _)| *b >= *lo && *b < *hi)
+                    .filter(|(b, _)| classes.index(*b) == class)
                     .collect();
                 if bucket.is_empty() {
                     continue;
@@ -229,7 +224,7 @@ fn run_batch<'i, 'arena, P: Parser<'i, 'arena>>(
                 let p90_idx = (((count as f64) * 0.9) as usize).min(count - 1);
                 let p90_ms = bucket[p90_idx].1;
                 println!(
-                    "  {:<12} {:>6} {:>12} {:>12.1} {:>8.2} {:>12.3} {:>10.3}",
+                    "  {:<13} {:>6} {:>12} {:>12.1} {:>8.2} {:>12.3} {:>10.3}",
                     label, count, bucket_bytes, bucket_ms, bucket_mbs, median_ms, p90_ms
                 );
             }
