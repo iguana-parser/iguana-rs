@@ -180,6 +180,13 @@ fn parse_repos_text(text: &str) -> Result<Vec<CorpusEntry>, String> {
                 fields.len()
             ));
         }
+        // The fetch of a corpus `foo` uses `.cache/foo.partial`.
+        if fields[0].ends_with(".partial") {
+            return Err(format!(
+                "line {}: a corpus name cannot end in `.partial`",
+                i + 1
+            ));
+        }
         entries.push(CorpusEntry {
             name: fields[0].to_string(),
             ext: fields[1].to_string(),
@@ -215,41 +222,116 @@ const REPOS_TEMPLATE: &str = concat!(
     "# Repos to parse, one per line: name ext start repo ref\n",
     "#   name  = baseline file (<name>.txt) + checkout dir (.cache/<name>)\n",
     "#   ext   = file extension to parse        start = start nonterminal\n",
-    "#   repo  = git URL                        ref   = tag or branch (shallow-cloned)\n",
+    "#   repo  = git URL                        ref   = tag, branch, or commit SHA (shallow)\n",
     "#\n",
     "# myproj java CompilationUnit https://github.com/owner/repo v1.0.0\n",
 );
 
-/// Ensures `repo` is checked out at `git_ref` in `dir`, shallow-cloning it when
-/// the directory is absent. A present checkout is left as-is: refs are pinned
-/// and immutable, so to repin you delete the directory and re-run. Errors if
-/// `git` is not on PATH or the clone fails. `git_ref` must name a branch or tag
-/// (a bare commit SHA is not valid for a shallow `--branch` clone).
+/// Ensures `repo` is checked out at `git_ref` in `dir`, shallow-fetching it
+/// when the directory is absent. A present checkout is left as-is: refs are
+/// pinned and immutable, so to repin you delete the directory and re-run.
+/// `git_ref` is a tag, a branch, or a full commit SHA (`is_commit_sha`). A tag
+/// or a branch is cloned with `git clone --branch`, which does not take a
+/// commit, so a commit is fetched into a new repository instead. Errors if
+/// `git` is not on PATH or the fetch fails.
+///
+/// Because a present directory counts as a complete checkout, the fetch goes
+/// into the sibling directory `<dir>.partial`, which is renamed to `dir` only
+/// after the checkout succeeds. A fetch that fails or is interrupted leaves at
+/// most the partial directory, and the next run removes it and starts again.
+/// Two runs that fetch the same corpus at the same time can fail, but they
+/// cannot leave a wrong checkout in `dir`.
 pub(super) fn fetch_corpus(dir: &Path, repo: &str, git_ref: &str) -> io::Result<()> {
     if dir.exists() {
         return Ok(());
     }
     eprintln!("Cloning {repo} @ {git_ref} into {}", dir.display());
-    let status = Command::new("git")
-        .args([
+    let mut partial_name = dir.file_name().unwrap_or_default().to_os_string();
+    partial_name.push(".partial");
+    let partial = dir.with_file_name(partial_name);
+    if partial.exists() {
+        fs::remove_dir_all(&partial)?;
+    }
+    let fetched = if is_commit_sha(git_ref) {
+        run_git(git().args(["init", "--quiet"]).arg(&partial), "init")
+            .and_then(|()| {
+                run_git(
+                    git_in(&partial).args(["remote", "add", "origin", repo]),
+                    "remote",
+                )
+            })
+            .and_then(|()| {
+                run_git(
+                    git_in(&partial).args(["fetch", "--quiet", "--depth", "1", "origin", git_ref]),
+                    "fetch",
+                )
+            })
+            .and_then(|()| {
+                run_git(
+                    git_in(&partial).args([
+                        "-c",
+                        "advice.detachedHead=false",
+                        "checkout",
+                        "--quiet",
+                        "FETCH_HEAD",
+                    ]),
+                    "checkout",
+                )
+            })
+    } else {
+        run_git(
+            git()
+                .args([
+                    "clone",
+                    "-c",
+                    "advice.detachedHead=false",
+                    "--depth",
+                    "1",
+                    "--branch",
+                ])
+                .args([git_ref, repo])
+                .arg(&partial),
             "clone",
-            "-c",
-            "advice.detachedHead=false",
-            "--depth",
-            "1",
-            "--branch",
-            git_ref,
-            repo,
-        ])
-        .arg(dir)
+        )
+    };
+    fetched
+        .and_then(|()| fs::rename(&partial, dir))
+        .map_err(|e| {
+            let _ = fs::remove_dir_all(&partial);
+            io::Error::new(e.kind(), format!("fetching {repo} @ {git_ref} failed: {e}"))
+        })
+}
+
+/// Whether `git_ref` is a full commit SHA: 40 hexadecimal digits. Git also
+/// allows a tag or a branch with such a name, but the harness treats every
+/// such ref as a commit.
+fn is_commit_sha(git_ref: &str) -> bool {
+    git_ref.len() == 40 && git_ref.bytes().all(|b| b.is_ascii_hexdigit())
+}
+
+/// A git command.
+fn git() -> Command {
+    Command::new("git")
+}
+
+/// A git command that runs in the repository at `dir`.
+fn git_in(dir: &Path) -> Command {
+    let mut command = git();
+    command.arg("-C").arg(dir);
+    command
+}
+
+/// Runs a git command, and errors if git cannot run or the command does not
+/// succeed. `name` is the git subcommand, for the error.
+fn run_git(command: &mut Command, name: &str) -> io::Result<()> {
+    let status = command
         .status()
         .map_err(|e| io::Error::new(e.kind(), format!("failed to run git: {e}")))?;
-    if !status.success() {
-        return Err(io::Error::other(format!(
-            "git clone of {repo} @ {git_ref} failed"
-        )));
+    if status.success() {
+        Ok(())
+    } else {
+        Err(io::Error::other(format!("git {name} failed")))
     }
-    Ok(())
 }
 
 /// Whether the corpus harness checks results against the committed baseline or
@@ -755,8 +837,24 @@ mod tests {
     }
 
     #[test]
+    fn a_full_hexadecimal_ref_is_a_commit() {
+        assert!(is_commit_sha("fb653f2727a2afabe18e2b81999ba4ae69213b37"));
+        assert!(is_commit_sha("FB653F2727A2AFABE18E2B81999BA4AE69213B37"));
+        // Tags and abbreviated commits are cloned with --branch.
+        for git_ref in ["479", "v6.0.13", "jdk-25-ga", "fb653f27", "mysql-9.7.4"] {
+            assert!(!is_commit_sha(git_ref));
+        }
+        assert!(!is_commit_sha("gb653f2727a2afabe18e2b81999ba4ae69213b37"));
+    }
+
+    #[test]
     fn parse_repos_text_rejects_wrong_arity() {
         assert!(parse_repos_text("only three fields here\n").is_err());
+    }
+
+    #[test]
+    fn parse_repos_text_rejects_partial_names() {
+        assert!(parse_repos_text("foo.partial java CompilationUnit https://x/foo v1\n").is_err());
     }
 
     #[test]
