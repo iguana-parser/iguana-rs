@@ -51,7 +51,6 @@ const FIRST_SEGMENT_LEN: usize = 4;
 /// - `spill_start` is the offset in `MatchMemo::spilled_ends` where the
 ///   segment that holds the ends of further matches starts.
 /// - `end_count` is the number of matches.
-#[derive(Clone, Copy)]
 pub struct MatchMemoEntry<const W: usize> {
     tried: BitSet<W>,
     matched: BitSet<W>,
@@ -161,6 +160,13 @@ impl<const W: usize> MatchMemoEntry<W> {
 /// pair is computed at most once, and both matches and failures are reused
 /// across the parse.
 ///
+/// The table has a slot for each input position, and the entry of a position
+/// is allocated in the arena when the first result at that position is
+/// recorded. The parser tries a terminal only where a symbol can start, or one
+/// position before it for a precede restriction, and only if the character
+/// there can begin the terminal. Most positions, such as those inside a
+/// token, never get an entry.
+///
 /// The ends of matches after the first `INLINE_ENDS` at a position are in
 /// `spilled_ends`, in a segment of consecutive slots that the position's entry
 /// points to. The first segment has `FIRST_SEGMENT_LEN` slots. When a segment
@@ -170,20 +176,19 @@ impl<const W: usize> MatchMemoEntry<W> {
 /// `W` is the number of 64-bit words of each bitset. `W * 64` must be greater
 /// than every terminal id, including that of the end-of-input terminal.
 pub struct MatchMemo<'arena, const W: usize> {
-    entries: ArenaVec<'arena, MatchMemoEntry<W>>,
+    arena: &'arena Arena,
+    entries: ArenaVec<'arena, Option<&'arena mut MatchMemoEntry<W>>>,
     spilled_ends: ArenaVec<'arena, (TerminalId, u32)>,
 }
 
 impl<'arena, const W: usize> MatchMemo<'arena, W> {
-    // Do not inline. The table is built once per parse, so the call costs
-    // nothing. Inlined into a generated scanner's `new`, the fill loop copies
-    // each whole default entry through the stack instead of writing only its
-    // initialized fields, which doubles the parser's initialization time.
-    #[inline(never)]
+    const EMPTY: BitSet<W> = BitSet::from_members(&[]);
+
     pub fn new(input_len: usize, arena: &'arena Arena) -> Self {
         let mut entries = arena.vec_with_capacity(input_len + 1);
-        entries.resize(input_len + 1, MatchMemoEntry::default());
+        entries.resize_with(input_len + 1, || None);
         Self {
+            arena,
             entries,
             spilled_ends: arena.vec(),
         }
@@ -197,28 +202,37 @@ impl<'arena, const W: usize> MatchMemo<'arena, W> {
     // function, and every lookup pays for the call.
     #[inline]
     pub fn get(&self, terminal: TerminalId, position: u32) -> Option<Lookup> {
-        self.entries[position as usize].lookup(terminal, &self.spilled_ends)
+        self.entries[position as usize]
+            .as_deref()?
+            .lookup(terminal, &self.spilled_ends)
     }
 
     /// Records that `terminal` matched at `position`, ending at the exclusive
     /// position `end`. The memo must not already have a result for `terminal`
     /// at `position`.
     pub fn insert_match(&mut self, terminal: TerminalId, position: u32, end: u32) {
-        self.entries[position as usize].insert_match(terminal, end, &mut self.spilled_ends);
+        let arena = self.arena;
+        self.entries[position as usize]
+            .get_or_insert_with(|| arena.alloc(MatchMemoEntry::default()))
+            .insert_match(terminal, end, &mut self.spilled_ends);
     }
 
     pub fn insert_fail(&mut self, terminal: TerminalId, position: u32) {
+        let arena = self.arena;
         self.entries[position as usize]
+            .get_or_insert_with(|| arena.alloc(MatchMemoEntry::default()))
             .tried
             .insert(terminal.index());
     }
 
     /// The `tried` and the `matched` bitsets at `position`, indexed by terminal
-    /// id.
+    /// id. Both are empty at a position without results.
     #[inline]
     pub fn bits(&self, position: u32) -> (&BitSet<W>, &BitSet<W>) {
-        let entry = &self.entries[position as usize];
-        (&entry.tried, &entry.matched)
+        match self.entries[position as usize].as_deref() {
+            Some(entry) => (&entry.tried, &entry.matched),
+            None => (&Self::EMPTY, &Self::EMPTY),
+        }
     }
 }
 
