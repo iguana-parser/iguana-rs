@@ -902,7 +902,7 @@
       if (treeContainerEl) {
         const selectedEl = treeContainerEl.querySelector('.tree-item.selected');
         if (selectedEl) {
-          selectedEl.scrollIntoView({ block: 'nearest' });
+          scrollIntoContainer(treeContainerEl, selectedEl);
         }
       }
     });
@@ -978,6 +978,22 @@
     el.addEventListener('animationend', () => el.classList.remove('flash'), { once: true });
   }
 
+  // Scrolls `container` by the least amount that brings `el` into its visible
+  // area, like scrollIntoView with "nearest". scrollIntoView also scrolls every
+  // scrollable ancestor, so in an iframe it scrolls the host page too.
+  function scrollIntoContainer(container: HTMLElement, el: Element) {
+    const view = container.getBoundingClientRect();
+    const row = el.getBoundingClientRect();
+    const top = view.top + container.clientTop;
+    const bottom = top + container.clientHeight;
+    if (row.top < top) container.scrollTop -= top - row.top;
+    else if (row.bottom > bottom) container.scrollTop += Math.min(row.bottom - bottom, row.top - top);
+    const left = view.left + container.clientLeft;
+    const right = left + container.clientWidth;
+    if (row.left < left) container.scrollLeft -= left - row.left;
+    else if (row.right > right) container.scrollLeft += Math.min(row.right - right, row.left - left);
+  }
+
   // Reveal the given parse tree node in both views: expand collapsed ancestors,
   // set selection, scroll the tree row into view, pan the graph node into view.
   function revealParseTreeNode(node: ParseTreeNode) {
@@ -1014,14 +1030,14 @@
       if (treeContainerEl) {
         const selectedEl = treeContainerEl.querySelector('.tree-item.selected');
         if (selectedEl) {
-          selectedEl.scrollIntoView({ block: 'nearest' });
+          scrollIntoContainer(treeContainerEl, selectedEl);
           if (flashOnReveal) flashTreeRow(selectedEl);
         }
       }
       if (sexprContainerEl) {
         const el = sexprContainerEl.querySelector('.sexpr-node.selected');
         if (el) {
-          el.scrollIntoView({ block: 'nearest' });
+          scrollIntoContainer(sexprContainerEl, el);
           if (flashOnReveal) flashTreeRow(el);
         }
       }
