@@ -64,6 +64,33 @@ pub struct ParseSuccess<T> {
     pub ambiguity_node_added: bool,
 }
 
+/// The outcome of a parse without its tree: the timings of a success, or the
+/// error of a failure. `--write-result` writes it as JSON. The command-line
+/// interface sets `tree_construction_ms` only when it builds the tree.
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+pub struct ParseSummary {
+    pub error: Option<ParseError>,
+    pub parse_ms: Option<u32>,
+    pub tree_construction_ms: Option<u32>,
+}
+
+impl<T> From<&Result<ParseSuccess<T>, ParseError>> for ParseSummary {
+    fn from(result: &Result<ParseSuccess<T>, ParseError>) -> Self {
+        match result {
+            Ok(success) => ParseSummary {
+                error: None,
+                parse_ms: Some(success.parse_duration.as_millis() as u32),
+                tree_construction_ms: Some(success.tree_construction_duration.as_millis() as u32),
+            },
+            Err(error) => ParseSummary {
+                error: Some(error.clone()),
+                parse_ms: None,
+                tree_construction_ms: None,
+            },
+        }
+    }
+}
+
 impl<T> ParseSuccess<T> {
     /// The same result with the tree replaced by `f(tree)`.
     pub fn map<U>(self, f: impl FnOnce(T) -> U) -> ParseSuccess<U> {
@@ -145,5 +172,38 @@ a
             e.render(&input),
             "Parse error at line 1, column 1: Expected Grammar\n"
         );
+    }
+
+    fn summary_of(result: Result<ParseSuccess<()>, ParseError>) -> String {
+        serde_json::to_string(&ParseSummary::from(&result)).unwrap()
+    }
+
+    #[test]
+    fn the_summary_of_a_success_has_its_timings_in_milliseconds() {
+        let success = ParseSuccess {
+            tree: (),
+            parse_duration: Duration::from_micros(12_400),
+            tree_construction_duration: Duration::from_millis(3),
+            ambiguity_node_added: false,
+        };
+        assert_eq!(
+            summary_of(Ok(success)),
+            r#"{"error":null,"parse_ms":12,"tree_construction_ms":3}"#
+        );
+    }
+
+    #[test]
+    fn the_summary_of_a_failure_has_its_span_and_message() {
+        let json = summary_of(Err(error(Span::new(4, 7), "Expected Id")));
+        assert_eq!(
+            json,
+            r#"{"error":{"span":{"left_extent":4,"right_extent":7},"message":"Expected Id"},"parse_ms":null,"tree_construction_ms":null}"#
+        );
+        let error = serde_json::from_str::<ParseSummary>(&json)
+            .unwrap()
+            .error
+            .unwrap();
+        assert_eq!(error.span, Span::new(4, 7));
+        assert_eq!(error.message, "Expected Id");
     }
 }

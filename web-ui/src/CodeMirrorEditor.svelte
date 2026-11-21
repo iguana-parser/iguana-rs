@@ -21,10 +21,9 @@
     drawSelection,
   } from "@codemirror/view";
   import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
-  import { HighlightStyle, StreamLanguage, syntaxHighlighting } from "@codemirror/language";
-  import { tags } from "@lezer/highlight";
   import type { ParseError } from "./backend";
   import { TextPositions } from "./text-positions";
+  import { type Syntax, setSyntax, syntaxColors, syntaxTheme } from "./syntax-colors";
   import { CODE_FONT } from "./theme";
 
   interface HighlightSpan {
@@ -45,6 +44,8 @@
     error?: ParseError | null;
     ambiguities?: AmbiguityWarning[];
     highlightSpan?: HighlightSpan | null;
+    // The highlighting of the last parse (`syntaxColors`).
+    syntax?: Syntax | null;
     onchange?: (value: string) => void;
     onclick?: (offset: number) => void;
     onescape?: () => void;
@@ -57,6 +58,7 @@
     error = null,
     ambiguities = [],
     highlightSpan = null,
+    syntax = null,
     onchange,
     onclick,
     onescape,
@@ -67,35 +69,6 @@
   // The extensions that follow the readOnly and placeholder props.
   const readOnlyConf = new Compartment();
   const placeholderConf = new Compartment();
-
-  // Highlighting is generic: the viewer parses any grammar, so it cannot know
-  // the input language's keywords. It colors by lexical shape (strings,
-  // numbers, punctuation) plus a small set of keywords common across languages.
-  const COMMON_KEYWORDS = new Set([
-    "if", "then", "else", "let", "in", "fun", "case", "of", "match", "with",
-    "where", "for", "while", "do", "return", "true", "false", "null", "nil",
-    "and", "or", "not", "class", "def", "fn", "func", "function", "var", "val",
-    "const", "type", "data", "import", "module", "print", "this", "super",
-  ]);
-
-  const generic = StreamLanguage.define<null>({
-    token(stream) {
-      if (stream.eatSpace()) return null;
-      if (stream.match(/^"(?:[^"\\]|\\.)*"?/) || stream.match(/^'(?:[^'\\]|\\.)*'?/)) return "string";
-      if (stream.match(/^\d+(?:\.\d+)?/)) return "number";
-      const word = stream.match(/^[A-Za-z_]\w*/);
-      if (word) return COMMON_KEYWORDS.has((word as RegExpMatchArray)[0]) ? "keyword" : null;
-      stream.match(/^[^\sA-Za-z0-9_]+/) || stream.next();
-      return "operator";
-    },
-  });
-
-  const highlightStyle = HighlightStyle.define([
-    { tag: tags.keyword, color: "var(--iguana-syntax-keyword, #569cd6)" },
-    { tag: tags.string, color: "var(--iguana-syntax-string, #ce9178)" },
-    { tag: tags.number, color: "var(--iguana-syntax-number, #b5cea8)" },
-    { tag: tags.operator, color: "var(--iguana-syntax-operator, #c8c8c8)" },
-  ]);
 
   const WAVE =
     "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='4'%3E" +
@@ -332,8 +305,8 @@
             ...defaultKeymap,
             ...historyKeymap,
           ]),
-          generic,
-          syntaxHighlighting(highlightStyle),
+          syntaxColors,
+          syntaxTheme,
           theme,
           marks,
           messageTooltip,
@@ -375,6 +348,11 @@
       placeholderConf.reconfigure(placeholderExt(placeholder)),
     ];
     view?.dispatch({ effects });
+  });
+
+  $effect(() => {
+    const current = syntax;
+    view?.dispatch({ effects: setSyntax.of(current) });
   });
 
   $effect(() => {

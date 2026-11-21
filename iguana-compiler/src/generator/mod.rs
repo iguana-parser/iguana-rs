@@ -1,7 +1,7 @@
 use std::{
     fs,
     io::{self, Write},
-    path::Path,
+    path::{Path, PathBuf},
     time::{Duration, Instant},
 };
 
@@ -224,10 +224,14 @@ fn assign_slot_ids<'a>(grammar: &'a Grammar, nonterminal_ids: &mut NonterminalId
 ///
 /// Writes lib.rs, grammar.rs, parser.rs, scanner.rs, and parse_tree.rs. Does
 /// not touch Cargo.toml or main.rs; those belong to `generate_scaffold`.
+///
+/// `highlighting_rules` is the file with the language's highlighting rules
+/// (`highlighting_rules_path`), if it has one.
 pub fn generate_sources(
     grammar: &Grammar,
     output_dir: &Path,
     config: GenConfig,
+    highlighting_rules: Option<&Path>,
 ) -> io::Result<GenerateResult> {
     let start = Instant::now();
     return_value::validate(grammar)?;
@@ -279,7 +283,7 @@ pub fn generate_sources(
     let grammar_path = src_dir.join("grammar.rs");
 
     write_rust_file(
-        post_process(&lib_gen::generate(grammar).to_string()),
+        post_process(&lib_gen::generate(grammar, &src_dir, highlighting_rules)?.to_string()),
         &lib_path,
     )?;
 
@@ -424,10 +428,13 @@ pub fn generate_scaffold(
 /// always overwritten. The wrapper `Cargo.toml` is scaffolding, so it is
 /// written only when absent (or when `force` is set), preserving a hand-edited
 /// dependency such as a local path to the runtime.
+///
+/// `highlighting` is whether the language has highlighting rules.
 pub fn generate_wasm(
     grammar: &Grammar,
     output_dir: &Path,
     config: GenConfig,
+    highlighting: bool,
     runtime_path: Option<&Path>,
     force: bool,
 ) -> io::Result<()> {
@@ -438,7 +445,7 @@ pub fn generate_wasm(
     }
 
     write_rust_file(
-        post_process(&wasm_gen::generate(grammar).to_string()),
+        post_process(&wasm_gen::generate(grammar, highlighting, config.match_memo).to_string()),
         &wasm_src.join("lib.rs"),
     )?;
 
@@ -478,6 +485,18 @@ fn write_plain_file(content: impl AsRef<str>, path: &Path) -> io::Result<()> {
     Ok(())
 }
 
+/// The file with a language's highlighting rules, `src/highlighting.rs` in
+/// the grammar file's directory, or `None` if there is no such file. The
+/// WebAssembly wrapper calls its functions `rules` and `token_rules`
+/// (`iguana_runtime::highlight`).
+pub fn highlighting_rules_path(grammar_path: &Path) -> Option<PathBuf> {
+    let path = grammar_path
+        .parent()
+        .unwrap_or(Path::new("."))
+        .join("src/highlighting.rs");
+    path.is_file().then_some(path)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -486,6 +505,87 @@ mod tests {
         env, process,
         time::{SystemTime, UNIX_EPOCH},
     };
+
+    /// A new directory for a test in the system's temporary directory.
+    fn test_dir(name: &str) -> PathBuf {
+        let nonce = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        env::temp_dir().join(format!("iguana-{name}-{}-{nonce}", process::id()))
+    }
+
+    const HIGHLIGHTING_GRAMMAR: &str = "grammar G\n\nS = \"a\"\n";
+
+    // The grammar's crate declares its own highlighting rules, and another
+    // crate generated from the grammar declares them by their path. Once the
+    // rules are deleted, neither declares them.
+    #[test]
+    fn highlighting_rules_are_declared_where_they_are() {
+        let dir = test_dir("highlighting");
+        // A space, so the path in the declaration has to be one string.
+        let grammar_dir = dir.join("a grammar");
+        fs::create_dir_all(grammar_dir.join("src")).unwrap();
+        let grammar_path = grammar_dir.join("g.iggy");
+        fs::write(&grammar_path, HIGHLIGHTING_GRAMMAR).unwrap();
+        let grammar: Grammar = parse_grammar(HIGHLIGHTING_GRAMMAR)
+            .unwrap()
+            .try_into()
+            .unwrap();
+        let config = GenConfig::default();
+        assert_eq!(highlighting_rules_path(&grammar_path), None);
+
+        let source = "pub fn rules() {}\n";
+        fs::write(grammar_dir.join("src/highlighting.rs"), source).unwrap();
+        let rules = highlighting_rules_path(&grammar_path).unwrap();
+        let lib = |crate_dir: &Path| fs::read_to_string(crate_dir.join("src/lib.rs")).unwrap();
+
+        generate_sources(&grammar, &grammar_dir, config, Some(&rules)).unwrap();
+        assert!(lib(&grammar_dir).contains("pub mod highlighting;"));
+        assert!(!lib(&grammar_dir).contains("#[path"));
+
+        let other_dir = dir.join("other");
+        generate_sources(&grammar, &other_dir, config, Some(&rules)).unwrap();
+        let path = fs::canonicalize(&rules).unwrap();
+        let declaration = format!("#[path = {:?}]", path.to_str().unwrap());
+        assert!(
+            lib(&other_dir).contains(&declaration),
+            "{}",
+            lib(&other_dir)
+        );
+
+        // A copy from an earlier version of Iguana does not count as rules.
+        fs::remove_file(&rules).unwrap();
+        fs::write(other_dir.join("src/highlighting.rs"), source).unwrap();
+        assert_eq!(highlighting_rules_path(&grammar_path), None);
+        generate_sources(&grammar, &other_dir, config, None).unwrap();
+        assert!(!lib(&other_dir).contains("highlighting"));
+        fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn the_wasm_wrapper_highlights_with_the_rules_only_when_there_are_rules() {
+        let dir = test_dir("highlighting-wasm");
+        let grammar: Grammar = parse_grammar(HIGHLIGHTING_GRAMMAR)
+            .unwrap()
+            .try_into()
+            .unwrap();
+        let wrapper = |highlighting| {
+            generate_wasm(
+                &grammar,
+                &dir,
+                GenConfig::default(),
+                highlighting,
+                None,
+                true,
+            )
+            .unwrap();
+            fs::read_to_string(dir.join("wasm/src/lib.rs")).unwrap()
+        };
+        assert!(wrapper(true).contains("highlighting::rules"));
+        assert!(!wrapper(false).contains("highlighting::"));
+        fs::remove_dir_all(&dir).unwrap();
+    }
 
     #[test]
     fn slot_ids_are_consecutive_within_each_alternative() {
@@ -538,6 +638,7 @@ C = C | "b"
                 first_parse: true,
                 ..GenConfig::default()
             },
+            None,
         );
         let error = result.err().expect("cyclic grammars must be rejected");
         assert_eq!(
@@ -585,6 +686,7 @@ WS = [\ ]*
                     first_parse,
                     ..GenConfig::default()
                 },
+                None,
             )
             .unwrap();
             let source = fs::read_to_string(dir.join("src/parse_tree.rs")).unwrap();
@@ -655,6 +757,7 @@ WS = [\ ]*
                         first_parse,
                         ..GenConfig::default()
                     },
+                    None,
                 )
                 .unwrap();
                 files

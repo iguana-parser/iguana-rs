@@ -9,7 +9,7 @@ use clap::{Parser, Subcommand};
 use iguana_compiler::{
     generator::{
         GenConfig, GenConfigFile, GenerateResult, generate_scaffold, generate_sources,
-        generate_wasm, pinned_cli_runtime_dependency,
+        generate_wasm, highlighting_rules_path, pinned_cli_runtime_dependency,
     },
     grammar::def::Grammar,
     iggy::parse_grammar,
@@ -397,11 +397,19 @@ fn regenerate_with(
     let grammar: Grammar = grammar_def
         .try_into()
         .map_err(|errors: Vec<String>| io::Error::other(errors.join("\n")))?;
+    let rules = highlighting_rules_path(grammar_path);
     // Sources are generated first so a rejected grammar leaves no scaffold behind.
-    let result = generate_sources(&grammar, output, config)?;
+    let result = generate_sources(&grammar, output, config, rules.as_deref())?;
     generate_scaffold(&grammar, output, config, runtime_path, None, force)?;
     if config.wasm {
-        generate_wasm(&grammar, output, config, runtime_path, force)?;
+        generate_wasm(
+            &grammar,
+            output,
+            config,
+            rules.is_some(),
+            runtime_path,
+            force,
+        )?;
     }
     Ok(result)
 }

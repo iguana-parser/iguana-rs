@@ -42,6 +42,17 @@ impl TextPositions {
         vec![line, self.columns.utf16_column(line, column)]
     }
 
+    /// The line and the UTF-16 column of each offset in `offsets`
+    /// (`position`), flattened to `[line, column, line, column, …]`. One call
+    /// converts all the offsets, instead of one call across the WebAssembly
+    /// boundary per offset.
+    pub fn positions(&self, offsets: &[u32]) -> Vec<u32> {
+        offsets
+            .iter()
+            .flat_map(|&offset| self.position(offset))
+            .collect()
+    }
+
     /// The offset at `line` and the column in UTF-16 `column`. A column past the
     /// end of its line is the end of the line, and a line past the last line
     /// is the end of the text.
@@ -68,6 +79,12 @@ mod tests {
         // A column in the middle of a surrogate pair is the column of its
         // character.
         assert_eq!(text.offset(0, 2), 1);
+    }
+
+    #[test]
+    fn positions_are_the_position_of_each_offset() {
+        let text = TextPositions::new("a😀x\nb\n");
+        assert_eq!(text.positions(&[2, 4, 6]), [0, 3, 1, 0, 2, 0]);
     }
 
     #[test]

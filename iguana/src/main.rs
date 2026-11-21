@@ -6,7 +6,10 @@ use std::{
 
 use clap::{Parser, Subcommand};
 use iguana_compiler::{
-    generator::{GenConfig, GenConfigFile, generate_scaffold, generate_sources, generate_wasm},
+    generator::{
+        GenConfig, GenConfigFile, generate_scaffold, generate_sources, generate_wasm,
+        highlighting_rules_path,
+    },
     grammar::def::{Grammar, Phase},
     iggy::parse_grammar,
     utils::{to_pascal_case, to_snake_case},
@@ -250,8 +253,9 @@ fn run() -> io::Result<()> {
                     output.display()
                 );
             }
+            let rules = highlighting_rules_path(path);
             // Sources are generated first so a rejected grammar leaves no scaffold behind.
-            let result = generate_sources(&grammar, &output, config)?;
+            let result = generate_sources(&grammar, &output, config, rules.as_deref())?;
             generate_scaffold(
                 &grammar,
                 &output,
@@ -261,7 +265,14 @@ fn run() -> io::Result<()> {
                 force,
             )?;
             if config.wasm {
-                generate_wasm(&grammar, &output, config, runtime_path.as_deref(), force)?;
+                generate_wasm(
+                    &grammar,
+                    &output,
+                    config,
+                    rules.is_some(),
+                    runtime_path.as_deref(),
+                    force,
+                )?;
                 iguana_compiler::wasm_build::build(&output.join("wasm"))?;
                 viewer::write_assets(&output)?;
             }

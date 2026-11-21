@@ -262,31 +262,33 @@ export type ParseError = {
 };
 
 /**
- *  The report of one parse, written as JSON by `--write-result` and returned
- *  by the WebAssembly wrapper. A failure sets `error`; a success sets the
- *  timings. `parse_tree` is inline only in the WebAssembly envelope, where the
- *  host has no file to read the tree from; `--write-result` leaves it `None`,
- *  since the tree has its own flag.
+ *  Returned by `parse()`: the parser's summary of the parse, its tree, and
+ *  what only the host knows. `summary` is what the parser writes with
+ *  --write-result, and `parse_tree` the tree JSON it writes with
+ *  --write-parse-tree, both read inline so a parse is a single command.
+ *  `summary` is `None` when no valid summary was available (a panic, a
+ *  signal, or an exit, clean or not, without a readable summary), and
+ *  `unexpected_error` then holds the detail. A parse failure is not that
+ *  case: the parser also exits non-zero, but it writes a summary whose `error`
+ *  is set.
  */
-export type ParseOutput = {
-	error: ParseError | null,
-	parse_ms: number | null,
-	tree_construction_ms: number | null,
+export type ParseRun = {
+	summary: ParseSummary | null,
 	parse_tree: string | null,
+	unexpected_error: string | null,
 };
 
 /**
- *  Returned by `parse()`: the runtime's parse report plus what only the host
- *  knows. `result` is the parser's --write-result report with `parse_tree`
- *  filled in from the tree file, read inline so a parse is a single command.
- *  It is `None` when no valid report was available (a panic, a signal, or an
- *  exit, clean or not, without a readable report), and `unexpected_error`
- *  then holds the detail. A parse failure is not that case: the parser also
- *  exits non-zero, but it writes a report whose `error` is set.
+ *  What a parse did, without its tree: the timings of a success, or the
+ *  error of a failure. `--write-result` writes it as JSON, Terrarium reads it,
+ *  and the WebAssembly `parse` returns it in `WasmParseOutput`. A success sets
+ *  the timings, and a failure sets `error`. The command-line interface sets
+ *  `tree_construction_ms` only when it builds the tree.
  */
-export type ParseRun = {
-	result: ParseOutput | null,
-	unexpected_error: string | null,
+export type ParseSummary = {
+	error: ParseError | null,
+	parse_ms: number | null,
+	tree_construction_ms: number | null,
 };
 
 export type RangeData = {

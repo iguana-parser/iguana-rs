@@ -2,6 +2,7 @@
   import { onMount, onDestroy } from "svelte";
   import * as monaco from "monaco-editor";
   import type { LspBackend, LspDocumentSymbol, LspRange } from "./lsp-backend";
+  import { groupOfTokenType, themeGroup, tokenTypeOfGroup } from "./syntax-theme";
   import { codeFont, defineGrammarTheme, onThemeChange, remeasureOnFontLoad } from "./theme";
 
   // The Monaco language providers are registered once per page, not per editor,
@@ -11,8 +12,8 @@
   let activeDisabled = false;
   let iggyRegistered = false;
 
-  // Registers the iggy language, its baseline tokenizer, and the LSP
-  // providers (all backed by `activeBackend`). Runs once; later mounts reuse it.
+  // Registers the iggy language and the LSP providers (all backed by
+  // `activeBackend`). Runs once; later mounts reuse it.
   function registerIggyLanguage() {
     if (iggyRegistered) return;
     iggyRegistered = true;
@@ -24,28 +25,16 @@
       comments: { lineComment: "//" },
     });
 
-    // Monarch baseline tokenizer: instant, synchronous syntax highlighting so
-    // the editor is never blank. Semantic tokens from the backend layer on top
-    // and override these where they apply.
-    monaco.languages.setMonarchTokensProvider("iggy", {
-      keywords: ["grammar", "layout", "left", "right", "none"],
-      tokenizer: {
-        root: [
-          [/\/\/.*$/, "comment"],
-          [/@(regex|NoLayout|Layout)\b/, "decorator"],
-          [/#[A-Za-z]\w*/, "comment"], // labels
-          [/"[^"]*"/, "string"],
-          [/'[^']*'/, "string"],
-          [/!>>>|!>>|!<</, "operator"],
-          [/[=|>*+?!:\\(){}\[\]\-]/, "operator"],
-          [/[A-Za-z]\w*/, { cases: { "@keywords": "keyword", "@default": "type" } }],
-        ],
-      },
-    });
-
-    // Fetch the legend from the backend, then register the semantic tokens
-    // provider against it.
-    activeBackend?.semanticTokensLegend().then((tokenTypes) => {
+    // The colors come only from the language server's semantic tokens. The
+    // provider is registered once the backend returns the legend.
+    activeBackend?.semanticTokensLegend().then((serverTypes) => {
+      // Each server type is replaced by the token type of the theme group
+      // that colors it (`themeGroup`), so a group without its own color gets
+      // its parent's.
+      const tokenTypes = serverTypes.map((type) => {
+        const group = themeGroup(groupOfTokenType(type));
+        return group ? tokenTypeOfGroup(group) : type;
+      });
       monaco.languages.registerDocumentSemanticTokensProvider("iggy", {
         getLegend() {
           return { tokenTypes, tokenModifiers: [] };

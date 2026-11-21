@@ -137,6 +137,7 @@ fn values_survive_rebinding_and_shared_returns() {
                 cli: false,
                 ..GenConfig::default()
             },
+            None,
         )
         .unwrap();
         let output = Command::new(env!("CARGO"))

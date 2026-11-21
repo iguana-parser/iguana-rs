@@ -52,6 +52,22 @@ export class TextPositions {
         wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
         return v1;
     }
+    /**
+     * The line and the UTF-16 column of each offset in `offsets`
+     * (`position`), flattened to `[line, column, line, column, …]`. One call
+     * converts all the offsets, instead of one call across the WebAssembly
+     * boundary per offset.
+     * @param {Uint32Array | number[]} offsets
+     * @returns {Uint32Array}
+     */
+    positions(offsets) {
+        const ptr0 = passArray32ToWasm0(offsets, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.textpositions_positions(this.__wbg_ptr, ptr0, len0);
+        var v2 = getArrayU32FromWasm0(ret[0], ret[1]).slice();
+        wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
+        return v2;
+    }
 }
 if (Symbol.dispose) TextPositions.prototype[Symbol.dispose] = TextPositions.prototype.free;
 function __wbg_get_imports() {
@@ -103,6 +119,13 @@ function getUint8ArrayMemory0() {
         cachedUint8ArrayMemory0 = new Uint8Array(wasm.memory.buffer);
     }
     return cachedUint8ArrayMemory0;
+}
+
+function passArray32ToWasm0(arg, malloc) {
+    const ptr = malloc(arg.length * 4, 4) >>> 0;
+    getUint32ArrayMemory0().set(arg, ptr / 4);
+    WASM_VECTOR_LEN = arg.length;
+    return ptr;
 }
 
 function passStringToWasm0(arg, malloc, realloc) {

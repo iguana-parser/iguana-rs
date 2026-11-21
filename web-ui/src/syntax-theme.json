@@ -1,0 +1,16 @@
+{
+  "keyword": { "dark": "#569cd6", "light": "#0000ff" },
+  "comment": { "dark": "#a69c8e", "light": "#6b6155" },
+  "decorator": { "dark": "#dcdcaa", "light": "#795e26" },
+  "string": { "dark": "#ce9178", "light": "#a31515" },
+  "string.escape": { "dark": "#b9a3e3", "light": "#6a3fb5" },
+  "regexp": { "dark": "#ce9178", "light": "#a31515" },
+  "number": { "dark": "#b5cea8", "light": "#098658" },
+  "label": { "dark": "#b08cae", "light": "#7a4f78", "italic": true },
+  "property": { "dark": "#dcdcaa", "light": "#795e26" },
+  "type": { "dark": "#4ec9b0", "light": "#1e667b" },
+  "function": { "dark": "#dcdcaa", "light": "#795e26" },
+  "variable": { "dark": "#9cdcfe", "light": "#001080" },
+  "rule": { "dark": "#4ec9b0", "light": "#1e667b" },
+  "rule.lexical": { "dark": "#6f8fe0", "light": "#1f3f9f" }
+}

@@ -1,14 +1,10 @@
 //! The command-line interface of a generated parser. A generated crate's
 //! `main.rs` calls `main` with its parser type, and the runtime owns the
 //! arguments, the modes, and the reporting. The interface is behind the `cli`
-//! feature, which pulls in `clap`. The JSON reports `ParseOutput` and
-//! `Symbols` are always compiled: Terrarium reads both, and the WebAssembly
-//! wrapper returns a `ParseOutput`.
+//! feature, which pulls in `clap`. The JSON report `Symbols` is always
+//! compiled, because Terrarium reads it.
 
 use serde::{Deserialize, Serialize};
-use specta::Type;
-
-use crate::result::ParseError;
 
 #[cfg(feature = "cli")]
 mod args;
@@ -39,19 +35,6 @@ pub struct Symbols {
     pub nonterminals: Vec<String>,
     pub terminals: Vec<String>,
     pub slots: Vec<String>,
-}
-
-/// The report of one parse, written as JSON by `--write-result` and returned
-/// by the WebAssembly wrapper. A failure sets `error`; a success sets the
-/// timings. `parse_tree` is inline only in the WebAssembly envelope, where the
-/// host has no file to read the tree from; `--write-result` leaves it `None`,
-/// since the tree has its own flag.
-#[derive(Debug, Clone, Serialize, Deserialize, Type)]
-pub struct ParseOutput {
-    pub error: Option<ParseError>,
-    pub parse_ms: Option<u32>,
-    pub tree_construction_ms: Option<u32>,
-    pub parse_tree: Option<String>,
 }
 
 /// ANSI colors, enabled only when stdout is a terminal so redirected output
@@ -148,71 +131,4 @@ fn start_nonterminal_id<G: crate::grammar::Grammar>(
             ),
         )
     })
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    use crate::input::Span;
-
-    #[test]
-    fn parse_output_success_round_trips_as_json() {
-        let output = ParseOutput {
-            error: None,
-            parse_ms: Some(12),
-            tree_construction_ms: Some(3),
-            parse_tree: None,
-        };
-        let json = serde_json::to_string(&output).unwrap();
-        assert_eq!(
-            json,
-            r#"{"error":null,"parse_ms":12,"tree_construction_ms":3,"parse_tree":null}"#
-        );
-        let back: ParseOutput = serde_json::from_str(&json).unwrap();
-        assert!(back.error.is_none());
-        assert_eq!(back.parse_ms, Some(12));
-        assert_eq!(back.tree_construction_ms, Some(3));
-    }
-
-    #[test]
-    fn parse_output_failure_round_trips_as_span_and_message_json() {
-        let output = ParseOutput {
-            error: Some(ParseError {
-                span: Span::new(4, 7),
-                message: "Expected Id".to_string(),
-            }),
-            parse_ms: None,
-            tree_construction_ms: None,
-            parse_tree: None,
-        };
-        let json = serde_json::to_string(&output).unwrap();
-        assert_eq!(
-            json,
-            r#"{"error":{"span":{"left_extent":4,"right_extent":7},"message":"Expected Id"},"parse_ms":null,"tree_construction_ms":null,"parse_tree":null}"#
-        );
-        let error = serde_json::from_str::<ParseOutput>(&json)
-            .unwrap()
-            .error
-            .unwrap();
-        assert_eq!(error.span, Span::new(4, 7));
-        assert_eq!(error.message, "Expected Id");
-    }
-
-    #[test]
-    fn parse_output_inlines_the_parse_tree_json() {
-        let output = ParseOutput {
-            error: None,
-            parse_ms: Some(2),
-            tree_construction_ms: Some(1),
-            parse_tree: Some(r#"{"id":0}"#.to_string()),
-        };
-        let json = serde_json::to_string(&output).unwrap();
-        assert_eq!(
-            json,
-            r#"{"error":null,"parse_ms":2,"tree_construction_ms":1,"parse_tree":"{\"id\":0}"}"#
-        );
-        let back: ParseOutput = serde_json::from_str(&json).unwrap();
-        assert_eq!(back.parse_tree.as_deref(), Some(r#"{"id":0}"#));
-    }
 }

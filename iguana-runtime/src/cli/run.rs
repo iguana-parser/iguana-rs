@@ -18,6 +18,7 @@ use crate::{
     input::Input,
     parse_tree::{DisplayOptions, to_json, to_sexpr_with},
     parser::{GLLResult, Parser},
+    result::ParseSummary,
     visualization::{dot::write_graph, gss::build_gss_dot_graph, sppf::build_sppf_graph},
 };
 
@@ -213,11 +214,10 @@ fn parse_file<'i, 'arena, P: Parser<'i, 'arena>>(args: Args) -> io::Result<()> {
                 writeln!(writer, "{}", json)?;
             }
             if let Some(ref path) = args.write_result {
-                let result = super::ParseOutput {
+                let result = ParseSummary {
                     error: None,
                     parse_ms: Some(parse_success.duration.as_millis() as u32),
                     tree_construction_ms: tree_construction_ms.map(|ms| ms as u32),
-                    parse_tree: None,
                 };
                 let file = File::create(path)?;
                 let mut writer = BufWriter::new(file);
@@ -250,11 +250,10 @@ fn parse_file<'i, 'arena, P: Parser<'i, 'arena>>(args: Args) -> io::Result<()> {
             let error = parser.to_parse_error(&error);
             eprintln!("{}", error.render(&input));
             if let Some(ref path) = args.write_result {
-                let result = super::ParseOutput {
+                let result = ParseSummary {
                     error: Some(error),
                     parse_ms: None,
                     tree_construction_ms: None,
-                    parse_tree: None,
                 };
                 let file = File::create(path)?;
                 let mut writer = BufWriter::new(file);

@@ -563,6 +563,12 @@ pub struct Token {
     span: Span,
 }
 impl Token {
+    pub fn new(terminal_id: ids::TerminalId, span: Span) -> Token {
+        Token {
+            kind: token_kind(terminal_id),
+            span,
+        }
+    }
     pub fn as_parse_tree<'a>(&self) -> ParseTree<'a> {
         ParseTree::Token(*self)
     }
@@ -767,10 +773,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>>
         }
     }
     fn new_token(&self, terminal_node: &sppf::TerminalNode) -> ParseTree<'a> {
-        ParseTree::Token(Token {
-            kind: token_kind(terminal_node.terminal_id),
-            span: terminal_node.span,
-        })
+        ParseTree::Token(Token::new(terminal_node.terminal_id, terminal_node.span))
     }
     fn new_ambiguity_node(
         &self,

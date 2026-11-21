@@ -4,8 +4,9 @@
 // hovering a rule head shows its reference count, and a Go to rule button lists
 // the rules. The language server also adds occurrence highlighting and folding.
 //
-// Colors come from the --gv-* properties in style.scss: Dark+ by default, as
-// Giallo renders iggy, and a light palette on a grammar page in the light theme.
+// The colors are the language server's semantic tokens in the colors of
+// web-ui's syntax-theme.json, so the grammar is uncolored until the server
+// loads. The host picks the dark or light colors with --gv-scheme.
 import { Compartment, EditorSelection, EditorState, StateEffect, StateField } from "@codemirror/state";
 import type { Extension, SelectionRange, Text } from "@codemirror/state";
 import {
@@ -22,17 +23,8 @@ import {
 } from "@codemirror/view";
 import type { DecorationSet, Tooltip, ViewUpdate } from "@codemirror/view";
 import { defaultKeymap } from "@codemirror/commands";
-import {
-  HighlightStyle,
-  StreamLanguage,
-  bracketMatching,
-  codeFolding,
-  foldGutter,
-  foldService,
-  forceParsing,
-  syntaxHighlighting,
-} from "@codemirror/language";
-import { highlightTree, tags } from "@lezer/highlight";
+import { bracketMatching, codeFolding, foldGutter, foldService } from "@codemirror/language";
+import { groupClass, groupOfTokenType, themeGroup, themeStyles } from "../../web-ui/src/syntax-theme";
 
 const LSP_MODULE = "/playgrounds/iggy-lsp/iguana_lsp_wasm.js";
 
@@ -40,6 +32,8 @@ const LSP_MODULE = "/playgrounds/iggy-lsp/iguana_lsp_wasm.js";
 // returns its LSP result as a JSON string.
 interface LspModule {
   default(): Promise<unknown>;
+  semantic_tokens_legend(): string;
+  semantic_tokens(source: string): string;
   document_symbols(source: string): string;
   folding(source: string): string;
   definition(source: string, line: number, character: number): string;
@@ -88,56 +82,40 @@ interface RuleName {
   rule: Rule;
 }
 
-interface IggyState {
-  mode: "string" | "class" | null;
+// A semantic token and the CSS class of its color.
+interface SemanticToken extends TextRange {
+  cls: string;
 }
 
-const KEYWORDS = new Set(["grammar", "layout", "left", "right", "none"]);
-
-// mode: null (top level), "string" (inside "..."), "class" (inside [...]).
-const iggy = StreamLanguage.define<IggyState>({
-  startState: () => ({ mode: null }),
-  token(stream, state) {
-    if (state.mode === "string") {
-      if (stream.match(/^\\./)) return "escape";
-      if (stream.eat('"')) { state.mode = null; return "string"; }
-      stream.match(/^[^"\\]+/) || stream.next();
-      return "string";
-    }
-    if (state.mode === "class") {
-      if (stream.match(/^\\./)) return "escape";
-      if (stream.eat("]")) { state.mode = null; return "regexp"; }
-      stream.match(/^[^\]\\]+/) || stream.next();
-      return "regexp";
-    }
-    if (stream.eatSpace()) return null;
-    if (stream.match(/^\/\/.*/)) return "comment";
-    if (stream.match(/^@[A-Za-z]\w*/)) return "meta";
-    if (stream.match(/^#[A-Za-z]\w*/)) return "labelName";
-    if (stream.eat('"')) { state.mode = "string"; return "string"; }
-    if (stream.eat("[")) { state.mode = "class"; return "regexp"; }
-    const word = stream.match(/^[A-Za-z_]\w*/) as RegExpMatchArray | null;
-    if (word) return KEYWORDS.has(word[0]) ? "keyword" : "typeName";
-    stream.next();
-    return null;
-  },
-  languageData: { commentTokens: { line: "//" } },
-});
-
-const highlight = HighlightStyle.define([
-  { tag: tags.comment, color: "var(--gv-comment)" },
-  { tag: tags.keyword, color: "var(--gv-keyword)" },
-  { tag: tags.typeName, color: "var(--gv-type)" },
-  { tag: tags.string, color: "var(--gv-string)" },
-  { tag: tags.regexp, color: "var(--gv-regexp)" },
-  { tag: tags.escape, color: "var(--gv-escape)" },
-  { tag: tags.meta, color: "var(--gv-meta)" },
-  { tag: tags.labelName, color: "var(--gv-label)" },
-]);
+// The language server's semantic tokens that have a color. The LSP encodes
+// each token as five integers: the line relative to the previous token's, the
+// start relative to the previous token's start on the same line, the length,
+// the index of the type in the legend, and the modifiers.
+function semanticTokens(lsp: LspModule, source: string, doc: Text): SemanticToken[] {
+  const types = (JSON.parse(lsp.semantic_tokens_legend()) as { tokenTypes: string[] }).tokenTypes;
+  const classes = types.map((type) => {
+    const group = themeGroup(groupOfTokenType(type));
+    return group && groupClass(group);
+  });
+  const data = (JSON.parse(lsp.semantic_tokens(source)) as { data: number[] }).data;
+  const tokens: SemanticToken[] = [];
+  let line = 0;
+  let character = 0;
+  for (let i = 0; i + 4 < data.length; i += 5) {
+    line += data[i];
+    character = data[i] === 0 ? character + data[i + 1] : data[i + 1];
+    const from = toOffset(doc, { line, character });
+    const cls = classes[data[i + 3]];
+    if (cls) tokens.push({ from, to: from + data[i + 2], cls });
+  }
+  return tokens;
+}
 
 const theme = EditorView.theme({
+  ...themeStyles(),
   "&": {
     height: "100%",
+    colorScheme: "var(--gv-scheme, dark)",
     color: "var(--gv-text)",
     backgroundColor: "var(--bg-code)",
     fontSize: "var(--gv-font-size, 13px)",
@@ -182,6 +160,7 @@ const theme = EditorView.theme({
   ".cm-lsp-occurrence": { backgroundColor: "var(--gv-occurrence)", borderRadius: "2px" },
   ".cm-lsp-flash": { backgroundColor: "var(--gv-flash)" },
   ".cm-tooltip.cm-tooltip-hover": {
+    colorScheme: "var(--gv-scheme, dark)",
     backgroundColor: "var(--gv-popup)",
     border: "1px solid var(--gv-border)",
     borderRadius: "6px",
@@ -252,19 +231,22 @@ const occurrences = markField();
 const link = markField();
 const flash = markField();
 
-function highlighted(text: string) {
+// The text from `from` to `to`, colored with the semantic tokens inside it.
+function highlighted(doc: Text, tokens: SemanticToken[], from: number, to: number) {
   const pre = document.createElement("pre");
-  let at = 0;
-  const plain = (to: number) => { if (to > at) pre.append(text.slice(at, to)); };
-  highlightTree(iggy.parser.parse(text), highlight, (from, to, classes) => {
-    plain(from);
+  let at = from;
+  const plain = (end: number) => { if (end > at) pre.append(doc.sliceString(at, end)); };
+  for (const token of tokens) {
+    if (token.to <= from) continue;
+    if (token.from >= to) break;
+    plain(token.from);
     const span = document.createElement("span");
-    span.className = classes;
-    span.textContent = text.slice(from, to);
+    span.className = token.cls;
+    span.textContent = doc.sliceString(token.from, Math.min(token.to, to));
     pre.append(span);
-    at = to;
-  });
-  plain(text.length);
+    at = Math.min(token.to, to);
+  }
+  plain(to);
   return pre;
 }
 
@@ -405,6 +387,12 @@ function lspFeatures(
       rule: { from: toOffset(doc, s.range.start), to: toOffset(doc, s.range.end) },
     });
   }
+  const tokens = semanticTokens(lsp, source, doc);
+  const colors = Decoration.set(
+    tokens
+      .filter((token) => token.to > token.from)
+      .map((token) => Decoration.mark({ class: token.cls }).range(token.from, token.to)),
+  );
   const folds = new Map<number, number>(
     (JSON.parse(lsp.folding(source)) as LspFoldingRange[]).map((r) => [r.startLine + 1, r.endLine + 1]),
   );
@@ -537,14 +525,21 @@ function lspFeatures(
       create() {
         const dom = document.createElement("div");
         dom.className = "cm-lsp-peek";
-        const lines = v.state.sliceDoc(rule.rule.from, rule.rule.to).split("\n");
-        dom.append(highlighted(lines.length > 12 ? lines.slice(0, 12).join("\n") + "\n  …" : lines.join("\n")));
+        // The first 12 lines of the rule, and an ellipsis for the rest.
+        const doc = v.state.doc;
+        const first = doc.lineAt(rule.rule.from).number;
+        const last = doc.lineAt(rule.rule.to).number;
+        const cut = last - first >= 12 ? doc.line(first + 11).to : rule.rule.to;
+        const pre = highlighted(doc, tokens, rule.rule.from, cut);
+        if (cut < rule.rule.to) pre.append("\n  …");
+        dom.append(pre);
         return { dom };
       },
     };
   }, { hoverTime: 250 });
 
   const extensions = [
+    EditorView.decorations.of(colors),
     occurrences.field,
     link.field,
     flash.field,
@@ -654,19 +649,12 @@ function mountGrammarView(host: HTMLElement, { source, name, ruleButtonHost, too
         highlightActiveLine(),
         bracketMatching(),
         keymap.of(defaultKeymap),
-        iggy,
-        syntaxHighlighting(highlight),
         theme,
         EditorState.readOnly.of(true),
         EditorView.contentAttributes.of({ "aria-label": `${name} grammar (read-only)`, "aria-readonly": "true" }),
       ],
     }),
   });
-
-  // CodeMirror tokenizes near the viewport and the rest in idle chunks, so a
-  // fast scroll can outrun it and show uncolored lines. The grammar never
-  // changes and is small, so tokenize all of it once, up front.
-  forceParsing(view, view.state.doc.length, 1000);
 
   // Pinned to the corner, since it describes the whole editor.
   const readOnly = document.createElement("span");

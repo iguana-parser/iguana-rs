@@ -47,6 +47,32 @@
         "path": "./syntaxes/iggy.tmLanguage.json"
       }
     ],
+    "semanticTokenTypes": [
+      {
+        "id": "rule",
+        "superType": "type",
+        "description": "The name of a rule."
+      },
+      {
+        "id": "ruleSyntax",
+        "superType": "rule",
+        "description": "The name of a syntax rule, in its head or a reference."
+      },
+      {
+        "id": "ruleLexical",
+        "superType": "rule",
+        "description": "The name of a lexical rule, in its head or a reference."
+      },
+      {
+        "id": "stringEscape",
+        "superType": "string",
+        "description": "An escape sequence in a string or a character class."
+      },
+      {
+        "id": "unresolved",
+        "description": "A name that does not resolve to a rule."
+      }
+    ],
     "configuration": {
       "type": "object",
       "title": "Iguana",

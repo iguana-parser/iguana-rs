@@ -51,8 +51,8 @@ pub fn semantic_tokens_legend() -> String {
 }
 
 /// Semantic tokens for `source`, as a JSON `SemanticTokens` whose `data` is the
-/// LSP delta encoding flattened to a `u32` array. The `data` is empty when the
-/// grammar does not parse or is ambiguous.
+/// LSP delta encoding flattened to a `u32` array. When the grammar does not
+/// parse or is ambiguous, the tokens come from the scanner alone.
 #[wasm_bindgen]
 pub fn semantic_tokens(source: &str) -> String {
     let tokens = SemanticTokens {

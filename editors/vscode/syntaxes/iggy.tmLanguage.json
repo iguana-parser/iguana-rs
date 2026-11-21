@@ -25,7 +25,7 @@
       "name": "entity.name.function.decorator.iggy"
     },
     "label": {
-      "comment": "Alternative labels like #Add. Scoped under comment. so themes render them muted, matching iguana-lsp, which deliberately emits labels as COMMENT tokens.",
+      "comment": "Alternative labels like #Add. Scoped under comment. so themes render them muted.",
       "match": "#[A-Za-z][A-Za-z0-9_]*",
       "name": "comment.label.iggy"
     },
@@ -70,7 +70,7 @@
       ]
     },
     "nonterminal": {
-      "comment": "Every remaining identifier is a grammar symbol; iguana-lsp colors all of them as TYPE",
+      "comment": "Every remaining identifier is a grammar symbol.",
       "match": "\\b([A-Za-z][A-Za-z0-9_]*)\\b",
       "name": "entity.name.type.iggy"
     }

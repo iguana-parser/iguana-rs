@@ -11,9 +11,10 @@ export class TauriBackend implements ParserBackend {
     const run = await commands.parse(this.directory, input, startNonterminal);
     if (run.status === "error") return { error: run.error };
     return {
-      output: run.data.result,
+      summary: run.data.summary,
       unexpected_error: run.data.unexpected_error,
-      treeJson: run.data.result?.parse_tree ?? null,
+      treeJson: run.data.parse_tree,
+      highlights: null,
     };
   }
 }

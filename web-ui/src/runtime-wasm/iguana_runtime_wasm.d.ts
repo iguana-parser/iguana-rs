@@ -22,6 +22,13 @@ export class TextPositions {
      * shows it.
      */
     position(offset: number): Uint32Array;
+    /**
+     * The line and the UTF-16 column of each offset in `offsets`
+     * (`position`), flattened to `[line, column, line, column, …]`. One call
+     * converts all the offsets, instead of one call across the WebAssembly
+     * boundary per offset.
+     */
+    positions(offsets: Uint32Array | number[]): Uint32Array;
 }
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
@@ -32,6 +39,7 @@ export interface InitOutput {
     readonly textpositions_new: (a: number, b: number) => number;
     readonly textpositions_offset: (a: number, b: number, c: number) => number;
     readonly textpositions_position: (a: number, b: number) => [number, number];
+    readonly textpositions_positions: (a: number, b: number, c: number) => [number, number];
     readonly __wbindgen_externrefs: WebAssembly.Table;
     readonly __wbindgen_malloc: (a: number, b: number) => number;
     readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;

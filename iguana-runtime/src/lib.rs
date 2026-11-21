@@ -5,6 +5,7 @@ pub mod descriptor;
 pub mod env;
 pub mod grammar;
 pub mod gss;
+pub mod highlight;
 pub mod ids;
 pub mod input;
 pub mod instrument;
@@ -19,6 +20,7 @@ pub mod trace;
 pub mod utf16;
 pub mod utils;
 pub mod visualization;
+pub mod wasm;
 
 // Re-export the record macro from trace module
 pub use trace::*;
@@ -27,3 +29,8 @@ pub use trace::*;
 // std::time::Instant::now() compiles but panics. On native targets it is
 // std::time::Instant.
 pub use web_time::Instant;
+
+// The highlight groups of a grammar crate derive `Serialize` through this
+// re-export (`#[serde(crate = "iguana_runtime::serde")]`), so the crate does
+// not need its own dependency on serde.
+pub use serde;

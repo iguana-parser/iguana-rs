@@ -15,7 +15,7 @@ Terrarium supplies Tauri-backed implementations of the same interfaces.
 - **Parser UI.** `ParseView`, `InputEditor`, and `NonterminalPicker` provide the
   parser input and parse-tree views.
 - **Grammar UI.** `DesignView` provides grammar editing and navigation.
-- **Parser backends.** `ParserBackend`, `ParseOutput`, `ParseTreeResult`, and
+- **Parser backends.** `ParserBackend`, `ParseSummary`, `ParseTreeResult`, and
   `WasmBackend` define and implement parser access.
 - **Language backends.** `LspBackend`, its result types, and `WasmLspBackend`
   define and implement grammar analysis.

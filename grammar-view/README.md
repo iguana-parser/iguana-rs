@@ -20,8 +20,11 @@ The host page provides:
 - **Tabs.** A `.gp-tabbar` receives the Go to rule button. A `.gp-pane` delays the
   language server until the pane is first shown. Both are optional for a
   `.grammar-view` element.
-- **Styles.** The `--gv-*` color properties and the rules for the view's classes
-  are in the website's stylesheet.
+- **Styles.** The `--gv-*` surface colors and the rules for the view's classes
+  are in the website's stylesheet. `--gv-scheme` (`dark` or `light`) picks
+  the syntax colors, which come from `web-ui/src/syntax-theme.json`. The view
+  colors the language server's semantic tokens, and the grammar is uncolored
+  until the server loads.
 - **Language server.** The module loads the WebAssembly wrapper built from
   `iguana-lsp/wasm` at `/playgrounds/iggy-lsp/iguana_lsp_wasm.js`.
 

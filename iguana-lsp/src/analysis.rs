@@ -9,7 +9,7 @@ use crate::diagnostics::{diagnostics, to_diagnostic};
 use crate::document_symbols::document_symbols;
 use crate::folding::folding_ranges;
 use crate::name_resolution::NameResolutionIndex;
-use crate::semantic_tokens::semantic_tokens;
+use crate::semantic_tokens::{semantic_tokens, semantic_tokens_from_scanner};
 use crate::{BuildResult, build, build_grammar_def, to_offset, to_range};
 
 #[derive(Clone, Copy)]
@@ -20,7 +20,8 @@ pub struct ParseDurations {
 
 /// A grammar source and the answers to language-feature requests about it.
 ///
-/// The answers are empty when the source does not parse or is ambiguous. A
+/// The answers are empty when the source does not parse or is ambiguous,
+/// except the semantic tokens, which then come from the scanner alone. A
 /// source that does not parse also has one diagnostic at the parse error.
 pub struct Analysis {
     source: String,
@@ -47,14 +48,22 @@ impl Analysis {
             } => {
                 let grammar_def = build_grammar_def(tree, &input);
                 let spans = build_spans(&grammar_def, tree, &input);
+                let names = NameResolutionIndex::new(&grammar_def, &spans);
                 Self {
                     source: source.to_string(),
                     parse_durations: Some(ParseDurations {
                         parse: parse_duration,
                         tree_construction: tree_construction_duration,
                     }),
-                    names: NameResolutionIndex::new(&grammar_def, &spans),
-                    semantic_tokens: semantic_tokens(tree, &input, &columns),
+                    semantic_tokens: semantic_tokens(
+                        tree,
+                        &input,
+                        &columns,
+                        &grammar_def,
+                        &spans,
+                        &names,
+                    ),
+                    names,
                     document_symbols: document_symbols(&grammar_def, &spans, &input, &columns),
                     folding_ranges: folding_ranges(&grammar_def, &spans, &input),
                     diagnostics: diagnostics(&grammar_def, &spans, &input, &columns),
@@ -79,10 +88,10 @@ impl Analysis {
         Self {
             source: source.to_string(),
             parse_durations: None,
+            semantic_tokens: semantic_tokens_from_scanner(&input, &columns),
             input,
             columns,
             names: NameResolutionIndex::default(),
-            semantic_tokens: vec![],
             document_symbols: vec![],
             folding_ranges: vec![],
             diagnostics,
@@ -154,9 +163,14 @@ impl Analysis {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::semantic_tokens::token_type;
+    use iggy::highlighting::Group;
     use iguana_compiler::spans::GrammarSpans;
     use lsp_types::DiagnosticSeverity;
-    use std::{fs, path::Path};
+    use std::{
+        fs,
+        path::{Path, PathBuf},
+    };
 
     fn analyze(source: &str) -> Analysis {
         Analysis::new(source.trim_prefix('\n'))
@@ -402,7 +416,7 @@ Long
     }
 
     #[test]
-    fn parse_error_has_one_diagnostic_and_no_other_answers() {
+    fn parse_error_has_one_diagnostic_and_only_lexical_tokens() {
         let analysis = Analysis::new("grammar");
         assert_eq!(analysis.diagnostics().len(), 1);
         assert_eq!(
@@ -411,7 +425,10 @@ Long
         );
         assert_eq!(analysis.diagnostics()[0].range.start, Position::new(0, 7));
         assert!(analysis.parse_durations().is_none());
-        assert!(analysis.semantic_tokens().is_empty());
+        // The keyword `grammar`, from the scanner.
+        let tokens = analysis.semantic_tokens();
+        assert_eq!(tokens.len(), 1);
+        assert_eq!(tokens[0].token_type, token_type(Group::Keyword));
         assert!(analysis.document_symbols().is_empty());
         assert!(analysis.folding_ranges().is_empty());
         assert!(analysis.definition(Position::new(0, 0)).is_none());
@@ -497,6 +514,53 @@ Long
 
     #[test]
     fn lookup_matches_scan_on_every_grammar() {
+        for grammar in every_grammar() {
+            assert_lookup_matches_scan(&grammar);
+        }
+    }
+
+    /// Each rule head and resolved reference has a semantic token of its
+    /// rule's group, and no name is `unresolved`.
+    #[test]
+    fn every_rule_name_has_a_token_on_every_grammar() {
+        for grammar in every_grammar() {
+            let source = fs::read_to_string(&grammar).unwrap();
+            let analysis = Analysis::new(&source);
+            let tokens_of_group = |group| {
+                analysis
+                    .semantic_tokens()
+                    .iter()
+                    .filter(|token| token.token_type == token_type(group))
+                    .count()
+            };
+            let lexical = analysis
+                .names
+                .rule_names()
+                .iter()
+                .filter(|&&(_, definition)| analysis.names.is_lexical_rule(definition))
+                .count();
+            let syntax = analysis.names.rule_names().len() - lexical;
+            // The restrictions of lexical rules are not in the name index
+            // (`name_groups`), so the lexical tokens can outnumber the
+            // lexical names.
+            let syntax_tokens = tokens_of_group(Group::RuleSyntax);
+            let lexical_tokens = tokens_of_group(Group::RuleLexical);
+            assert!(
+                syntax_tokens == syntax && lexical_tokens >= lexical,
+                "{}: {syntax_tokens} syntax and {lexical_tokens} lexical tokens for {syntax} and {lexical} names",
+                grammar.display(),
+            );
+            assert_eq!(
+                tokens_of_group(Group::Unresolved),
+                0,
+                "{}",
+                grammar.display()
+            );
+        }
+    }
+
+    /// Iggy's own grammar and every test grammar.
+    fn every_grammar() -> Vec<PathBuf> {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap();
         let mut grammars = vec![root.join("iggy/iggy.iggy")];
         for directory in fs::read_dir(root.join("tests")).unwrap() {
@@ -515,8 +579,6 @@ Long
             }
         }
         assert!(grammars.len() > 50, "found {} grammars", grammars.len());
-        for grammar in grammars {
-            assert_lookup_matches_scan(&grammar);
-        }
+        grammars
     }
 }

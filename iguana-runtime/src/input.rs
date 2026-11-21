@@ -140,9 +140,14 @@ impl Input {
     /// # Panics
     /// Panics if the span extends past the end of the input.
     pub fn text(&self, span: Span) -> String {
-        self.source[span.left_extent as usize..span.right_extent as usize]
-            .iter()
-            .collect()
+        self.chars(span).iter().collect()
+    }
+    /// Returns the characters covered by `span`.
+    ///
+    /// # Panics
+    /// Panics if the span extends past the end of the input.
+    pub fn chars(&self, span: Span) -> &[char] {
+        &self.source[span.left_extent as usize..span.right_extent as usize]
     }
     /// Start offset of each line.
     /// Builds the table on the first call.

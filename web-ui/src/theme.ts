@@ -1,4 +1,5 @@
 import type * as monaco from "monaco-editor";
+import { THEME, tokenTypeOfGroup } from "./syntax-theme";
 
 // Cytoscape's typings do not export the stylesheet type (see graph-styles.ts).
 type Stylesheet = any;
@@ -20,9 +21,11 @@ type Stylesheet = any;
 //   --iguana-selection, --iguana-flash      a selected node or span, a revealed row
 //   --iguana-error                          a parse error
 //   --iguana-warning                        an ambiguity in the input editors
-//   --iguana-syntax-nonterminal, -token, -keyword, -string, -number, -operator,
-//   -reference, -reference-hover, -paren, -comment, -ambiguity
-//                                           syntax colors in the editor and views
+//   --iguana-syntax-nonterminal, -token, -reference, -reference-hover, -paren,
+//   -comment, -ambiguity                    the tree views' and the outline's colors
+//
+// The editors' syntax colors are not properties. They come from
+// syntax-theme.json (syntax-theme.ts).
 //
 // CSS reads them with var(--iguana-..., <fallback>). Monaco and Cytoscape take
 // colors as options instead, so they read them through themeValue and toHex and
@@ -136,25 +139,21 @@ export function defineInputTheme(editorApi: typeof monaco.editor): string {
   return "iguana-input";
 }
 
-// The grammar editor's theme: the iggy token colors (Dark+ by default) and the
-// surface, each recolored where the host's theme sets the matching property.
+// The grammar editor's theme: the colors of syntax-theme.json and the
+// surface, which is recolored where the host's theme sets the matching
+// property.
 export function defineGrammarTheme(editorApi: typeof monaco.editor): string {
-  // Monaco takes token colors as hex without the leading #.
-  const token = (name: string, fallback: string) =>
-    (themeHex(name) ?? fallback).replace(/^#/, "").slice(0, 6);
   const selection = themeHex("--iguana-selection")?.slice(0, 7) ?? "#264f78";
+  const light = isLight();
   editorApi.defineTheme("iggy", {
-    base: isLight() ? "vs" : "vs-dark",
+    base: light ? "vs" : "vs-dark",
     inherit: true,
-    rules: [
-      { token: "keyword", foreground: token("--iguana-syntax-keyword", "#569cd6"), fontStyle: "bold" },
-      { token: "type", foreground: token("--iguana-syntax-nonterminal", "#4ec9b0") },
-      { token: "string", foreground: token("--iguana-syntax-string", "#ce9178") },
-      { token: "regexp", foreground: "d16969" },
-      { token: "operator", foreground: token("--iguana-syntax-operator", "#d4d4d4") },
-      { token: "decorator", foreground: "dcdcaa" },
-      { token: "comment", foreground: token("--iguana-syntax-comment", "#808080") }, // labels
-    ],
+    // A rule for each group of syntax-theme.json, by its semantic token type.
+    rules: Object.entries(THEME).map(([group, style]) => ({
+      token: tokenTypeOfGroup(group),
+      foreground: (light ? style.light : style.dark).slice(1),
+      ...(style.italic ? { fontStyle: "italic" } : {}),
+    })),
     colors: editorColors({
       ...surfaceColors(),
       "editor.inactiveSelectionBackground": selection,

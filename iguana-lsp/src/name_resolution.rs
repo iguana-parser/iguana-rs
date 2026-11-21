@@ -4,7 +4,7 @@ use iguana_compiler::grammar::{
 };
 use iguana_compiler::spans::GrammarSpans;
 use iguana_runtime::input::Span;
-use rustc_hash::FxHashMap;
+use rustc_hash::{FxHashMap, FxHashSet};
 
 /// A span per definition, the spans of the references to it, and a table of
 /// both sorted for lookup by offset.
@@ -15,6 +15,8 @@ use rustc_hash::FxHashMap;
 pub struct NameResolutionIndex {
     pub definitions: FxHashMap<DefinitionId, Span>,
     pub references: FxHashMap<DefinitionId, Vec<Span>>,
+    /// The definitions that are lexical rules. The others are syntax rules.
+    lexical_rules: FxHashSet<DefinitionId>,
     /// Every rule head and resolved reference in the source, sorted by span.
     /// The spans do not overlap.
     occurrences: Vec<(Span, DefinitionId)>,
@@ -33,6 +35,7 @@ impl NameResolutionIndex {
                 index
                     .definitions
                     .insert(id, spans.terminal(&rule.head).span);
+                index.lexical_rules.insert(id);
             }
         }
         for rule in &grammar_def.syntax_rules {
@@ -77,6 +80,16 @@ impl NameResolutionIndex {
             .partition_point(|(span, _)| span.left_extent <= offset);
         let &(span, definition) = self.occurrences[..following].last()?;
         (offset < span.right_extent).then_some(definition)
+    }
+
+    /// Every rule head and resolved reference, sorted by span, with its
+    /// rule's definition.
+    pub fn rule_names(&self) -> &[(Span, DefinitionId)] {
+        &self.occurrences
+    }
+
+    pub fn is_lexical_rule(&self, definition: DefinitionId) -> bool {
+        self.lexical_rules.contains(&definition)
     }
 
     fn add_reference(&mut self, identifier: &Identifier, spans: &GrammarSpans<'_>) {

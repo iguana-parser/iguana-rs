@@ -12,32 +12,40 @@ export interface ParseError {
   message: string;
 }
 
-// The runtime's report of one parse, the shape --write-result writes and the
-// wasm wrapper returns. A failure sets error; a success sets the timings.
-// parse_tree is inline only in the wasm envelope; the subprocess writes the
-// tree to its own file and Terrarium's backend fills the field from it.
-export interface ParseOutput {
+// A span of the input and its highlight group, such as "keyword" or
+// "string.escape" (the runtime's Highlight).
+export interface Highlight {
+  span: Span;
+  group: string;
+}
+
+// What a parse did, without its tree (the runtime's ParseSummary), the shape
+// --write-result writes. A failure sets error; a success sets the timings.
+export interface ParseSummary {
   error: ParseError | null;
   parse_ms: number | null;
   tree_construction_ms: number | null;
-  parse_tree: string | null;
 }
 
-// A single parse attempt. output is the runtime's report, null when the parser
-// did not run to a result (it crashed or wrote no report); unexpected_error
-// then holds the detail. treeJson is the parse-tree JSON, null when the parse
-// produced no tree; it matches the parser's --write-parse-tree output.
+// A single parse attempt. summary is the runtime's summary, null when the
+// parser did not run to a result (it crashed or wrote no summary);
+// unexpected_error then holds the detail. treeJson is the parse-tree JSON, null
+// when the parse produced no tree; it matches the parser's --write-parse-tree
+// output. highlights is the highlighting of the input, from the tree or, when
+// the parse failed, from the scanner's tokens. It is null when the backend
+// does not highlight.
 export interface ParseTreeResult {
-  output: ParseOutput | null;
+  summary: ParseSummary | null;
   unexpected_error: string | null;
   treeJson: string | null;
+  highlights: Highlight[] | null;
 }
 
 // A parser the ParseView drives, independent of how it runs. Terrarium's
 // TauriBackend runs a generated parser as a subprocess; the web viewer's
 // WasmBackend calls a wasm-compiled parser. parse resolves to the tree result,
 // or to an error when the parser could not be run at all (distinct from a parse
-// that ran and failed, which is a result whose output.error is set).
+// that ran and failed, which is a result whose summary.error is set).
 export interface ParserBackend {
   parse(input: string, startNonterminal: string): Promise<ParseTreeResult | { error: string }>;
 }

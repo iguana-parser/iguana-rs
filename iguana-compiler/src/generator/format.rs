@@ -43,7 +43,7 @@ fn format_files_with(program: &OsStr, files: &[&Path]) -> io::Result<Duration> {
     if !output.status.success() {
         let message = String::from_utf8_lossy(&output.stderr);
         return Err(io::Error::other(format!(
-            "rustfmt failed on the generated sources: {}",
+            "rustfmt failed: {}",
             message.trim()
         )));
     }

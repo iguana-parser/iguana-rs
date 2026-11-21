@@ -13,8 +13,8 @@ use std::{
 
 use iguana_lsp::analysis::Analysis;
 use iguana_lsp::format::format_source;
-use iguana_runtime::cli;
 use iguana_runtime::ids::SPPFNodeId;
+use iguana_runtime::result::ParseSummary;
 use iguana_runtime::visualization::{gss::GSS, sppf::SPPF};
 use lsp_types::{DiagnosticSeverity, DocumentSymbol, Position, Range, SymbolKind};
 use serde::{Deserialize, Serialize};
@@ -206,16 +206,19 @@ struct ParseState {
     gss_path: Option<PathBuf>,
 }
 
-/// Returned by `parse()`: the runtime's parse report plus what only the host
-/// knows. `result` is the parser's --write-result report with `parse_tree`
-/// filled in from the tree file, read inline so a parse is a single command.
-/// It is `None` when no valid report was available (a panic, a signal, or an
-/// exit, clean or not, without a readable report), and `unexpected_error`
-/// then holds the detail. A parse failure is not that case: the parser also
-/// exits non-zero, but it writes a report whose `error` is set.
+/// Returned by `parse()`: the parser's summary of the parse, its tree, and
+/// what only the host knows. `summary` is what the parser writes with
+/// --write-result, and `parse_tree` the tree JSON it writes with
+/// --write-parse-tree, both read inline so a parse is a single command.
+/// `summary` is `None` when no valid summary was available (a panic, a
+/// signal, or an exit, clean or not, without a readable summary), and
+/// `unexpected_error` then holds the detail. A parse failure is not that
+/// case: the parser also exits non-zero, but it writes a summary whose `error`
+/// is set.
 #[derive(Clone, Serialize, Type)]
 struct ParseRun {
-    result: Option<cli::ParseOutput>,
+    summary: Option<ParseSummary>,
+    parse_tree: Option<String>,
     unexpected_error: Option<String>,
 }
 
@@ -503,20 +506,20 @@ fn parse_inner(
     parse_state.sppf_path = if has_sppf { Some(sppf_path) } else { None };
     parse_state.gss_path = if has_gss { Some(gss_path) } else { None };
 
-    // Read parse result from JSON file written by --write-result
-    let result = result_path
+    // Read the summary from the JSON file written by --write-result
+    let summary = result_path
         .exists()
         .then(|| {
             fs::read_to_string(&result_path)
                 .ok()
-                .and_then(|s| serde_json::from_str::<cli::ParseOutput>(&s).ok())
+                .and_then(|s| serde_json::from_str::<ParseSummary>(&s).ok())
         })
         .flatten();
 
     // Parser did not run to a result (panic, signal, non-zero exit): an
     // unexpected error, not a parse failure. Record the detail in the log file so
     // a saved log carries it; the frontend also shows it in the output panel.
-    if !output.status.success() && result.is_none() {
+    if !output.status.success() && summary.is_none() {
         let detail = format!(
             "Parser exited unexpectedly ({}).\n{}",
             output.status,
@@ -524,26 +527,26 @@ fn parse_inner(
         );
         log_to_file("error", &detail);
         return Ok(ParseRun {
-            result: None,
+            summary: None,
+            parse_tree: None,
             unexpected_error: Some(detail),
         });
     }
 
-    match result {
-        Some(mut result) => {
-            result.parse_tree = parse_tree;
-            Ok(ParseRun {
-                result: Some(result),
-                unexpected_error: None,
-            })
-        }
+    match summary {
+        Some(summary) => Ok(ParseRun {
+            summary: Some(summary),
+            parse_tree,
+            unexpected_error: None,
+        }),
         // The parser exited cleanly but wrote no result file: an unexpected error,
         // not a parse failure. Should not happen with the current generator.
         None => {
             let detail = "Parser produced no result.".to_string();
             log_to_file("error", &detail);
             Ok(ParseRun {
-                result: None,
+                summary: None,
+                parse_tree: None,
                 unexpected_error: Some(detail),
             })
         }
