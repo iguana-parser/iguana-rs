@@ -6,7 +6,6 @@ export { default as NonterminalPicker } from "./NonterminalPicker.svelte";
 export * from "./backend";
 export * from "./wasm-backend";
 export * from "./lsp-backend";
-export * from "./wasm-lsp-backend";
 export * from "./create-graph";
 export * from "./graph-controls";
 export * from "./graph-styles";

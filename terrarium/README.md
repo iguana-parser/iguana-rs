@@ -64,9 +64,8 @@ starts; review that file after changing the Tauri command interface.
 An Iggy language feature must work in both the desktop and browser hosts. Add
 the analysis function under `iguana-lsp/src/` and export it from
 `iguana-lsp/wasm/src/lib.rs`. Add the method to `LspBackend` in
-`web-ui/src/lsp-backend.ts`, implement it in
-`web-ui/src/wasm-lsp-backend.ts`, and register the corresponding Monaco
-provider in `web-ui/src/DesignView.svelte`. For Terrarium, expose the function
+`web-ui/src/lsp-backend.ts` and register the corresponding Monaco provider in
+`web-ui/src/DesignView.svelte`. For Terrarium, expose the function
 through a Tauri command in `src-tauri/src/lib.rs` and implement the method in
 `src/lib/tauri-lsp-backend.ts`.
 

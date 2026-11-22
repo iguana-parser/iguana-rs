@@ -6,8 +6,7 @@ a collapsible tree, a graph, and an interactive s-expression. `DesignView`
 provides the Monaco-based Iggy editor used by Terrarium.
 
 The components reach parser and language-server functions through backend
-interfaces rather than host APIs. `WasmBackend` runs a WebAssembly parser, and
-`WasmLspBackend` runs the Iggy analysis functions compiled to WebAssembly.
+interfaces rather than host APIs. `WasmBackend` runs a WebAssembly parser.
 Terrarium supplies Tauri-backed implementations of the same interfaces.
 
 ## What the package exports
@@ -17,8 +16,8 @@ Terrarium supplies Tauri-backed implementations of the same interfaces.
 - **Grammar UI.** `DesignView` provides grammar editing and navigation.
 - **Parser backends.** `ParserBackend`, `ParseSummary`, `ParseTreeResult`, and
   `WasmBackend` define and implement parser access.
-- **Language backends.** `LspBackend`, its result types, and `WasmLspBackend`
-  define and implement grammar analysis.
+- **Language backend.** `LspBackend` and its result types define grammar
+  analysis.
 - **Graph API.** The `@iguana-parser/web-ui/graph` export provides the plain
   TypeScript parse-tree graph helpers without importing the Svelte components.
 

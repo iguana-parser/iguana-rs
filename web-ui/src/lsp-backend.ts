@@ -44,11 +44,8 @@ export interface LspFoldingRange {
 }
 
 // The grammar intelligence the DesignView editor drives, independent of how it
-// runs. Terrarium's backend reaches iguana-lsp through Tauri commands; the web
-// viewer's WasmLspBackend calls the same functions compiled to wasm. Each method
-// takes the current source, so the backend holds no document state: the
-// read-only viewer parses once and the editor reuses the result per source
-// version.
+// runs. Terrarium's backend calls iguana-lsp through Tauri commands. Each method
+// takes the current source, so the backend holds no document state.
 export interface LspBackend {
   // The semantic-token type names, ordered so a token's type index references
   // one. Registered once with Monaco as the legend.
