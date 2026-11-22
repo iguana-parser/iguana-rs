@@ -1,0 +1,3 @@
+# The built web viewer, committed so that the iguana crate embeds it. GitHub
+# collapses its diffs in reviews.
+iguana/viewer-dist/** linguist-generated=true
