@@ -1,12 +1,10 @@
 <script module lang="ts">
-  // The Monaco and CodeMirror editors load on demand, so a host downloads only
-  // the editor it uses. ParseView loads its editor when it mounts. A host that
-  // knows the editor earlier calls preloadEditor to start the download sooner.
-  const loadMonaco = () => import("./InputEditor.svelte");
+  // The CodeMirror editor loads on demand. ParseView loads it when it mounts,
+  // and a host calls preloadEditor to start the download sooner.
   const loadCodeMirror = () => import("./CodeMirrorEditor.svelte");
 
-  export function preloadEditor(editor: "monaco" | "codemirror") {
-    void (editor === "monaco" ? loadMonaco() : loadCodeMirror());
+  export function preloadEditor() {
+    void loadCodeMirror();
   }
 </script>
 
@@ -95,9 +93,10 @@
     // Which result views to expose as tabs, in order; a single view hides the tab
     // bar. Defaults to all three.
     views?: Array<"tree" | "graph" | "sexpr">;
-    // "monaco" (default) uses the full editor; "codemirror" a much smaller one,
-    // for a smaller footprint (embedded widgets).
-    editor?: "monaco" | "codemirror";
+    // The input editor: the CodeMirror editor by default, or the Monaco editor
+    // (InputEditor) that a host passes. ParseView does not import Monaco, so a
+    // host without this prop does not bundle it.
+    inputEditor?: typeof import("./InputEditor.svelte").default;
     // How a parse starts. "button" (default) parses when the user presses ▶.
     // "auto" parses once the parser is ready and again after each pause in
     // editing, and hides ▶. The parse runs on the main thread, so a parse slower
@@ -153,7 +152,7 @@
     leftPanelWidth,
     orientation = "horizontal",
     views = ["tree", "graph", "sexpr"],
-    editor = "monaco",
+    inputEditor,
     parseTrigger = "button",
     flashOnReveal = true,
     exportable = true,
@@ -331,12 +330,9 @@
   // svelte-ignore non_reactive_update
   let inputEditorRef: { focus: () => void } | undefined;
 
-  let InputEditorComp = $state<typeof import("./InputEditor.svelte").default | null>(null);
   let CodeMirrorEditorComp = $state<typeof import("./CodeMirrorEditor.svelte").default | null>(null);
   $effect(() => {
-    if (editor === "monaco" && !InputEditorComp) {
-      loadMonaco().then((m) => (InputEditorComp = m.default));
-    } else if (editor === "codemirror" && !CodeMirrorEditorComp) {
+    if (!inputEditor && !CodeMirrorEditorComp) {
       loadCodeMirror().then((m) => (CodeMirrorEditorComp = m.default));
     }
   });
@@ -1353,7 +1349,7 @@
 
     <!-- Input Area -->
     <div class="input-section">
-      {#if editor === "codemirror"}
+      {#if !inputEditor}
         {#if CodeMirrorEditorComp}
           <CodeMirrorEditorComp
             bind:this={inputEditorRef}
@@ -1368,7 +1364,8 @@
             placeholder="Enter code to parse..."
           />
         {/if}
-      {:else if InputEditorComp}
+      {:else}
+        {@const InputEditorComp = inputEditor}
         <InputEditorComp
           bind:this={inputEditorRef}
           bind:value={inputText}

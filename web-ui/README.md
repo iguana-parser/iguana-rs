@@ -3,7 +3,7 @@
 `@iguana-parser/web-ui` contains the shared Svelte components and TypeScript
 interfaces used by Iguana's web frontends. `ParseView` presents a parse tree as
 a collapsible tree, a graph, and an interactive s-expression. `DesignView`
-provides the Monaco-based Iggy editor used by Terrarium and the website.
+provides the Monaco-based Iggy editor used by Terrarium.
 
 The components reach parser and language-server functions through backend
 interfaces rather than host APIs. `WasmBackend` runs a WebAssembly parser, and
@@ -25,15 +25,15 @@ Terrarium supplies Tauri-backed implementations of the same interfaces.
 ## Workspace integration
 
 The repository's npm workspace consumes the package as source, so the package
-has no separate build step. A host provides the peer dependencies and
-configures Monaco's worker before mounting the components. `ParseView` loads
-Cytoscape when its Graph tab is first shown and registers the `tidytree` layout
-then. A host that calls `createGraph` with the tree layout registers the layout
-itself.
+has no separate build step. A host provides the peer dependencies. A host that
+mounts `DesignView` or passes `InputEditor` to `ParseView` also configures
+Monaco's worker before mounting them. `ParseView` loads Cytoscape when its Graph
+tab is first shown and registers the `tidytree` layout then. A host that calls
+`createGraph` with the tree layout registers the layout itself.
 
 Install dependencies at the repository root. Run the package check while
-iterating, then check every npm workspace because Terrarium, both viewers, and
-the tree widget consume this package directly:
+iterating, then check every npm workspace because Terrarium, the web viewer,
+and the tree widget consume this package directly:
 
 ```sh
 npm run check --workspace web-ui

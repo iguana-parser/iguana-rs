@@ -13,8 +13,8 @@ export interface LspRange {
   end: LspPosition;
 }
 
-// A span in a document. The design viewer holds a single grammar, so `uri` is a
-// fixed placeholder and only the range is used.
+// A span in a document. The editor holds a single grammar, so `uri` is a fixed
+// placeholder and only the range is used.
 export interface LspLocation {
   uri: string;
   range: LspRange;

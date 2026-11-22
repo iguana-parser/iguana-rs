@@ -19,8 +19,7 @@
     "@iguana-parser/web-ui": "*",
     "cytoscape": "^3.33.2",
     "cytoscape-tidytree": "^0.2.1",
-    "lucide-svelte": "^1.0.1",
-    "monaco-editor": "^0.56.0"
+    "lucide-svelte": "^1.0.1"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^7.0.0",

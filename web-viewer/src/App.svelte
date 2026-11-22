@@ -28,7 +28,6 @@
   let orientation = $state<"horizontal" | "vertical">("horizontal");
   let leftPanelWidth = $state(420);
   let views = $state<Array<"tree" | "graph" | "sexpr">>(["tree", "graph", "sexpr"]);
-  let editorMode = $state<"monaco" | "codemirror">("monaco");
   let parseTrigger = $state<"button" | "auto">("auto");
   let flashOnReveal = $state(false);
 
@@ -197,9 +196,8 @@
       fitSplit();
       window.addEventListener("resize", fitSplit);
 
-      // Result views to expose (comma-separated subset of tree,graph,sexpr) and
-      // the input editor (?editor=codemirror, much lighter than the default
-      // Monaco). Both trim the embed's footprint.
+      // Result views to expose (comma-separated subset of tree,graph,sexpr),
+      // which trims the embed's footprint.
       const viewsParam = params.get("views");
       if (viewsParam) {
         const allowed = ["tree", "graph", "sexpr"] as const;
@@ -211,10 +209,6 @@
           );
         if (chosen.length) views = chosen;
       }
-      // ?editor=plain named a textarea editor that CodeMirror replaced; older
-      // embeds that ask for it get CodeMirror.
-      const editorParam = params.get("editor");
-      if (editorParam === "codemirror" || editorParam === "plain") editorMode = "codemirror";
       // Parsing follows the input as it is edited; ?parse=button parses only when
       // the user presses ▶.
       if (params.get("parse") === "button") parseTrigger = "button";
@@ -238,7 +232,7 @@
       // `wasm-pack --out-name parser`). The @vite-ignore keeps Vite from
       // trying to resolve it at build time.
       log("loading manifest, wasm parser, and editor...");
-      preloadEditor(editorMode);
+      preloadEditor();
       const manifestLoad: Promise<Manifest> = fetch(`${base}manifest.json`).then((r) => r.json());
       const wasmLoad = import(/* @vite-ignore */ `${base}wasm/pkg/parser.js`).then(async (wasm) => {
         await wasm.default();
@@ -312,7 +306,6 @@
       {leftPanelWidth}
       {orientation}
       {views}
-      editor={editorMode}
       {parseTrigger}
       {flashOnReveal}
       exportable={false}

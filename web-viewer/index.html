@@ -6,20 +6,6 @@
     <link rel="icon" href="data:," />
     <title>iguana parse viewer</title>
     <!--
-      Monaco loads from a CDN at runtime rather than being bundled, so the
-      embedded viewer stays small. Keep this map in sync with the `external`
-      list in vite.config.ts. The ESM Monaco build does not inject its own styles;
-      its stylesheet is loaded on demand by InputEditor.svelte, so a viewer that
-      uses the CodeMirror editor (editor="codemirror") never fetches it.
-    -->
-    <script type="importmap">
-      {
-        "imports": {
-          "monaco-editor": "https://esm.sh/monaco-editor@0.56.0"
-        }
-      }
-    </script>
-    <!--
       The grammar's manifest and wasm parser sit next to this page in a
       generated bundle. App.svelte loads them once the viewer script runs, and
       these hints start the downloads while that script is still loading. The

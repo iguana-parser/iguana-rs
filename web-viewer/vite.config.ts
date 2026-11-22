@@ -2,9 +2,10 @@ import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { fileURLToPath } from "node:url";
 
-// Monaco is not bundled. It loads at runtime from a CDN via the importmap in
-// index.html, so the embedded viewer stays small. Keep this list in sync with
-// that importmap.
+// The viewer does not use Monaco, but web-ui's index re-exports the Monaco
+// editors of Terrarium. Without this, Vite processes Monaco and writes its
+// workers and fonts into the bundle, although the viewer's code never loads
+// them.
 const external = ["monaco-editor"];
 
 export default defineConfig({

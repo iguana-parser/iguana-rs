@@ -2,8 +2,7 @@ import { defineConfig } from "vite";
 
 // Cytoscape and its layout extension are not bundled. They load at runtime
 // from a CDN via an importmap on the host page, so the widget stays small.
-// Keep this list (and the pinned versions on the host) in sync with the
-// importmaps in web-viewer and design-viewer.
+// Keep this list in sync with the pinned versions in the host's importmap.
 const external = ["cytoscape", "cytoscape-tidytree"];
 
 export default defineConfig({

@@ -2000,6 +2000,7 @@
     onExportPng={exportGraphPng}
     onParseTreeChange={() => { if (graphWindows.has('parseTree')) sendGraphData('parseTree'); }}
     {startVerticalDrag}
+    inputEditor={InputEditor}
     initialInputViewState={parseInputViewState}
     onInputViewState={(s) => parseInputViewState = s}
   />

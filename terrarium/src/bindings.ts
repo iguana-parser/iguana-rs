@@ -279,11 +279,9 @@ export type ParseRun = {
 };
 
 /**
- *  What a parse did, without its tree: the timings of a success, or the
- *  error of a failure. `--write-result` writes it as JSON, Terrarium reads it,
- *  and the WebAssembly `parse` returns it in `WasmParseOutput`. A success sets
- *  the timings, and a failure sets `error`. The command-line interface sets
- *  `tree_construction_ms` only when it builds the tree.
+ *  The outcome of a parse without its tree: the timings of a success, or the
+ *  error of a failure. `--write-result` writes it as JSON. The command-line
+ *  interface sets `tree_construction_ms` only when it builds the tree.
  */
 export type ParseSummary = {
 	error: ParseError | null,

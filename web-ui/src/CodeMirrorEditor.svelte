@@ -1,5 +1,5 @@
 <script lang="ts">
-  // A CodeMirror 6 input editor, used when a host asks for editor="codemirror":
+  // A CodeMirror 6 input editor, ParseView's default (see its inputEditor prop):
   // a real editor (undo history, selection, line numbers) at a fraction of
   // Monaco's size. It has InputEditor's selection-sync contract (highlightSpan,
   // onclick, onescape) and, like InputEditor, marks the parse error and each
