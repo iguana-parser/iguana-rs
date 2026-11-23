@@ -627,7 +627,7 @@ impl<'a> FirstFollowSets<'a> {
                     Definition::Nonterminal(nt) => self.nullables.contains(nt),
                 }
             }
-            Symbol::Literal(_) => false,
+            Symbol::Literal { .. } => false,
             Symbol::Group(symbols) => symbols.iter().all(|s| self.is_nullable(s)),
             Symbol::Opt(_) | Symbol::Star(_, _) => true,
             Symbol::Alt(symbols) => symbols.iter().any(|s| self.is_nullable(s)),
@@ -695,9 +695,17 @@ impl<'a> FirstFollowSets<'a> {
                     }
                 }
             }
-            Symbol::Literal(lit) => {
-                if let Some(terminal) = self.grammar.terminals().find(|t| t.name == *lit) {
-                    result.insert(terminal.clone());
+            Symbol::Literal {
+                text,
+                ignore_ascii_case,
+            } => {
+                let literal = if *ignore_ascii_case {
+                    Terminal::ignore_case_literal(text)
+                } else {
+                    Terminal::literal(text)
+                };
+                if self.grammar.terminals().any(|t| *t == literal) {
+                    result.insert(literal);
                 }
             }
             Symbol::Labeled { symbol, .. } | Symbol::Binding { symbol, .. } => {
@@ -1069,11 +1077,11 @@ mod tests {
         assert!(!ff.is_nonterminal_nullable(grammar.nonterminal("F").unwrap()));
 
         // FIRST sets
-        let lparen = Terminal::new("\"(\"");
-        let rparen = Terminal::new("\")\"");
-        let plus = Terminal::new("\"+\"");
-        let star = Terminal::new("\"*\"");
-        let id_terminal = Terminal::new("\"id\"");
+        let lparen = Terminal::literal("(");
+        let rparen = Terminal::literal(")");
+        let plus = Terminal::literal("+");
+        let star = Terminal::literal("*");
+        let id_terminal = Terminal::literal("id");
         let layout = Terminal::new("Layout");
         let eof = FirstFollowSets::eof();
 
@@ -1189,10 +1197,10 @@ mod tests {
         assert!(!ff.is_nonterminal_nullable(grammar.nonterminal("S").unwrap()));
 
         // FIRST sets
-        let ta = Terminal::new("\"a\"");
-        let tb = Terminal::new("\"b\"");
-        let tc = Terminal::new("\"c\"");
-        let td = Terminal::new("\"d\"");
+        let ta = Terminal::literal("a");
+        let tb = Terminal::literal("b");
+        let tc = Terminal::literal("c");
+        let td = Terminal::literal("d");
 
         let first_s = &ff.first_sets[grammar.nonterminal("S").unwrap()];
         assert!(first_s.contains(&ta));
@@ -1260,9 +1268,9 @@ mod tests {
         assert!(!ff.is_nonterminal_nullable(grammar.nonterminal("S").unwrap()));
 
         // FIRST sets
-        let ta = Terminal::new("\"a\"");
-        let tc = Terminal::new("\"c\"");
-        let td = Terminal::new("\"d\"");
+        let ta = Terminal::literal("a");
+        let tc = Terminal::literal("c");
+        let td = Terminal::literal("d");
         let eof = FirstFollowSets::eof();
 
         let first_s = &ff.first_sets[grammar.nonterminal("S").unwrap()];
@@ -1326,8 +1334,8 @@ mod tests {
         assert!(!ff.is_nonterminal_nullable(grammar.nonterminal("S").unwrap()));
 
         // FIRST sets
-        let ta = Terminal::new("\"a\"");
-        let tb = Terminal::new("\"b\"");
+        let ta = Terminal::literal("a");
+        let tb = Terminal::literal("b");
 
         let first_s = &ff.first_sets[grammar.nonterminal("S").unwrap()];
         assert!(first_s.contains(&ta));
@@ -1382,7 +1390,7 @@ mod tests {
         assert!(!ff.is_nonterminal_nullable(grammar.nonterminal("S").unwrap()));
 
         // FIRST sets
-        let tb = Terminal::new("\"b\"");
+        let tb = Terminal::literal("b");
 
         let first_s = &ff.first_sets[grammar.nonterminal("S").unwrap()];
         assert!(first_s.contains(&tb));
@@ -1481,6 +1489,35 @@ mod tests {
                 lexical_rule!("B" => Regex::literal("b"))
             ]
         )
+    }
+
+    // A lexical rule can have the text of a literal as its name. The FIRST
+    // set of the literal is the terminal of the literal.
+    #[test]
+    fn test_first_of_a_literal_is_the_terminal_of_the_literal() {
+        use crate::grammar::regex::Regex;
+        use crate::lexical_rule;
+        let ignore_case = Symbol::ignore_case_literal("ABC");
+        let grammar: Grammar = grammar_def!("literal_first",
+            syntax: [
+                syntax_rule!("S" => alternative!(ignore_case.clone(), lit!("abc"), id!("abc")))
+            ],
+            lexical: [
+                lexical_rule!("abc" => Regex::literal("x"))
+            ]
+        )
+        .try_into()
+        .unwrap();
+        let ff = FirstFollowSets::new(&grammar);
+        assert_eq!(
+            ff.first_of_symbol(&ignore_case),
+            [Terminal::ignore_case_literal("abc")].into_iter().collect()
+        );
+        assert_eq!(
+            ff.first_of_symbol(&Symbol::literal("abc")),
+            [Terminal::literal("abc")].into_iter().collect()
+        );
+        assert!(ff.first_of_symbol(&Symbol::literal("none")).is_empty());
     }
 
     #[test]

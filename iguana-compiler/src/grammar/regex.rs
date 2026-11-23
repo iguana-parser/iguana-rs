@@ -190,6 +190,23 @@ impl Regex {
     pub fn literal(s: &str) -> Self {
         Regex::Seq(s.chars().map(Regex::Char).collect())
     }
+
+    /// The regex of the literal `s` whose ASCII letters match in both cases.
+    /// A letter becomes a class of its two cases, such as `[Ss]`, and any
+    /// other character only matches itself.
+    pub fn ignore_case_literal(s: &str) -> Self {
+        let regexes = s.chars().map(|c| {
+            if c.is_ascii_alphabetic() {
+                let ranges = [c.to_ascii_uppercase(), c.to_ascii_lowercase()]
+                    .map(|c| CharRange { start: c, end: c })
+                    .to_vec();
+                Regex::char_class(ranges, false)
+            } else {
+                Regex::Char(c)
+            }
+        });
+        Regex::Seq(regexes.collect())
+    }
 }
 
 impl std::fmt::Display for Regex {

@@ -234,18 +234,6 @@ mod tests {
         Regex::Seq(text.chars().map(Regex::Char).collect())
     }
 
-    fn ignore_case_literal(text: &str) -> Regex {
-        let class = |c: char| {
-            Regex::CharClass(CharClass {
-                ranges: [c.to_ascii_lowercase(), c.to_ascii_uppercase()]
-                    .map(|c| CharRange { start: c, end: c })
-                    .to_vec(),
-                negated: false,
-            })
-        };
-        Regex::Seq(text.chars().map(class).collect())
-    }
-
     fn literals_of(regex: &Regex) -> Option<(Vec<String>, bool)> {
         LiteralSet::from_regex(regex).map(|set| {
             let literals = set
@@ -266,7 +254,7 @@ mod tests {
 
     #[test]
     fn case_pairs_match_in_both_cases() {
-        let regex = Regex::Alt(vec![ignore_case_literal("select"), literal("_")]);
+        let regex = Regex::Alt(vec![Regex::ignore_case_literal("select"), literal("_")]);
         let literals = ["_", "select"].map(String::from).to_vec();
         assert_eq!(literals_of(&regex), Some((literals, true)));
     }
@@ -293,11 +281,11 @@ mod tests {
     #[test]
     fn a_trie_finds_the_literals_of_its_sets() {
         let mut regexes: Vec<Regex> = (0..300)
-            .map(|i| ignore_case_literal(&format!("w{i}x")))
+            .map(|i| Regex::ignore_case_literal(&format!("w{i}x")))
             .collect();
-        regexes.extend(["time", "timestamp", "starts", "status"].map(ignore_case_literal));
+        regexes.extend(["time", "timestamp", "starts", "status"].map(Regex::ignore_case_literal));
         let large = LiteralSet::from_regex(&Regex::Alt(regexes)).unwrap();
-        let small = LiteralSet::from_regex(&ignore_case_literal("time")).unwrap();
+        let small = LiteralSet::from_regex(&Regex::ignore_case_literal("time")).unwrap();
         let trie_literals = large.literals.clone();
         let trie = literal_trie(&trie_literals);
         let bit_set = |set: &LiteralSet| -> BitSet<5> {
@@ -344,7 +332,7 @@ mod tests {
             }],
             negated: false,
         });
-        let mixed = Regex::Alt(vec![ignore_case_literal("select"), literal("from")]);
+        let mixed = Regex::Alt(vec![Regex::ignore_case_literal("select"), literal("from")]);
         let combinations = Regex::Seq(vec![
             Regex::Alt(vec![literal("a"), literal("b")]),
             literal("c"),

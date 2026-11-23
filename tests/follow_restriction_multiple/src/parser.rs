@@ -655,7 +655,7 @@ impl<'i, 'arena> FollowRestrictionMultipleParser<'i, 'arena> {
     fn ll1_body_s(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
         let (matched, _) = self.scanner.longest_match(FIRST_SET_S.terminals, i)?;
         match matched {
-            TerminalId(1) | TerminalId(0) => {
+            TerminalId(0) | TerminalId(1) => {
                 let mut j = i;
                 let right_child = {
                     let start = j;
@@ -707,7 +707,7 @@ impl<'i, 'arena> FollowRestrictionMultipleParser<'i, 'arena> {
     fn ll1_body_id(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
         let (matched, _) = self.scanner.longest_match(FIRST_SET_ID.terminals, i)?;
         match matched {
-            TerminalId(1) | TerminalId(0) => {
+            TerminalId(0) | TerminalId(1) => {
                 let mut j = i;
                 let right_child = {
                     let start = j;

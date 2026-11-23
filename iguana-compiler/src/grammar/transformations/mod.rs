@@ -132,7 +132,7 @@ where
             sep.map(|sep| Box::new(transform_symbol(*sep, f))),
         ),
         leaf @ (Symbol::Identifier(_)
-        | Symbol::Literal(_)
+        | Symbol::Literal { .. }
         | Symbol::Call { .. }
         | Symbol::Condition(_)
         | Symbol::Return(_)) => leaf,
@@ -169,7 +169,7 @@ pub(crate) fn visit_symbol<'a>(symbol: &'a Symbol, f: &mut impl FnMut(&'a Symbol
             }
         }
         Symbol::Identifier(_)
-        | Symbol::Literal(_)
+        | Symbol::Literal { .. }
         | Symbol::Call { .. }
         | Symbol::Condition(_)
         | Symbol::Return(_) => {}

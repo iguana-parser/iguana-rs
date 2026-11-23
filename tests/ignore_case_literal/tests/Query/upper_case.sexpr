@@ -1,0 +1,15 @@
+(Start
+  WS
+  (Query
+    i"select"
+    WS
+    ({Name ","}+ Name WS "," WS Name)
+    WS
+    i"from"
+    WS
+    Name
+    WS
+    Charset?
+    WS
+    Order?)
+  WS)

@@ -554,6 +554,11 @@ impl<'a> Formatter<'a> {
             Symbol::Lit { string, .. } => {
                 out.push_str(&self.input.text(string.span()));
             }
+            Symbol::IgnoreCaseLit {
+                ignore_case_string, ..
+            } => {
+                out.push_str(&self.input.text(ignore_case_string.span()));
+            }
             Symbol::Paren { seqs, .. } => {
                 out.push('(');
                 for (i, seq) in seqs.symbols().enumerate() {
@@ -814,6 +819,11 @@ impl<'a> Formatter<'a> {
             }
             Regex::String { string, .. } => {
                 out.push_str(&self.input.text(string.span()));
+            }
+            Regex::IgnoreCaseString {
+                ignore_case_string, ..
+            } => {
+                out.push_str(&self.input.text(ignore_case_string.span()));
             }
             Regex::Identifier { identifier, .. } => {
                 out.push_str(&self.input.text(identifier.span()));
@@ -1490,5 +1500,15 @@ Token // separates the head from equals
         let first = format_source(input).unwrap();
         let second = format_source(&first).unwrap();
         assert_eq!(first, second, "Formatting should be idempotent");
+    }
+
+    #[test]
+    fn test_ignore_case_literal_keeps_its_prefix() {
+        let input = "grammar G\n\nS = i\"select\"   A\n\n@Regex\nA = i\"as\"|  \"b\"\n";
+        let formatted = format_source(input).unwrap();
+        assert_eq!(
+            formatted,
+            "grammar G\n\nS\n  = i\"select\" A\n\n@Regex\nA\n  = i\"as\"\n  | \"b\"\n"
+        );
     }
 }

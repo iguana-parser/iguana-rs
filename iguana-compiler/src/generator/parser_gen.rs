@@ -574,7 +574,7 @@ impl<'a> ParserGen<'a> {
             Some(
                 Symbol::Labeled { .. }
                 | Symbol::Identifier(_)
-                | Symbol::Literal(_)
+                | Symbol::Literal { .. }
                 | Symbol::Group(_)
                 | Symbol::Opt(_)
                 | Symbol::Alt(_)
@@ -1911,8 +1911,12 @@ impl<'a> ParserGen<'a> {
                     return None;
                 }
                 let body = self.gen_alt_body_ll1(nonterminal, alternative, nonterminal_id);
-                let pred_patterns: Vec<_> =
+                // `first` is a hash set, and its order depends on the hashes of
+                // its terminals. The patterns are sorted to keep the generated
+                // code the same when a hash changes.
+                let mut pred_patterns: Vec<_> =
                     first.iter().map(|t| self.terminal_ids.get_id(t)).collect();
+                pred_patterns.sort_by_key(|id| id.0);
                 Some(quote! {
                     #(#pred_patterns)|* => { #body }
                 })

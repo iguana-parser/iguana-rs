@@ -1,0 +1,21 @@
+grammar IgnoreCaseLiteral
+
+// An `i` literal matches each of its ASCII letters in both cases. Every other
+// character matches only itself. `i"FROM"` and `i"from"` are the same terminal.
+Query = i"select" { Name "," }+ i"FROM" Name Charset? Order?
+
+Charset = i"charset" i"utf8_É"
+
+Order = i"order" i"by" Name Direction? "end"
+
+@Regex
+Direction = i"asc" | i"desc"
+
+@Regex
+Name = [a-zA-Z_] [a-zA-Z_0-9]* \ Reserved
+
+@Regex
+Reserved = i"select" | i"from" | i"charset" | i"order" | i"by" | Direction | "end"
+
+@Layout @Regex
+WS = [\ \n\t]*

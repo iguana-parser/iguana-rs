@@ -398,12 +398,22 @@ fn add_lexical_rules(
                 symbol: Box::new(transformed),
             }
         }
-        Symbol::Literal(name) => {
-            let terminal = Terminal::literal(&name);
+        Symbol::Literal {
+            text,
+            ignore_ascii_case,
+        } => {
+            let (terminal, regex) = if ignore_ascii_case {
+                (
+                    Terminal::ignore_case_literal(&text),
+                    Regex::ignore_case_literal(&text),
+                )
+            } else {
+                (Terminal::literal(&text), Regex::literal(&text))
+            };
             let terminal_name = terminal.name.clone();
             if !added_terminals.contains(&terminal) {
                 added_terminals.insert(terminal.clone());
-                lexical_rules.push(LexicalRule::new(terminal, Regex::literal(&name)));
+                lexical_rules.push(LexicalRule::new(terminal, regex));
             }
             Symbol::Identifier(Identifier {
                 name: terminal_name,
@@ -595,7 +605,7 @@ fn resolve_identifier(symbol: Symbol, symbol_table: &SymbolTable) -> Symbol {
             symbol: Box::new(resolve_identifier(*symbol, symbol_table)),
             labels,
         },
-        Symbol::Literal(_) | Symbol::Condition(_) | Symbol::Return(_) => symbol,
+        Symbol::Literal { .. } | Symbol::Condition(_) | Symbol::Return(_) => symbol,
     }
 }
 

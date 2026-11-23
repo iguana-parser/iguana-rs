@@ -52,7 +52,16 @@ pub enum Symbol {
         symbol: Box<Symbol>,
     },
     Identifier(Identifier),
-    Literal(String),
+    /// A string literal, such as `"else"`. When `ignore_ascii_case` is true,
+    /// the literal is written with the `i` prefix, e.g. `i"select"`, and
+    /// each ASCII letter of `text` matches in both upper and lower case.
+    /// Such a literal stores `text` in lowercase, so that two spellings of
+    /// the same literal, e.g. `i"select"` and `i"SELECT"`, are equal symbols
+    /// and refer to one terminal.
+    Literal {
+        text: String,
+        ignore_ascii_case: bool,
+    },
     Group(Vec<Symbol>),
     Opt(Box<Symbol>),
     Alt(Vec<Symbol>),
@@ -359,8 +368,20 @@ impl Restrictions {
 }
 
 impl Symbol {
-    pub fn literal(name: impl Into<String>) -> Self {
-        Symbol::Literal(name.into())
+    pub fn literal(text: impl Into<String>) -> Self {
+        Symbol::Literal {
+            text: text.into(),
+            ignore_ascii_case: false,
+        }
+    }
+
+    /// The literal whose ASCII letters match in both cases, written
+    /// `i"text"` in Iggy. The literal holds `text` in lowercase.
+    pub fn ignore_case_literal(text: &str) -> Self {
+        Symbol::Literal {
+            text: text.to_ascii_lowercase(),
+            ignore_ascii_case: true,
+        }
     }
 
     /// The symbol with `restrictions` attached, or the symbol itself when
@@ -409,7 +430,7 @@ impl Symbol {
             | Symbol::Restricted { symbol, .. }
             | Symbol::Exclude { symbol, .. } => symbol,
             Symbol::Identifier(_)
-            | Symbol::Literal(_)
+            | Symbol::Literal { .. }
             | Symbol::Group(_)
             | Symbol::Opt(_)
             | Symbol::Alt(_)
@@ -436,7 +457,7 @@ impl Symbol {
             | Symbol::Binding { symbol, .. }
             | Symbol::Restricted { symbol, .. }
             | Symbol::Exclude { symbol, .. } => symbol.as_identifier(),
-            Symbol::Literal(_)
+            Symbol::Literal { .. }
             | Symbol::Group(_)
             | Symbol::Opt(_)
             | Symbol::Alt(_)
@@ -458,7 +479,7 @@ impl Symbol {
             | Symbol::Restricted { symbol, .. }
             | Symbol::Exclude { symbol, .. } => symbol.call_arguments(),
             Symbol::Identifier(_)
-            | Symbol::Literal(_)
+            | Symbol::Literal { .. }
             | Symbol::Group(_)
             | Symbol::Opt(_)
             | Symbol::Alt(_)
@@ -478,7 +499,7 @@ impl Symbol {
             | Symbol::Exclude { symbol, .. } => symbol.binding_pattern(),
             Symbol::Identifier(_)
             | Symbol::Call { .. }
-            | Symbol::Literal(_)
+            | Symbol::Literal { .. }
             | Symbol::Group(_)
             | Symbol::Opt(_)
             | Symbol::Alt(_)
@@ -505,7 +526,7 @@ impl Symbol {
             | Symbol::Binding { symbol, .. }
             | Symbol::Exclude { symbol, .. } => symbol.restrictions(),
             Symbol::Identifier(_)
-            | Symbol::Literal(_)
+            | Symbol::Literal { .. }
             | Symbol::Group(_)
             | Symbol::Opt(_)
             | Symbol::Alt(_)
@@ -533,7 +554,7 @@ impl Symbol {
                 let definition = grammar.definition(def_id);
                 definition.display_name()
             }
-            Symbol::Literal(_) => self.to_string(),
+            Symbol::Literal { .. } => self.to_string(),
             Symbol::Group(symbols) => format!(
                 "({})",
                 symbols.iter().map(|s| s.display_name(grammar)).join(" "),
@@ -649,7 +670,10 @@ impl Display for Symbol {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Symbol::Labeled { label, symbol } => write!(f, "{label}:{symbol}"),
-            Symbol::Literal(literal) => write!(f, "\"{}\"", escape_literal(literal)),
+            Symbol::Literal {
+                text,
+                ignore_ascii_case,
+            } => f.write_str(&Terminal::name_from_literal(text, *ignore_ascii_case)),
             Symbol::Identifier(identifier) => write!(f, "{}", identifier.name),
             Symbol::Group(symbols) => write!(f, "({})", symbols.iter().join(" ")),
             Symbol::Opt(opt) => write!(f, "{opt}?"),
@@ -719,25 +743,66 @@ impl Display for Identifier {
     }
 }
 
+/// What a terminal is defined by.
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Serialize, Deserialize, Type)]
+pub enum TerminalKind {
+    /// A lexical rule, such as `Identifier`.
+    LexicalRule,
+    /// A string literal in a syntax rule, such as `"else"`.
+    Literal,
+    /// A string literal in a syntax rule whose ASCII letters match in both
+    /// cases, such as `i"select"`.
+    IgnoreCaseLiteral,
+}
+
 /// A terminal represents a lexical definition.
 #[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize, Type)]
 pub struct Terminal {
     pub name: String,
+    pub kind: TerminalKind,
 }
 
 impl Terminal {
+    /// The terminal of the lexical rule `name`.
     pub fn new(name: impl Into<String>) -> Self {
-        Self { name: name.into() }
+        Self {
+            name: name.into(),
+            kind: TerminalKind::LexicalRule,
+        }
     }
 
-    /// The terminal of a literal occurrence, named by its quoted, escaped
-    /// text: the terminal for `else` is named `"else"`.
+    /// Each string literal in a grammar becomes a reference to a terminal
+    /// with the same name as the literal. The terminal name escapes special
+    /// characters so that it can be printed. For example, the name of the
+    /// terminal for the literal `"\n"` is the Rust string `"\"\\n\""`.
+    ///
+    /// This function creates a `Terminal` for the literal with the given
+    /// text by escaping the text.
     pub fn literal(text: &str) -> Self {
-        Self::new(format!("\"{}\"", escape_literal(text)))
+        Self {
+            name: Self::name_from_literal(text, false),
+            kind: TerminalKind::Literal,
+        }
+    }
+
+    /// Similar to `literal`, but for a literal that ignores case when
+    /// matching. The name of the terminal has the `i` prefix, as in
+    /// `i"select"`.
+    pub fn ignore_case_literal(text: &str) -> Self {
+        Self {
+            name: Self::name_from_literal(text, true),
+            kind: TerminalKind::IgnoreCaseLiteral,
+        }
     }
 
     pub fn is_literal(&self) -> bool {
-        self.name.starts_with('"')
+        self.kind != TerminalKind::LexicalRule
+    }
+
+    /// The name of the terminal from the text of a literal.
+    fn name_from_literal(text: &str, ignore_case: bool) -> String {
+        let prefix = if ignore_case { "i" } else { "" };
+        format!("{prefix}\"{}\"", escape_literal(text))
     }
 }
 
@@ -919,6 +984,30 @@ fn without_restrictions(symbol: Symbol) -> Symbol {
 mod tests {
     use super::*;
     use crate::{bind, except, exclude, follow, group, id, labeled, opt, precede, restriction_ids};
+
+    #[test]
+    fn a_literal_terminal_has_the_name_of_the_literal() {
+        let terminal = Terminal::literal("else");
+        assert_eq!(terminal.name, "\"else\"");
+        assert_eq!(terminal.kind, TerminalKind::Literal);
+        assert!(terminal.is_literal());
+
+        let terminal = Terminal::ignore_case_literal("select");
+        assert_eq!(terminal.name, "i\"select\"");
+        assert_eq!(terminal.kind, TerminalKind::IgnoreCaseLiteral);
+        assert!(terminal.is_literal());
+
+        assert_eq!(Terminal::literal("\n").name, "\"\\n\"");
+        assert!(!Terminal::new("Identifier").is_literal());
+    }
+
+    #[test]
+    fn an_ignore_case_literal_is_in_lowercase() {
+        let symbol = Symbol::ignore_case_literal("SeLect_1");
+        assert_eq!(symbol, Symbol::ignore_case_literal("select_1"));
+        assert_eq!(symbol.to_string(), "i\"select_1\"");
+        assert_ne!(symbol, Symbol::literal("select_1"));
+    }
 
     #[test]
     fn test_display_name_leaves_out_restrictions() {

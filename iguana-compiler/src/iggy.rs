@@ -230,10 +230,10 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
                 )
             }
         }
-        parse_tree::Symbol::Lit { string, .. } => {
-            let raw = input.text(string.span());
-            Symbol::Literal(unescape_string(&raw[1..raw.len() - 1]))
-        }
+        parse_tree::Symbol::Lit { string, .. } => Symbol::literal(string_text(*string, input)),
+        parse_tree::Symbol::IgnoreCaseLit {
+            ignore_case_string, ..
+        } => Symbol::ignore_case_literal(&string_text(ignore_case_string.string(), input)),
         parse_tree::Symbol::StarSep { symbol, sep, .. } => Symbol::Star(
             Box::new(convert_symbol(symbol, input)),
             Some(Box::new(convert_symbol(sep, input))),
@@ -395,12 +395,10 @@ fn convert_regex(regex: &parse_tree::Regex, input: &Input) -> Regex {
             let raw = input.text(char.span());
             Regex::Char(parse_char(&raw[1..raw.len() - 1]))
         }
-        parse_tree::Regex::String { string, .. } => {
-            let raw = input.text(string.span());
-            let unescaped = unescape_string(&raw[1..raw.len() - 1]);
-            let regexes = unescaped.chars().map(Regex::Char).collect();
-            Regex::Seq(regexes)
-        }
+        parse_tree::Regex::String { string, .. } => Regex::literal(&string_text(*string, input)),
+        parse_tree::Regex::IgnoreCaseString {
+            ignore_case_string, ..
+        } => Regex::ignore_case_literal(&string_text(ignore_case_string.string(), input)),
         parse_tree::Regex::Identifier { identifier, .. } => {
             let name = input.text(identifier.span());
             Regex::Identifier(Identifier {
@@ -431,6 +429,14 @@ fn convert_char_class(char_class: &parse_tree::CharClass, input: &Input) -> Rege
         })
         .collect();
     Regex::CharClass(CharClass { ranges, negated })
+}
+
+/// The text of a `String` token: the token without its quotes, with each
+/// escape sequence replaced by the character it represents. For example,
+/// the text of `"\n"` is one newline character, not a backslash and an `n`.
+fn string_text(string: parse_tree::Token, input: &Input) -> String {
+    let raw = input.text(string.span());
+    unescape_string(&raw[1..raw.len() - 1])
 }
 
 fn unescape_string(s: &str) -> String {

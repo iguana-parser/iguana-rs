@@ -915,7 +915,7 @@ impl<'i, 'arena> LayoutNonterminalParser<'i, 'arena> {
             };
         };
         match matched {
-            TerminalId(1) | TerminalId(0) => {
+            TerminalId(0) | TerminalId(1) => {
                 let mut j = i;
                 let right_child = {
                     let start = j;

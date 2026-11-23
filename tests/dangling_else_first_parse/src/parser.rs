@@ -1017,7 +1017,7 @@ impl<'i, 'arena> DanglingElseFirstParseParser<'i, 'arena> {
             };
         };
         match matched {
-            TerminalId(5) | TerminalId(4) => {
+            TerminalId(4) | TerminalId(5) => {
                 let mut j = i;
                 let right_child = {
                     let start = j;

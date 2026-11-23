@@ -31,6 +31,8 @@
     },
     "string": {
       "patterns": [
+        { "begin": "\\bi\"", "end": "\"", "name": "string.quoted.double.ignore-case.iggy",
+          "patterns": [{ "match": "\\\\.", "name": "constant.character.escape.iggy" }] },
         { "begin": "\"", "end": "\"", "name": "string.quoted.double.iggy",
           "patterns": [{ "match": "\\\\.", "name": "constant.character.escape.iggy" }] },
         { "begin": "'", "end": "'", "name": "string.quoted.single.iggy",

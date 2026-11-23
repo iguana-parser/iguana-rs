@@ -82,9 +82,9 @@ pub fn token_rules(token: Token, input: &Input, highlights: &mut Vec<Highlight<G
         | TokenKind::T32
         | TokenKind::T33
         | TokenKind::T34
-        | TokenKind::T35
         | TokenKind::T36
-        | TokenKind::T37 => push(highlights, token, Group::Operator),
+        | TokenKind::T37
+        | TokenKind::T38 => push(highlights, token, Group::Operator),
         // "@NoLayout", "@Layout", "@Identifier", "@Regex"
         TokenKind::T14 | TokenKind::T15 | TokenKind::T16 | TokenKind::T17 => {
             push(highlights, token, Group::Decorator)
@@ -99,6 +99,8 @@ pub fn token_rules(token: Token, input: &Input, highlights: &mut Vec<Highlight<G
                 highlights.push(Highlight::new(escape, Group::StringEscape));
             }
         }
+        // "i", the prefix of an `IgnoreCaseString` such as `i"select"`
+        TokenKind::T35 => push(highlights, token, Group::String),
         // Label
         TokenKind::T7 => push(highlights, token, Group::Label),
         // LineComment
@@ -183,9 +185,10 @@ mod tests {
             (TokenKind::T32, r#"":""#),
             (TokenKind::T33, r#""!>>>""#),
             (TokenKind::T34, r#""!""#),
-            (TokenKind::T35, r#""[""#),
-            (TokenKind::T36, r#""]""#),
-            (TokenKind::T37, r#""-""#),
+            (TokenKind::T35, r#""i""#),
+            (TokenKind::T36, r#""[""#),
+            (TokenKind::T37, r#""]""#),
+            (TokenKind::T38, r#""-""#),
         ];
         for (kind, name) in names {
             assert_eq!(kind.name(), name);

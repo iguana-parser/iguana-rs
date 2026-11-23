@@ -20,54 +20,56 @@ pub const ALTERNATIVE: NonterminalId = NonterminalId(9);
 pub const PRE_CONDITION: NonterminalId = NonterminalId(10);
 pub const POST_CONDITION: NonterminalId = NonterminalId(11);
 pub const REGEX: NonterminalId = NonterminalId(12);
-pub const CHAR_CLASS: NonterminalId = NonterminalId(13);
-pub const RANGE_ELEMENT: NonterminalId = NonterminalId(14);
-pub const RANGE: NonterminalId = NonterminalId(15);
-pub const LAYOUT: NonterminalId = NonterminalId(16);
-pub const PLUS_0: NonterminalId = NonterminalId(17);
-pub const STAR_0: NonterminalId = NonterminalId(18);
-pub const OPT_0: NonterminalId = NonterminalId(19);
-pub const PLUS_1: NonterminalId = NonterminalId(20);
-pub const STAR_1: NonterminalId = NonterminalId(21);
-pub const OPT_1: NonterminalId = NonterminalId(22);
-pub const OPT_2: NonterminalId = NonterminalId(23);
-pub const OPT_3: NonterminalId = NonterminalId(24);
-pub const PLUS_3: NonterminalId = NonterminalId(25);
-pub const PLUS_2: NonterminalId = NonterminalId(26);
-pub const PLUS_4: NonterminalId = NonterminalId(27);
-pub const STAR_2: NonterminalId = NonterminalId(28);
-pub const OPT_4: NonterminalId = NonterminalId(29);
-pub const PLUS_5: NonterminalId = NonterminalId(30);
-pub const STAR_3: NonterminalId = NonterminalId(31);
-pub const PLUS_6: NonterminalId = NonterminalId(32);
-pub const OPT_5: NonterminalId = NonterminalId(33);
-pub const PLUS_7: NonterminalId = NonterminalId(34);
-pub const PLUS_8: NonterminalId = NonterminalId(35);
-pub const PLUS_9: NonterminalId = NonterminalId(36);
-pub const OPT_6: NonterminalId = NonterminalId(37);
-pub const PLUS_10: NonterminalId = NonterminalId(38);
-pub const ALT_0: NonterminalId = NonterminalId(39);
-pub const PLUS_11: NonterminalId = NonterminalId(40);
-pub const STAR_4: NonterminalId = NonterminalId(41);
-pub const START_GRAMMAR: NonterminalId = NonterminalId(42);
-pub const START_RULE: NonterminalId = NonterminalId(43);
-pub const START_SYNTAX_RULE: NonterminalId = NonterminalId(44);
-pub const START_ANNOTATION: NonterminalId = NonterminalId(45);
-pub const START_REGEX_RULE: NonterminalId = NonterminalId(46);
-pub const START_REGEX_PRE_CONDITION: NonterminalId = NonterminalId(47);
-pub const START_REGEX_POST_CONDITION: NonterminalId = NonterminalId(48);
-pub const START_PRIORITY_LEVEL: NonterminalId = NonterminalId(49);
-pub const START_ASSOCIATIVITY: NonterminalId = NonterminalId(50);
-pub const START_ALTERNATIVE: NonterminalId = NonterminalId(51);
-pub const START_SYMBOL: NonterminalId = NonterminalId(52);
-pub const START_PRE_CONDITION: NonterminalId = NonterminalId(53);
-pub const START_POST_CONDITION: NonterminalId = NonterminalId(54);
-pub const START_REGEX: NonterminalId = NonterminalId(55);
-pub const START_CHAR_CLASS: NonterminalId = NonterminalId(56);
-pub const START_RANGE_ELEMENT: NonterminalId = NonterminalId(57);
-pub const START_RANGE: NonterminalId = NonterminalId(58);
-pub const START_LAYOUT: NonterminalId = NonterminalId(59);
-pub const SYMBOL: NonterminalId = NonterminalId(60);
+pub const IGNORE_CASE_STRING: NonterminalId = NonterminalId(13);
+pub const CHAR_CLASS: NonterminalId = NonterminalId(14);
+pub const RANGE_ELEMENT: NonterminalId = NonterminalId(15);
+pub const RANGE: NonterminalId = NonterminalId(16);
+pub const LAYOUT: NonterminalId = NonterminalId(17);
+pub const PLUS_0: NonterminalId = NonterminalId(18);
+pub const STAR_0: NonterminalId = NonterminalId(19);
+pub const OPT_0: NonterminalId = NonterminalId(20);
+pub const PLUS_1: NonterminalId = NonterminalId(21);
+pub const STAR_1: NonterminalId = NonterminalId(22);
+pub const OPT_1: NonterminalId = NonterminalId(23);
+pub const OPT_2: NonterminalId = NonterminalId(24);
+pub const OPT_3: NonterminalId = NonterminalId(25);
+pub const PLUS_3: NonterminalId = NonterminalId(26);
+pub const PLUS_2: NonterminalId = NonterminalId(27);
+pub const PLUS_4: NonterminalId = NonterminalId(28);
+pub const STAR_2: NonterminalId = NonterminalId(29);
+pub const OPT_4: NonterminalId = NonterminalId(30);
+pub const PLUS_5: NonterminalId = NonterminalId(31);
+pub const STAR_3: NonterminalId = NonterminalId(32);
+pub const PLUS_6: NonterminalId = NonterminalId(33);
+pub const OPT_5: NonterminalId = NonterminalId(34);
+pub const PLUS_7: NonterminalId = NonterminalId(35);
+pub const PLUS_8: NonterminalId = NonterminalId(36);
+pub const PLUS_9: NonterminalId = NonterminalId(37);
+pub const OPT_6: NonterminalId = NonterminalId(38);
+pub const PLUS_10: NonterminalId = NonterminalId(39);
+pub const ALT_0: NonterminalId = NonterminalId(40);
+pub const PLUS_11: NonterminalId = NonterminalId(41);
+pub const STAR_4: NonterminalId = NonterminalId(42);
+pub const START_GRAMMAR: NonterminalId = NonterminalId(43);
+pub const START_RULE: NonterminalId = NonterminalId(44);
+pub const START_SYNTAX_RULE: NonterminalId = NonterminalId(45);
+pub const START_ANNOTATION: NonterminalId = NonterminalId(46);
+pub const START_REGEX_RULE: NonterminalId = NonterminalId(47);
+pub const START_REGEX_PRE_CONDITION: NonterminalId = NonterminalId(48);
+pub const START_REGEX_POST_CONDITION: NonterminalId = NonterminalId(49);
+pub const START_PRIORITY_LEVEL: NonterminalId = NonterminalId(50);
+pub const START_ASSOCIATIVITY: NonterminalId = NonterminalId(51);
+pub const START_ALTERNATIVE: NonterminalId = NonterminalId(52);
+pub const START_SYMBOL: NonterminalId = NonterminalId(53);
+pub const START_PRE_CONDITION: NonterminalId = NonterminalId(54);
+pub const START_POST_CONDITION: NonterminalId = NonterminalId(55);
+pub const START_REGEX: NonterminalId = NonterminalId(56);
+pub const START_IGNORE_CASE_STRING: NonterminalId = NonterminalId(57);
+pub const START_CHAR_CLASS: NonterminalId = NonterminalId(58);
+pub const START_RANGE_ELEMENT: NonterminalId = NonterminalId(59);
+pub const START_RANGE: NonterminalId = NonterminalId(60);
+pub const START_LAYOUT: NonterminalId = NonterminalId(61);
+pub const SYMBOL: NonterminalId = NonterminalId(62);
 pub struct IggyGrammar;
 impl Grammar for IggyGrammar {
     type Alternatives = BitSet<1>;
@@ -96,6 +98,7 @@ impl Grammar for IggyGrammar {
             "PreCondition" => Some(PRE_CONDITION),
             "PostCondition" => Some(POST_CONDITION),
             "Regex" => Some(REGEX),
+            "IgnoreCaseString" => Some(IGNORE_CASE_STRING),
             "CharClass" => Some(CHAR_CLASS),
             "RangeElement" => Some(RANGE_ELEMENT),
             "Range" => Some(RANGE),
@@ -139,6 +142,7 @@ impl Grammar for IggyGrammar {
             "StartPreCondition" => Some(START_PRE_CONDITION),
             "StartPostCondition" => Some(START_POST_CONDITION),
             "StartRegex" => Some(START_REGEX),
+            "StartIgnoreCaseString" => Some(START_IGNORE_CASE_STRING),
             "StartCharClass" => Some(START_CHAR_CLASS),
             "StartRangeElement" => Some(START_RANGE_ELEMENT),
             "StartRange" => Some(START_RANGE),
@@ -157,7 +161,7 @@ pub mod data {
         prediction::Prediction,
         scanner::TerminalSet,
     };
-    pub(super) static NONTERMINALS: [Nonterminal; 61] = [
+    pub(super) static NONTERMINALS: [Nonterminal; 63] = [
         Nonterminal::new("Grammar", "Grammar"),
         Nonterminal::new("Rule", "Rule"),
         Nonterminal::new("SyntaxRule", "SyntaxRule"),
@@ -171,6 +175,7 @@ pub mod data {
         Nonterminal::new("PreCondition", "PreCondition"),
         Nonterminal::new("PostCondition", "PostCondition"),
         Nonterminal::new("Regex", "Regex"),
+        Nonterminal::new("IgnoreCaseString", "IgnoreCaseString"),
         Nonterminal::new("CharClass", "CharClass"),
         Nonterminal::new("RangeElement", "RangeElement"),
         Nonterminal::new("Range", "Range"),
@@ -214,13 +219,14 @@ pub mod data {
         Nonterminal::new("StartPreCondition", "PreCondition"),
         Nonterminal::new("StartPostCondition", "PostCondition"),
         Nonterminal::new("StartRegex", "Regex"),
+        Nonterminal::new("StartIgnoreCaseString", "IgnoreCaseString"),
         Nonterminal::new("StartCharClass", "CharClass"),
         Nonterminal::new("StartRangeElement", "RangeElement"),
         Nonterminal::new("StartRange", "Range"),
         Nonterminal::new("StartLayout", "Layout"),
         Nonterminal::new("Symbol", "Symbol"),
     ];
-    pub(super) static DISPLAY_ORDER: [&str; 18] = [
+    pub(super) static DISPLAY_ORDER: [&str; 19] = [
         "Grammar",
         "Rule",
         "SyntaxRule",
@@ -235,12 +241,13 @@ pub mod data {
         "PreCondition",
         "PostCondition",
         "Regex",
+        "IgnoreCaseString",
         "CharClass",
         "RangeElement",
         "Range",
         "Layout",
     ];
-    pub(super) static TERMINALS: [Terminal; 40] = [
+    pub(super) static TERMINALS: [Terminal; 41] = [
         Terminal::new("Keyword", false, false),
         Terminal::new("NameChar", false, false),
         Terminal::new("Identifier", false, true),
@@ -276,66 +283,67 @@ pub mod data {
         Terminal::new("\":\"", true, true),
         Terminal::new("\"!>>>\"", true, true),
         Terminal::new("\"!\"", true, true),
+        Terminal::new("\"i\"", true, true),
         Terminal::new("\"[\"", true, true),
         Terminal::new("\"]\"", true, true),
         Terminal::new("\"-\"", true, true),
         Terminal::new("Epsilon", false, false),
         Terminal::new("EOF", false, false),
     ];
-    pub(super) static SLOTS: [Slot; 402] = [
+    pub(super) static SLOTS: [Slot; 414] = [
         Slot::new(&ALT_0, 0, SlotKind::Terminal(TerminalId(11))),
-        Slot::new(&ALT_0, 1, SlotKind::Nonterminal(NonterminalId(16))),
+        Slot::new(&ALT_0, 1, SlotKind::Nonterminal(NonterminalId(17))),
         Slot::new(&ALT_0, 2, SlotKind::Terminal(TerminalId(2))),
-        Slot::new(&ALT_0, 3, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_0, 4, SlotKind::Nonterminal(NonterminalId(18))),
+        Slot::new(&ALT_0, 3, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_0, 4, SlotKind::Nonterminal(NonterminalId(19))),
         Slot::new(&ALT_0, 5, SlotKind::End),
         Slot::new(&ALT_1, 0, SlotKind::Nonterminal(NonterminalId(2))),
         Slot::new(&ALT_1, 1, SlotKind::End),
         Slot::new(&ALT_2, 0, SlotKind::Nonterminal(NonterminalId(4))),
         Slot::new(&ALT_2, 1, SlotKind::End),
-        Slot::new(&ALT_3, 0, SlotKind::Nonterminal(NonterminalId(19))),
-        Slot::new(&ALT_3, 1, SlotKind::Nonterminal(NonterminalId(16))),
+        Slot::new(&ALT_3, 0, SlotKind::Nonterminal(NonterminalId(20))),
+        Slot::new(&ALT_3, 1, SlotKind::Nonterminal(NonterminalId(17))),
         Slot::new(&ALT_3, 2, SlotKind::Terminal(TerminalId(2))),
-        Slot::new(&ALT_3, 3, SlotKind::Nonterminal(NonterminalId(16))),
+        Slot::new(&ALT_3, 3, SlotKind::Nonterminal(NonterminalId(17))),
         Slot::new(&ALT_3, 4, SlotKind::Terminal(TerminalId(12))),
-        Slot::new(&ALT_3, 5, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_3, 6, SlotKind::Nonterminal(NonterminalId(21))),
+        Slot::new(&ALT_3, 5, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_3, 6, SlotKind::Nonterminal(NonterminalId(22))),
         Slot::new(&ALT_3, 7, SlotKind::End),
         Slot::new(&ALT_4, 0, SlotKind::Terminal(TerminalId(14))),
         Slot::new(&ALT_4, 1, SlotKind::End),
         Slot::new(&ALT_5, 0, SlotKind::Terminal(TerminalId(15))),
         Slot::new(&ALT_5, 1, SlotKind::End),
-        Slot::new(&ALT_6, 0, SlotKind::Nonterminal(NonterminalId(22))),
-        Slot::new(&ALT_6, 1, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_6, 2, SlotKind::Nonterminal(NonterminalId(23))),
-        Slot::new(&ALT_6, 3, SlotKind::Nonterminal(NonterminalId(16))),
+        Slot::new(&ALT_6, 0, SlotKind::Nonterminal(NonterminalId(23))),
+        Slot::new(&ALT_6, 1, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_6, 2, SlotKind::Nonterminal(NonterminalId(24))),
+        Slot::new(&ALT_6, 3, SlotKind::Nonterminal(NonterminalId(17))),
         Slot::new(&ALT_6, 4, SlotKind::Terminal(TerminalId(17))),
-        Slot::new(&ALT_6, 5, SlotKind::Nonterminal(NonterminalId(16))),
+        Slot::new(&ALT_6, 5, SlotKind::Nonterminal(NonterminalId(17))),
         Slot::new(&ALT_6, 6, SlotKind::Terminal(TerminalId(2))),
-        Slot::new(&ALT_6, 7, SlotKind::Nonterminal(NonterminalId(16))),
+        Slot::new(&ALT_6, 7, SlotKind::Nonterminal(NonterminalId(17))),
         Slot::new(&ALT_6, 8, SlotKind::Terminal(TerminalId(12))),
-        Slot::new(&ALT_6, 9, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_6, 10, SlotKind::Nonterminal(NonterminalId(24))),
-        Slot::new(&ALT_6, 11, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_6, 12, SlotKind::Nonterminal(NonterminalId(26))),
-        Slot::new(&ALT_6, 13, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_6, 14, SlotKind::Nonterminal(NonterminalId(28))),
+        Slot::new(&ALT_6, 9, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_6, 10, SlotKind::Nonterminal(NonterminalId(25))),
+        Slot::new(&ALT_6, 11, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_6, 12, SlotKind::Nonterminal(NonterminalId(27))),
+        Slot::new(&ALT_6, 13, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_6, 14, SlotKind::Nonterminal(NonterminalId(29))),
         Slot::new(&ALT_6, 15, SlotKind::End),
         Slot::new(&ALT_7, 0, SlotKind::Terminal(TerminalId(2))),
-        Slot::new(&ALT_7, 1, SlotKind::Nonterminal(NonterminalId(16))),
+        Slot::new(&ALT_7, 1, SlotKind::Nonterminal(NonterminalId(17))),
         Slot::new(&ALT_7, 2, SlotKind::Terminal(TerminalId(19))),
         Slot::new(&ALT_7, 3, SlotKind::End),
         Slot::new(&ALT_8, 0, SlotKind::Terminal(TerminalId(20))),
-        Slot::new(&ALT_8, 1, SlotKind::Nonterminal(NonterminalId(16))),
+        Slot::new(&ALT_8, 1, SlotKind::Nonterminal(NonterminalId(17))),
         Slot::new(&ALT_8, 2, SlotKind::Terminal(TerminalId(2))),
         Slot::new(&ALT_8, 3, SlotKind::End),
         Slot::new(&ALT_9, 0, SlotKind::Terminal(TerminalId(21))),
-        Slot::new(&ALT_9, 1, SlotKind::Nonterminal(NonterminalId(16))),
+        Slot::new(&ALT_9, 1, SlotKind::Nonterminal(NonterminalId(17))),
         Slot::new(&ALT_9, 2, SlotKind::Terminal(TerminalId(2))),
         Slot::new(&ALT_9, 3, SlotKind::End),
-        Slot::new(&ALT_10, 0, SlotKind::Nonterminal(NonterminalId(29))),
-        Slot::new(&ALT_10, 1, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_10, 2, SlotKind::Nonterminal(NonterminalId(31))),
+        Slot::new(&ALT_10, 0, SlotKind::Nonterminal(NonterminalId(30))),
+        Slot::new(&ALT_10, 1, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_10, 2, SlotKind::Nonterminal(NonterminalId(32))),
         Slot::new(&ALT_10, 3, SlotKind::End),
         Slot::new(&ALT_11, 0, SlotKind::Terminal(TerminalId(22))),
         Slot::new(&ALT_11, 1, SlotKind::End),
@@ -343,348 +351,360 @@ pub mod data {
         Slot::new(&ALT_12, 1, SlotKind::End),
         Slot::new(&ALT_13, 0, SlotKind::Terminal(TerminalId(24))),
         Slot::new(&ALT_13, 1, SlotKind::End),
-        Slot::new(&ALT_14, 0, SlotKind::Nonterminal(NonterminalId(32))),
-        Slot::new(&ALT_14, 1, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_14, 2, SlotKind::Nonterminal(NonterminalId(33))),
+        Slot::new(&ALT_14, 0, SlotKind::Nonterminal(NonterminalId(33))),
+        Slot::new(&ALT_14, 1, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_14, 2, SlotKind::Nonterminal(NonterminalId(34))),
         Slot::new(&ALT_14, 3, SlotKind::End),
         Slot::new(&ALT_15, 0, SlotKind::Terminal(TerminalId(25))),
-        Slot::new(&ALT_15, 1, SlotKind::Nonterminal(NonterminalId(16))),
+        Slot::new(&ALT_15, 1, SlotKind::Nonterminal(NonterminalId(17))),
         Slot::new(&ALT_15, 2, SlotKind::Terminal(TerminalId(26))),
-        Slot::new(&ALT_15, 3, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_15, 4, SlotKind::Nonterminal(NonterminalId(33))),
+        Slot::new(&ALT_15, 3, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_15, 4, SlotKind::Nonterminal(NonterminalId(34))),
         Slot::new(&ALT_15, 5, SlotKind::End),
         Slot::new(&ALT_16, 0, SlotKind::Terminal(TerminalId(2))),
-        Slot::new(&ALT_16, 1, SlotKind::Nonterminal(NonterminalId(16))),
+        Slot::new(&ALT_16, 1, SlotKind::Nonterminal(NonterminalId(17))),
         Slot::new(&ALT_16, 2, SlotKind::Terminal(TerminalId(19))),
         Slot::new(&ALT_16, 3, SlotKind::End),
         Slot::new(&ALT_17, 0, SlotKind::Terminal(TerminalId(20))),
-        Slot::new(&ALT_17, 1, SlotKind::Nonterminal(NonterminalId(16))),
+        Slot::new(&ALT_17, 1, SlotKind::Nonterminal(NonterminalId(17))),
         Slot::new(&ALT_17, 2, SlotKind::Terminal(TerminalId(2))),
         Slot::new(&ALT_17, 3, SlotKind::End),
         Slot::new(&ALT_18, 0, SlotKind::Terminal(TerminalId(21))),
-        Slot::new(&ALT_18, 1, SlotKind::Nonterminal(NonterminalId(16))),
+        Slot::new(&ALT_18, 1, SlotKind::Nonterminal(NonterminalId(17))),
         Slot::new(&ALT_18, 2, SlotKind::Terminal(TerminalId(2))),
         Slot::new(&ALT_18, 3, SlotKind::End),
         Slot::new(&ALT_19, 0, SlotKind::Terminal(TerminalId(33))),
-        Slot::new(&ALT_19, 1, SlotKind::Nonterminal(NonterminalId(16))),
+        Slot::new(&ALT_19, 1, SlotKind::Nonterminal(NonterminalId(17))),
         Slot::new(&ALT_19, 2, SlotKind::Terminal(TerminalId(2))),
         Slot::new(&ALT_19, 3, SlotKind::End),
         Slot::new(&ALT_20, 0, SlotKind::Terminal(TerminalId(34))),
-        Slot::new(&ALT_20, 1, SlotKind::Nonterminal(NonterminalId(16))),
+        Slot::new(&ALT_20, 1, SlotKind::Nonterminal(NonterminalId(17))),
         Slot::new(&ALT_20, 2, SlotKind::Terminal(TerminalId(2))),
         Slot::new(&ALT_20, 3, SlotKind::End),
         Slot::new(&ALT_21, 0, SlotKind::Nonterminal(NonterminalId(12))),
-        Slot::new(&ALT_21, 1, SlotKind::Nonterminal(NonterminalId(16))),
+        Slot::new(&ALT_21, 1, SlotKind::Nonterminal(NonterminalId(17))),
         Slot::new(&ALT_21, 2, SlotKind::Terminal(TerminalId(30))),
         Slot::new(&ALT_21, 3, SlotKind::End),
         Slot::new(&ALT_22, 0, SlotKind::Nonterminal(NonterminalId(12))),
-        Slot::new(&ALT_22, 1, SlotKind::Nonterminal(NonterminalId(16))),
+        Slot::new(&ALT_22, 1, SlotKind::Nonterminal(NonterminalId(17))),
         Slot::new(&ALT_22, 2, SlotKind::Terminal(TerminalId(29))),
         Slot::new(&ALT_22, 3, SlotKind::End),
         Slot::new(&ALT_23, 0, SlotKind::Nonterminal(NonterminalId(12))),
-        Slot::new(&ALT_23, 1, SlotKind::Nonterminal(NonterminalId(16))),
+        Slot::new(&ALT_23, 1, SlotKind::Nonterminal(NonterminalId(17))),
         Slot::new(&ALT_23, 2, SlotKind::Terminal(TerminalId(31))),
         Slot::new(&ALT_23, 3, SlotKind::End),
         Slot::new(&ALT_24, 0, SlotKind::Terminal(TerminalId(25))),
-        Slot::new(&ALT_24, 1, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_24, 2, SlotKind::Nonterminal(NonterminalId(26))),
-        Slot::new(&ALT_24, 3, SlotKind::Nonterminal(NonterminalId(16))),
+        Slot::new(&ALT_24, 1, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_24, 2, SlotKind::Nonterminal(NonterminalId(27))),
+        Slot::new(&ALT_24, 3, SlotKind::Nonterminal(NonterminalId(17))),
         Slot::new(&ALT_24, 4, SlotKind::Terminal(TerminalId(26))),
         Slot::new(&ALT_24, 5, SlotKind::End),
-        Slot::new(&ALT_25, 0, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_25, 0, SlotKind::Nonterminal(NonterminalId(14))),
         Slot::new(&ALT_25, 1, SlotKind::End),
         Slot::new(&ALT_26, 0, SlotKind::Terminal(TerminalId(4))),
         Slot::new(&ALT_26, 1, SlotKind::End),
         Slot::new(&ALT_27, 0, SlotKind::Terminal(TerminalId(3))),
         Slot::new(&ALT_27, 1, SlotKind::End),
-        Slot::new(&ALT_28, 0, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_28, 0, SlotKind::Nonterminal(NonterminalId(13))),
         Slot::new(&ALT_28, 1, SlotKind::End),
-        Slot::new(&ALT_29, 0, SlotKind::Nonterminal(NonterminalId(37))),
-        Slot::new(&ALT_29, 1, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_29, 2, SlotKind::Terminal(TerminalId(35))),
-        Slot::new(&ALT_29, 3, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_29, 4, SlotKind::Nonterminal(NonterminalId(38))),
-        Slot::new(&ALT_29, 5, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_29, 6, SlotKind::Terminal(TerminalId(36))),
-        Slot::new(&ALT_29, 7, SlotKind::End),
-        Slot::new(&ALT_30, 0, SlotKind::Nonterminal(NonterminalId(15))),
-        Slot::new(&ALT_30, 1, SlotKind::End),
-        Slot::new(&ALT_31, 0, SlotKind::Terminal(TerminalId(6))),
-        Slot::new(&ALT_31, 1, SlotKind::End),
-        Slot::new(&ALT_32, 0, SlotKind::Terminal(TerminalId(6))),
-        Slot::new(&ALT_32, 1, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_32, 2, SlotKind::Terminal(TerminalId(37))),
-        Slot::new(&ALT_32, 3, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_32, 4, SlotKind::Terminal(TerminalId(6))),
-        Slot::new(&ALT_32, 5, SlotKind::End),
-        Slot::new(&ALT_33, 0, SlotKind::Nonterminal(NonterminalId(41))),
+        Slot::new(&ALT_29, 0, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_29, 1, SlotKind::End),
+        Slot::new(&ALT_30, 0, SlotKind::Terminal(TerminalId(35))),
+        Slot::new(&ALT_30, 1, SlotKind::Terminal(TerminalId(3))),
+        Slot::new(&ALT_30, 2, SlotKind::End),
+        Slot::new(&ALT_31, 0, SlotKind::Nonterminal(NonterminalId(38))),
+        Slot::new(&ALT_31, 1, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_31, 2, SlotKind::Terminal(TerminalId(36))),
+        Slot::new(&ALT_31, 3, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_31, 4, SlotKind::Nonterminal(NonterminalId(39))),
+        Slot::new(&ALT_31, 5, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_31, 6, SlotKind::Terminal(TerminalId(37))),
+        Slot::new(&ALT_31, 7, SlotKind::End),
+        Slot::new(&ALT_32, 0, SlotKind::Nonterminal(NonterminalId(16))),
+        Slot::new(&ALT_32, 1, SlotKind::End),
+        Slot::new(&ALT_33, 0, SlotKind::Terminal(TerminalId(6))),
         Slot::new(&ALT_33, 1, SlotKind::End),
-        Slot::new(&ALT_34, 0, SlotKind::Nonterminal(NonterminalId(17))),
-        Slot::new(&ALT_34, 1, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_34, 2, SlotKind::Nonterminal(NonterminalId(1))),
-        Slot::new(&ALT_34, 3, SlotKind::End),
-        Slot::new(&ALT_35, 0, SlotKind::Nonterminal(NonterminalId(1))),
+        Slot::new(&ALT_34, 0, SlotKind::Terminal(TerminalId(6))),
+        Slot::new(&ALT_34, 1, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_34, 2, SlotKind::Terminal(TerminalId(38))),
+        Slot::new(&ALT_34, 3, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_34, 4, SlotKind::Terminal(TerminalId(6))),
+        Slot::new(&ALT_34, 5, SlotKind::End),
+        Slot::new(&ALT_35, 0, SlotKind::Nonterminal(NonterminalId(42))),
         Slot::new(&ALT_35, 1, SlotKind::End),
-        Slot::new(&ALT_36, 0, SlotKind::Nonterminal(NonterminalId(17))),
-        Slot::new(&ALT_36, 1, SlotKind::End),
-        Slot::new(&ALT_37, 0, SlotKind::End),
-        Slot::new(&ALT_38, 0, SlotKind::Nonterminal(NonterminalId(3))),
+        Slot::new(&ALT_36, 0, SlotKind::Nonterminal(NonterminalId(18))),
+        Slot::new(&ALT_36, 1, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_36, 2, SlotKind::Nonterminal(NonterminalId(1))),
+        Slot::new(&ALT_36, 3, SlotKind::End),
+        Slot::new(&ALT_37, 0, SlotKind::Nonterminal(NonterminalId(1))),
+        Slot::new(&ALT_37, 1, SlotKind::End),
+        Slot::new(&ALT_38, 0, SlotKind::Nonterminal(NonterminalId(18))),
         Slot::new(&ALT_38, 1, SlotKind::End),
         Slot::new(&ALT_39, 0, SlotKind::End),
-        Slot::new(&ALT_40, 0, SlotKind::Nonterminal(NonterminalId(20))),
-        Slot::new(&ALT_40, 1, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_40, 2, SlotKind::Terminal(TerminalId(13))),
-        Slot::new(&ALT_40, 3, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_40, 4, SlotKind::Nonterminal(NonterminalId(7))),
-        Slot::new(&ALT_40, 5, SlotKind::End),
-        Slot::new(&ALT_41, 0, SlotKind::Nonterminal(NonterminalId(7))),
-        Slot::new(&ALT_41, 1, SlotKind::End),
-        Slot::new(&ALT_42, 0, SlotKind::Nonterminal(NonterminalId(20))),
-        Slot::new(&ALT_42, 1, SlotKind::End),
-        Slot::new(&ALT_43, 0, SlotKind::End),
-        Slot::new(&ALT_44, 0, SlotKind::Terminal(TerminalId(15))),
+        Slot::new(&ALT_40, 0, SlotKind::Nonterminal(NonterminalId(3))),
+        Slot::new(&ALT_40, 1, SlotKind::End),
+        Slot::new(&ALT_41, 0, SlotKind::End),
+        Slot::new(&ALT_42, 0, SlotKind::Nonterminal(NonterminalId(21))),
+        Slot::new(&ALT_42, 1, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_42, 2, SlotKind::Terminal(TerminalId(13))),
+        Slot::new(&ALT_42, 3, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_42, 4, SlotKind::Nonterminal(NonterminalId(7))),
+        Slot::new(&ALT_42, 5, SlotKind::End),
+        Slot::new(&ALT_43, 0, SlotKind::Nonterminal(NonterminalId(7))),
+        Slot::new(&ALT_43, 1, SlotKind::End),
+        Slot::new(&ALT_44, 0, SlotKind::Nonterminal(NonterminalId(21))),
         Slot::new(&ALT_44, 1, SlotKind::End),
         Slot::new(&ALT_45, 0, SlotKind::End),
-        Slot::new(&ALT_46, 0, SlotKind::Terminal(TerminalId(16))),
+        Slot::new(&ALT_46, 0, SlotKind::Terminal(TerminalId(15))),
         Slot::new(&ALT_46, 1, SlotKind::End),
         Slot::new(&ALT_47, 0, SlotKind::End),
-        Slot::new(&ALT_48, 0, SlotKind::Nonterminal(NonterminalId(5))),
+        Slot::new(&ALT_48, 0, SlotKind::Terminal(TerminalId(16))),
         Slot::new(&ALT_48, 1, SlotKind::End),
         Slot::new(&ALT_49, 0, SlotKind::End),
-        Slot::new(&ALT_50, 0, SlotKind::Nonterminal(NonterminalId(25))),
-        Slot::new(&ALT_50, 1, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_50, 2, SlotKind::Nonterminal(NonterminalId(12))),
-        Slot::new(&ALT_50, 3, SlotKind::End),
-        Slot::new(&ALT_51, 0, SlotKind::Nonterminal(NonterminalId(12))),
-        Slot::new(&ALT_51, 1, SlotKind::End),
+        Slot::new(&ALT_50, 0, SlotKind::Nonterminal(NonterminalId(5))),
+        Slot::new(&ALT_50, 1, SlotKind::End),
+        Slot::new(&ALT_51, 0, SlotKind::End),
         Slot::new(&ALT_52, 0, SlotKind::Nonterminal(NonterminalId(26))),
-        Slot::new(&ALT_52, 1, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_52, 2, SlotKind::Terminal(TerminalId(18))),
-        Slot::new(&ALT_52, 3, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_52, 4, SlotKind::Nonterminal(NonterminalId(25))),
-        Slot::new(&ALT_52, 5, SlotKind::End),
-        Slot::new(&ALT_53, 0, SlotKind::Nonterminal(NonterminalId(25))),
+        Slot::new(&ALT_52, 1, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_52, 2, SlotKind::Nonterminal(NonterminalId(12))),
+        Slot::new(&ALT_52, 3, SlotKind::End),
+        Slot::new(&ALT_53, 0, SlotKind::Nonterminal(NonterminalId(12))),
         Slot::new(&ALT_53, 1, SlotKind::End),
         Slot::new(&ALT_54, 0, SlotKind::Nonterminal(NonterminalId(27))),
-        Slot::new(&ALT_54, 1, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_54, 2, SlotKind::Nonterminal(NonterminalId(6))),
-        Slot::new(&ALT_54, 3, SlotKind::End),
-        Slot::new(&ALT_55, 0, SlotKind::Nonterminal(NonterminalId(6))),
+        Slot::new(&ALT_54, 1, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_54, 2, SlotKind::Terminal(TerminalId(18))),
+        Slot::new(&ALT_54, 3, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_54, 4, SlotKind::Nonterminal(NonterminalId(26))),
+        Slot::new(&ALT_54, 5, SlotKind::End),
+        Slot::new(&ALT_55, 0, SlotKind::Nonterminal(NonterminalId(26))),
         Slot::new(&ALT_55, 1, SlotKind::End),
-        Slot::new(&ALT_56, 0, SlotKind::Nonterminal(NonterminalId(27))),
-        Slot::new(&ALT_56, 1, SlotKind::End),
-        Slot::new(&ALT_57, 0, SlotKind::End),
-        Slot::new(&ALT_58, 0, SlotKind::Nonterminal(NonterminalId(8))),
+        Slot::new(&ALT_56, 0, SlotKind::Nonterminal(NonterminalId(28))),
+        Slot::new(&ALT_56, 1, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_56, 2, SlotKind::Nonterminal(NonterminalId(6))),
+        Slot::new(&ALT_56, 3, SlotKind::End),
+        Slot::new(&ALT_57, 0, SlotKind::Nonterminal(NonterminalId(6))),
+        Slot::new(&ALT_57, 1, SlotKind::End),
+        Slot::new(&ALT_58, 0, SlotKind::Nonterminal(NonterminalId(28))),
         Slot::new(&ALT_58, 1, SlotKind::End),
         Slot::new(&ALT_59, 0, SlotKind::End),
-        Slot::new(&ALT_60, 0, SlotKind::Nonterminal(NonterminalId(30))),
-        Slot::new(&ALT_60, 1, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_60, 2, SlotKind::Terminal(TerminalId(18))),
-        Slot::new(&ALT_60, 3, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_60, 4, SlotKind::Nonterminal(NonterminalId(9))),
-        Slot::new(&ALT_60, 5, SlotKind::End),
-        Slot::new(&ALT_61, 0, SlotKind::Nonterminal(NonterminalId(9))),
-        Slot::new(&ALT_61, 1, SlotKind::End),
-        Slot::new(&ALT_62, 0, SlotKind::Nonterminal(NonterminalId(30))),
-        Slot::new(&ALT_62, 1, SlotKind::End),
-        Slot::new(&ALT_63, 0, SlotKind::End),
-        Slot::new(&ALT_64, 0, SlotKind::Nonterminal(NonterminalId(32))),
-        Slot::new(&ALT_64, 1, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_64, 2, SlotKind::Nonterminal(NonterminalId(60))),
-        Slot::new(&ALT_64, 3, SlotKind::End),
-        Slot::new(&ALT_65, 0, SlotKind::Nonterminal(NonterminalId(60))),
-        Slot::new(&ALT_65, 1, SlotKind::End),
-        Slot::new(&ALT_66, 0, SlotKind::Terminal(TerminalId(7))),
-        Slot::new(&ALT_66, 1, SlotKind::End),
-        Slot::new(&ALT_67, 0, SlotKind::End),
-        Slot::new(&ALT_68, 0, SlotKind::Nonterminal(NonterminalId(34))),
-        Slot::new(&ALT_68, 1, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_68, 2, SlotKind::Terminal(TerminalId(18))),
-        Slot::new(&ALT_68, 3, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_68, 4, SlotKind::Nonterminal(NonterminalId(32))),
-        Slot::new(&ALT_68, 5, SlotKind::End),
-        Slot::new(&ALT_69, 0, SlotKind::Nonterminal(NonterminalId(32))),
-        Slot::new(&ALT_69, 1, SlotKind::End),
+        Slot::new(&ALT_60, 0, SlotKind::Nonterminal(NonterminalId(8))),
+        Slot::new(&ALT_60, 1, SlotKind::End),
+        Slot::new(&ALT_61, 0, SlotKind::End),
+        Slot::new(&ALT_62, 0, SlotKind::Nonterminal(NonterminalId(31))),
+        Slot::new(&ALT_62, 1, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_62, 2, SlotKind::Terminal(TerminalId(18))),
+        Slot::new(&ALT_62, 3, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_62, 4, SlotKind::Nonterminal(NonterminalId(9))),
+        Slot::new(&ALT_62, 5, SlotKind::End),
+        Slot::new(&ALT_63, 0, SlotKind::Nonterminal(NonterminalId(9))),
+        Slot::new(&ALT_63, 1, SlotKind::End),
+        Slot::new(&ALT_64, 0, SlotKind::Nonterminal(NonterminalId(31))),
+        Slot::new(&ALT_64, 1, SlotKind::End),
+        Slot::new(&ALT_65, 0, SlotKind::End),
+        Slot::new(&ALT_66, 0, SlotKind::Nonterminal(NonterminalId(33))),
+        Slot::new(&ALT_66, 1, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_66, 2, SlotKind::Nonterminal(NonterminalId(62))),
+        Slot::new(&ALT_66, 3, SlotKind::End),
+        Slot::new(&ALT_67, 0, SlotKind::Nonterminal(NonterminalId(62))),
+        Slot::new(&ALT_67, 1, SlotKind::End),
+        Slot::new(&ALT_68, 0, SlotKind::Terminal(TerminalId(7))),
+        Slot::new(&ALT_68, 1, SlotKind::End),
+        Slot::new(&ALT_69, 0, SlotKind::End),
         Slot::new(&ALT_70, 0, SlotKind::Nonterminal(NonterminalId(35))),
-        Slot::new(&ALT_70, 1, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_70, 2, SlotKind::Nonterminal(NonterminalId(11))),
-        Slot::new(&ALT_70, 3, SlotKind::End),
-        Slot::new(&ALT_71, 0, SlotKind::Nonterminal(NonterminalId(11))),
+        Slot::new(&ALT_70, 1, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_70, 2, SlotKind::Terminal(TerminalId(18))),
+        Slot::new(&ALT_70, 3, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_70, 4, SlotKind::Nonterminal(NonterminalId(33))),
+        Slot::new(&ALT_70, 5, SlotKind::End),
+        Slot::new(&ALT_71, 0, SlotKind::Nonterminal(NonterminalId(33))),
         Slot::new(&ALT_71, 1, SlotKind::End),
         Slot::new(&ALT_72, 0, SlotKind::Nonterminal(NonterminalId(36))),
-        Slot::new(&ALT_72, 1, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_72, 2, SlotKind::Nonterminal(NonterminalId(10))),
+        Slot::new(&ALT_72, 1, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_72, 2, SlotKind::Nonterminal(NonterminalId(11))),
         Slot::new(&ALT_72, 3, SlotKind::End),
-        Slot::new(&ALT_73, 0, SlotKind::Nonterminal(NonterminalId(10))),
+        Slot::new(&ALT_73, 0, SlotKind::Nonterminal(NonterminalId(11))),
         Slot::new(&ALT_73, 1, SlotKind::End),
-        Slot::new(&ALT_74, 0, SlotKind::Terminal(TerminalId(34))),
-        Slot::new(&ALT_74, 1, SlotKind::End),
-        Slot::new(&ALT_75, 0, SlotKind::End),
-        Slot::new(&ALT_76, 0, SlotKind::Nonterminal(NonterminalId(38))),
-        Slot::new(&ALT_76, 1, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_76, 2, SlotKind::Nonterminal(NonterminalId(14))),
-        Slot::new(&ALT_76, 3, SlotKind::End),
-        Slot::new(&ALT_77, 0, SlotKind::Nonterminal(NonterminalId(14))),
-        Slot::new(&ALT_77, 1, SlotKind::End),
-        Slot::new(&ALT_78, 0, SlotKind::Terminal(TerminalId(8))),
-        Slot::new(&ALT_78, 1, SlotKind::End),
-        Slot::new(&ALT_79, 0, SlotKind::Terminal(TerminalId(10))),
+        Slot::new(&ALT_74, 0, SlotKind::Nonterminal(NonterminalId(37))),
+        Slot::new(&ALT_74, 1, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_74, 2, SlotKind::Nonterminal(NonterminalId(10))),
+        Slot::new(&ALT_74, 3, SlotKind::End),
+        Slot::new(&ALT_75, 0, SlotKind::Nonterminal(NonterminalId(10))),
+        Slot::new(&ALT_75, 1, SlotKind::End),
+        Slot::new(&ALT_76, 0, SlotKind::Terminal(TerminalId(34))),
+        Slot::new(&ALT_76, 1, SlotKind::End),
+        Slot::new(&ALT_77, 0, SlotKind::End),
+        Slot::new(&ALT_78, 0, SlotKind::Nonterminal(NonterminalId(39))),
+        Slot::new(&ALT_78, 1, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_78, 2, SlotKind::Nonterminal(NonterminalId(15))),
+        Slot::new(&ALT_78, 3, SlotKind::End),
+        Slot::new(&ALT_79, 0, SlotKind::Nonterminal(NonterminalId(15))),
         Slot::new(&ALT_79, 1, SlotKind::End),
-        Slot::new(&ALT_80, 0, SlotKind::Nonterminal(NonterminalId(40))),
-        Slot::new(&ALT_80, 1, SlotKind::Nonterminal(NonterminalId(39))),
-        Slot::new(&ALT_80, 2, SlotKind::End),
-        Slot::new(&ALT_81, 0, SlotKind::Nonterminal(NonterminalId(39))),
+        Slot::new(&ALT_80, 0, SlotKind::Terminal(TerminalId(8))),
+        Slot::new(&ALT_80, 1, SlotKind::End),
+        Slot::new(&ALT_81, 0, SlotKind::Terminal(TerminalId(10))),
         Slot::new(&ALT_81, 1, SlotKind::End),
-        Slot::new(&ALT_82, 0, SlotKind::Nonterminal(NonterminalId(40))),
-        Slot::new(&ALT_82, 1, SlotKind::End),
-        Slot::new(&ALT_83, 0, SlotKind::End),
-        Slot::new(&ALT_84, 0, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_84, 1, SlotKind::Nonterminal(NonterminalId(0))),
-        Slot::new(&ALT_84, 2, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_84, 3, SlotKind::End),
-        Slot::new(&ALT_85, 0, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_85, 1, SlotKind::Nonterminal(NonterminalId(1))),
-        Slot::new(&ALT_85, 2, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_85, 3, SlotKind::End),
-        Slot::new(&ALT_86, 0, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_86, 1, SlotKind::Nonterminal(NonterminalId(2))),
-        Slot::new(&ALT_86, 2, SlotKind::Nonterminal(NonterminalId(16))),
+        Slot::new(&ALT_82, 0, SlotKind::Nonterminal(NonterminalId(41))),
+        Slot::new(&ALT_82, 1, SlotKind::Nonterminal(NonterminalId(40))),
+        Slot::new(&ALT_82, 2, SlotKind::End),
+        Slot::new(&ALT_83, 0, SlotKind::Nonterminal(NonterminalId(40))),
+        Slot::new(&ALT_83, 1, SlotKind::End),
+        Slot::new(&ALT_84, 0, SlotKind::Nonterminal(NonterminalId(41))),
+        Slot::new(&ALT_84, 1, SlotKind::End),
+        Slot::new(&ALT_85, 0, SlotKind::End),
+        Slot::new(&ALT_86, 0, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_86, 1, SlotKind::Nonterminal(NonterminalId(0))),
+        Slot::new(&ALT_86, 2, SlotKind::Nonterminal(NonterminalId(17))),
         Slot::new(&ALT_86, 3, SlotKind::End),
-        Slot::new(&ALT_87, 0, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_87, 1, SlotKind::Nonterminal(NonterminalId(3))),
-        Slot::new(&ALT_87, 2, SlotKind::Nonterminal(NonterminalId(16))),
+        Slot::new(&ALT_87, 0, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_87, 1, SlotKind::Nonterminal(NonterminalId(1))),
+        Slot::new(&ALT_87, 2, SlotKind::Nonterminal(NonterminalId(17))),
         Slot::new(&ALT_87, 3, SlotKind::End),
-        Slot::new(&ALT_88, 0, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_88, 1, SlotKind::Nonterminal(NonterminalId(4))),
-        Slot::new(&ALT_88, 2, SlotKind::Nonterminal(NonterminalId(16))),
+        Slot::new(&ALT_88, 0, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_88, 1, SlotKind::Nonterminal(NonterminalId(2))),
+        Slot::new(&ALT_88, 2, SlotKind::Nonterminal(NonterminalId(17))),
         Slot::new(&ALT_88, 3, SlotKind::End),
-        Slot::new(&ALT_89, 0, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_89, 1, SlotKind::Nonterminal(NonterminalId(5))),
-        Slot::new(&ALT_89, 2, SlotKind::Nonterminal(NonterminalId(16))),
+        Slot::new(&ALT_89, 0, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_89, 1, SlotKind::Nonterminal(NonterminalId(3))),
+        Slot::new(&ALT_89, 2, SlotKind::Nonterminal(NonterminalId(17))),
         Slot::new(&ALT_89, 3, SlotKind::End),
-        Slot::new(&ALT_90, 0, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_90, 1, SlotKind::Nonterminal(NonterminalId(6))),
-        Slot::new(&ALT_90, 2, SlotKind::Nonterminal(NonterminalId(16))),
+        Slot::new(&ALT_90, 0, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_90, 1, SlotKind::Nonterminal(NonterminalId(4))),
+        Slot::new(&ALT_90, 2, SlotKind::Nonterminal(NonterminalId(17))),
         Slot::new(&ALT_90, 3, SlotKind::End),
-        Slot::new(&ALT_91, 0, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_91, 1, SlotKind::Nonterminal(NonterminalId(7))),
-        Slot::new(&ALT_91, 2, SlotKind::Nonterminal(NonterminalId(16))),
+        Slot::new(&ALT_91, 0, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_91, 1, SlotKind::Nonterminal(NonterminalId(5))),
+        Slot::new(&ALT_91, 2, SlotKind::Nonterminal(NonterminalId(17))),
         Slot::new(&ALT_91, 3, SlotKind::End),
-        Slot::new(&ALT_92, 0, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_92, 1, SlotKind::Nonterminal(NonterminalId(8))),
-        Slot::new(&ALT_92, 2, SlotKind::Nonterminal(NonterminalId(16))),
+        Slot::new(&ALT_92, 0, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_92, 1, SlotKind::Nonterminal(NonterminalId(6))),
+        Slot::new(&ALT_92, 2, SlotKind::Nonterminal(NonterminalId(17))),
         Slot::new(&ALT_92, 3, SlotKind::End),
-        Slot::new(&ALT_93, 0, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_93, 1, SlotKind::Nonterminal(NonterminalId(9))),
-        Slot::new(&ALT_93, 2, SlotKind::Nonterminal(NonterminalId(16))),
+        Slot::new(&ALT_93, 0, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_93, 1, SlotKind::Nonterminal(NonterminalId(7))),
+        Slot::new(&ALT_93, 2, SlotKind::Nonterminal(NonterminalId(17))),
         Slot::new(&ALT_93, 3, SlotKind::End),
-        Slot::new(&ALT_94, 0, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_94, 1, SlotKind::Nonterminal(NonterminalId(60))),
-        Slot::new(&ALT_94, 2, SlotKind::Nonterminal(NonterminalId(16))),
+        Slot::new(&ALT_94, 0, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_94, 1, SlotKind::Nonterminal(NonterminalId(8))),
+        Slot::new(&ALT_94, 2, SlotKind::Nonterminal(NonterminalId(17))),
         Slot::new(&ALT_94, 3, SlotKind::End),
-        Slot::new(&ALT_95, 0, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_95, 1, SlotKind::Nonterminal(NonterminalId(10))),
-        Slot::new(&ALT_95, 2, SlotKind::Nonterminal(NonterminalId(16))),
+        Slot::new(&ALT_95, 0, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_95, 1, SlotKind::Nonterminal(NonterminalId(9))),
+        Slot::new(&ALT_95, 2, SlotKind::Nonterminal(NonterminalId(17))),
         Slot::new(&ALT_95, 3, SlotKind::End),
-        Slot::new(&ALT_96, 0, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_96, 1, SlotKind::Nonterminal(NonterminalId(11))),
-        Slot::new(&ALT_96, 2, SlotKind::Nonterminal(NonterminalId(16))),
+        Slot::new(&ALT_96, 0, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_96, 1, SlotKind::Nonterminal(NonterminalId(62))),
+        Slot::new(&ALT_96, 2, SlotKind::Nonterminal(NonterminalId(17))),
         Slot::new(&ALT_96, 3, SlotKind::End),
-        Slot::new(&ALT_97, 0, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_97, 1, SlotKind::Nonterminal(NonterminalId(12))),
-        Slot::new(&ALT_97, 2, SlotKind::Nonterminal(NonterminalId(16))),
+        Slot::new(&ALT_97, 0, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_97, 1, SlotKind::Nonterminal(NonterminalId(10))),
+        Slot::new(&ALT_97, 2, SlotKind::Nonterminal(NonterminalId(17))),
         Slot::new(&ALT_97, 3, SlotKind::End),
-        Slot::new(&ALT_98, 0, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_98, 1, SlotKind::Nonterminal(NonterminalId(13))),
-        Slot::new(&ALT_98, 2, SlotKind::Nonterminal(NonterminalId(16))),
+        Slot::new(&ALT_98, 0, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_98, 1, SlotKind::Nonterminal(NonterminalId(11))),
+        Slot::new(&ALT_98, 2, SlotKind::Nonterminal(NonterminalId(17))),
         Slot::new(&ALT_98, 3, SlotKind::End),
-        Slot::new(&ALT_99, 0, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_99, 1, SlotKind::Nonterminal(NonterminalId(14))),
-        Slot::new(&ALT_99, 2, SlotKind::Nonterminal(NonterminalId(16))),
+        Slot::new(&ALT_99, 0, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_99, 1, SlotKind::Nonterminal(NonterminalId(12))),
+        Slot::new(&ALT_99, 2, SlotKind::Nonterminal(NonterminalId(17))),
         Slot::new(&ALT_99, 3, SlotKind::End),
-        Slot::new(&ALT_100, 0, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_100, 1, SlotKind::Nonterminal(NonterminalId(15))),
-        Slot::new(&ALT_100, 2, SlotKind::Nonterminal(NonterminalId(16))),
+        Slot::new(&ALT_100, 0, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_100, 1, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_100, 2, SlotKind::Nonterminal(NonterminalId(17))),
         Slot::new(&ALT_100, 3, SlotKind::End),
-        Slot::new(&ALT_101, 0, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_101, 1, SlotKind::End),
-        Slot::new(&ALT_102, 0, SlotKind::Terminal(TerminalId(2))),
-        Slot::new(&ALT_102, 1, SlotKind::Return),
-        Slot::new(&ALT_102, 2, SlotKind::End),
-        Slot::new(&ALT_103, 0, SlotKind::Terminal(TerminalId(25))),
+        Slot::new(&ALT_101, 0, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_101, 1, SlotKind::Nonterminal(NonterminalId(14))),
+        Slot::new(&ALT_101, 2, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_101, 3, SlotKind::End),
+        Slot::new(&ALT_102, 0, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_102, 1, SlotKind::Nonterminal(NonterminalId(15))),
+        Slot::new(&ALT_102, 2, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_102, 3, SlotKind::End),
+        Slot::new(&ALT_103, 0, SlotKind::Nonterminal(NonterminalId(17))),
         Slot::new(&ALT_103, 1, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_103, 2, SlotKind::Nonterminal(NonterminalId(34))),
-        Slot::new(&ALT_103, 3, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_103, 4, SlotKind::Terminal(TerminalId(26))),
-        Slot::new(&ALT_103, 5, SlotKind::Return),
-        Slot::new(&ALT_103, 6, SlotKind::End),
-        Slot::new(&ALT_104, 0, SlotKind::Terminal(TerminalId(3))),
-        Slot::new(&ALT_104, 1, SlotKind::Return),
-        Slot::new(&ALT_104, 2, SlotKind::End),
-        Slot::new(&ALT_105, 0, SlotKind::Terminal(TerminalId(27))),
-        Slot::new(&ALT_105, 1, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_105, 2, SlotKind::Nonterminal(NonterminalId(60))),
-        Slot::new(&ALT_105, 3, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_105, 4, SlotKind::Nonterminal(NonterminalId(60))),
-        Slot::new(&ALT_105, 5, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_105, 6, SlotKind::Terminal(TerminalId(28))),
-        Slot::new(&ALT_105, 7, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_105, 8, SlotKind::Terminal(TerminalId(29))),
-        Slot::new(&ALT_105, 9, SlotKind::Return),
-        Slot::new(&ALT_105, 10, SlotKind::End),
-        Slot::new(&ALT_106, 0, SlotKind::Terminal(TerminalId(27))),
-        Slot::new(&ALT_106, 1, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_106, 2, SlotKind::Nonterminal(NonterminalId(60))),
-        Slot::new(&ALT_106, 3, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_106, 4, SlotKind::Nonterminal(NonterminalId(60))),
-        Slot::new(&ALT_106, 5, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_106, 6, SlotKind::Terminal(TerminalId(28))),
-        Slot::new(&ALT_106, 7, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_106, 8, SlotKind::Terminal(TerminalId(30))),
-        Slot::new(&ALT_106, 9, SlotKind::Return),
-        Slot::new(&ALT_106, 10, SlotKind::End),
-        Slot::new(&ALT_107, 0, SlotKind::Condition),
-        Slot::new(&ALT_107, 1, SlotKind::Nonterminal(NonterminalId(60))),
-        Slot::new(&ALT_107, 2, SlotKind::Condition),
-        Slot::new(&ALT_107, 3, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_107, 4, SlotKind::Terminal(TerminalId(29))),
-        Slot::new(&ALT_107, 5, SlotKind::Return),
-        Slot::new(&ALT_107, 6, SlotKind::End),
-        Slot::new(&ALT_108, 0, SlotKind::Condition),
-        Slot::new(&ALT_108, 1, SlotKind::Nonterminal(NonterminalId(60))),
-        Slot::new(&ALT_108, 2, SlotKind::Condition),
-        Slot::new(&ALT_108, 3, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_108, 4, SlotKind::Terminal(TerminalId(30))),
-        Slot::new(&ALT_108, 5, SlotKind::Return),
-        Slot::new(&ALT_108, 6, SlotKind::End),
-        Slot::new(&ALT_109, 0, SlotKind::Condition),
-        Slot::new(&ALT_109, 1, SlotKind::Nonterminal(NonterminalId(60))),
-        Slot::new(&ALT_109, 2, SlotKind::Condition),
-        Slot::new(&ALT_109, 3, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_109, 4, SlotKind::Terminal(TerminalId(31))),
-        Slot::new(&ALT_109, 5, SlotKind::Return),
-        Slot::new(&ALT_109, 6, SlotKind::End),
-        Slot::new(&ALT_110, 0, SlotKind::Condition),
-        Slot::new(&ALT_110, 1, SlotKind::Nonterminal(NonterminalId(60))),
-        Slot::new(&ALT_110, 2, SlotKind::Condition),
-        Slot::new(&ALT_110, 3, SlotKind::Condition),
-        Slot::new(&ALT_110, 4, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_110, 5, SlotKind::Nonterminal(NonterminalId(35))),
-        Slot::new(&ALT_110, 6, SlotKind::Return),
-        Slot::new(&ALT_110, 7, SlotKind::End),
-        Slot::new(&ALT_111, 0, SlotKind::Nonterminal(NonterminalId(36))),
-        Slot::new(&ALT_111, 1, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_111, 2, SlotKind::Nonterminal(NonterminalId(60))),
-        Slot::new(&ALT_111, 3, SlotKind::Condition),
-        Slot::new(&ALT_111, 4, SlotKind::Return),
-        Slot::new(&ALT_111, 5, SlotKind::End),
-        Slot::new(&ALT_112, 0, SlotKind::Terminal(TerminalId(2))),
-        Slot::new(&ALT_112, 1, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_112, 2, SlotKind::Terminal(TerminalId(32))),
-        Slot::new(&ALT_112, 3, SlotKind::Nonterminal(NonterminalId(16))),
-        Slot::new(&ALT_112, 4, SlotKind::Nonterminal(NonterminalId(60))),
+        Slot::new(&ALT_103, 2, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_103, 3, SlotKind::End),
+        Slot::new(&ALT_104, 0, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_104, 1, SlotKind::End),
+        Slot::new(&ALT_105, 0, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_105, 1, SlotKind::Return),
+        Slot::new(&ALT_105, 2, SlotKind::End),
+        Slot::new(&ALT_106, 0, SlotKind::Terminal(TerminalId(25))),
+        Slot::new(&ALT_106, 1, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_106, 2, SlotKind::Nonterminal(NonterminalId(35))),
+        Slot::new(&ALT_106, 3, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_106, 4, SlotKind::Terminal(TerminalId(26))),
+        Slot::new(&ALT_106, 5, SlotKind::Return),
+        Slot::new(&ALT_106, 6, SlotKind::End),
+        Slot::new(&ALT_107, 0, SlotKind::Terminal(TerminalId(3))),
+        Slot::new(&ALT_107, 1, SlotKind::Return),
+        Slot::new(&ALT_107, 2, SlotKind::End),
+        Slot::new(&ALT_108, 0, SlotKind::Nonterminal(NonterminalId(13))),
+        Slot::new(&ALT_108, 1, SlotKind::Return),
+        Slot::new(&ALT_108, 2, SlotKind::End),
+        Slot::new(&ALT_109, 0, SlotKind::Terminal(TerminalId(27))),
+        Slot::new(&ALT_109, 1, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_109, 2, SlotKind::Nonterminal(NonterminalId(62))),
+        Slot::new(&ALT_109, 3, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_109, 4, SlotKind::Nonterminal(NonterminalId(62))),
+        Slot::new(&ALT_109, 5, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_109, 6, SlotKind::Terminal(TerminalId(28))),
+        Slot::new(&ALT_109, 7, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_109, 8, SlotKind::Terminal(TerminalId(29))),
+        Slot::new(&ALT_109, 9, SlotKind::Return),
+        Slot::new(&ALT_109, 10, SlotKind::End),
+        Slot::new(&ALT_110, 0, SlotKind::Terminal(TerminalId(27))),
+        Slot::new(&ALT_110, 1, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_110, 2, SlotKind::Nonterminal(NonterminalId(62))),
+        Slot::new(&ALT_110, 3, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_110, 4, SlotKind::Nonterminal(NonterminalId(62))),
+        Slot::new(&ALT_110, 5, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_110, 6, SlotKind::Terminal(TerminalId(28))),
+        Slot::new(&ALT_110, 7, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_110, 8, SlotKind::Terminal(TerminalId(30))),
+        Slot::new(&ALT_110, 9, SlotKind::Return),
+        Slot::new(&ALT_110, 10, SlotKind::End),
+        Slot::new(&ALT_111, 0, SlotKind::Condition),
+        Slot::new(&ALT_111, 1, SlotKind::Nonterminal(NonterminalId(62))),
+        Slot::new(&ALT_111, 2, SlotKind::Condition),
+        Slot::new(&ALT_111, 3, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_111, 4, SlotKind::Terminal(TerminalId(29))),
+        Slot::new(&ALT_111, 5, SlotKind::Return),
+        Slot::new(&ALT_111, 6, SlotKind::End),
+        Slot::new(&ALT_112, 0, SlotKind::Condition),
+        Slot::new(&ALT_112, 1, SlotKind::Nonterminal(NonterminalId(62))),
+        Slot::new(&ALT_112, 2, SlotKind::Condition),
+        Slot::new(&ALT_112, 3, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_112, 4, SlotKind::Terminal(TerminalId(30))),
         Slot::new(&ALT_112, 5, SlotKind::Return),
         Slot::new(&ALT_112, 6, SlotKind::End),
+        Slot::new(&ALT_113, 0, SlotKind::Condition),
+        Slot::new(&ALT_113, 1, SlotKind::Nonterminal(NonterminalId(62))),
+        Slot::new(&ALT_113, 2, SlotKind::Condition),
+        Slot::new(&ALT_113, 3, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_113, 4, SlotKind::Terminal(TerminalId(31))),
+        Slot::new(&ALT_113, 5, SlotKind::Return),
+        Slot::new(&ALT_113, 6, SlotKind::End),
+        Slot::new(&ALT_114, 0, SlotKind::Condition),
+        Slot::new(&ALT_114, 1, SlotKind::Nonterminal(NonterminalId(62))),
+        Slot::new(&ALT_114, 2, SlotKind::Condition),
+        Slot::new(&ALT_114, 3, SlotKind::Condition),
+        Slot::new(&ALT_114, 4, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_114, 5, SlotKind::Nonterminal(NonterminalId(36))),
+        Slot::new(&ALT_114, 6, SlotKind::Return),
+        Slot::new(&ALT_114, 7, SlotKind::End),
+        Slot::new(&ALT_115, 0, SlotKind::Nonterminal(NonterminalId(37))),
+        Slot::new(&ALT_115, 1, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_115, 2, SlotKind::Nonterminal(NonterminalId(62))),
+        Slot::new(&ALT_115, 3, SlotKind::Condition),
+        Slot::new(&ALT_115, 4, SlotKind::Return),
+        Slot::new(&ALT_115, 5, SlotKind::End),
+        Slot::new(&ALT_116, 0, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_116, 1, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_116, 2, SlotKind::Terminal(TerminalId(32))),
+        Slot::new(&ALT_116, 3, SlotKind::Nonterminal(NonterminalId(17))),
+        Slot::new(&ALT_116, 4, SlotKind::Nonterminal(NonterminalId(62))),
+        Slot::new(&ALT_116, 5, SlotKind::Return),
+        Slot::new(&ALT_116, 6, SlotKind::End),
     ];
     static ALT_0: Alternative = Alternative::new(
         NonterminalId(0),
@@ -771,9 +791,11 @@ pub mod data {
     static ALT_25: Alternative = Alternative::new(NonterminalId(12), &["CharClass"]);
     static ALT_26: Alternative = Alternative::new(NonterminalId(12), &["Char"]);
     static ALT_27: Alternative = Alternative::new(NonterminalId(12), &["String"]);
-    static ALT_28: Alternative = Alternative::new(NonterminalId(12), &["Identifier"]);
-    static ALT_29: Alternative = Alternative::new(
-        NonterminalId(13),
+    static ALT_28: Alternative = Alternative::new(NonterminalId(12), &["IgnoreCaseString"]);
+    static ALT_29: Alternative = Alternative::new(NonterminalId(12), &["Identifier"]);
+    static ALT_30: Alternative = Alternative::new(NonterminalId(13), &["\"i\"", "String"]);
+    static ALT_31: Alternative = Alternative::new(
+        NonterminalId(14),
         &[
             "neg:\"!\"?",
             "Layout",
@@ -784,10 +806,10 @@ pub mod data {
             "\"]\"",
         ],
     );
-    static ALT_30: Alternative = Alternative::new(NonterminalId(14), &["Range"]);
-    static ALT_31: Alternative = Alternative::new(NonterminalId(14), &["RangeChar"]);
-    static ALT_32: Alternative = Alternative::new(
-        NonterminalId(15),
+    static ALT_32: Alternative = Alternative::new(NonterminalId(15), &["Range"]);
+    static ALT_33: Alternative = Alternative::new(NonterminalId(15), &["RangeChar"]);
+    static ALT_34: Alternative = Alternative::new(
+        NonterminalId(16),
         &[
             "start:RangeChar",
             "Layout",
@@ -796,18 +818,18 @@ pub mod data {
             "end:RangeChar",
         ],
     );
-    static ALT_33: Alternative = Alternative::new(
-        NonterminalId(16),
+    static ALT_35: Alternative = Alternative::new(
+        NonterminalId(17),
         &["(WS | LineComment)* !>> WS !>> LineComment"],
     );
-    static ALT_34: Alternative = Alternative::new(NonterminalId(17), &["Rule+", "Layout", "Rule"]);
-    static ALT_35: Alternative = Alternative::new(NonterminalId(17), &["Rule"]);
-    static ALT_36: Alternative = Alternative::new(NonterminalId(18), &["Rule+"]);
-    static ALT_37: Alternative = Alternative::new(NonterminalId(18), &[]);
-    static ALT_38: Alternative = Alternative::new(NonterminalId(19), &["Annotation"]);
+    static ALT_36: Alternative = Alternative::new(NonterminalId(18), &["Rule+", "Layout", "Rule"]);
+    static ALT_37: Alternative = Alternative::new(NonterminalId(18), &["Rule"]);
+    static ALT_38: Alternative = Alternative::new(NonterminalId(19), &["Rule+"]);
     static ALT_39: Alternative = Alternative::new(NonterminalId(19), &[]);
-    static ALT_40: Alternative = Alternative::new(
-        NonterminalId(20),
+    static ALT_40: Alternative = Alternative::new(NonterminalId(20), &["Annotation"]);
+    static ALT_41: Alternative = Alternative::new(NonterminalId(20), &[]);
+    static ALT_42: Alternative = Alternative::new(
+        NonterminalId(21),
         &[
             "{PriorityLevel \">\"}+",
             "Layout",
@@ -816,34 +838,34 @@ pub mod data {
             "PriorityLevel",
         ],
     );
-    static ALT_41: Alternative = Alternative::new(NonterminalId(20), &["PriorityLevel"]);
-    static ALT_42: Alternative = Alternative::new(NonterminalId(21), &["{PriorityLevel \">\"}+"]);
-    static ALT_43: Alternative = Alternative::new(NonterminalId(21), &[]);
-    static ALT_44: Alternative = Alternative::new(NonterminalId(22), &["\"@Layout\""]);
+    static ALT_43: Alternative = Alternative::new(NonterminalId(21), &["PriorityLevel"]);
+    static ALT_44: Alternative = Alternative::new(NonterminalId(22), &["{PriorityLevel \">\"}+"]);
     static ALT_45: Alternative = Alternative::new(NonterminalId(22), &[]);
-    static ALT_46: Alternative = Alternative::new(NonterminalId(23), &["\"@Identifier\""]);
+    static ALT_46: Alternative = Alternative::new(NonterminalId(23), &["\"@Layout\""]);
     static ALT_47: Alternative = Alternative::new(NonterminalId(23), &[]);
-    static ALT_48: Alternative = Alternative::new(NonterminalId(24), &["RegexPreCondition"]);
+    static ALT_48: Alternative = Alternative::new(NonterminalId(24), &["\"@Identifier\""]);
     static ALT_49: Alternative = Alternative::new(NonterminalId(24), &[]);
-    static ALT_50: Alternative =
-        Alternative::new(NonterminalId(25), &["Regex+", "Layout", "Regex"]);
-    static ALT_51: Alternative = Alternative::new(NonterminalId(25), &["Regex"]);
-    static ALT_52: Alternative = Alternative::new(
-        NonterminalId(26),
-        &["{Regex+ \"|\"}+", "Layout", "\"|\"", "Layout", "Regex+"],
-    );
-    static ALT_53: Alternative = Alternative::new(NonterminalId(26), &["Regex+"]);
+    static ALT_50: Alternative = Alternative::new(NonterminalId(25), &["RegexPreCondition"]);
+    static ALT_51: Alternative = Alternative::new(NonterminalId(25), &[]);
+    static ALT_52: Alternative =
+        Alternative::new(NonterminalId(26), &["Regex+", "Layout", "Regex"]);
+    static ALT_53: Alternative = Alternative::new(NonterminalId(26), &["Regex"]);
     static ALT_54: Alternative = Alternative::new(
         NonterminalId(27),
+        &["{Regex+ \"|\"}+", "Layout", "\"|\"", "Layout", "Regex+"],
+    );
+    static ALT_55: Alternative = Alternative::new(NonterminalId(27), &["Regex+"]);
+    static ALT_56: Alternative = Alternative::new(
+        NonterminalId(28),
         &["RegexPostCondition+", "Layout", "RegexPostCondition"],
     );
-    static ALT_55: Alternative = Alternative::new(NonterminalId(27), &["RegexPostCondition"]);
-    static ALT_56: Alternative = Alternative::new(NonterminalId(28), &["RegexPostCondition+"]);
-    static ALT_57: Alternative = Alternative::new(NonterminalId(28), &[]);
-    static ALT_58: Alternative = Alternative::new(NonterminalId(29), &["Associativity"]);
+    static ALT_57: Alternative = Alternative::new(NonterminalId(28), &["RegexPostCondition"]);
+    static ALT_58: Alternative = Alternative::new(NonterminalId(29), &["RegexPostCondition+"]);
     static ALT_59: Alternative = Alternative::new(NonterminalId(29), &[]);
-    static ALT_60: Alternative = Alternative::new(
-        NonterminalId(30),
+    static ALT_60: Alternative = Alternative::new(NonterminalId(30), &["Associativity"]);
+    static ALT_61: Alternative = Alternative::new(NonterminalId(30), &[]);
+    static ALT_62: Alternative = Alternative::new(
+        NonterminalId(31),
         &[
             "{Alternative \"|\"}+",
             "Layout",
@@ -852,100 +874,104 @@ pub mod data {
             "Alternative",
         ],
     );
-    static ALT_61: Alternative = Alternative::new(NonterminalId(30), &["Alternative"]);
-    static ALT_62: Alternative = Alternative::new(NonterminalId(31), &["{Alternative \"|\"}+"]);
-    static ALT_63: Alternative = Alternative::new(NonterminalId(31), &[]);
-    static ALT_64: Alternative =
-        Alternative::new(NonterminalId(32), &["Symbol+", "Layout", "Symbol(0)"]);
-    static ALT_65: Alternative = Alternative::new(NonterminalId(32), &["Symbol(0)"]);
-    static ALT_66: Alternative = Alternative::new(NonterminalId(33), &["Label"]);
-    static ALT_67: Alternative = Alternative::new(NonterminalId(33), &[]);
-    static ALT_68: Alternative = Alternative::new(
-        NonterminalId(34),
-        &["{Symbol+ \"|\"}+", "Layout", "\"|\"", "Layout", "Symbol+"],
-    );
-    static ALT_69: Alternative = Alternative::new(NonterminalId(34), &["Symbol+"]);
+    static ALT_63: Alternative = Alternative::new(NonterminalId(31), &["Alternative"]);
+    static ALT_64: Alternative = Alternative::new(NonterminalId(32), &["{Alternative \"|\"}+"]);
+    static ALT_65: Alternative = Alternative::new(NonterminalId(32), &[]);
+    static ALT_66: Alternative =
+        Alternative::new(NonterminalId(33), &["Symbol+", "Layout", "Symbol(0)"]);
+    static ALT_67: Alternative = Alternative::new(NonterminalId(33), &["Symbol(0)"]);
+    static ALT_68: Alternative = Alternative::new(NonterminalId(34), &["Label"]);
+    static ALT_69: Alternative = Alternative::new(NonterminalId(34), &[]);
     static ALT_70: Alternative = Alternative::new(
         NonterminalId(35),
-        &["PostCondition+", "Layout", "PostCondition"],
+        &["{Symbol+ \"|\"}+", "Layout", "\"|\"", "Layout", "Symbol+"],
     );
-    static ALT_71: Alternative = Alternative::new(NonterminalId(35), &["PostCondition"]);
+    static ALT_71: Alternative = Alternative::new(NonterminalId(35), &["Symbol+"]);
     static ALT_72: Alternative = Alternative::new(
         NonterminalId(36),
+        &["PostCondition+", "Layout", "PostCondition"],
+    );
+    static ALT_73: Alternative = Alternative::new(NonterminalId(36), &["PostCondition"]);
+    static ALT_74: Alternative = Alternative::new(
+        NonterminalId(37),
         &["PreCondition+", "Layout", "PreCondition"],
     );
-    static ALT_73: Alternative = Alternative::new(NonterminalId(36), &["PreCondition"]);
-    static ALT_74: Alternative = Alternative::new(NonterminalId(37), &["\"!\""]);
-    static ALT_75: Alternative = Alternative::new(NonterminalId(37), &[]);
-    static ALT_76: Alternative = Alternative::new(
-        NonterminalId(38),
+    static ALT_75: Alternative = Alternative::new(NonterminalId(37), &["PreCondition"]);
+    static ALT_76: Alternative = Alternative::new(NonterminalId(38), &["\"!\""]);
+    static ALT_77: Alternative = Alternative::new(NonterminalId(38), &[]);
+    static ALT_78: Alternative = Alternative::new(
+        NonterminalId(39),
         &["RangeElement+", "Layout", "RangeElement"],
     );
-    static ALT_77: Alternative = Alternative::new(NonterminalId(38), &["RangeElement"]);
-    static ALT_78: Alternative = Alternative::new(NonterminalId(39), &["WS"]);
-    static ALT_79: Alternative = Alternative::new(NonterminalId(39), &["LineComment"]);
-    static ALT_80: Alternative = Alternative::new(
-        NonterminalId(40),
+    static ALT_79: Alternative = Alternative::new(NonterminalId(39), &["RangeElement"]);
+    static ALT_80: Alternative = Alternative::new(NonterminalId(40), &["WS"]);
+    static ALT_81: Alternative = Alternative::new(NonterminalId(40), &["LineComment"]);
+    static ALT_82: Alternative = Alternative::new(
+        NonterminalId(41),
         &["(WS | LineComment)+", "(WS | LineComment)"],
     );
-    static ALT_81: Alternative = Alternative::new(NonterminalId(40), &["(WS | LineComment)"]);
-    static ALT_82: Alternative = Alternative::new(NonterminalId(41), &["(WS | LineComment)+"]);
-    static ALT_83: Alternative = Alternative::new(NonterminalId(41), &[]);
-    static ALT_84: Alternative =
-        Alternative::new(NonterminalId(42), &["Layout", "start:Grammar", "Layout"]);
-    static ALT_85: Alternative =
-        Alternative::new(NonterminalId(43), &["Layout", "start:Rule", "Layout"]);
+    static ALT_83: Alternative = Alternative::new(NonterminalId(41), &["(WS | LineComment)"]);
+    static ALT_84: Alternative = Alternative::new(NonterminalId(42), &["(WS | LineComment)+"]);
+    static ALT_85: Alternative = Alternative::new(NonterminalId(42), &[]);
     static ALT_86: Alternative =
-        Alternative::new(NonterminalId(44), &["Layout", "start:SyntaxRule", "Layout"]);
+        Alternative::new(NonterminalId(43), &["Layout", "start:Grammar", "Layout"]);
     static ALT_87: Alternative =
-        Alternative::new(NonterminalId(45), &["Layout", "start:Annotation", "Layout"]);
+        Alternative::new(NonterminalId(44), &["Layout", "start:Rule", "Layout"]);
     static ALT_88: Alternative =
-        Alternative::new(NonterminalId(46), &["Layout", "start:RegexRule", "Layout"]);
-    static ALT_89: Alternative = Alternative::new(
-        NonterminalId(47),
+        Alternative::new(NonterminalId(45), &["Layout", "start:SyntaxRule", "Layout"]);
+    static ALT_89: Alternative =
+        Alternative::new(NonterminalId(46), &["Layout", "start:Annotation", "Layout"]);
+    static ALT_90: Alternative =
+        Alternative::new(NonterminalId(47), &["Layout", "start:RegexRule", "Layout"]);
+    static ALT_91: Alternative = Alternative::new(
+        NonterminalId(48),
         &["Layout", "start:RegexPreCondition", "Layout"],
     );
-    static ALT_90: Alternative = Alternative::new(
-        NonterminalId(48),
+    static ALT_92: Alternative = Alternative::new(
+        NonterminalId(49),
         &["Layout", "start:RegexPostCondition", "Layout"],
     );
-    static ALT_91: Alternative = Alternative::new(
-        NonterminalId(49),
+    static ALT_93: Alternative = Alternative::new(
+        NonterminalId(50),
         &["Layout", "start:PriorityLevel", "Layout"],
     );
-    static ALT_92: Alternative = Alternative::new(
-        NonterminalId(50),
+    static ALT_94: Alternative = Alternative::new(
+        NonterminalId(51),
         &["Layout", "start:Associativity", "Layout"],
     );
-    static ALT_93: Alternative = Alternative::new(
-        NonterminalId(51),
+    static ALT_95: Alternative = Alternative::new(
+        NonterminalId(52),
         &["Layout", "start:Alternative", "Layout"],
     );
-    static ALT_94: Alternative =
-        Alternative::new(NonterminalId(52), &["Layout", "start:Symbol(0)", "Layout"]);
-    static ALT_95: Alternative = Alternative::new(
-        NonterminalId(53),
+    static ALT_96: Alternative =
+        Alternative::new(NonterminalId(53), &["Layout", "start:Symbol(0)", "Layout"]);
+    static ALT_97: Alternative = Alternative::new(
+        NonterminalId(54),
         &["Layout", "start:PreCondition", "Layout"],
     );
-    static ALT_96: Alternative = Alternative::new(
-        NonterminalId(54),
+    static ALT_98: Alternative = Alternative::new(
+        NonterminalId(55),
         &["Layout", "start:PostCondition", "Layout"],
     );
-    static ALT_97: Alternative =
-        Alternative::new(NonterminalId(55), &["Layout", "start:Regex", "Layout"]);
-    static ALT_98: Alternative =
-        Alternative::new(NonterminalId(56), &["Layout", "start:CharClass", "Layout"]);
-    static ALT_99: Alternative = Alternative::new(
+    static ALT_99: Alternative =
+        Alternative::new(NonterminalId(56), &["Layout", "start:Regex", "Layout"]);
+    static ALT_100: Alternative = Alternative::new(
         NonterminalId(57),
+        &["Layout", "start:IgnoreCaseString", "Layout"],
+    );
+    static ALT_101: Alternative =
+        Alternative::new(NonterminalId(58), &["Layout", "start:CharClass", "Layout"]);
+    static ALT_102: Alternative = Alternative::new(
+        NonterminalId(59),
         &["Layout", "start:RangeElement", "Layout"],
     );
-    static ALT_100: Alternative =
-        Alternative::new(NonterminalId(58), &["Layout", "start:Range", "Layout"]);
-    static ALT_101: Alternative = Alternative::new(NonterminalId(59), &["start:Layout"]);
-    static ALT_102: Alternative =
-        Alternative::new(NonterminalId(60), &["Identifier", "return (0, 0)"]);
-    static ALT_103: Alternative = Alternative::new(
-        NonterminalId(60),
+    static ALT_103: Alternative =
+        Alternative::new(NonterminalId(60), &["Layout", "start:Range", "Layout"]);
+    static ALT_104: Alternative = Alternative::new(NonterminalId(61), &["start:Layout"]);
+    static ALT_105: Alternative =
+        Alternative::new(NonterminalId(62), &["Identifier", "return (0, 0)"]);
+    static ALT_106: Alternative = Alternative::new(
+        NonterminalId(62),
         &[
             "\"(\"",
             "Layout",
@@ -955,9 +981,11 @@ pub mod data {
             "return (0, 1)",
         ],
     );
-    static ALT_104: Alternative = Alternative::new(NonterminalId(60), &["String", "return (0, 2)"]);
-    static ALT_105: Alternative = Alternative::new(
-        NonterminalId(60),
+    static ALT_107: Alternative = Alternative::new(NonterminalId(62), &["String", "return (0, 2)"]);
+    static ALT_108: Alternative =
+        Alternative::new(NonterminalId(62), &["IgnoreCaseString", "return (0, 3)"]);
+    static ALT_109: Alternative = Alternative::new(
+        NonterminalId(62),
         &[
             "\"{\"",
             "Layout",
@@ -968,91 +996,91 @@ pub mod data {
             "\"}\"",
             "Layout",
             "\"*\"",
-            "return (0, 3)",
-        ],
-    );
-    static ALT_106: Alternative = Alternative::new(
-        NonterminalId(60),
-        &[
-            "\"{\"",
-            "Layout",
-            "symbol:Symbol(0)",
-            "Layout",
-            "sep:Symbol(0)",
-            "Layout",
-            "\"}\"",
-            "Layout",
-            "\"+\"",
             "return (0, 4)",
         ],
     );
-    static ALT_107: Alternative = Alternative::new(
-        NonterminalId(60),
+    static ALT_110: Alternative = Alternative::new(
+        NonterminalId(62),
+        &[
+            "\"{\"",
+            "Layout",
+            "symbol:Symbol(0)",
+            "Layout",
+            "sep:Symbol(0)",
+            "Layout",
+            "\"}\"",
+            "Layout",
+            "\"+\"",
+            "return (0, 5)",
+        ],
+    );
+    static ALT_111: Alternative = Alternative::new(
+        NonterminalId(62),
         &[
             "[3 >= p]",
             "(l_pr, l_label)=Symbol(p)",
             "[(l_pr == 0) || (l_pr >= 3)]",
             "Layout",
             "\"*\"",
-            "return (0, 5)",
+            "return (0, 6)",
         ],
     );
-    static ALT_108: Alternative = Alternative::new(
-        NonterminalId(60),
+    static ALT_112: Alternative = Alternative::new(
+        NonterminalId(62),
         &[
             "[3 >= p]",
             "(l_pr, l_label)=Symbol(p)",
             "[(l_pr == 0) || (l_pr >= 3)]",
             "Layout",
             "\"+\"",
-            "return (0, 6)",
+            "return (0, 7)",
         ],
     );
-    static ALT_109: Alternative = Alternative::new(
-        NonterminalId(60),
+    static ALT_113: Alternative = Alternative::new(
+        NonterminalId(62),
         &[
             "[3 >= p]",
             "(l_pr, l_label)=Symbol(p)",
             "[(l_pr == 0) || (l_pr >= 3)]",
             "Layout",
             "\"?\"",
-            "return (0, 7)",
-        ],
-    );
-    static ALT_110: Alternative = Alternative::new(
-        NonterminalId(60),
-        &[
-            "[3 >= p]",
-            "(l_pr, l_label)=Symbol(p)",
-            "[(l_label == NO_LABEL) || ((256 >> l_label) & 1 == 0)]",
-            "[(l_pr == 0) || (l_pr >= 3)]",
-            "Layout",
-            "conditions:PostCondition+",
             "return (0, 8)",
         ],
     );
-    static ALT_111: Alternative = Alternative::new(
-        NonterminalId(60),
+    static ALT_114: Alternative = Alternative::new(
+        NonterminalId(62),
+        &[
+            "[3 >= p]",
+            "(l_pr, l_label)=Symbol(p)",
+            "[(l_label == NO_LABEL) || ((512 >> l_label) & 1 == 0)]",
+            "[(l_pr == 0) || (l_pr >= 3)]",
+            "Layout",
+            "conditions:PostCondition+",
+            "return (0, 9)",
+        ],
+    );
+    static ALT_115: Alternative = Alternative::new(
+        NonterminalId(62),
         &[
             "conditions:PreCondition+",
             "Layout",
             "(r_pr, r_label)=Symbol(2)",
-            "[(r_label == NO_LABEL) || ((512 >> r_label) & 1 == 0)]",
-            "return ((r_pr == 0) ? 2 : min(r_pr, 2), 9)",
+            "[(r_label == NO_LABEL) || ((1024 >> r_label) & 1 == 0)]",
+            "return ((r_pr == 0) ? 2 : min(r_pr, 2), 10)",
         ],
     );
-    static ALT_112: Alternative = Alternative::new(
-        NonterminalId(60),
+    static ALT_116: Alternative = Alternative::new(
+        NonterminalId(62),
         &[
             "label:Identifier",
             "Layout",
             "\":\"",
             "Layout",
             "Symbol(1)",
-            "return (1, 10)",
+            "return (1, 11)",
         ],
     );
-    pub(super) static FIRST_SLOTS: [&[SlotId]; 61] = [
+    pub(super) static FIRST_SLOTS: [&[SlotId]; 63] = [
         &[SlotId(0)],
         &[SlotId(6), SlotId(8)],
         &[SlotId(10)],
@@ -1074,119 +1102,124 @@ pub mod data {
             SlotId(110),
             SlotId(112),
             SlotId(114),
+            SlotId(116),
         ],
-        &[SlotId(116)],
-        &[SlotId(124), SlotId(126)],
-        &[SlotId(128)],
-        &[SlotId(134)],
-        &[SlotId(136), SlotId(140)],
-        &[SlotId(142), SlotId(144)],
-        &[SlotId(145), SlotId(147)],
-        &[SlotId(148), SlotId(154)],
-        &[SlotId(156), SlotId(158)],
-        &[SlotId(159), SlotId(161)],
-        &[SlotId(162), SlotId(164)],
-        &[SlotId(165), SlotId(167)],
-        &[SlotId(168), SlotId(172)],
-        &[SlotId(174), SlotId(180)],
-        &[SlotId(182), SlotId(186)],
-        &[SlotId(188), SlotId(190)],
-        &[SlotId(191), SlotId(193)],
-        &[SlotId(194), SlotId(200)],
-        &[SlotId(202), SlotId(204)],
-        &[SlotId(205), SlotId(209)],
-        &[SlotId(211), SlotId(213)],
-        &[SlotId(214), SlotId(220)],
-        &[SlotId(222), SlotId(226)],
-        &[SlotId(228), SlotId(232)],
-        &[SlotId(234), SlotId(236)],
-        &[SlotId(237), SlotId(241)],
-        &[SlotId(243), SlotId(245)],
-        &[SlotId(247), SlotId(250)],
-        &[SlotId(252), SlotId(254)],
-        &[SlotId(255)],
-        &[SlotId(259)],
-        &[SlotId(263)],
-        &[SlotId(267)],
-        &[SlotId(271)],
-        &[SlotId(275)],
-        &[SlotId(279)],
-        &[SlotId(283)],
-        &[SlotId(287)],
-        &[SlotId(291)],
-        &[SlotId(295)],
-        &[SlotId(299)],
-        &[SlotId(303)],
-        &[SlotId(307)],
-        &[SlotId(311)],
-        &[SlotId(315)],
-        &[SlotId(319)],
-        &[SlotId(323)],
+        &[SlotId(118)],
+        &[SlotId(121)],
+        &[SlotId(129), SlotId(131)],
+        &[SlotId(133)],
+        &[SlotId(139)],
+        &[SlotId(141), SlotId(145)],
+        &[SlotId(147), SlotId(149)],
+        &[SlotId(150), SlotId(152)],
+        &[SlotId(153), SlotId(159)],
+        &[SlotId(161), SlotId(163)],
+        &[SlotId(164), SlotId(166)],
+        &[SlotId(167), SlotId(169)],
+        &[SlotId(170), SlotId(172)],
+        &[SlotId(173), SlotId(177)],
+        &[SlotId(179), SlotId(185)],
+        &[SlotId(187), SlotId(191)],
+        &[SlotId(193), SlotId(195)],
+        &[SlotId(196), SlotId(198)],
+        &[SlotId(199), SlotId(205)],
+        &[SlotId(207), SlotId(209)],
+        &[SlotId(210), SlotId(214)],
+        &[SlotId(216), SlotId(218)],
+        &[SlotId(219), SlotId(225)],
+        &[SlotId(227), SlotId(231)],
+        &[SlotId(233), SlotId(237)],
+        &[SlotId(239), SlotId(241)],
+        &[SlotId(242), SlotId(246)],
+        &[SlotId(248), SlotId(250)],
+        &[SlotId(252), SlotId(255)],
+        &[SlotId(257), SlotId(259)],
+        &[SlotId(260)],
+        &[SlotId(264)],
+        &[SlotId(268)],
+        &[SlotId(272)],
+        &[SlotId(276)],
+        &[SlotId(280)],
+        &[SlotId(284)],
+        &[SlotId(288)],
+        &[SlotId(292)],
+        &[SlotId(296)],
+        &[SlotId(300)],
+        &[SlotId(304)],
+        &[SlotId(308)],
+        &[SlotId(312)],
+        &[SlotId(316)],
+        &[SlotId(320)],
+        &[SlotId(324)],
+        &[SlotId(328)],
+        &[SlotId(332)],
         &[
-            SlotId(325),
-            SlotId(328),
-            SlotId(335),
-            SlotId(338),
-            SlotId(349),
-            SlotId(360),
-            SlotId(367),
-            SlotId(374),
-            SlotId(381),
-            SlotId(389),
-            SlotId(395),
+            SlotId(334),
+            SlotId(337),
+            SlotId(344),
+            SlotId(347),
+            SlotId(350),
+            SlotId(361),
+            SlotId(372),
+            SlotId(379),
+            SlotId(386),
+            SlotId(393),
+            SlotId(401),
+            SlotId(407),
         ],
     ];
     // A failed terminal match refers to a static terminal set like every other failure, so the
     // error reporting path needs to reach a terminal set from a terminal id. This table, indexed
     // by terminal id, serves only that.
-    pub(super) static SINGLE_TERMINAL_SETS: [TerminalSet; 40] = [
-        TerminalSet::new(52, &[TerminalId(0)]),
-        TerminalSet::new(53, &[TerminalId(1)]),
-        TerminalSet::new(54, &[TerminalId(2)]),
-        TerminalSet::new(55, &[TerminalId(3)]),
-        TerminalSet::new(56, &[TerminalId(4)]),
-        TerminalSet::new(57, &[TerminalId(5)]),
-        TerminalSet::new(58, &[TerminalId(6)]),
-        TerminalSet::new(59, &[TerminalId(7)]),
-        TerminalSet::new(60, &[TerminalId(8)]),
-        TerminalSet::new(61, &[TerminalId(9)]),
-        TerminalSet::new(62, &[TerminalId(10)]),
-        TerminalSet::new(63, &[TerminalId(11)]),
-        TerminalSet::new(64, &[TerminalId(12)]),
-        TerminalSet::new(65, &[TerminalId(13)]),
-        TerminalSet::new(66, &[TerminalId(14)]),
-        TerminalSet::new(67, &[TerminalId(15)]),
-        TerminalSet::new(68, &[TerminalId(16)]),
-        TerminalSet::new(69, &[TerminalId(17)]),
-        TerminalSet::new(70, &[TerminalId(18)]),
-        TerminalSet::new(71, &[TerminalId(19)]),
-        TerminalSet::new(72, &[TerminalId(20)]),
-        TerminalSet::new(73, &[TerminalId(21)]),
-        TerminalSet::new(74, &[TerminalId(22)]),
-        TerminalSet::new(75, &[TerminalId(23)]),
-        TerminalSet::new(76, &[TerminalId(24)]),
-        TerminalSet::new(77, &[TerminalId(25)]),
-        TerminalSet::new(78, &[TerminalId(26)]),
-        TerminalSet::new(79, &[TerminalId(27)]),
-        TerminalSet::new(80, &[TerminalId(28)]),
-        TerminalSet::new(81, &[TerminalId(29)]),
-        TerminalSet::new(82, &[TerminalId(30)]),
-        TerminalSet::new(83, &[TerminalId(31)]),
-        TerminalSet::new(84, &[TerminalId(32)]),
-        TerminalSet::new(85, &[TerminalId(33)]),
-        TerminalSet::new(86, &[TerminalId(34)]),
-        TerminalSet::new(87, &[TerminalId(35)]),
-        TerminalSet::new(88, &[TerminalId(36)]),
-        TerminalSet::new(89, &[TerminalId(37)]),
-        TerminalSet::new(90, &[TerminalId(38)]),
-        TerminalSet::new(91, &[TerminalId(39)]),
+    pub(super) static SINGLE_TERMINAL_SETS: [TerminalSet; 41] = [
+        TerminalSet::new(55, &[TerminalId(0)]),
+        TerminalSet::new(56, &[TerminalId(1)]),
+        TerminalSet::new(57, &[TerminalId(2)]),
+        TerminalSet::new(58, &[TerminalId(3)]),
+        TerminalSet::new(59, &[TerminalId(4)]),
+        TerminalSet::new(60, &[TerminalId(5)]),
+        TerminalSet::new(61, &[TerminalId(6)]),
+        TerminalSet::new(62, &[TerminalId(7)]),
+        TerminalSet::new(63, &[TerminalId(8)]),
+        TerminalSet::new(64, &[TerminalId(9)]),
+        TerminalSet::new(65, &[TerminalId(10)]),
+        TerminalSet::new(66, &[TerminalId(11)]),
+        TerminalSet::new(67, &[TerminalId(12)]),
+        TerminalSet::new(68, &[TerminalId(13)]),
+        TerminalSet::new(69, &[TerminalId(14)]),
+        TerminalSet::new(70, &[TerminalId(15)]),
+        TerminalSet::new(71, &[TerminalId(16)]),
+        TerminalSet::new(72, &[TerminalId(17)]),
+        TerminalSet::new(73, &[TerminalId(18)]),
+        TerminalSet::new(74, &[TerminalId(19)]),
+        TerminalSet::new(75, &[TerminalId(20)]),
+        TerminalSet::new(76, &[TerminalId(21)]),
+        TerminalSet::new(77, &[TerminalId(22)]),
+        TerminalSet::new(78, &[TerminalId(23)]),
+        TerminalSet::new(79, &[TerminalId(24)]),
+        TerminalSet::new(80, &[TerminalId(25)]),
+        TerminalSet::new(81, &[TerminalId(26)]),
+        TerminalSet::new(82, &[TerminalId(27)]),
+        TerminalSet::new(83, &[TerminalId(28)]),
+        TerminalSet::new(84, &[TerminalId(29)]),
+        TerminalSet::new(85, &[TerminalId(30)]),
+        TerminalSet::new(86, &[TerminalId(31)]),
+        TerminalSet::new(87, &[TerminalId(32)]),
+        TerminalSet::new(88, &[TerminalId(33)]),
+        TerminalSet::new(89, &[TerminalId(34)]),
+        TerminalSet::new(90, &[TerminalId(35)]),
+        TerminalSet::new(91, &[TerminalId(36)]),
+        TerminalSet::new(92, &[TerminalId(37)]),
+        TerminalSet::new(93, &[TerminalId(38)]),
+        TerminalSet::new(94, &[TerminalId(39)]),
+        TerminalSet::new(95, &[TerminalId(40)]),
     ];
     // Indexed by terminal id. `TERMINAL_FIRST_CHARS[t]` holds the characters that can begin a
     // match of the terminal `t`. A nullable terminal can match at every position, so its entry
     // holds every character. The scanner's `match_token` tests the character at a position
     // against it before it matches the terminal.
-    pub(crate) static TERMINAL_FIRST_CHARS: [CharSet; 40] = [
-        CharSet::new(0x45080000000000000000000000000, &[]),
+    pub(crate) static TERMINAL_FIRST_CHARS: [CharSet; 41] = [
+        CharSet::new(0x45280000000000000000000000000, &[]),
         CharSet::new(0x7fffffe87fffffe03ff000000000000, &[]),
         CharSet::new(0x7fffffe07fffffe0000000000000000, &[]),
         CharSet::new(0x400000000, &[]),
@@ -1233,6 +1266,7 @@ pub mod data {
         CharSet::new(0x400000000000000, &[]),
         CharSet::new(0x200000000, &[]),
         CharSet::new(0x200000000, &[]),
+        CharSet::new(0x200000000000000000000000000, &[]),
         CharSet::new(0x80000000000000000000000, &[]),
         CharSet::new(0x200000000000000000000000, &[]),
         CharSet::new(0x200000000000, &[]),
@@ -1247,7 +1281,7 @@ pub mod data {
     ];
     // Grammar { WS, LineComment, EOF }
     pub static FOLLOW_SET_GRAMMAR: TerminalSet =
-        TerminalSet::new(0, &[TerminalId(8), TerminalId(10), TerminalId(39)]);
+        TerminalSet::new(0, &[TerminalId(8), TerminalId(10), TerminalId(40)]);
     // Rule { Identifier, WS, LineComment, "@NoLayout", "@Layout", "@Identifier", "@Regex", EOF }
     pub static FOLLOW_SET_RULE: TerminalSet = TerminalSet::new(
         1,
@@ -1259,7 +1293,7 @@ pub mod data {
             TerminalId(15),
             TerminalId(16),
             TerminalId(17),
-            TerminalId(39),
+            TerminalId(40),
         ],
     );
     // SyntaxRule { Identifier, WS, LineComment, "@NoLayout", "@Layout", "@Identifier", "@Regex",
@@ -1274,13 +1308,13 @@ pub mod data {
             TerminalId(15),
             TerminalId(16),
             TerminalId(17),
-            TerminalId(39),
+            TerminalId(40),
         ],
     );
     // Annotation { Identifier, WS, LineComment, EOF }
     pub static FOLLOW_SET_ANNOTATION: TerminalSet = TerminalSet::new(
         2,
-        &[TerminalId(2), TerminalId(8), TerminalId(10), TerminalId(39)],
+        &[TerminalId(2), TerminalId(8), TerminalId(10), TerminalId(40)],
     );
     // RegexRule { Identifier, WS, LineComment, "@NoLayout", "@Layout", "@Identifier", "@Regex",
     // EOF }
@@ -1294,10 +1328,10 @@ pub mod data {
             TerminalId(15),
             TerminalId(16),
             TerminalId(17),
-            TerminalId(39),
+            TerminalId(40),
         ],
     );
-    // RegexPreCondition { Identifier, String, Char, WS, LineComment, "(", "!", "[", EOF }
+    // RegexPreCondition { Identifier, String, Char, WS, LineComment, "(", "!", "i", "[", EOF }
     pub static FOLLOW_SET_REGEX_PRE_CONDITION: TerminalSet = TerminalSet::new(
         3,
         &[
@@ -1309,7 +1343,8 @@ pub mod data {
             TerminalId(25),
             TerminalId(34),
             TerminalId(35),
-            TerminalId(39),
+            TerminalId(36),
+            TerminalId(40),
         ],
     );
     // RegexPostCondition { Identifier, WS, LineComment, "@NoLayout", "@Layout", "@Identifier",
@@ -1326,7 +1361,7 @@ pub mod data {
             TerminalId(17),
             TerminalId(20),
             TerminalId(21),
-            TerminalId(39),
+            TerminalId(40),
         ],
     );
     // PriorityLevel { Identifier, WS, LineComment, ">", "@NoLayout", "@Layout", "@Identifier",
@@ -1342,11 +1377,11 @@ pub mod data {
             TerminalId(15),
             TerminalId(16),
             TerminalId(17),
-            TerminalId(39),
+            TerminalId(40),
         ],
     );
     // Associativity { Identifier, String, WS, LineComment, ">", "@NoLayout", "@Layout",
-    // "@Identifier", "@Regex", "(", "{", EOF }
+    // "@Identifier", "@Regex", "(", "{", "i", EOF }
     pub static FOLLOW_SET_ASSOCIATIVITY: TerminalSet = TerminalSet::new(
         6,
         &[
@@ -1361,7 +1396,8 @@ pub mod data {
             TerminalId(17),
             TerminalId(25),
             TerminalId(27),
-            TerminalId(39),
+            TerminalId(35),
+            TerminalId(40),
         ],
     );
     // Alternative { Identifier, WS, LineComment, ">", "@NoLayout", "@Layout", "@Identifier",
@@ -1378,12 +1414,12 @@ pub mod data {
             TerminalId(16),
             TerminalId(17),
             TerminalId(18),
-            TerminalId(39),
+            TerminalId(40),
         ],
     );
     // Symbol { Identifier, String, Label, WS, LineComment, ">", "@NoLayout", "@Layout",
     // "@Identifier", "@Regex", "|", "\\", "!>>", "(", ")", "{", "}", "*", "+", "?", "!>>>", "!",
-    // EOF }
+    // "i", EOF }
     pub static FOLLOW_SET_SYMBOL: TerminalSet = TerminalSet::new(
         8,
         &[
@@ -1409,10 +1445,11 @@ pub mod data {
             TerminalId(31),
             TerminalId(33),
             TerminalId(34),
-            TerminalId(39),
+            TerminalId(35),
+            TerminalId(40),
         ],
     );
-    // PreCondition { Identifier, String, WS, LineComment, "(", "{", EOF }
+    // PreCondition { Identifier, String, WS, LineComment, "(", "{", "i", EOF }
     pub static FOLLOW_SET_PRE_CONDITION: TerminalSet = TerminalSet::new(
         9,
         &[
@@ -1422,12 +1459,13 @@ pub mod data {
             TerminalId(10),
             TerminalId(25),
             TerminalId(27),
-            TerminalId(39),
+            TerminalId(35),
+            TerminalId(40),
         ],
     );
     // PostCondition { Identifier, String, Label, WS, LineComment, ">", "@NoLayout", "@Layout",
     // "@Identifier", "@Regex", "|", "\\", "!>>", "(", ")", "{", "}", "*", "+", "?", "!>>>", "!",
-    // EOF }
+    // "i", EOF }
     pub static FOLLOW_SET_POST_CONDITION: TerminalSet = TerminalSet::new(
         8,
         &[
@@ -1453,11 +1491,12 @@ pub mod data {
             TerminalId(31),
             TerminalId(33),
             TerminalId(34),
-            TerminalId(39),
+            TerminalId(35),
+            TerminalId(40),
         ],
     );
     // Regex { Identifier, String, Char, WS, LineComment, "@NoLayout", "@Layout", "@Identifier",
-    // "@Regex", "|", "\\", "!>>", "(", ")", "*", "+", "?", "!", "[", EOF }
+    // "@Regex", "|", "\\", "!>>", "(", ")", "*", "+", "?", "!", "i", "[", EOF }
     pub static FOLLOW_SET_REGEX: TerminalSet = TerminalSet::new(
         10,
         &[
@@ -1480,11 +1519,46 @@ pub mod data {
             TerminalId(31),
             TerminalId(34),
             TerminalId(35),
-            TerminalId(39),
+            TerminalId(36),
+            TerminalId(40),
+        ],
+    );
+    // IgnoreCaseString { Identifier, String, Char, Label, WS, LineComment, ">", "@NoLayout",
+    // "@Layout", "@Identifier", "@Regex", "|", "\\", "!>>", "(", ")", "{", "}", "*", "+", "?",
+    // "!>>>", "!", "i", "[", EOF }
+    pub static FOLLOW_SET_IGNORE_CASE_STRING: TerminalSet = TerminalSet::new(
+        11,
+        &[
+            TerminalId(2),
+            TerminalId(3),
+            TerminalId(4),
+            TerminalId(7),
+            TerminalId(8),
+            TerminalId(10),
+            TerminalId(13),
+            TerminalId(14),
+            TerminalId(15),
+            TerminalId(16),
+            TerminalId(17),
+            TerminalId(18),
+            TerminalId(20),
+            TerminalId(21),
+            TerminalId(25),
+            TerminalId(26),
+            TerminalId(27),
+            TerminalId(28),
+            TerminalId(29),
+            TerminalId(30),
+            TerminalId(31),
+            TerminalId(33),
+            TerminalId(34),
+            TerminalId(35),
+            TerminalId(36),
+            TerminalId(40),
         ],
     );
     // CharClass { Identifier, String, Char, WS, LineComment, "@NoLayout", "@Layout",
-    // "@Identifier", "@Regex", "|", "\\", "!>>", "(", ")", "*", "+", "?", "!", "[", EOF }
+    // "@Identifier", "@Regex", "|", "\\", "!>>", "(", ")", "*", "+", "?", "!", "i", "[", EOF }
     pub static FOLLOW_SET_CHAR_CLASS: TerminalSet = TerminalSet::new(
         10,
         &[
@@ -1507,36 +1581,37 @@ pub mod data {
             TerminalId(31),
             TerminalId(34),
             TerminalId(35),
-            TerminalId(39),
+            TerminalId(36),
+            TerminalId(40),
         ],
     );
     // RangeElement { RangeChar, WS, LineComment, "]", EOF }
     pub static FOLLOW_SET_RANGE_ELEMENT: TerminalSet = TerminalSet::new(
-        11,
+        12,
         &[
             TerminalId(6),
             TerminalId(8),
             TerminalId(10),
-            TerminalId(36),
-            TerminalId(39),
+            TerminalId(37),
+            TerminalId(40),
         ],
     );
     // Range { RangeChar, WS, LineComment, "]", EOF }
     pub static FOLLOW_SET_RANGE: TerminalSet = TerminalSet::new(
-        11,
+        12,
         &[
             TerminalId(6),
             TerminalId(8),
             TerminalId(10),
-            TerminalId(36),
-            TerminalId(39),
+            TerminalId(37),
+            TerminalId(40),
         ],
     );
     // Layout { Identifier, String, Char, RangeChar, Label, WS, LineComment, "grammar", "=", ">",
     // "@NoLayout", "@Layout", "@Identifier", "@Regex", "|", "!<<", "\\", "!>>", "left", "right",
-    // "none", "(", ")", "{", "}", "*", "+", "?", ":", "!>>>", "!", "[", "]", "-", EOF }
+    // "none", "(", ")", "{", "}", "*", "+", "?", ":", "!>>>", "!", "i", "[", "]", "-", EOF }
     pub static FOLLOW_SET_LAYOUT: TerminalSet = TerminalSet::new(
-        12,
+        13,
         &[
             TerminalId(2),
             TerminalId(3),
@@ -1572,12 +1647,13 @@ pub mod data {
             TerminalId(35),
             TerminalId(36),
             TerminalId(37),
-            TerminalId(39),
+            TerminalId(38),
+            TerminalId(40),
         ],
     );
     // Layout : . Star_4 !>> WS !>> LineComment !>> { WS, LineComment }
     pub static FOLLOW_RESTRICTION_LAYOUT_ALT0_POS0: TerminalSet =
-        TerminalSet::new(13, &[TerminalId(8), TerminalId(10)]);
+        TerminalSet::new(14, &[TerminalId(8), TerminalId(10)]);
     // Plus_0 { Identifier, WS, LineComment, "@NoLayout", "@Layout", "@Identifier", "@Regex", EOF
     // }
     pub static FOLLOW_SET_PLUS_0: TerminalSet = TerminalSet::new(
@@ -1590,16 +1666,16 @@ pub mod data {
             TerminalId(15),
             TerminalId(16),
             TerminalId(17),
-            TerminalId(39),
+            TerminalId(40),
         ],
     );
     // Star_0 { WS, LineComment, EOF }
     pub static FOLLOW_SET_STAR_0: TerminalSet =
-        TerminalSet::new(0, &[TerminalId(8), TerminalId(10), TerminalId(39)]);
+        TerminalSet::new(0, &[TerminalId(8), TerminalId(10), TerminalId(40)]);
     // Opt_0 { Identifier, WS, LineComment, EOF }
     pub static FOLLOW_SET_OPT_0: TerminalSet = TerminalSet::new(
         2,
-        &[TerminalId(2), TerminalId(8), TerminalId(10), TerminalId(39)],
+        &[TerminalId(2), TerminalId(8), TerminalId(10), TerminalId(40)],
     );
     // Plus_1 { Identifier, WS, LineComment, ">", "@NoLayout", "@Layout", "@Identifier",
     // "@Regex", EOF }
@@ -1614,7 +1690,7 @@ pub mod data {
             TerminalId(15),
             TerminalId(16),
             TerminalId(17),
-            TerminalId(39),
+            TerminalId(40),
         ],
     );
     // Star_1 { Identifier, WS, LineComment, "@NoLayout", "@Layout", "@Identifier", "@Regex", EOF
@@ -1629,31 +1705,31 @@ pub mod data {
             TerminalId(15),
             TerminalId(16),
             TerminalId(17),
-            TerminalId(39),
+            TerminalId(40),
         ],
     );
     // Opt_1 { WS, LineComment, "@Identifier", "@Regex", EOF }
     pub static FOLLOW_SET_OPT_1: TerminalSet = TerminalSet::new(
-        14,
+        15,
         &[
             TerminalId(8),
             TerminalId(10),
             TerminalId(16),
             TerminalId(17),
-            TerminalId(39),
+            TerminalId(40),
         ],
     );
     // Opt_2 { WS, LineComment, "@Regex", EOF }
     pub static FOLLOW_SET_OPT_2: TerminalSet = TerminalSet::new(
-        15,
+        16,
         &[
             TerminalId(8),
             TerminalId(10),
             TerminalId(17),
-            TerminalId(39),
+            TerminalId(40),
         ],
     );
-    // Opt_3 { Identifier, String, Char, WS, LineComment, "(", "!", "[", EOF }
+    // Opt_3 { Identifier, String, Char, WS, LineComment, "(", "!", "i", "[", EOF }
     pub static FOLLOW_SET_OPT_3: TerminalSet = TerminalSet::new(
         3,
         &[
@@ -1665,13 +1741,14 @@ pub mod data {
             TerminalId(25),
             TerminalId(34),
             TerminalId(35),
-            TerminalId(39),
+            TerminalId(36),
+            TerminalId(40),
         ],
     );
     // Plus_3 { Identifier, String, Char, WS, LineComment, "@NoLayout", "@Layout", "@Identifier",
-    // "@Regex", "|", "\\", "!>>", "(", ")", "!", "[", EOF }
+    // "@Regex", "|", "\\", "!>>", "(", ")", "!", "i", "[", EOF }
     pub static FOLLOW_SET_PLUS_3: TerminalSet = TerminalSet::new(
-        16,
+        17,
         &[
             TerminalId(2),
             TerminalId(3),
@@ -1689,13 +1766,14 @@ pub mod data {
             TerminalId(26),
             TerminalId(34),
             TerminalId(35),
-            TerminalId(39),
+            TerminalId(36),
+            TerminalId(40),
         ],
     );
     // Plus_2 { Identifier, WS, LineComment, "@NoLayout", "@Layout", "@Identifier", "@Regex",
     // "|", "\\", "!>>", ")", EOF }
     pub static FOLLOW_SET_PLUS_2: TerminalSet = TerminalSet::new(
-        17,
+        18,
         &[
             TerminalId(2),
             TerminalId(8),
@@ -1708,7 +1786,7 @@ pub mod data {
             TerminalId(20),
             TerminalId(21),
             TerminalId(26),
-            TerminalId(39),
+            TerminalId(40),
         ],
     );
     // Plus_4 { Identifier, WS, LineComment, "@NoLayout", "@Layout", "@Identifier", "@Regex",
@@ -1725,7 +1803,7 @@ pub mod data {
             TerminalId(17),
             TerminalId(20),
             TerminalId(21),
-            TerminalId(39),
+            TerminalId(40),
         ],
     );
     // Star_2 { Identifier, WS, LineComment, "@NoLayout", "@Layout", "@Identifier", "@Regex", EOF
@@ -1740,11 +1818,11 @@ pub mod data {
             TerminalId(15),
             TerminalId(16),
             TerminalId(17),
-            TerminalId(39),
+            TerminalId(40),
         ],
     );
     // Opt_4 { Identifier, String, WS, LineComment, ">", "@NoLayout", "@Layout", "@Identifier",
-    // "@Regex", "(", "{", EOF }
+    // "@Regex", "(", "{", "i", EOF }
     pub static FOLLOW_SET_OPT_4: TerminalSet = TerminalSet::new(
         6,
         &[
@@ -1759,7 +1837,8 @@ pub mod data {
             TerminalId(17),
             TerminalId(25),
             TerminalId(27),
-            TerminalId(39),
+            TerminalId(35),
+            TerminalId(40),
         ],
     );
     // Plus_5 { Identifier, WS, LineComment, ">", "@NoLayout", "@Layout", "@Identifier",
@@ -1776,7 +1855,7 @@ pub mod data {
             TerminalId(16),
             TerminalId(17),
             TerminalId(18),
-            TerminalId(39),
+            TerminalId(40),
         ],
     );
     // Star_3 { Identifier, WS, LineComment, ">", "@NoLayout", "@Layout", "@Identifier",
@@ -1792,13 +1871,13 @@ pub mod data {
             TerminalId(15),
             TerminalId(16),
             TerminalId(17),
-            TerminalId(39),
+            TerminalId(40),
         ],
     );
     // Plus_6 { Identifier, String, Label, WS, LineComment, ">", "@NoLayout", "@Layout",
-    // "@Identifier", "@Regex", "|", "(", ")", "{", EOF }
+    // "@Identifier", "@Regex", "|", "(", ")", "{", "i", EOF }
     pub static FOLLOW_SET_PLUS_6: TerminalSet = TerminalSet::new(
-        18,
+        19,
         &[
             TerminalId(2),
             TerminalId(3),
@@ -1814,7 +1893,8 @@ pub mod data {
             TerminalId(25),
             TerminalId(26),
             TerminalId(27),
-            TerminalId(39),
+            TerminalId(35),
+            TerminalId(40),
         ],
     );
     // Opt_5 { Identifier, WS, LineComment, ">", "@NoLayout", "@Layout", "@Identifier", "@Regex",
@@ -1831,23 +1911,23 @@ pub mod data {
             TerminalId(16),
             TerminalId(17),
             TerminalId(18),
-            TerminalId(39),
+            TerminalId(40),
         ],
     );
     // Plus_7 { WS, LineComment, "|", ")", EOF }
     pub static FOLLOW_SET_PLUS_7: TerminalSet = TerminalSet::new(
-        19,
+        20,
         &[
             TerminalId(8),
             TerminalId(10),
             TerminalId(18),
             TerminalId(26),
-            TerminalId(39),
+            TerminalId(40),
         ],
     );
     // Plus_8 { Identifier, String, Label, WS, LineComment, ">", "@NoLayout", "@Layout",
     // "@Identifier", "@Regex", "|", "\\", "!>>", "(", ")", "{", "}", "*", "+", "?", "!>>>", "!",
-    // EOF }
+    // "i", EOF }
     pub static FOLLOW_SET_PLUS_8: TerminalSet = TerminalSet::new(
         8,
         &[
@@ -1873,10 +1953,11 @@ pub mod data {
             TerminalId(31),
             TerminalId(33),
             TerminalId(34),
-            TerminalId(39),
+            TerminalId(35),
+            TerminalId(40),
         ],
     );
-    // Plus_9 { Identifier, String, WS, LineComment, "(", "{", EOF }
+    // Plus_9 { Identifier, String, WS, LineComment, "(", "{", "i", EOF }
     pub static FOLLOW_SET_PLUS_9: TerminalSet = TerminalSet::new(
         9,
         &[
@@ -1886,35 +1967,36 @@ pub mod data {
             TerminalId(10),
             TerminalId(25),
             TerminalId(27),
-            TerminalId(39),
+            TerminalId(35),
+            TerminalId(40),
         ],
     );
     // Opt_6 { WS, LineComment, "[", EOF }
     pub static FOLLOW_SET_OPT_6: TerminalSet = TerminalSet::new(
-        20,
+        21,
         &[
             TerminalId(8),
             TerminalId(10),
-            TerminalId(35),
-            TerminalId(39),
+            TerminalId(36),
+            TerminalId(40),
         ],
     );
     // Plus_10 { RangeChar, WS, LineComment, "]", EOF }
     pub static FOLLOW_SET_PLUS_10: TerminalSet = TerminalSet::new(
-        11,
+        12,
         &[
             TerminalId(6),
             TerminalId(8),
             TerminalId(10),
-            TerminalId(36),
-            TerminalId(39),
+            TerminalId(37),
+            TerminalId(40),
         ],
     );
     // Alt_0 { Identifier, String, Char, RangeChar, Label, WS, LineComment, "grammar", "=", ">",
     // "@NoLayout", "@Layout", "@Identifier", "@Regex", "|", "!<<", "\\", "!>>", "left", "right",
-    // "none", "(", ")", "{", "}", "*", "+", "?", ":", "!>>>", "!", "[", "]", "-", EOF }
+    // "none", "(", ")", "{", "}", "*", "+", "?", ":", "!>>>", "!", "i", "[", "]", "-", EOF }
     pub static FOLLOW_SET_ALT_0: TerminalSet = TerminalSet::new(
-        12,
+        13,
         &[
             TerminalId(2),
             TerminalId(3),
@@ -1950,14 +2032,16 @@ pub mod data {
             TerminalId(35),
             TerminalId(36),
             TerminalId(37),
-            TerminalId(39),
+            TerminalId(38),
+            TerminalId(40),
         ],
     );
     // Plus_11 { Identifier, String, Char, RangeChar, Label, WS, LineComment, "grammar", "=",
     // ">", "@NoLayout", "@Layout", "@Identifier", "@Regex", "|", "!<<", "\\", "!>>", "left",
-    // "right", "none", "(", ")", "{", "}", "*", "+", "?", ":", "!>>>", "!", "[", "]", "-", EOF }
+    // "right", "none", "(", ")", "{", "}", "*", "+", "?", ":", "!>>>", "!", "i", "[", "]", "-",
+    // EOF }
     pub static FOLLOW_SET_PLUS_11: TerminalSet = TerminalSet::new(
-        12,
+        13,
         &[
             TerminalId(2),
             TerminalId(3),
@@ -1993,14 +2077,15 @@ pub mod data {
             TerminalId(35),
             TerminalId(36),
             TerminalId(37),
-            TerminalId(39),
+            TerminalId(38),
+            TerminalId(40),
         ],
     );
     // Star_4 { Identifier, String, Char, RangeChar, Label, "grammar", "=", ">", "@NoLayout",
     // "@Layout", "@Identifier", "@Regex", "|", "!<<", "\\", "!>>", "left", "right", "none", "(",
-    // ")", "{", "}", "*", "+", "?", ":", "!>>>", "!", "[", "]", "-", EOF }
+    // ")", "{", "}", "*", "+", "?", ":", "!>>>", "!", "i", "[", "]", "-", EOF }
     pub static FOLLOW_SET_STAR_4: TerminalSet = TerminalSet::new(
-        21,
+        22,
         &[
             TerminalId(2),
             TerminalId(3),
@@ -2034,57 +2119,61 @@ pub mod data {
             TerminalId(35),
             TerminalId(36),
             TerminalId(37),
-            TerminalId(39),
+            TerminalId(38),
+            TerminalId(40),
         ],
     );
     // StartGrammar { EOF }
-    pub static FOLLOW_SET_START_GRAMMAR: TerminalSet = TerminalSet::new(22, &[TerminalId(39)]);
+    pub static FOLLOW_SET_START_GRAMMAR: TerminalSet = TerminalSet::new(23, &[TerminalId(40)]);
     // StartRule { EOF }
-    pub static FOLLOW_SET_START_RULE: TerminalSet = TerminalSet::new(22, &[TerminalId(39)]);
+    pub static FOLLOW_SET_START_RULE: TerminalSet = TerminalSet::new(23, &[TerminalId(40)]);
     // StartSyntaxRule { EOF }
-    pub static FOLLOW_SET_START_SYNTAX_RULE: TerminalSet = TerminalSet::new(22, &[TerminalId(39)]);
+    pub static FOLLOW_SET_START_SYNTAX_RULE: TerminalSet = TerminalSet::new(23, &[TerminalId(40)]);
     // StartAnnotation { EOF }
-    pub static FOLLOW_SET_START_ANNOTATION: TerminalSet = TerminalSet::new(22, &[TerminalId(39)]);
+    pub static FOLLOW_SET_START_ANNOTATION: TerminalSet = TerminalSet::new(23, &[TerminalId(40)]);
     // StartRegexRule { EOF }
-    pub static FOLLOW_SET_START_REGEX_RULE: TerminalSet = TerminalSet::new(22, &[TerminalId(39)]);
+    pub static FOLLOW_SET_START_REGEX_RULE: TerminalSet = TerminalSet::new(23, &[TerminalId(40)]);
     // StartRegexPreCondition { EOF }
     pub static FOLLOW_SET_START_REGEX_PRE_CONDITION: TerminalSet =
-        TerminalSet::new(22, &[TerminalId(39)]);
+        TerminalSet::new(23, &[TerminalId(40)]);
     // StartRegexPostCondition { EOF }
     pub static FOLLOW_SET_START_REGEX_POST_CONDITION: TerminalSet =
-        TerminalSet::new(22, &[TerminalId(39)]);
+        TerminalSet::new(23, &[TerminalId(40)]);
     // StartPriorityLevel { EOF }
     pub static FOLLOW_SET_START_PRIORITY_LEVEL: TerminalSet =
-        TerminalSet::new(22, &[TerminalId(39)]);
+        TerminalSet::new(23, &[TerminalId(40)]);
     // StartAssociativity { EOF }
     pub static FOLLOW_SET_START_ASSOCIATIVITY: TerminalSet =
-        TerminalSet::new(22, &[TerminalId(39)]);
+        TerminalSet::new(23, &[TerminalId(40)]);
     // StartAlternative { EOF }
-    pub static FOLLOW_SET_START_ALTERNATIVE: TerminalSet = TerminalSet::new(22, &[TerminalId(39)]);
+    pub static FOLLOW_SET_START_ALTERNATIVE: TerminalSet = TerminalSet::new(23, &[TerminalId(40)]);
     // StartSymbol { EOF }
-    pub static FOLLOW_SET_START_SYMBOL: TerminalSet = TerminalSet::new(22, &[TerminalId(39)]);
+    pub static FOLLOW_SET_START_SYMBOL: TerminalSet = TerminalSet::new(23, &[TerminalId(40)]);
     // StartPreCondition { EOF }
     pub static FOLLOW_SET_START_PRE_CONDITION: TerminalSet =
-        TerminalSet::new(22, &[TerminalId(39)]);
+        TerminalSet::new(23, &[TerminalId(40)]);
     // StartPostCondition { EOF }
     pub static FOLLOW_SET_START_POST_CONDITION: TerminalSet =
-        TerminalSet::new(22, &[TerminalId(39)]);
+        TerminalSet::new(23, &[TerminalId(40)]);
     // StartRegex { EOF }
-    pub static FOLLOW_SET_START_REGEX: TerminalSet = TerminalSet::new(22, &[TerminalId(39)]);
+    pub static FOLLOW_SET_START_REGEX: TerminalSet = TerminalSet::new(23, &[TerminalId(40)]);
+    // StartIgnoreCaseString { EOF }
+    pub static FOLLOW_SET_START_IGNORE_CASE_STRING: TerminalSet =
+        TerminalSet::new(23, &[TerminalId(40)]);
     // StartCharClass { EOF }
-    pub static FOLLOW_SET_START_CHAR_CLASS: TerminalSet = TerminalSet::new(22, &[TerminalId(39)]);
+    pub static FOLLOW_SET_START_CHAR_CLASS: TerminalSet = TerminalSet::new(23, &[TerminalId(40)]);
     // StartRangeElement { EOF }
     pub static FOLLOW_SET_START_RANGE_ELEMENT: TerminalSet =
-        TerminalSet::new(22, &[TerminalId(39)]);
+        TerminalSet::new(23, &[TerminalId(40)]);
     // StartRange { EOF }
-    pub static FOLLOW_SET_START_RANGE: TerminalSet = TerminalSet::new(22, &[TerminalId(39)]);
+    pub static FOLLOW_SET_START_RANGE: TerminalSet = TerminalSet::new(23, &[TerminalId(40)]);
     // StartLayout { EOF }
-    pub static FOLLOW_SET_START_LAYOUT: TerminalSet = TerminalSet::new(22, &[TerminalId(39)]);
+    pub static FOLLOW_SET_START_LAYOUT: TerminalSet = TerminalSet::new(23, &[TerminalId(40)]);
     // RegexRule : layout:Opt_1 Layout id_annot:Opt_2 Layout "@Regex" Layout Identifier Layout
     // "=" Layout Opt_3 . Layout body:Plus_2 Layout Star_2 lookahead { Identifier, String, Char,
-    // WS, LineComment, "(", "!", "[" }
+    // WS, LineComment, "(", "!", "i", "[" }
     pub static RETURN_SLOT_LOOKAHEAD_REGEX_RULE_ALT0_POS11: TerminalSet = TerminalSet::new(
-        23,
+        24,
         &[
             TerminalId(2),
             TerminalId(3),
@@ -2094,48 +2183,61 @@ pub mod data {
             TerminalId(25),
             TerminalId(34),
             TerminalId(35),
+            TerminalId(36),
         ],
     );
     // Symbol(p: i32) : "(" Layout seqs:Plus_7 . Layout ")" return (0, 1) lookahead { ")" }
     pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT1_POS3: TerminalSet =
-        TerminalSet::new(24, &[TerminalId(26)]);
+        TerminalSet::new(25, &[TerminalId(26)]);
     // Symbol(p: i32) : "{" Layout symbol:Symbol(0) . Layout sep:Symbol(0) Layout "}" Layout "*"
-    // return (0, 3) lookahead { Identifier, String, "(", "{" }
-    pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT3_POS3: TerminalSet = TerminalSet::new(
-        25,
-        &[TerminalId(2), TerminalId(3), TerminalId(25), TerminalId(27)],
+    // return (0, 4) lookahead { Identifier, String, "(", "{", "i" }
+    pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT4_POS3: TerminalSet = TerminalSet::new(
+        26,
+        &[
+            TerminalId(2),
+            TerminalId(3),
+            TerminalId(25),
+            TerminalId(27),
+            TerminalId(35),
+        ],
     );
     // Symbol(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) . Layout "}" Layout "*"
-    // return (0, 3) lookahead { "}" }
-    pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT3_POS5: TerminalSet =
-        TerminalSet::new(26, &[TerminalId(28)]);
-    // Symbol(p: i32) : "{" Layout symbol:Symbol(0) . Layout sep:Symbol(0) Layout "}" Layout "+"
-    // return (0, 4) lookahead { Identifier, String, "(", "{" }
-    pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT4_POS3: TerminalSet = TerminalSet::new(
-        25,
-        &[TerminalId(2), TerminalId(3), TerminalId(25), TerminalId(27)],
-    );
-    // Symbol(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) . Layout "}" Layout "+"
     // return (0, 4) lookahead { "}" }
     pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT4_POS5: TerminalSet =
-        TerminalSet::new(26, &[TerminalId(28)]);
+        TerminalSet::new(27, &[TerminalId(28)]);
+    // Symbol(p: i32) : "{" Layout symbol:Symbol(0) . Layout sep:Symbol(0) Layout "}" Layout "+"
+    // return (0, 5) lookahead { Identifier, String, "(", "{", "i" }
+    pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT5_POS3: TerminalSet = TerminalSet::new(
+        26,
+        &[
+            TerminalId(2),
+            TerminalId(3),
+            TerminalId(25),
+            TerminalId(27),
+            TerminalId(35),
+        ],
+    );
+    // Symbol(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) . Layout "}" Layout "+"
+    // return (0, 5) lookahead { "}" }
+    pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT5_POS5: TerminalSet =
+        TerminalSet::new(27, &[TerminalId(28)]);
     // Symbol(p: i32) : [3 >= p] (l_pr, l_label)=Symbol(p) . [(l_pr == 0) || (l_pr >= 3)] Layout
-    // "*" return (0, 5) lookahead { "*" }
-    pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT5_POS2: TerminalSet =
-        TerminalSet::new(27, &[TerminalId(29)]);
-    // Symbol(p: i32) : [3 >= p] (l_pr, l_label)=Symbol(p) . [(l_pr == 0) || (l_pr >= 3)] Layout
-    // "+" return (0, 6) lookahead { "+" }
+    // "*" return (0, 6) lookahead { "*" }
     pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT6_POS2: TerminalSet =
-        TerminalSet::new(28, &[TerminalId(30)]);
+        TerminalSet::new(28, &[TerminalId(29)]);
     // Symbol(p: i32) : [3 >= p] (l_pr, l_label)=Symbol(p) . [(l_pr == 0) || (l_pr >= 3)] Layout
-    // "?" return (0, 7) lookahead { "?" }
+    // "+" return (0, 7) lookahead { "+" }
     pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT7_POS2: TerminalSet =
-        TerminalSet::new(29, &[TerminalId(31)]);
-    // Symbol(p: i32) : [3 >= p] (l_pr, l_label)=Symbol(p) . [(l_label == NO_LABEL) || ((256 >>
-    // l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] Layout conditions:Plus_8 return (0, 8)
+        TerminalSet::new(29, &[TerminalId(30)]);
+    // Symbol(p: i32) : [3 >= p] (l_pr, l_label)=Symbol(p) . [(l_pr == 0) || (l_pr >= 3)] Layout
+    // "?" return (0, 8) lookahead { "?" }
+    pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT8_POS2: TerminalSet =
+        TerminalSet::new(30, &[TerminalId(31)]);
+    // Symbol(p: i32) : [3 >= p] (l_pr, l_label)=Symbol(p) . [(l_label == NO_LABEL) || ((512 >>
+    // l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] Layout conditions:Plus_8 return (0, 9)
     // lookahead { "\\", "!>>", "!>>>", "!" }
-    pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT8_POS2: TerminalSet = TerminalSet::new(
-        30,
+    pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT9_POS2: TerminalSet = TerminalSet::new(
+        31,
         &[
             TerminalId(20),
             TerminalId(21),
@@ -2144,31 +2246,37 @@ pub mod data {
         ],
     );
     // Symbol(p: i32) : conditions:Plus_9 . Layout (r_pr, r_label)=Symbol(2) [(r_label ==
-    // NO_LABEL) || ((512 >> r_label) & 1 == 0)] return ((r_pr == 0) ? 2 : min(r_pr, 2), 9)
-    // lookahead { Identifier, String, "(", "{" }
-    pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT9_POS1: TerminalSet = TerminalSet::new(
-        25,
-        &[TerminalId(2), TerminalId(3), TerminalId(25), TerminalId(27)],
+    // NO_LABEL) || ((1024 >> r_label) & 1 == 0)] return ((r_pr == 0) ? 2 : min(r_pr, 2), 10)
+    // lookahead { Identifier, String, "(", "{", "i" }
+    pub static RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT10_POS1: TerminalSet = TerminalSet::new(
+        26,
+        &[
+            TerminalId(2),
+            TerminalId(3),
+            TerminalId(25),
+            TerminalId(27),
+            TerminalId(35),
+        ],
     );
     // Regex : Regex . Layout "+" lookahead { "+" }
     pub static RETURN_SLOT_LOOKAHEAD_REGEX_ALT0_POS1: TerminalSet =
-        TerminalSet::new(28, &[TerminalId(30)]);
+        TerminalSet::new(29, &[TerminalId(30)]);
     // Regex : Regex . Layout "*" lookahead { "*" }
     pub static RETURN_SLOT_LOOKAHEAD_REGEX_ALT1_POS1: TerminalSet =
-        TerminalSet::new(27, &[TerminalId(29)]);
+        TerminalSet::new(28, &[TerminalId(29)]);
     // Regex : Regex . Layout "?" lookahead { "?" }
     pub static RETURN_SLOT_LOOKAHEAD_REGEX_ALT2_POS1: TerminalSet =
-        TerminalSet::new(29, &[TerminalId(31)]);
+        TerminalSet::new(30, &[TerminalId(31)]);
     // Regex : "(" Layout seqs:Plus_2 . Layout ")" lookahead { ")" }
     pub static RETURN_SLOT_LOOKAHEAD_REGEX_ALT3_POS3: TerminalSet =
-        TerminalSet::new(24, &[TerminalId(26)]);
+        TerminalSet::new(25, &[TerminalId(26)]);
     // CharClass : neg:Opt_6 Layout "[" Layout Plus_10 . Layout "]" lookahead { "]" }
     pub static RETURN_SLOT_LOOKAHEAD_CHAR_CLASS_ALT0_POS5: TerminalSet =
-        TerminalSet::new(31, &[TerminalId(36)]);
+        TerminalSet::new(32, &[TerminalId(37)]);
     // Plus_0 : Plus_0 . Layout Rule lookahead { Identifier, WS, LineComment, "@NoLayout",
     // "@Layout", "@Identifier", "@Regex" }
     pub static RETURN_SLOT_LOOKAHEAD_PLUS_0_ALT0_POS1: TerminalSet = TerminalSet::new(
-        32,
+        33,
         &[
             TerminalId(2),
             TerminalId(8),
@@ -2181,11 +2289,11 @@ pub mod data {
     );
     // Plus_1 : Plus_1 . Layout ">" Layout PriorityLevel lookahead { ">" }
     pub static RETURN_SLOT_LOOKAHEAD_PLUS_1_ALT0_POS1: TerminalSet =
-        TerminalSet::new(33, &[TerminalId(13)]);
+        TerminalSet::new(34, &[TerminalId(13)]);
     // Plus_3 : Plus_3 . Layout Regex lookahead { Identifier, String, Char, WS, LineComment, "(",
-    // "!", "[" }
+    // "!", "i", "[" }
     pub static RETURN_SLOT_LOOKAHEAD_PLUS_3_ALT0_POS1: TerminalSet = TerminalSet::new(
-        23,
+        24,
         &[
             TerminalId(2),
             TerminalId(3),
@@ -2195,25 +2303,32 @@ pub mod data {
             TerminalId(25),
             TerminalId(34),
             TerminalId(35),
+            TerminalId(36),
         ],
     );
     // Plus_2 : Plus_2 . Layout "|" Layout Plus_3 lookahead { "|" }
     pub static RETURN_SLOT_LOOKAHEAD_PLUS_2_ALT0_POS1: TerminalSet =
-        TerminalSet::new(34, &[TerminalId(18)]);
+        TerminalSet::new(35, &[TerminalId(18)]);
     // Plus_5 : Plus_5 . Layout "|" Layout Alternative lookahead { "|" }
     pub static RETURN_SLOT_LOOKAHEAD_PLUS_5_ALT0_POS1: TerminalSet =
-        TerminalSet::new(34, &[TerminalId(18)]);
-    // Plus_6 : Plus_6 . Layout Symbol(0) lookahead { Identifier, String, "(", "{" }
+        TerminalSet::new(35, &[TerminalId(18)]);
+    // Plus_6 : Plus_6 . Layout Symbol(0) lookahead { Identifier, String, "(", "{", "i" }
     pub static RETURN_SLOT_LOOKAHEAD_PLUS_6_ALT0_POS1: TerminalSet = TerminalSet::new(
-        25,
-        &[TerminalId(2), TerminalId(3), TerminalId(25), TerminalId(27)],
+        26,
+        &[
+            TerminalId(2),
+            TerminalId(3),
+            TerminalId(25),
+            TerminalId(27),
+            TerminalId(35),
+        ],
     );
     // Plus_7 : Plus_7 . Layout "|" Layout Plus_6 lookahead { "|" }
     pub static RETURN_SLOT_LOOKAHEAD_PLUS_7_ALT0_POS1: TerminalSet =
-        TerminalSet::new(34, &[TerminalId(18)]);
+        TerminalSet::new(35, &[TerminalId(18)]);
     // Plus_8 : Plus_8 . Layout PostCondition lookahead { "\\", "!>>", "!>>>", "!" }
     pub static RETURN_SLOT_LOOKAHEAD_PLUS_8_ALT0_POS1: TerminalSet = TerminalSet::new(
-        30,
+        31,
         &[
             TerminalId(20),
             TerminalId(21),
@@ -2223,57 +2338,59 @@ pub mod data {
     );
     // Plus_9 : Plus_9 . Layout PreCondition lookahead { Identifier }
     pub static RETURN_SLOT_LOOKAHEAD_PLUS_9_ALT0_POS1: TerminalSet =
-        TerminalSet::new(35, &[TerminalId(2)]);
+        TerminalSet::new(36, &[TerminalId(2)]);
     // Plus_10 : Plus_10 . Layout RangeElement lookahead { RangeChar }
     pub static RETURN_SLOT_LOOKAHEAD_PLUS_10_ALT0_POS1: TerminalSet =
-        TerminalSet::new(36, &[TerminalId(6)]);
+        TerminalSet::new(37, &[TerminalId(6)]);
     // Annotation { "@NoLayout", "@Layout" }
     pub static FIRST_SET_ANNOTATION: TerminalSet =
-        TerminalSet::new(37, &[TerminalId(14), TerminalId(15)]);
+        TerminalSet::new(38, &[TerminalId(14), TerminalId(15)]);
     // RegexPreCondition { Identifier }
-    pub static FIRST_SET_REGEX_PRE_CONDITION: TerminalSet = TerminalSet::new(38, &[TerminalId(2)]);
+    pub static FIRST_SET_REGEX_PRE_CONDITION: TerminalSet = TerminalSet::new(39, &[TerminalId(2)]);
     // RegexPostCondition { "\\", "!>>" }
     pub static FIRST_SET_REGEX_POST_CONDITION: TerminalSet =
-        TerminalSet::new(39, &[TerminalId(20), TerminalId(21)]);
+        TerminalSet::new(40, &[TerminalId(20), TerminalId(21)]);
     // Associativity { "left", "right", "none" }
     pub static FIRST_SET_ASSOCIATIVITY: TerminalSet =
-        TerminalSet::new(40, &[TerminalId(22), TerminalId(23), TerminalId(24)]);
+        TerminalSet::new(41, &[TerminalId(22), TerminalId(23), TerminalId(24)]);
     // PreCondition { Identifier }
-    pub static FIRST_SET_PRE_CONDITION: TerminalSet = TerminalSet::new(38, &[TerminalId(2)]);
+    pub static FIRST_SET_PRE_CONDITION: TerminalSet = TerminalSet::new(39, &[TerminalId(2)]);
+    // IgnoreCaseString { "i" }
+    pub static FIRST_SET_IGNORE_CASE_STRING: TerminalSet = TerminalSet::new(42, &[TerminalId(35)]);
     // Range { RangeChar }
-    pub static FIRST_SET_RANGE: TerminalSet = TerminalSet::new(41, &[TerminalId(6)]);
+    pub static FIRST_SET_RANGE: TerminalSet = TerminalSet::new(43, &[TerminalId(6)]);
     // Layout { WS, LineComment }
     pub static FIRST_SET_LAYOUT: TerminalSet =
-        TerminalSet::new(42, &[TerminalId(8), TerminalId(10)]);
+        TerminalSet::new(44, &[TerminalId(8), TerminalId(10)]);
     // Opt_0 { "@NoLayout", "@Layout" }
     pub static FIRST_SET_OPT_0: TerminalSet =
-        TerminalSet::new(37, &[TerminalId(14), TerminalId(15)]);
+        TerminalSet::new(38, &[TerminalId(14), TerminalId(15)]);
     // Opt_1 { "@Layout" }
-    pub static FIRST_SET_OPT_1: TerminalSet = TerminalSet::new(43, &[TerminalId(15)]);
+    pub static FIRST_SET_OPT_1: TerminalSet = TerminalSet::new(45, &[TerminalId(15)]);
     // Opt_2 { "@Identifier" }
-    pub static FIRST_SET_OPT_2: TerminalSet = TerminalSet::new(44, &[TerminalId(16)]);
+    pub static FIRST_SET_OPT_2: TerminalSet = TerminalSet::new(46, &[TerminalId(16)]);
     // Plus_4 { "\\", "!>>" }
     pub static FIRST_SET_PLUS_4: TerminalSet =
-        TerminalSet::new(39, &[TerminalId(20), TerminalId(21)]);
+        TerminalSet::new(40, &[TerminalId(20), TerminalId(21)]);
     // Star_2 { "\\", "!>>" }
     pub static FIRST_SET_STAR_2: TerminalSet =
-        TerminalSet::new(39, &[TerminalId(20), TerminalId(21)]);
+        TerminalSet::new(40, &[TerminalId(20), TerminalId(21)]);
     // Opt_5 { Label }
-    pub static FIRST_SET_OPT_5: TerminalSet = TerminalSet::new(45, &[TerminalId(7)]);
+    pub static FIRST_SET_OPT_5: TerminalSet = TerminalSet::new(47, &[TerminalId(7)]);
     // Opt_6 { "!" }
-    pub static FIRST_SET_OPT_6: TerminalSet = TerminalSet::new(46, &[TerminalId(34)]);
+    pub static FIRST_SET_OPT_6: TerminalSet = TerminalSet::new(48, &[TerminalId(34)]);
     // Alt_0 { WS, LineComment }
     pub static FIRST_SET_ALT_0: TerminalSet =
-        TerminalSet::new(42, &[TerminalId(8), TerminalId(10)]);
+        TerminalSet::new(44, &[TerminalId(8), TerminalId(10)]);
     // Plus_11 { WS, LineComment }
     pub static FIRST_SET_PLUS_11: TerminalSet =
-        TerminalSet::new(42, &[TerminalId(8), TerminalId(10)]);
+        TerminalSet::new(44, &[TerminalId(8), TerminalId(10)]);
     // Star_4 { WS, LineComment }
     pub static FIRST_SET_STAR_4: TerminalSet =
-        TerminalSet::new(42, &[TerminalId(8), TerminalId(10)]);
+        TerminalSet::new(44, &[TerminalId(8), TerminalId(10)]);
     // StartAnnotation { WS, LineComment, "@NoLayout", "@Layout" }
     pub static FIRST_SET_START_ANNOTATION: TerminalSet = TerminalSet::new(
-        47,
+        49,
         &[
             TerminalId(8),
             TerminalId(10),
@@ -2283,10 +2400,10 @@ pub mod data {
     );
     // StartRegexPreCondition { Identifier, WS, LineComment }
     pub static FIRST_SET_START_REGEX_PRE_CONDITION: TerminalSet =
-        TerminalSet::new(48, &[TerminalId(2), TerminalId(8), TerminalId(10)]);
+        TerminalSet::new(50, &[TerminalId(2), TerminalId(8), TerminalId(10)]);
     // StartRegexPostCondition { WS, LineComment, "\\", "!>>" }
     pub static FIRST_SET_START_REGEX_POST_CONDITION: TerminalSet = TerminalSet::new(
-        49,
+        51,
         &[
             TerminalId(8),
             TerminalId(10),
@@ -2296,7 +2413,7 @@ pub mod data {
     );
     // StartAssociativity { WS, LineComment, "left", "right", "none" }
     pub static FIRST_SET_START_ASSOCIATIVITY: TerminalSet = TerminalSet::new(
-        50,
+        52,
         &[
             TerminalId(8),
             TerminalId(10),
@@ -2307,13 +2424,16 @@ pub mod data {
     );
     // StartPreCondition { Identifier, WS, LineComment }
     pub static FIRST_SET_START_PRE_CONDITION: TerminalSet =
-        TerminalSet::new(48, &[TerminalId(2), TerminalId(8), TerminalId(10)]);
+        TerminalSet::new(50, &[TerminalId(2), TerminalId(8), TerminalId(10)]);
+    // StartIgnoreCaseString { WS, LineComment, "i" }
+    pub static FIRST_SET_START_IGNORE_CASE_STRING: TerminalSet =
+        TerminalSet::new(53, &[TerminalId(8), TerminalId(10), TerminalId(35)]);
     // StartRange { RangeChar, WS, LineComment }
     pub static FIRST_SET_START_RANGE: TerminalSet =
-        TerminalSet::new(51, &[TerminalId(6), TerminalId(8), TerminalId(10)]);
+        TerminalSet::new(54, &[TerminalId(6), TerminalId(8), TerminalId(10)]);
     // StartLayout { WS, LineComment }
     pub static FIRST_SET_START_LAYOUT: TerminalSet =
-        TerminalSet::new(42, &[TerminalId(8), TerminalId(10)]);
+        TerminalSet::new(44, &[TerminalId(8), TerminalId(10)]);
     // Grammar
     // 0: "grammar" Layout name:Identifier Layout Star_0
     pub static PREDICTION_GRAMMAR: Prediction = {
@@ -2924,16 +3044,18 @@ pub mod data {
         ];
         // Identifier
         const TERMINALS_7: &[(TerminalId, u16)] = &[(TerminalId(2), 0)];
+        // Identifier, "i"
+        const TERMINALS_8: &[(TerminalId, u16)] = &[(TerminalId(2), 0), (TerminalId(35), 0)];
         // Identifier, "left"
-        const TERMINALS_8: &[(TerminalId, u16)] = &[(TerminalId(2), 0), (TerminalId(22), 0)];
+        const TERMINALS_9: &[(TerminalId, u16)] = &[(TerminalId(2), 0), (TerminalId(22), 0)];
         // Identifier, "none"
-        const TERMINALS_9: &[(TerminalId, u16)] = &[(TerminalId(2), 0), (TerminalId(24), 0)];
+        const TERMINALS_10: &[(TerminalId, u16)] = &[(TerminalId(2), 0), (TerminalId(24), 0)];
         // Identifier, "right"
-        const TERMINALS_10: &[(TerminalId, u16)] = &[(TerminalId(2), 0), (TerminalId(23), 0)];
+        const TERMINALS_11: &[(TerminalId, u16)] = &[(TerminalId(2), 0), (TerminalId(23), 0)];
         // "{"
-        const TERMINALS_11: &[(TerminalId, u16)] = &[(TerminalId(27), 0)];
+        const TERMINALS_12: &[(TerminalId, u16)] = &[(TerminalId(27), 0)];
         // EOF
-        const TERMINALS_12: &[(TerminalId, u16)] = &[(TerminalId(39), 0)];
+        const TERMINALS_13: &[(TerminalId, u16)] = &[(TerminalId(40), 0)];
         Prediction {
             ascii: [
                 &[],
@@ -3041,32 +3163,32 @@ pub mod data {
                 TERMINALS_7,
                 TERMINALS_7,
                 TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
                 TERMINALS_8,
                 TERMINALS_7,
+                TERMINALS_7,
                 TERMINALS_9,
-                TERMINALS_7,
-                TERMINALS_7,
                 TERMINALS_7,
                 TERMINALS_10,
                 TERMINALS_7,
                 TERMINALS_7,
                 TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
                 TERMINALS_11,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_12,
                 &[],
                 &[],
                 &[],
                 &[],
             ],
             non_ascii: &[],
-            end_of_input: TERMINALS_12,
+            end_of_input: TERMINALS_13,
         }
     };
     // Alternative
@@ -3079,8 +3201,10 @@ pub mod data {
         const TERMINALS_2: &[(TerminalId, u16)] = &[(TerminalId(25), 0), (TerminalId(25), 1)];
         // Identifier
         const TERMINALS_3: &[(TerminalId, u16)] = &[(TerminalId(2), 0)];
+        // Identifier, "i"
+        const TERMINALS_4: &[(TerminalId, u16)] = &[(TerminalId(2), 0), (TerminalId(35), 0)];
         // "{"
-        const TERMINALS_4: &[(TerminalId, u16)] = &[(TerminalId(27), 0)];
+        const TERMINALS_5: &[(TerminalId, u16)] = &[(TerminalId(27), 0)];
         Prediction {
             ascii: [
                 &[],
@@ -3188,25 +3312,25 @@ pub mod data {
                 TERMINALS_3,
                 TERMINALS_3,
                 TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
                 TERMINALS_4,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_5,
                 &[],
                 &[],
                 &[],
@@ -3220,56 +3344,72 @@ pub mod data {
     // 0: Identifier return (0, 0) #Identifier
     // 1: "(" Layout seqs:Plus_7 Layout ")" return (0, 1) #Paren
     // 2: String return (0, 2) #Lit
-    // 3: "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" return (0, 3)
+    // 3: IgnoreCaseString return (0, 3) #IgnoreCaseLit
+    // 4: "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*" return (0, 4)
     // #StarSep
-    // 4: "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" return (0, 4)
+    // 5: "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+" return (0, 5)
     // #PlusSep
-    // 5: [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout "*" return (0,
-    // 5) #Star
-    // 6: [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout "+" return (0,
-    // 6) #Plus
-    // 7: [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout "?" return (0,
-    // 7) #Opt
-    // 8: [3 >= p] (l_pr, l_label)=Symbol(p) [(l_label == NO_LABEL) || ((256 >> l_label) & 1 ==
-    // 0)] [(l_pr == 0) || (l_pr >= 3)] Layout conditions:Plus_8 return (0, 8) #PostCondition
-    // 9: conditions:Plus_9 Layout (r_pr, r_label)=Symbol(2) [(r_label == NO_LABEL) || ((512 >>
-    // r_label) & 1 == 0)] return ((r_pr == 0) ? 2 : min(r_pr, 2), 9) #PreCondition
-    // 10: label:Identifier Layout ":" Layout Symbol(1) return (1, 10) #Labeled
+    // 6: [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout "*" return (0,
+    // 6) #Star
+    // 7: [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout "+" return (0,
+    // 7) #Plus
+    // 8: [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout "?" return (0,
+    // 8) #Opt
+    // 9: [3 >= p] (l_pr, l_label)=Symbol(p) [(l_label == NO_LABEL) || ((512 >> l_label) & 1 ==
+    // 0)] [(l_pr == 0) || (l_pr >= 3)] Layout conditions:Plus_8 return (0, 9) #PostCondition
+    // 10: conditions:Plus_9 Layout (r_pr, r_label)=Symbol(2) [(r_label == NO_LABEL) || ((1024 >>
+    // r_label) & 1 == 0)] return ((r_pr == 0) ? 2 : min(r_pr, 2), 10) #PreCondition
+    // 11: label:Identifier Layout ":" Layout Symbol(1) return (1, 11) #Labeled
     pub static PREDICTION_SYMBOL: Prediction = {
         // String
         const TERMINALS_1: &[(TerminalId, u16)] = &[
             (TerminalId(3), 2),
-            (TerminalId(3), 5),
             (TerminalId(3), 6),
             (TerminalId(3), 7),
             (TerminalId(3), 8),
+            (TerminalId(3), 9),
         ];
         // "("
         const TERMINALS_2: &[(TerminalId, u16)] = &[
             (TerminalId(25), 1),
-            (TerminalId(25), 5),
             (TerminalId(25), 6),
             (TerminalId(25), 7),
             (TerminalId(25), 8),
+            (TerminalId(25), 9),
         ];
         // Identifier
         const TERMINALS_3: &[(TerminalId, u16)] = &[
             (TerminalId(2), 0),
-            (TerminalId(2), 5),
             (TerminalId(2), 6),
             (TerminalId(2), 7),
             (TerminalId(2), 8),
             (TerminalId(2), 9),
             (TerminalId(2), 10),
+            (TerminalId(2), 11),
+        ];
+        // Identifier, "i"
+        const TERMINALS_4: &[(TerminalId, u16)] = &[
+            (TerminalId(2), 0),
+            (TerminalId(2), 6),
+            (TerminalId(2), 7),
+            (TerminalId(2), 8),
+            (TerminalId(2), 9),
+            (TerminalId(2), 10),
+            (TerminalId(2), 11),
+            (TerminalId(35), 3),
+            (TerminalId(35), 6),
+            (TerminalId(35), 7),
+            (TerminalId(35), 8),
+            (TerminalId(35), 9),
         ];
         // "{"
-        const TERMINALS_4: &[(TerminalId, u16)] = &[
-            (TerminalId(27), 3),
+        const TERMINALS_5: &[(TerminalId, u16)] = &[
             (TerminalId(27), 4),
             (TerminalId(27), 5),
             (TerminalId(27), 6),
             (TerminalId(27), 7),
             (TerminalId(27), 8),
+            (TerminalId(27), 9),
         ];
         Prediction {
             ascii: [
@@ -3378,25 +3518,25 @@ pub mod data {
                 TERMINALS_3,
                 TERMINALS_3,
                 TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
                 TERMINALS_4,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_5,
                 &[],
                 &[],
                 &[],
@@ -3563,7 +3703,8 @@ pub mod data {
     // 4: CharClass #CharClass
     // 5: Char #Char
     // 6: String #String
-    // 7: Identifier #Identifier
+    // 7: IgnoreCaseString #IgnoreCaseString
+    // 8: Identifier #Identifier
     pub static PREDICTION_REGEX: Prediction = {
         // WS
         const TERMINALS_1: &[(TerminalId, u16)] = &[
@@ -3612,14 +3753,25 @@ pub mod data {
             (TerminalId(2), 0),
             (TerminalId(2), 1),
             (TerminalId(2), 2),
-            (TerminalId(2), 7),
+            (TerminalId(2), 8),
         ];
         // "["
         const TERMINALS_8: &[(TerminalId, u16)] = &[
+            (TerminalId(36), 0),
+            (TerminalId(36), 1),
+            (TerminalId(36), 2),
+            (TerminalId(36), 4),
+        ];
+        // Identifier, "i"
+        const TERMINALS_9: &[(TerminalId, u16)] = &[
+            (TerminalId(2), 0),
+            (TerminalId(2), 1),
+            (TerminalId(2), 2),
+            (TerminalId(2), 8),
             (TerminalId(35), 0),
             (TerminalId(35), 1),
             (TerminalId(35), 2),
-            (TerminalId(35), 4),
+            (TerminalId(35), 7),
         ];
         Prediction {
             ascii: [
@@ -3728,7 +3880,7 @@ pub mod data {
                 TERMINALS_7,
                 TERMINALS_7,
                 TERMINALS_7,
-                TERMINALS_7,
+                TERMINALS_9,
                 TERMINALS_7,
                 TERMINALS_7,
                 TERMINALS_7,
@@ -3766,7 +3918,7 @@ pub mod data {
         // LineComment
         const TERMINALS_3: &[(TerminalId, u16)] = &[(TerminalId(10), 0)];
         // "["
-        const TERMINALS_4: &[(TerminalId, u16)] = &[(TerminalId(35), 0)];
+        const TERMINALS_4: &[(TerminalId, u16)] = &[(TerminalId(36), 0)];
         Prediction {
             ascii: [
                 &[],
@@ -4217,7 +4369,7 @@ pub mod data {
         // Identifier
         const TERMINALS_4: &[(TerminalId, u16)] = &[(TerminalId(2), 0)];
         // EOF
-        const TERMINALS_5: &[(TerminalId, u16)] = &[(TerminalId(39), 1)];
+        const TERMINALS_5: &[(TerminalId, u16)] = &[(TerminalId(40), 1)];
         Prediction {
             ascii: [
                 &[],
@@ -4376,31 +4528,38 @@ pub mod data {
         ];
         // Identifier
         const TERMINALS_7: &[(TerminalId, u16)] = &[(TerminalId(2), 0), (TerminalId(2), 1)];
-        // Identifier, "left"
+        // Identifier, "i"
         const TERMINALS_8: &[(TerminalId, u16)] = &[
+            (TerminalId(2), 0),
+            (TerminalId(2), 1),
+            (TerminalId(35), 0),
+            (TerminalId(35), 1),
+        ];
+        // Identifier, "left"
+        const TERMINALS_9: &[(TerminalId, u16)] = &[
             (TerminalId(2), 0),
             (TerminalId(2), 1),
             (TerminalId(22), 0),
             (TerminalId(22), 1),
         ];
         // Identifier, "none"
-        const TERMINALS_9: &[(TerminalId, u16)] = &[
+        const TERMINALS_10: &[(TerminalId, u16)] = &[
             (TerminalId(2), 0),
             (TerminalId(2), 1),
             (TerminalId(24), 0),
             (TerminalId(24), 1),
         ];
         // Identifier, "right"
-        const TERMINALS_10: &[(TerminalId, u16)] = &[
+        const TERMINALS_11: &[(TerminalId, u16)] = &[
             (TerminalId(2), 0),
             (TerminalId(2), 1),
             (TerminalId(23), 0),
             (TerminalId(23), 1),
         ];
         // "{"
-        const TERMINALS_11: &[(TerminalId, u16)] = &[(TerminalId(27), 0), (TerminalId(27), 1)];
+        const TERMINALS_12: &[(TerminalId, u16)] = &[(TerminalId(27), 0), (TerminalId(27), 1)];
         // EOF
-        const TERMINALS_12: &[(TerminalId, u16)] = &[(TerminalId(39), 1)];
+        const TERMINALS_13: &[(TerminalId, u16)] = &[(TerminalId(40), 1)];
         Prediction {
             ascii: [
                 &[],
@@ -4508,32 +4667,32 @@ pub mod data {
                 TERMINALS_7,
                 TERMINALS_7,
                 TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
                 TERMINALS_8,
                 TERMINALS_7,
+                TERMINALS_7,
                 TERMINALS_9,
-                TERMINALS_7,
-                TERMINALS_7,
                 TERMINALS_7,
                 TERMINALS_10,
                 TERMINALS_7,
                 TERMINALS_7,
                 TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
                 TERMINALS_11,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_12,
                 &[],
                 &[],
                 &[],
                 &[],
             ],
             non_ascii: &[],
-            end_of_input: TERMINALS_12,
+            end_of_input: TERMINALS_13,
         }
     };
     // Star_1
@@ -4563,19 +4722,22 @@ pub mod data {
         ];
         // Identifier
         const TERMINALS_7: &[(TerminalId, u16)] = &[(TerminalId(2), 0), (TerminalId(2), 1)];
-        // Identifier, "left"
+        // Identifier, "i"
         const TERMINALS_8: &[(TerminalId, u16)] =
+            &[(TerminalId(2), 0), (TerminalId(2), 1), (TerminalId(35), 0)];
+        // Identifier, "left"
+        const TERMINALS_9: &[(TerminalId, u16)] =
             &[(TerminalId(2), 0), (TerminalId(2), 1), (TerminalId(22), 0)];
         // Identifier, "none"
-        const TERMINALS_9: &[(TerminalId, u16)] =
+        const TERMINALS_10: &[(TerminalId, u16)] =
             &[(TerminalId(2), 0), (TerminalId(2), 1), (TerminalId(24), 0)];
         // Identifier, "right"
-        const TERMINALS_10: &[(TerminalId, u16)] =
+        const TERMINALS_11: &[(TerminalId, u16)] =
             &[(TerminalId(2), 0), (TerminalId(2), 1), (TerminalId(23), 0)];
         // "{"
-        const TERMINALS_11: &[(TerminalId, u16)] = &[(TerminalId(27), 0)];
+        const TERMINALS_12: &[(TerminalId, u16)] = &[(TerminalId(27), 0)];
         // EOF
-        const TERMINALS_12: &[(TerminalId, u16)] = &[(TerminalId(39), 0), (TerminalId(39), 1)];
+        const TERMINALS_13: &[(TerminalId, u16)] = &[(TerminalId(40), 0), (TerminalId(40), 1)];
         Prediction {
             ascii: [
                 &[],
@@ -4683,32 +4845,32 @@ pub mod data {
                 TERMINALS_7,
                 TERMINALS_7,
                 TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
                 TERMINALS_8,
                 TERMINALS_7,
+                TERMINALS_7,
                 TERMINALS_9,
-                TERMINALS_7,
-                TERMINALS_7,
                 TERMINALS_7,
                 TERMINALS_10,
                 TERMINALS_7,
                 TERMINALS_7,
                 TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
                 TERMINALS_11,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_12,
                 &[],
                 &[],
                 &[],
                 &[],
             ],
             non_ascii: &[],
-            end_of_input: TERMINALS_12,
+            end_of_input: TERMINALS_13,
         }
     };
     // Opt_3
@@ -4730,9 +4892,12 @@ pub mod data {
         // Identifier
         const TERMINALS_7: &[(TerminalId, u16)] = &[(TerminalId(2), 0), (TerminalId(2), 1)];
         // "["
-        const TERMINALS_8: &[(TerminalId, u16)] = &[(TerminalId(35), 1)];
+        const TERMINALS_8: &[(TerminalId, u16)] = &[(TerminalId(36), 1)];
+        // Identifier, "i"
+        const TERMINALS_9: &[(TerminalId, u16)] =
+            &[(TerminalId(2), 0), (TerminalId(2), 1), (TerminalId(35), 1)];
         // EOF
-        const TERMINALS_9: &[(TerminalId, u16)] = &[(TerminalId(39), 1)];
+        const TERMINALS_10: &[(TerminalId, u16)] = &[(TerminalId(40), 1)];
         Prediction {
             ascii: [
                 &[],
@@ -4840,7 +5005,7 @@ pub mod data {
                 TERMINALS_7,
                 TERMINALS_7,
                 TERMINALS_7,
-                TERMINALS_7,
+                TERMINALS_9,
                 TERMINALS_7,
                 TERMINALS_7,
                 TERMINALS_7,
@@ -4865,7 +5030,7 @@ pub mod data {
                 &[],
             ],
             non_ascii: &[],
-            end_of_input: TERMINALS_9,
+            end_of_input: TERMINALS_10,
         }
     };
     // Plus_3
@@ -4887,7 +5052,14 @@ pub mod data {
         // Identifier
         const TERMINALS_7: &[(TerminalId, u16)] = &[(TerminalId(2), 0), (TerminalId(2), 1)];
         // "["
-        const TERMINALS_8: &[(TerminalId, u16)] = &[(TerminalId(35), 0), (TerminalId(35), 1)];
+        const TERMINALS_8: &[(TerminalId, u16)] = &[(TerminalId(36), 0), (TerminalId(36), 1)];
+        // Identifier, "i"
+        const TERMINALS_9: &[(TerminalId, u16)] = &[
+            (TerminalId(2), 0),
+            (TerminalId(2), 1),
+            (TerminalId(35), 0),
+            (TerminalId(35), 1),
+        ];
         Prediction {
             ascii: [
                 &[],
@@ -4995,7 +5167,7 @@ pub mod data {
                 TERMINALS_7,
                 TERMINALS_7,
                 TERMINALS_7,
-                TERMINALS_7,
+                TERMINALS_9,
                 TERMINALS_7,
                 TERMINALS_7,
                 TERMINALS_7,
@@ -5042,7 +5214,14 @@ pub mod data {
         // Identifier
         const TERMINALS_7: &[(TerminalId, u16)] = &[(TerminalId(2), 0), (TerminalId(2), 1)];
         // "["
-        const TERMINALS_8: &[(TerminalId, u16)] = &[(TerminalId(35), 0), (TerminalId(35), 1)];
+        const TERMINALS_8: &[(TerminalId, u16)] = &[(TerminalId(36), 0), (TerminalId(36), 1)];
+        // Identifier, "i"
+        const TERMINALS_9: &[(TerminalId, u16)] = &[
+            (TerminalId(2), 0),
+            (TerminalId(2), 1),
+            (TerminalId(35), 0),
+            (TerminalId(35), 1),
+        ];
         Prediction {
             ascii: [
                 &[],
@@ -5150,7 +5329,7 @@ pub mod data {
                 TERMINALS_7,
                 TERMINALS_7,
                 TERMINALS_7,
-                TERMINALS_7,
+                TERMINALS_9,
                 TERMINALS_7,
                 TERMINALS_7,
                 TERMINALS_7,
@@ -5201,16 +5380,18 @@ pub mod data {
         ];
         // Identifier
         const TERMINALS_7: &[(TerminalId, u16)] = &[(TerminalId(2), 1)];
+        // Identifier, "i"
+        const TERMINALS_8: &[(TerminalId, u16)] = &[(TerminalId(2), 1), (TerminalId(35), 1)];
         // Identifier, "left"
-        const TERMINALS_8: &[(TerminalId, u16)] = &[(TerminalId(2), 1), (TerminalId(22), 0)];
+        const TERMINALS_9: &[(TerminalId, u16)] = &[(TerminalId(2), 1), (TerminalId(22), 0)];
         // Identifier, "none"
-        const TERMINALS_9: &[(TerminalId, u16)] = &[(TerminalId(2), 1), (TerminalId(24), 0)];
+        const TERMINALS_10: &[(TerminalId, u16)] = &[(TerminalId(2), 1), (TerminalId(24), 0)];
         // Identifier, "right"
-        const TERMINALS_10: &[(TerminalId, u16)] = &[(TerminalId(2), 1), (TerminalId(23), 0)];
+        const TERMINALS_11: &[(TerminalId, u16)] = &[(TerminalId(2), 1), (TerminalId(23), 0)];
         // "{"
-        const TERMINALS_11: &[(TerminalId, u16)] = &[(TerminalId(27), 1)];
+        const TERMINALS_12: &[(TerminalId, u16)] = &[(TerminalId(27), 1)];
         // EOF
-        const TERMINALS_12: &[(TerminalId, u16)] = &[(TerminalId(39), 1)];
+        const TERMINALS_13: &[(TerminalId, u16)] = &[(TerminalId(40), 1)];
         Prediction {
             ascii: [
                 &[],
@@ -5318,32 +5499,32 @@ pub mod data {
                 TERMINALS_7,
                 TERMINALS_7,
                 TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
                 TERMINALS_8,
                 TERMINALS_7,
+                TERMINALS_7,
                 TERMINALS_9,
-                TERMINALS_7,
-                TERMINALS_7,
                 TERMINALS_7,
                 TERMINALS_10,
                 TERMINALS_7,
                 TERMINALS_7,
                 TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
                 TERMINALS_11,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_12,
                 &[],
                 &[],
                 &[],
                 &[],
             ],
             non_ascii: &[],
-            end_of_input: TERMINALS_12,
+            end_of_input: TERMINALS_13,
         }
     };
     // Plus_5
@@ -5356,8 +5537,15 @@ pub mod data {
         const TERMINALS_2: &[(TerminalId, u16)] = &[(TerminalId(25), 0), (TerminalId(25), 1)];
         // Identifier
         const TERMINALS_3: &[(TerminalId, u16)] = &[(TerminalId(2), 0), (TerminalId(2), 1)];
+        // Identifier, "i"
+        const TERMINALS_4: &[(TerminalId, u16)] = &[
+            (TerminalId(2), 0),
+            (TerminalId(2), 1),
+            (TerminalId(35), 0),
+            (TerminalId(35), 1),
+        ];
         // "{"
-        const TERMINALS_4: &[(TerminalId, u16)] = &[(TerminalId(27), 0), (TerminalId(27), 1)];
+        const TERMINALS_5: &[(TerminalId, u16)] = &[(TerminalId(27), 0), (TerminalId(27), 1)];
         Prediction {
             ascii: [
                 &[],
@@ -5465,25 +5653,25 @@ pub mod data {
                 TERMINALS_3,
                 TERMINALS_3,
                 TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
                 TERMINALS_4,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_5,
                 &[],
                 &[],
                 &[],
@@ -5516,10 +5704,13 @@ pub mod data {
         ];
         // Identifier
         const TERMINALS_7: &[(TerminalId, u16)] = &[(TerminalId(2), 0), (TerminalId(2), 1)];
+        // Identifier, "i"
+        const TERMINALS_8: &[(TerminalId, u16)] =
+            &[(TerminalId(2), 0), (TerminalId(2), 1), (TerminalId(35), 0)];
         // "{"
-        const TERMINALS_8: &[(TerminalId, u16)] = &[(TerminalId(27), 0)];
+        const TERMINALS_9: &[(TerminalId, u16)] = &[(TerminalId(27), 0)];
         // EOF
-        const TERMINALS_9: &[(TerminalId, u16)] = &[(TerminalId(39), 1)];
+        const TERMINALS_10: &[(TerminalId, u16)] = &[(TerminalId(40), 1)];
         Prediction {
             ascii: [
                 &[],
@@ -5627,32 +5818,32 @@ pub mod data {
                 TERMINALS_7,
                 TERMINALS_7,
                 TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
-                TERMINALS_7,
                 TERMINALS_8,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_7,
+                TERMINALS_9,
                 &[],
                 &[],
                 &[],
                 &[],
             ],
             non_ascii: &[],
-            end_of_input: TERMINALS_9,
+            end_of_input: TERMINALS_10,
         }
     };
     // Plus_6
@@ -5665,8 +5856,15 @@ pub mod data {
         const TERMINALS_2: &[(TerminalId, u16)] = &[(TerminalId(25), 0), (TerminalId(25), 1)];
         // Identifier
         const TERMINALS_3: &[(TerminalId, u16)] = &[(TerminalId(2), 0), (TerminalId(2), 1)];
+        // Identifier, "i"
+        const TERMINALS_4: &[(TerminalId, u16)] = &[
+            (TerminalId(2), 0),
+            (TerminalId(2), 1),
+            (TerminalId(35), 0),
+            (TerminalId(35), 1),
+        ];
         // "{"
-        const TERMINALS_4: &[(TerminalId, u16)] = &[(TerminalId(27), 0), (TerminalId(27), 1)];
+        const TERMINALS_5: &[(TerminalId, u16)] = &[(TerminalId(27), 0), (TerminalId(27), 1)];
         Prediction {
             ascii: [
                 &[],
@@ -5774,25 +5972,25 @@ pub mod data {
                 TERMINALS_3,
                 TERMINALS_3,
                 TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
                 TERMINALS_4,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_5,
                 &[],
                 &[],
                 &[],
@@ -5812,8 +6010,15 @@ pub mod data {
         const TERMINALS_2: &[(TerminalId, u16)] = &[(TerminalId(25), 0), (TerminalId(25), 1)];
         // Identifier
         const TERMINALS_3: &[(TerminalId, u16)] = &[(TerminalId(2), 0), (TerminalId(2), 1)];
+        // Identifier, "i"
+        const TERMINALS_4: &[(TerminalId, u16)] = &[
+            (TerminalId(2), 0),
+            (TerminalId(2), 1),
+            (TerminalId(35), 0),
+            (TerminalId(35), 1),
+        ];
         // "{"
-        const TERMINALS_4: &[(TerminalId, u16)] = &[(TerminalId(27), 0), (TerminalId(27), 1)];
+        const TERMINALS_5: &[(TerminalId, u16)] = &[(TerminalId(27), 0), (TerminalId(27), 1)];
         Prediction {
             ascii: [
                 &[],
@@ -5921,25 +6126,25 @@ pub mod data {
                 TERMINALS_3,
                 TERMINALS_3,
                 TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
-                TERMINALS_3,
                 TERMINALS_4,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_3,
+                TERMINALS_5,
                 &[],
                 &[],
                 &[],

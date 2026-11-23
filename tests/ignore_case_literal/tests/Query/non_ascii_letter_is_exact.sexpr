@@ -1,0 +1,3 @@
+Parse error at line 1, column 25: Expected i"utf8_É"
+select a from t charset utf8_é
+                        ^^^^^

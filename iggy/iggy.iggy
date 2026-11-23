@@ -41,6 +41,7 @@ Symbol
   = Identifier                                     #Identifier
   | "(" seqs:{ Symbol+ "|" }+ ")"                  #Paren
   | String                                         #Lit
+  | IgnoreCaseString                               #IgnoreCaseLit
   | "{" symbol:Symbol sep:Symbol "}" "*"           #StarSep
   | "{" symbol:Symbol sep:Symbol "}" "+"           #PlusSep
   > Symbol "*"                                     #Star
@@ -67,7 +68,12 @@ Regex
   | CharClass                    #CharClass
   | Char                         #Char
   | String                       #String
+  | IgnoreCaseString             #IgnoreCaseString
   | Identifier                   #Identifier
+
+@NoLayout
+IgnoreCaseString
+  = "i" String
 
 CharClass
   = neg:"!"? "[" RangeElement+ "]"
@@ -89,6 +95,7 @@ Keyword
   | "left"
   | "right"
   | "none"
+  | "i"
 
 @Regex
 NameChar = [a-zA-Z_0-9]

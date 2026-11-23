@@ -387,6 +387,19 @@ mod tests {
         }
     }
 
+    // The prefix of an `i` literal and its string are two string tokens, with
+    // the tree and without it.
+    #[test]
+    fn an_ignore_case_literal_is_a_string() {
+        for source in ["grammar G\nS = i\"select\" x", "S = i\"select\" x"] {
+            assert_eq!(
+                tokens_with_text(source, &["i", "\"select\""]),
+                expected(&[("i", "string"), ("\"select\"", "string")]),
+                "{source}"
+            );
+        }
+    }
+
     // A column and a length are in UTF-16 code units. The emoji is one
     // character and two code units, so the tokens after it are one column
     // further than in characters.

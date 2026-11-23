@@ -1,0 +1,25 @@
+(Start
+  WS
+  (Query
+    i"select"
+    WS
+    ({Name ","}+ Name)
+    WS
+    i"from"
+    WS
+    Name
+    WS
+    Charset?
+    WS
+    (Order?
+      (Order
+        i"order"
+        WS
+        i"by"
+        WS
+        Name
+        WS
+        (Direction? Direction)
+        WS
+        "end")))
+  WS)

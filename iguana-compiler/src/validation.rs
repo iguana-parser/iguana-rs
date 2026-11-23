@@ -63,6 +63,7 @@ pub fn validate<'a>(grammar_def: &'a GrammarDef, spans: &GrammarSpans<'a>) -> Ve
     check_reserved_names(grammar_def, spans, &mut errors);
     check_duplicate_layout_rules(spans, &mut errors);
     check_layout_is_not_an_identifier_rule(grammar_def, spans, &mut errors);
+    check_ignore_case_literals_have_letters(grammar_def, spans, &mut errors);
     check_grammar_has_a_syntax_rule(grammar_def, &mut errors);
     errors
 }
@@ -783,6 +784,34 @@ fn check_duplicate_layout_rules(spans: &GrammarSpans<'_>, errors: &mut Vec<Gramm
     }
 }
 
+/// An `i` literal of a syntax rule must have at least one ASCII letter. For
+/// example, `i"+"` is an error, because the prefix changes only how ASCII
+/// letters match, and `i"+"` would be a second terminal for the text of
+/// `"+"`. An `i` literal of a lexical rule is not a terminal, so it is not
+/// checked.
+fn check_ignore_case_literals_have_letters<'a>(
+    grammar_def: &'a GrammarDef,
+    spans: &GrammarSpans<'a>,
+    errors: &mut Vec<GrammarError>,
+) {
+    grammar_def.for_each_symbol(&mut |symbol| {
+        let Symbol::Literal {
+            text,
+            ignore_ascii_case: true,
+        } = symbol
+        else {
+            return;
+        };
+        if !text.contains(|c: char| c.is_ascii_alphabetic()) {
+            errors.push(GrammarError {
+                message: "a literal with the `i` prefix must have at least one ASCII letter"
+                    .to_string(),
+                span: spans.symbol(symbol).span,
+            });
+        }
+    });
+}
+
 /// A rule must not be both the layout rule (`@Layout`) and an identifier rule
 /// (`@Identifier`). Keyword exactness derives word boundaries from the
 /// identifier rules, and layout is what separates the words, so one rule
@@ -1042,6 +1071,31 @@ Group3 = [g]
             messages,
             ["`Self` becomes the field `self`, which cannot be a Rust field name"]
         );
+    }
+
+    #[test]
+    fn an_ignore_case_literal_without_a_letter_is_rejected() {
+        let source = "grammar G\n\nS = i\"+\" i\"a1\" T\n\n@Regex\nT = i\"\\n\" | i\"_x\"\n";
+        let errors = parse_grammar(source).unwrap_err();
+        let spans: Vec<String> = errors
+            .iter()
+            .map(|error| {
+                let span = error.span;
+                source[span.left_extent as usize..span.right_extent as usize].to_string()
+            })
+            .collect();
+        assert_eq!(spans, ["i\"+\""]);
+        assert_eq!(
+            errors[0].message,
+            "a literal with the `i` prefix must have at least one ASCII letter"
+        );
+    }
+
+    #[test]
+    fn a_rule_cannot_be_named_i() {
+        assert!(parse_grammar("grammar G\n\nS = i\n\ni = \"a\"\n").is_err());
+        assert!(parse_grammar("grammar G\n\nS = i \"a\"\n").is_err());
+        assert!(parse_grammar("grammar G\n\nS = x\"a\"\n\nx = \"b\"\n").is_ok());
     }
 
     #[test]

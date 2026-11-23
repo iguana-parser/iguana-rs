@@ -959,7 +959,7 @@ impl<'i, 'arena> Ll1CallErrorParser<'i, 'arena> {
             };
         };
         match matched {
-            TerminalId(2) | TerminalId(1) => {
+            TerminalId(1) | TerminalId(2) => {
                 let mut j = i;
                 let right_child = {
                     let start = j;

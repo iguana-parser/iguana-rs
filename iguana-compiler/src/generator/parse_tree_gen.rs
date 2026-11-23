@@ -1217,10 +1217,12 @@ impl<'a> ParseTreeGen<'a> {
                 let (method_name, return_type) = match def {
                     // For alternations with a single terminal, e.g., `Type | "void"`,
                     // we generate `as_void()`. Terminal names for keyword literals include
-                    // quotes ("\"void\""), so strip them first. If the stripped name isn't
+                    // quotes ("\"void\"") and the prefix of an `i` literal
+                    // ("i\"select\""), so strip them first. If the stripped name isn't
                     // a valid identifier (e.g., "+"), skip -- those need explicit naming.
                     Definition::Terminal(t) => {
-                        let stripped = t.name.trim_matches('"');
+                        let name = t.name.strip_prefix("i\"").unwrap_or(&t.name);
+                        let stripped = name.trim_matches('"');
                         let snake = to_snake_case(stripped);
                         if !is_valid_rust_ident(&snake) {
                             return None;
@@ -1893,7 +1895,7 @@ fn get_symbol_base_name(grammar: &Grammar, symbol: &Symbol) -> Option<String> {
         }
         Symbol::Binding { symbol, .. } => get_symbol_base_name(grammar, symbol),
         Symbol::Labeled { .. } => None,
-        Symbol::Literal(_) => None,
+        Symbol::Literal { .. } => None,
         Symbol::Group(_) => None,
         Symbol::Alt(_) => None,
         Symbol::Restricted { symbol, .. } => get_symbol_base_name(grammar, symbol),
@@ -2010,7 +2012,7 @@ fn gen_field_name(
         }
         Symbol::Binding { symbol, .. } => gen_field_name(grammar, symbol, position, needs_index),
         Symbol::Labeled { .. } => format!("field_{}", position),
-        Symbol::Literal(_) => format!("field_{}", position),
+        Symbol::Literal { .. } => format!("field_{}", position),
         Symbol::Group(_) => format!("field_{}", position),
         Symbol::Alt(_) => format!("field_{}", position),
         Symbol::Restricted { symbol, .. } => gen_field_name(grammar, symbol, position, needs_index),

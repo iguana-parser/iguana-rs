@@ -297,7 +297,7 @@ fn rewrite_ebnf_symbol(
             }
         }
         Symbol::Identifier(_)
-        | Symbol::Literal(_)
+        | Symbol::Literal { .. }
         | Symbol::Call { .. }
         | Symbol::Condition(_)
         | Symbol::Return(_) => symbol,
