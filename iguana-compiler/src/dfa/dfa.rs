@@ -262,20 +262,36 @@ impl Dfa {
     /// Walks `self` and `other` together, and returns the characters that
     /// `self` can consume after a string of `other`.
     ///
-    /// Both DFAs begin in their start states. At each step they consume the
-    /// same character, and each moves to its next state. When `other` is in
-    /// an accepting state, `self` has consumed a whole string of `other`.
-    /// The result is the labels of the outgoing transitions of the state
-    /// that `self` is in at that point. `self` does not have to be in an
-    /// accepting state there.
+    /// `skip` is the number of characters that `other` skips before the walk
+    /// begins. With the DFA of the literal `else` and `skip` 2, the walk is
+    /// over `se`. If `skip` is greater than zero, `other` must be the DFA of
+    /// a literal.
+    ///
+    /// Both DFAs begin in their start states, and `other` skips its
+    /// characters. Then, at each step, they consume the same character, and
+    /// each moves to its next state. When `other` is in an accepting state,
+    /// `self` has consumed the string of `other` after the skipped
+    /// characters. The result is the labels of the outgoing transitions of
+    /// the state that `self` is in at that point. `self` does not have to be
+    /// in an accepting state there.
     ///
     /// Returns `None` if `other` never gets to an accepting state in the
     /// walk, because `self` has no transition on a character that `other`
-    /// consumes.
-    pub fn next_chars_after(&self, other: &Dfa) -> Option<Vec<CharRange>> {
+    /// consumes, or because `other` cannot consume `skip` characters.
+    pub fn next_chars_after(&self, other: &Dfa, skip: usize) -> Option<Vec<CharRange>> {
+        // In the DFA of a literal, every transition of a state leads to the
+        // same next state, so the first transition is enough to skip a
+        // character.
+        let mut other_start = other.start;
+        for _ in 0..skip {
+            let transitions = &other.states[other_start].transitions;
+            let (_, next) = transitions.first()?;
+            debug_assert!(transitions.iter().all(|(_, target)| target == next));
+            other_start = *next;
+        }
         let mut chars: Option<Vec<CharRange>> = None;
         let mut seen = FxHashSet::default();
-        let mut stack = vec![(self.start, other.start)];
+        let mut stack = vec![(self.start, other_start)];
         while let Some((sa, sb)) = stack.pop() {
             if !seen.insert((sa, sb)) {
                 continue;
@@ -639,16 +655,28 @@ mod tests {
 
     #[test]
     fn next_chars_after_a_consumed_string_are_the_outgoing_labels() {
-        let chars = identifier().next_chars_after(&dfa(Regex::literal("else")));
+        let chars = identifier().next_chars_after(&dfa(Regex::literal("else")), 0);
         assert_eq!(chars, Some(vec![cr('0', '9'), cr('a', 'z')]));
     }
 
     #[test]
     fn next_chars_after_a_string_that_is_not_consumed_is_none() {
         for text in ["-else", "non-sealed", "else+"] {
-            let chars = identifier().next_chars_after(&dfa(Regex::literal(text)));
+            let chars = identifier().next_chars_after(&dfa(Regex::literal(text)), 0);
             assert_eq!(chars, None, "{text}");
         }
+    }
+
+    /// Without its first four characters, `non-sealed` is `sealed`, which
+    /// the identifier consumes. Without its first three, it is `-sealed`.
+    #[test]
+    fn next_chars_after_skip_the_first_characters_of_the_string() {
+        let non_sealed = dfa(Regex::literal("non-sealed"));
+        let chars = identifier().next_chars_after(&non_sealed, 4);
+        assert_eq!(chars, Some(vec![cr('0', '9'), cr('a', 'z')]));
+        assert_eq!(identifier().next_chars_after(&non_sealed, 3), None);
+        // The string has ten characters.
+        assert_eq!(identifier().next_chars_after(&non_sealed, 11), None);
     }
 
     /// `[a-z]+ [0-9]` consumes `else` and is not in an accepting state
@@ -659,7 +687,7 @@ mod tests {
             Regex::plus(Regex::range('a', 'z')),
             Regex::range('0', '9'),
         ]));
-        let chars = letters_then_digit.next_chars_after(&dfa(Regex::literal("else")));
+        let chars = letters_then_digit.next_chars_after(&dfa(Regex::literal("else")), 0);
         assert_eq!(chars, Some(vec![cr('0', '9'), cr('a', 'z')]));
     }
 
@@ -671,7 +699,7 @@ mod tests {
             Regex::range('a', 'z'),
             Regex::range('a', 'z'),
         ]));
-        let chars = two_letters.next_chars_after(&dfa(Regex::literal("el")));
+        let chars = two_letters.next_chars_after(&dfa(Regex::literal("el")), 0);
         assert_eq!(chars, Some(vec![]));
     }
 
@@ -686,10 +714,10 @@ mod tests {
                 Regex::star(Regex::range('0', '9')),
             ]),
         ]));
-        let chars = id.next_chars_after(&dfa(Regex::ignore_case_literal("g")));
+        let chars = id.next_chars_after(&dfa(Regex::ignore_case_literal("g")), 0);
         assert_eq!(chars, Some(vec![cr('0', '9'), cr('a', 'z')]));
         // Of the four spellings of `i"go"`, the DFA consumes only `go`.
-        let chars = id.next_chars_after(&dfa(Regex::ignore_case_literal("go")));
+        let chars = id.next_chars_after(&dfa(Regex::ignore_case_literal("go")), 0);
         assert_eq!(chars, Some(vec![cr('a', 'z')]));
     }
 }

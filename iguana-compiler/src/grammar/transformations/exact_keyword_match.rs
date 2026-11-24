@@ -337,7 +337,7 @@ fn keyword_restrictions(
 /// restriction only if every literal gets it. The character class is then
 /// the union of the character classes of the literals. The result is
 /// `None` if the rule does not get the restriction.
-fn restriction_class(dfa: &Dfa, literals: &[&[Regex]]) -> Option<CharClass> {
+fn restriction_class(dfa: &Dfa, literals: &[&Regex]) -> Option<CharClass> {
     let mut ranges = Vec::new();
     for literal in literals {
         ranges.extend(next_chars_after_longest_suffix(dfa, literal)?);
@@ -353,21 +353,24 @@ fn restriction_class(dfa: &Dfa, literals: &[&[Regex]]) -> Option<CharClass> {
 /// `non-sealed` and the DFA of an identifier, the suffix is `sealed`. The
 /// result is `None` if `dfa` cannot consume a suffix of `literal`, or if
 /// it cannot consume a character after the suffix.
-fn next_chars_after_longest_suffix(dfa: &Dfa, literal: &[Regex]) -> Option<Vec<CharRange>> {
+fn next_chars_after_longest_suffix(dfa: &Dfa, literal: &Regex) -> Option<Vec<CharRange>> {
+    let keyword = Dfa::from_regex(literal);
+    // A literal is a sequence of single characters, or one character.
+    let len = match literal {
+        Regex::Seq(chars) => chars.len(),
+        _ => 1,
+    };
     // The loop tries the suffixes of the literal from the whole literal to
-    // its last character. It builds a DFA of each suffix and walks it
-    // together with `dfa`. The suffix is a DFA and not a string, because a
-    // case-insensitive literal has several spellings. `next_chars_after`
-    // returns `None` if `dfa` cannot consume the suffix, and the loop goes
-    // on to the next suffix.
+    // its last character. A suffix is the literal without its first `skip`
+    // characters. `next_chars_after` returns `None` if `dfa` cannot consume
+    // the suffix, and the loop goes on to the next suffix.
     //
     // The loop stops at the first suffix that `dfa` can consume. A shorter
     // suffix can be the start of a different identifier. With the rules
     // `[a-z]+` and `"r#" [a-z]+`, the suffix `r` of `for` is the start of a
     // raw identifier, but `#` cannot come after `for` in an identifier.
-    for start in 0..literal.len() {
-        let suffix = Dfa::from_regex(&Regex::Seq(literal[start..].to_vec()));
-        if let Some(chars) = dfa.next_chars_after(&suffix) {
+    for skip in 0..len {
+        if let Some(chars) = dfa.next_chars_after(&keyword, skip) {
             return if chars.is_empty() { None } else { Some(chars) };
         }
     }
@@ -375,41 +378,16 @@ fn next_chars_after_longest_suffix(dfa: &Dfa, literal: &[Regex]) -> Option<Vec<C
 }
 
 /// The literals of a regex that is an alternation of literals (a single
-/// literal counts), or `None` for any other shape.
-fn literals(regex: &Regex) -> Option<Vec<&[Regex]>> {
-    match regex {
-        Regex::Alt(arms) => arms.iter().map(literal).collect(),
-        other => Some(vec![literal(other)?]),
-    }
-}
-
-/// The characters of the literal `regex`, each as the regex that matches
-/// the character. A literal has at least one character. `None` if `regex`
-/// is not a character of a literal (`is_literal_char`) or a sequence of
-/// such characters.
-fn literal(regex: &Regex) -> Option<&[Regex]> {
-    let chars = match regex {
-        Regex::Seq(parts) => parts.as_slice(),
-        other => std::slice::from_ref(other),
+/// literal counts), or `None` for any other regex.
+fn literals(regex: &Regex) -> Option<Vec<&Regex>> {
+    let literals: Vec<&Regex> = match regex {
+        Regex::Alt(arms) => arms.iter().collect(),
+        other => vec![other],
     };
-    let is_literal = !chars.is_empty() && chars.iter().all(is_literal_char);
-    is_literal.then_some(chars)
-}
-
-/// Whether `regex` matches one character of a literal: a single character,
-/// or the two cases of an ASCII letter, such as `[Ss]` in a
-/// case-insensitive literal.
-fn is_literal_char(regex: &Regex) -> bool {
-    match regex {
-        Regex::Char(_) => true,
-        Regex::CharClass(class) if !class.negated => match class.ranges.as_slice() {
-            [a, b] if a.start == a.end && b.start == b.end => {
-                let (a, b) = (a.start, b.start);
-                a.is_ascii_alphabetic() && a != b && a.eq_ignore_ascii_case(&b)
-            }
-            _ => false,
-        },
-        _ => false,
+    if literals.iter().all(|literal| literal.is_literal()) {
+        Some(literals)
+    } else {
+        None
     }
 }
 
@@ -474,7 +452,6 @@ mod tests {
             assert!(classes.precede.is_none(), "{text}");
             assert!(classes.follow.is_none(), "{text}");
         }
-        assert!(literal(&Regex::literal("")).is_none());
     }
 
     /// An identifier can end with `0` but cannot start with it.

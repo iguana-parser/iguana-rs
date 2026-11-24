@@ -54,6 +54,19 @@ impl CharClass {
             self.ranges.clone()
         }
     }
+
+    /// If all the ranges in the character class are single characters,
+    /// returns all the characters, otherwise `None`. A negated class also
+    /// returns `None`.
+    pub fn chars(&self) -> Option<Vec<char>> {
+        if self.negated {
+            return None;
+        }
+        self.ranges
+            .iter()
+            .map(|range| (range.start == range.end).then_some(range.start))
+            .collect()
+    }
 }
 
 /// Complement of `ranges` over the Unicode scalar value space
@@ -225,6 +238,30 @@ impl Regex {
             }
         });
         Regex::Seq(regexes.collect())
+    }
+
+    /// Whether the regex is a literal: a single character
+    /// (`is_single_char`), or a sequence of at least one single character.
+    /// `Regex::literal` and `Regex::ignore_case_literal` build this form.
+    pub fn is_literal(&self) -> bool {
+        match self {
+            Regex::Seq(chars) => !chars.is_empty() && chars.iter().all(Regex::is_single_char),
+            other => other.is_single_char(),
+        }
+    }
+
+    /// Whether the regex matches one specific character: a `Char`, or one
+    /// ASCII letter in both cases, such as `[Ss]` in a case-insensitive
+    /// literal.
+    fn is_single_char(&self) -> bool {
+        match self {
+            Regex::Char(_) => true,
+            Regex::CharClass(class) => match class.chars().as_deref() {
+                Some([a, b]) => a.is_ascii_alphabetic() && a != b && a.eq_ignore_ascii_case(b),
+                _ => false,
+            },
+            _ => false,
+        }
     }
 }
 
@@ -401,6 +438,23 @@ mod tests {
             Regex::alt(vec![Regex::literal("#r"), Regex::literal("_")]),
         ]);
         assert_eq!(regex.reversed(), expected);
+    }
+
+    #[test]
+    fn a_literal_is_a_character_or_a_sequence_of_characters() {
+        assert!(Regex::literal("else").is_literal());
+        assert!(Regex::ignore_case_literal("else").is_literal());
+        assert!(Regex::char('+').is_literal());
+        // `i"e" 'x'` after simplification.
+        let case_pair = ['E', 'e'].map(|c| CharRange { start: c, end: c }).to_vec();
+        let mixed = Regex::seq(vec![Regex::char_class(case_pair, false), Regex::char('x')]);
+        assert!(mixed.is_literal());
+
+        assert!(!Regex::literal("").is_literal());
+        assert!(!Regex::range('a', 'z').is_literal());
+        assert!(!Regex::plus(Regex::char('a')).is_literal());
+        let nested = Regex::seq(vec![Regex::literal("fg"), Regex::char('h')]);
+        assert!(!nested.is_literal());
     }
 
     #[test]
