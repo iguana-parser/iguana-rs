@@ -4,7 +4,7 @@ use iguana_runtime::ids::TerminalId;
 use rustc_hash::{FxHashMap, FxHashSet};
 
 use super::nfa::{self, Nfa};
-use crate::grammar::regex::{CharRange, Regex};
+use crate::grammar::regex::{CharRange, Regex, merge_ranges};
 
 pub type StateId = usize;
 
@@ -259,18 +259,40 @@ fn live_states(nfa: &Nfa) -> Vec<bool> {
 }
 
 impl Dfa {
-    /// The state reached from the start state by consuming `text`, or `None`
-    /// when some character of `text` has no transition.
-    pub fn state_after(&self, text: &str) -> Option<StateId> {
-        let mut state = self.start;
-        for ch in text.chars() {
-            let (_, next) = self.states[state]
-                .transitions
-                .iter()
-                .find(|(r, _)| r.start <= ch && ch <= r.end)?;
-            state = *next;
+    /// Walks `self` and `other` together, and returns the characters that
+    /// `self` can consume after a string of `other`.
+    ///
+    /// Both DFAs begin in their start states. At each step they consume the
+    /// same character, and each moves to its next state. When `other` is in
+    /// an accepting state, `self` has consumed a whole string of `other`.
+    /// The result is the labels of the outgoing transitions of the state
+    /// that `self` is in at that point. `self` does not have to be in an
+    /// accepting state there.
+    ///
+    /// Returns `None` if `other` never gets to an accepting state in the
+    /// walk, because `self` has no transition on a character that `other`
+    /// consumes.
+    pub fn next_chars_after(&self, other: &Dfa) -> Option<Vec<CharRange>> {
+        let mut chars: Option<Vec<CharRange>> = None;
+        let mut seen = FxHashSet::default();
+        let mut stack = vec![(self.start, other.start)];
+        while let Some((sa, sb)) = stack.pop() {
+            if !seen.insert((sa, sb)) {
+                continue;
+            }
+            if other.is_language_accept(sb) {
+                let labels = self.states[sa].transitions.iter().map(|(range, _)| *range);
+                chars.get_or_insert_default().extend(labels);
+            }
+            for (ra, ta) in &self.states[sa].transitions {
+                for (rb, tb) in &other.states[sb].transitions {
+                    if ra.start <= rb.end && rb.start <= ra.end {
+                        stack.push((*ta, *tb));
+                    }
+                }
+            }
         }
-        Some(state)
+        chars.map(merge_ranges)
     }
 
     /// True if some string of `self`'s language is a prefix of some string of
@@ -385,7 +407,15 @@ mod tests {
     /// The DFA state reached from the start by consuming `input`, or `None`
     /// if a character has no transition.
     fn state_after<'a>(dfa: &'a Dfa, input: &str) -> Option<&'a State> {
-        dfa.state_after(input).map(|id| &dfa.states[id])
+        let mut state = dfa.start;
+        for ch in input.chars() {
+            let (_, next) = dfa.states[state]
+                .transitions
+                .iter()
+                .find(|(r, _)| r.start <= ch && ch <= r.end)?;
+            state = *next;
+        }
+        Some(&dfa.states[state])
     }
 
     #[test]
@@ -594,5 +624,72 @@ mod tests {
         let int = Regex::plus(Regex::range('0', '9'));
         let float = Regex::seq(vec![Regex::plus(Regex::range('0', '9')), Regex::char('.')]);
         assert!(dfa(int).is_prefix_of(&dfa(float)));
+    }
+
+    /// `[a-z][a-z0-9]*`
+    fn identifier() -> Dfa {
+        dfa(Regex::seq(vec![
+            Regex::range('a', 'z'),
+            Regex::star(Regex::alt(vec![
+                Regex::range('a', 'z'),
+                Regex::range('0', '9'),
+            ])),
+        ]))
+    }
+
+    #[test]
+    fn next_chars_after_a_consumed_string_are_the_outgoing_labels() {
+        let chars = identifier().next_chars_after(&dfa(Regex::literal("else")));
+        assert_eq!(chars, Some(vec![cr('0', '9'), cr('a', 'z')]));
+    }
+
+    #[test]
+    fn next_chars_after_a_string_that_is_not_consumed_is_none() {
+        for text in ["-else", "non-sealed", "else+"] {
+            let chars = identifier().next_chars_after(&dfa(Regex::literal(text)));
+            assert_eq!(chars, None, "{text}");
+        }
+    }
+
+    /// `[a-z]+ [0-9]` consumes `else` and is not in an accepting state
+    /// after it. A letter or a digit can come next.
+    #[test]
+    fn next_chars_after_do_not_need_an_accepting_state() {
+        let letters_then_digit = dfa(Regex::seq(vec![
+            Regex::plus(Regex::range('a', 'z')),
+            Regex::range('0', '9'),
+        ]));
+        let chars = letters_then_digit.next_chars_after(&dfa(Regex::literal("else")));
+        assert_eq!(chars, Some(vec![cr('0', '9'), cr('a', 'z')]));
+    }
+
+    /// `[a-z][a-z]` consumes `el`, and the state after it has no outgoing
+    /// transitions. The result is empty, which is different from `None`.
+    #[test]
+    fn next_chars_after_can_be_empty() {
+        let two_letters = dfa(Regex::seq(vec![
+            Regex::range('a', 'z'),
+            Regex::range('a', 'z'),
+        ]));
+        let chars = two_letters.next_chars_after(&dfa(Regex::literal("el")));
+        assert_eq!(chars, Some(vec![]));
+    }
+
+    /// `[a-z]+ | [A-Z] [0-9]*` consumes `g` and `G` of `i"g"`. A letter can
+    /// come after `g` and a digit after `G`.
+    #[test]
+    fn next_chars_after_are_the_union_over_the_strings_of_other() {
+        let id = dfa(Regex::alt(vec![
+            Regex::plus(Regex::range('a', 'z')),
+            Regex::seq(vec![
+                Regex::range('A', 'Z'),
+                Regex::star(Regex::range('0', '9')),
+            ]),
+        ]));
+        let chars = id.next_chars_after(&dfa(Regex::ignore_case_literal("g")));
+        assert_eq!(chars, Some(vec![cr('0', '9'), cr('a', 'z')]));
+        // Of the four spellings of `i"go"`, the DFA consumes only `go`.
+        let chars = id.next_chars_after(&dfa(Regex::ignore_case_literal("go")));
+        assert_eq!(chars, Some(vec![cr('a', 'z')]));
     }
 }

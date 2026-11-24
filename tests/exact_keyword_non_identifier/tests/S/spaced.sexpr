@@ -1,0 +1,11 @@
+(Start
+  WS
+  (S
+    (Num? Num)
+    WS
+    "non-sealed"
+    WS
+    Id
+    WS
+    ";")
+  WS)

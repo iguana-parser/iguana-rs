@@ -1,0 +1,17 @@
+grammar ExactKeywordNonIdentifier
+
+// A keyword does not have to be an identifier. In `non-sealed`, the prefix
+// `non` can be the end of an identifier and the suffix `sealed` can be the
+// start of an identifier. The keyword gets both restrictions.
+S
+  = Num? "non-sealed" Id ";" #NonSealed
+  | Id "-" Id ";"            #Minus
+
+@Identifier @Regex
+Id = [a-zA-Z][a-zA-Z_0-9]*
+
+@Regex
+Num = [0-9]+
+
+@Layout @Regex
+WS = [\ \n\t]*

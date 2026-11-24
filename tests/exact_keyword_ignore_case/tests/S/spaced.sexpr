@@ -1,0 +1,11 @@
+(Start
+  WS
+  (S
+    (Num? Num)
+    WS
+    i"else"
+    WS
+    Id
+    WS
+    ";")
+  WS)

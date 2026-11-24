@@ -5,6 +5,8 @@
 [workspace]
 resolver = "3"
 members = [
+    "exact_keyword_ignore_case",
+    "exact_keyword_non_identifier",
     "ignore_case_literal",
     "generated_names",
     "sequence_operands",

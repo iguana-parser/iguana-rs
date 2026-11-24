@@ -466,6 +466,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "exact_keyword_ignore_case"
+version = "0.1.0"
+dependencies = [
+ "iguana-runtime",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
 name = "exact_keyword_lexical_set"
 version = "0.1.0"
 dependencies = [
@@ -485,6 +494,15 @@ dependencies = [
 
 [[package]]
 name = "exact_keyword_no_layout"
+version = "0.1.0"
+dependencies = [
+ "iguana-runtime",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "exact_keyword_non_identifier"
 version = "0.1.0"
 dependencies = [
  "iguana-runtime",

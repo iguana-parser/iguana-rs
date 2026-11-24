@@ -78,86 +78,86 @@
 //! The fix is a restriction pair on each keyword, as in
 //! `[a-zA-Z_0-9] !<< "else" !>> [a-zA-Z_0-9]`. The notation is conceptual
 //! and is not valid Iggy syntax, because a restriction operand in Iggy is
-//! the name of a rule, not a character class. Writing the pair by hand for
-//! every keyword in the grammar is tedious, so Iguana automates it. With
-//! `@Identifier` on the identifier rules, the generator derives the pairs
-//! and inserts them.
+//! the name of a lexical rule, not a character class.
+//!
+//! Writing the pair by hand for every keyword in the grammar is tedious,
+//! so Iguana automates it. With `@Identifier` on the identifier rules, the
+//! generator derives the pairs and inserts them on literals.
 //!
 //! # Generating the restrictions from `@Identifier`
 //!
-//! A literal in a syntax rule is *identifier-shaped* when an
-//! identifier-annotated rule accepts its text. Every identifier-shaped
-//! literal gets the restriction pair. The two operands, one character
-//! class each, are derived from the identifier-annotated rules. The result
-//! mimics the longest-match scanner that most programming languages are
-//! designed around.
+//! The idea behind generating restriction pairs for a keyword from an
+//! identifier is that a keyword must not extend into an identifier on
+//! either side. There is no way to mark a literal as a keyword in Iggy, so
+//! every string literal in a grammar is a potential keyword. The generator
+//! derives the restrictions for every literal, and a literal that an
+//! identifier cannot extend, such as `"++"`, does not get a restriction.
 //!
-//! To decide whether a literal gets the restrictions, and with which
-//! character classes, we answer three questions about each literal, using
-//! a DFA built from the identifier-annotated regex rule. The DFA of the
-//! identifier rule above, `[a-zA-Z][a-zA-Z_0-9]*`, serves as the running
-//! example. It has two states: the start state, with a transition on
-//! `[a-zA-Z]`, and an accepting state, with a transition on `[a-zA-Z_0-9]`
-//! that loops back to itself.
+//! - For the follow restriction (`!>>`), the generator finds the longest
+//!   suffix of the literal that is the start of an identifier. The
+//!   character class of the restriction is the characters that can come
+//!   after this suffix in an identifier.
+//! - For the precede restriction (`!<<`), the generator finds the longest
+//!   prefix of the literal that is the end of an identifier. The character
+//!   class of the restriction is the characters that can come directly
+//!   before this prefix in an identifier.
 //!
-//! - Is the literal identifier-shaped? The DFA consumes the literal's
-//!   text. For `"else"`, the `e` moves the DFA from the start state to
-//!   the accepting state, and `l`, `s`, `e` follow the loop. The walk ends
-//!   in an accepting state, so `"else"` is identifier-shaped. `"++"` is
-//!   not. The start state does not have a transition on `+`, so the walk
-//!   stops at the first character, and no restrictions are inserted for
-//!   the literal.
-//! - Which characters would extend an identifier after the literal's end?
-//!   These form the follow class, the operand of the follow restriction
-//!   (`!>>`) inserted after the literal. The class is the union of the
-//!   labels of the outgoing transitions of the state where the walk
-//!   ended. The walk over `else` ends in the accepting state, which has
-//!   one outgoing transition, the loop, labeled `[a-zA-Z_0-9]`, so that
-//!   is the follow class.
-//! - Which characters can directly precede the literal inside an
-//!   identifier? These form the precede class, the operand of the precede
-//!   restriction (`!<<`) inserted before the literal. The class is the
-//!   union of the labels of the transitions whose target state has a
-//!   transition on the literal's first character. A character in such a
-//!   label can occur inside an identifier directly before the literal's
-//!   first character. The literal `"else"` starts with `e`. Both
-//!   transitions of the example DFA lead to the accepting state, and the
-//!   accepting state has a transition on `e` (the loop). Both labels
-//!   therefore qualify, and the precede class is their union, again
-//!   `[a-zA-Z_0-9]`.
+//! A literal without such a suffix does not get the follow restriction,
+//! and a literal without such a prefix does not get the precede
+//! restriction. A literal also does not get a restriction if no character
+//! can come after the suffix in an identifier, because the character
+//! class is then empty.
 //!
-//! The DFA is built from the identifier-annotated rule's regex alone;
-//! the rule's `\` excepts are dropped. Dropping them matters when the
+//! The following literals show the cases, with the identifier rule
+//! `[a-zA-Z][a-zA-Z_0-9]*`:
+//!
+//! - `"else"` is an identifier, and the literal is its own longest suffix
+//!   and prefix. It gets `[a-zA-Z_0-9] !<<` and `!>> [a-zA-Z_0-9]`.
+//! - `"non-sealed"` is not an identifier. The suffix is `sealed` and the
+//!   prefix is `non`, and the literal gets the same pair as `"else"`.
+//! - `"@interface"` has the suffix `interface` and gets the follow
+//!   restriction. Every prefix of the literal starts with `@`, and an
+//!   identifier does not contain `@`. No prefix is the end of an
+//!   identifier, and the literal does not get the precede restriction.
+//! - `"++"` does not get a restriction, because an identifier does not
+//!   contain `+`.
+//!
+//! A case-insensitive literal such as `i"else"` matches every spelling of
+//! the keyword, such as `else`, `ELSE`, and `eLsE`. With the identifier
+//! rule `[a-zA-Z][a-zA-Z_0-9]*`, every spelling is an identifier, and the
+//! literal gets the same pair as `"else"`.
+//!
+//! The restrictions come from the regex of the identifier-annotated rule
+//! alone; the rule's `\` excepts are dropped. Dropping them matters when the
 //! keywords are excluded from the identifier rule, as in
 //! `@Regex Identifier = [a-zA-Z][a-zA-Z_0-9]* \ Keyword`. The exclusion
 //! removes `else` from the identifier's language, but `else` still looks
 //! like an identifier, and its boundaries must still be enforced.
 //!
-//! With several identifier-annotated rules, a literal is identifier-shaped
-//! when at least one rule's DFA accepts it, and each class is the union
-//! of the classes of all the rules. A rule contributes to the follow class
-//! even when it does not accept the literal, as long as the literal is a
-//! prefix of a string the rule accepts. With a second annotated rule
-//! `[a-z]+[0-9]`, the walk over `else` ends in a non-accepting state (a
-//! digit is still missing). But `else` is a prefix of the accepted
-//! `else1`, so an identifier can extend across the keyword, and the
-//! ending state's outgoing labels, digits included, belong in the follow
-//! class.
+//! With several identifier-annotated rules, an identifier is a string
+//! that at least one of the rules matches. Each restriction of a literal
+//! is therefore a single character class for all the rules.
 //!
 //! The restrictions above attach to literal occurrences in syntax
 //! rules, including a syntax rule that is nothing but an alternation of
-//! keywords. A literal can also appear inside a lexical rule, as in
+//! literals. A literal can also appear inside a lexical rule, as in
 //! `@Regex Bool = "true" | "false"`. A lexical rule is a single terminal,
 //! and the literals in its body are parts of the rule's regex, not
 //! occurrences, so no restriction attaches to them individually. A rule
-//! of this shape is still a set of keywords, though, and the pair
-//! belongs on the terminal as a whole. When the body is an alternation of
-//! literals and every literal is identifier-shaped, every reference to
-//! the rule gets the restriction pair. Each literal derives its classes
-//! in the same way, and the pair uses their union. One literal that is
-//! not identifier-shaped disqualifies the whole rule, because the pair
-//! applies to every match of the rule, and a literal like `++` must keep
-//! matching next to identifier characters.
+//! of this shape is still a set of keywords, though, and the restrictions
+//! belong on the terminal as a whole. When the body is an alternation of
+//! literals, every reference to the rule gets the follow restriction if
+//! every literal of the body gets it, and the same holds for the precede
+//! restriction. The character class of the restriction is the union of
+//! the character classes of the literals. One literal that does not
+//! get a restriction disqualifies the whole rule for that restriction,
+//! because the restriction applies to every match of the rule, and a
+//! literal like `++` must keep matching next to identifier characters.
+//!
+//! A class of the two cases of a letter, such as `[eE]`, counts as a
+//! character of a literal, because it is the regex of a letter in a
+//! case-insensitive literal. The generator therefore treats
+//! `@Regex Exponent = [eE]` the same as `i"e"`.
 //!
 //! Literals in `@NoLayout` rules are left alone. A `@NoLayout` rule is a
 //! character-level composition, and its literals are fragments of a
@@ -167,7 +167,7 @@ use rustc_hash::FxHashMap;
 
 use crate::dfa::Dfa;
 use crate::grammar::def::{LayoutStrategy, LexicalRule, SyntaxRule};
-use crate::grammar::regex::{CharClass, CharRange, Regex};
+use crate::grammar::regex::{CharClass, CharRange, Regex, merge_ranges};
 use crate::grammar::symbols::{Identifier, Restrictions, Symbol, Terminal};
 use crate::grammar::transformations::{transform_symbol, transform_syntax_rule};
 
@@ -183,16 +183,22 @@ pub fn transform(
     if identifier_rules.is_empty() {
         return (syntax_rules, lexical_rules);
     }
-    let dfas: Vec<Dfa> = identifier_rules
-        .iter()
-        .map(|id| {
-            let rule = lexical_rules
-                .iter()
-                .find(|rule| rule.head.name == id.name)
-                .unwrap_or_else(|| panic!("identifier rule `{}` has no lexical rule", id.name));
-            Dfa::from_regex(&rule.regex)
-        })
-        .collect();
+    // One regex for all the identifier-annotated rules. An identifier is a
+    // string that one of the rules matches.
+    let identifier = Regex::Alt(
+        identifier_rules
+            .iter()
+            .map(|id| {
+                let rule = lexical_rules
+                    .iter()
+                    .find(|rule| rule.head.name == id.name)
+                    .unwrap_or_else(|| panic!("identifier rule `{}` has no lexical rule", id.name));
+                rule.regex.clone()
+            })
+            .collect(),
+    );
+    let dfa = Dfa::from_regex(&identifier);
+    let reversed_dfa = Dfa::from_regex(&identifier.reversed());
 
     // The derived restrictions of every keyword rule, keyed by rule name.
     // Rule names are unique across the grammar, so a reference with a
@@ -200,9 +206,12 @@ pub fn transform(
     let keywords: FxHashMap<String, KeywordRestrictions> = lexical_rules
         .iter()
         .filter_map(|rule| {
-            let literals = literal_texts(&rule.regex)?;
-            let derived = derive_for_literals(&dfas, &literals)?;
-            Some((rule.head.name.clone(), derived))
+            let derived = keyword_restrictions(&dfa, &reversed_dfa, &rule.regex)?;
+            if derived.precede.is_none() && derived.follow.is_none() {
+                None
+            } else {
+                Some((rule.head.name.clone(), derived))
+            }
         })
         .collect();
 
@@ -210,8 +219,8 @@ pub fn transform(
         Symbol::Identifier(id) => match keywords.get(&id.name) {
             Some(derived) => {
                 let restrictions = Restrictions {
-                    precede: restriction_operand(derived.precede.clone(), &mut lexical_rules),
-                    follow: restriction_operand(derived.follow.clone(), &mut lexical_rules),
+                    precede: restriction_operand(derived.precede.as_ref(), &mut lexical_rules),
+                    follow: restriction_operand(derived.follow.as_ref(), &mut lexical_rules),
                     ..Default::default()
                 };
                 Symbol::restricted(Symbol::Identifier(id), restrictions)
@@ -258,19 +267,16 @@ pub fn transform(
 }
 
 /// The operand list for a class: a reference to the rule defining the
-/// class, synthesized on first use and named by its rendering. An empty
-/// class yields an empty list: no rule, no restriction.
+/// class, synthesized on first use and named by its rendering. The list is
+/// empty if there is no class.
 fn restriction_operand(
-    ranges: Vec<CharRange>,
+    class: Option<&CharClass>,
     lexical_rules: &mut Vec<LexicalRule>,
 ) -> Vec<Identifier> {
-    if ranges.is_empty() {
+    let Some(class) = class else {
         return vec![];
-    }
-    let class = Regex::CharClass(CharClass {
-        ranges,
-        negated: false,
-    });
+    };
+    let class = Regex::CharClass(class.clone());
     let name = class.to_string();
     if !lexical_rules.iter().any(|rule| rule.head.name == name) {
         lexical_rules.push(LexicalRule::new(Terminal::new(name.clone()), class));
@@ -292,132 +298,144 @@ fn merge(first: Restrictions, second: Restrictions) -> Restrictions {
     }
 }
 
-/// The restrictions derived for an identifier-shaped literal.
-pub struct KeywordRestrictions {
-    pub precede: Vec<CharRange>,
-    pub follow: Vec<CharRange>,
+/// The character classes of the two restrictions derived for a keyword
+/// rule. A character class is `None` if the rule does not get the
+/// restriction.
+struct KeywordRestrictions {
+    precede: Option<CharClass>,
+    follow: Option<CharClass>,
 }
 
-/// Derives `literal`'s restrictions from the identifier-annotated rules'
-/// DFAs, or `None` when no DFA accepts the literal's text (the literal is
-/// not identifier-shaped).
-pub fn derive_restrictions(dfas: &[Dfa], literal: &str) -> Option<KeywordRestrictions> {
-    let first_char = literal.chars().next()?;
-    let identifier_shaped = dfas.iter().any(|dfa| {
-        dfa.state_after(literal)
-            .is_some_and(|state| dfa.states[state].accept.is_some())
-    });
-    if !identifier_shaped {
-        return None;
-    }
-
-    let mut precede = Vec::new();
-    let mut follow = Vec::new();
-    for dfa in dfas {
-        if let Some(state) = dfa.state_after(literal) {
-            follow.extend(
-                dfa.states[state]
-                    .transitions
-                    .iter()
-                    .map(|(range, _)| *range),
-            );
-        }
-        for state in &dfa.states {
-            for (range, target) in &state.transitions {
-                let consumes_first = dfa.states[*target]
-                    .transitions
-                    .iter()
-                    .any(|(r, _)| r.start <= first_char && first_char <= r.end);
-                if consumes_first {
-                    precede.push(*range);
-                }
-            }
-        }
-    }
-    Some(KeywordRestrictions {
-        precede: merge_ranges(precede),
-        follow: merge_ranges(follow),
-    })
+/// Calculates the restrictions of the keyword `regex`. `dfa` is the DFA of
+/// the identifier, and `reversed_dfa` is the DFA of the reversed
+/// identifier. Returns `None` if `regex` is not a literal or an
+/// alternation of literals.
+///
+/// The character class of the follow restriction comes from the literals
+/// and `dfa`. The character class of the precede restriction comes from
+/// the same computation, with the reversed literals and `reversed_dfa`.
+/// This DFA consumes an identifier from its last character to its first.
+/// A suffix of the reversed literal is a prefix of the literal in the
+/// opposite order, and the characters that the DFA can consume after it
+/// are the characters that can come directly before the prefix in an
+/// identifier.
+fn keyword_restrictions(
+    dfa: &Dfa,
+    reversed_dfa: &Dfa,
+    regex: &Regex,
+) -> Option<KeywordRestrictions> {
+    let follow = restriction_class(dfa, &literals(regex)?);
+    let reversed = regex.reversed();
+    let precede = restriction_class(reversed_dfa, &literals(&reversed)?);
+    Some(KeywordRestrictions { precede, follow })
 }
 
-/// Derives the union of the literals' restrictions, or `None` when some
-/// literal is not identifier-shaped: the pair applies to every match of
-/// the rule, so every literal must be a keyword.
-fn derive_for_literals(dfas: &[Dfa], literals: &[String]) -> Option<KeywordRestrictions> {
-    let mut precede = Vec::new();
-    let mut follow = Vec::new();
+/// The character class of one restriction of a keyword rule with the
+/// literals `literals`, calculated with `dfa`.
+///
+/// A restriction applies to every match of the rule, so the rule gets the
+/// restriction only if every literal gets it. The character class is then
+/// the union of the character classes of the literals. The result is
+/// `None` if the rule does not get the restriction.
+fn restriction_class(dfa: &Dfa, literals: &[&[Regex]]) -> Option<CharClass> {
+    let mut ranges = Vec::new();
     for literal in literals {
-        let derived = derive_restrictions(dfas, literal)?;
-        precede.extend(derived.precede);
-        follow.extend(derived.follow);
+        ranges.extend(next_chars_after_longest_suffix(dfa, literal)?);
     }
-    Some(KeywordRestrictions {
-        precede: merge_ranges(precede),
-        follow: merge_ranges(follow),
+    Some(CharClass {
+        ranges: merge_ranges(ranges),
+        negated: false,
     })
 }
 
-/// The texts of the literals of a regex that is an alternation of
-/// literals (a single literal counts), or `None` for any other shape.
-fn literal_texts(regex: &Regex) -> Option<Vec<String>> {
-    match regex {
-        Regex::Alt(arms) => arms.iter().map(literal_text).collect(),
-        other => Some(vec![literal_text(other)?]),
-    }
-}
-
-/// The text of a literal regex: a character sequence or one character.
-fn literal_text(regex: &Regex) -> Option<String> {
-    match regex {
-        Regex::Char(c) => Some(c.to_string()),
-        Regex::Seq(parts) => parts
-            .iter()
-            .map(|part| match part {
-                Regex::Char(c) => Some(*c),
-                _ => None,
-            })
-            .collect(),
-        _ => None,
-    }
-}
-
-/// Sorts `ranges` and merges overlapping and adjacent ones. The result is
-/// canonical: it names the synthesized class rule, so equal classes
-/// resolve to one rule.
-fn merge_ranges(mut ranges: Vec<CharRange>) -> Vec<CharRange> {
-    ranges.sort_by_key(|r| (r.start, r.end));
-    let mut merged: Vec<CharRange> = Vec::new();
-    for range in ranges {
-        match merged.last_mut() {
-            Some(last) if range.start as u32 <= last.end as u32 + 1 => {
-                if range.end > last.end {
-                    last.end = range.end;
-                }
-            }
-            _ => merged.push(range),
+/// The characters that `dfa` can consume after the longest suffix of
+/// `literal` that it can consume from its start state. For the literal
+/// `non-sealed` and the DFA of an identifier, the suffix is `sealed`. The
+/// result is `None` if `dfa` cannot consume a suffix of `literal`, or if
+/// it cannot consume a character after the suffix.
+fn next_chars_after_longest_suffix(dfa: &Dfa, literal: &[Regex]) -> Option<Vec<CharRange>> {
+    // The loop tries the suffixes of the literal from the whole literal to
+    // its last character. It builds a DFA of each suffix and walks it
+    // together with `dfa`. The suffix is a DFA and not a string, because a
+    // case-insensitive literal has several spellings. `next_chars_after`
+    // returns `None` if `dfa` cannot consume the suffix, and the loop goes
+    // on to the next suffix.
+    //
+    // The loop stops at the first suffix that `dfa` can consume. A shorter
+    // suffix can be the start of a different identifier. With the rules
+    // `[a-z]+` and `"r#" [a-z]+`, the suffix `r` of `for` is the start of a
+    // raw identifier, but `#` cannot come after `for` in an identifier.
+    for start in 0..literal.len() {
+        let suffix = Dfa::from_regex(&Regex::Seq(literal[start..].to_vec()));
+        if let Some(chars) = dfa.next_chars_after(&suffix) {
+            return if chars.is_empty() { None } else { Some(chars) };
         }
     }
-    merged
+    None
+}
+
+/// The literals of a regex that is an alternation of literals (a single
+/// literal counts), or `None` for any other shape.
+fn literals(regex: &Regex) -> Option<Vec<&[Regex]>> {
+    match regex {
+        Regex::Alt(arms) => arms.iter().map(literal).collect(),
+        other => Some(vec![literal(other)?]),
+    }
+}
+
+/// The characters of the literal `regex`, each as the regex that matches
+/// the character. A literal has at least one character. `None` if `regex`
+/// is not a character of a literal (`is_literal_char`) or a sequence of
+/// such characters.
+fn literal(regex: &Regex) -> Option<&[Regex]> {
+    let chars = match regex {
+        Regex::Seq(parts) => parts.as_slice(),
+        other => std::slice::from_ref(other),
+    };
+    let is_literal = !chars.is_empty() && chars.iter().all(is_literal_char);
+    is_literal.then_some(chars)
+}
+
+/// Whether `regex` matches one character of a literal: a single character,
+/// or the two cases of an ASCII letter, such as `[Ss]` in a
+/// case-insensitive literal.
+fn is_literal_char(regex: &Regex) -> bool {
+    match regex {
+        Regex::Char(_) => true,
+        Regex::CharClass(class) if !class.negated => match class.ranges.as_slice() {
+            [a, b] if a.start == a.end && b.start == b.end => {
+                let (a, b) = (a.start, b.start);
+                a.is_ascii_alphabetic() && a != b && a.eq_ignore_ascii_case(&b)
+            }
+            _ => false,
+        },
+        _ => false,
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::grammar::regex::Regex;
 
-    fn dfa(regex: Regex) -> Dfa {
-        Dfa::from_regex(&regex)
+    /// The DFA of the identifier `regex` and the DFA of the reversed
+    /// `regex`.
+    fn dfa(regex: Regex) -> (Dfa, Dfa) {
+        (Dfa::from_regex(&regex), Dfa::from_regex(&regex.reversed()))
     }
 
-    fn class(ranges: &[(char, char)]) -> Vec<CharRange> {
-        ranges
+    fn class(ranges: &[(char, char)]) -> Option<CharClass> {
+        let ranges = ranges
             .iter()
             .map(|&(start, end)| CharRange { start, end })
-            .collect()
+            .collect();
+        Some(CharClass {
+            ranges,
+            negated: false,
+        })
     }
 
     /// `[a-zA-Z][a-zA-Z_0-9]*`
-    fn identifier() -> Dfa {
+    fn identifier() -> (Dfa, Dfa) {
         dfa(Regex::seq(vec![
             Regex::alt(vec![Regex::range('A', 'Z'), Regex::range('a', 'z')]),
             Regex::star(Regex::alt(vec![
@@ -429,67 +447,145 @@ mod tests {
         ]))
     }
 
+    /// The restrictions of the literal `text`.
+    fn derive((dfa, reversed_dfa): &(Dfa, Dfa), text: &str) -> KeywordRestrictions {
+        keyword_restrictions(dfa, reversed_dfa, &Regex::literal(text)).unwrap()
+    }
+
+    /// The restrictions of the case-insensitive literal `text`.
+    fn derive_ignore_case((dfa, reversed_dfa): &(Dfa, Dfa), text: &str) -> KeywordRestrictions {
+        keyword_restrictions(dfa, reversed_dfa, &Regex::ignore_case_literal(text)).unwrap()
+    }
+
     #[test]
     fn keyword_derives_the_identifier_character_class() {
-        let dfas = [identifier()];
-        let classes = derive_restrictions(&dfas, "else").unwrap();
+        let dfas = identifier();
+        let classes = derive(&dfas, "else");
         let expected = class(&[('0', '9'), ('A', 'Z'), ('_', '_'), ('a', 'z')]);
         assert_eq!(classes.follow, expected);
         assert_eq!(classes.precede, expected);
     }
 
     #[test]
-    fn non_identifier_shaped_literals_derive_nothing() {
-        let dfas = [identifier()];
-        assert!(derive_restrictions(&dfas, "++").is_none());
-        assert!(derive_restrictions(&dfas, "else if").is_none());
-        assert!(derive_restrictions(&dfas, "").is_none());
+    fn a_literal_without_identifier_characters_at_its_ends_derives_nothing() {
+        let dfas = identifier();
+        for text in ["++", "+else+"] {
+            let classes = derive(&dfas, text);
+            assert!(classes.precede.is_none(), "{text}");
+            assert!(classes.follow.is_none(), "{text}");
+        }
+        assert!(literal(&Regex::literal("")).is_none());
     }
 
+    /// An identifier can end with `0` but cannot start with it.
     #[test]
-    fn literal_longer_than_the_identifier_language_is_not_shaped() {
-        let two_letters = dfa(Regex::seq(vec![
+    fn a_literal_that_can_only_end_an_identifier_derives_the_precede_char_class() {
+        let classes = derive(&identifier(), "0");
+        let expected = class(&[('0', '9'), ('A', 'Z'), ('_', '_'), ('a', 'z')]);
+        assert_eq!(classes.precede, expected);
+        assert!(classes.follow.is_none());
+    }
+
+    /// `non-sealed` is not an identifier, but `non` can be the end of an
+    /// identifier and `sealed` can be the start of an identifier.
+    #[test]
+    fn a_literal_with_a_non_identifier_character_inside_derives_both_classes() {
+        let dfas = identifier();
+        let expected = class(&[('0', '9'), ('A', 'Z'), ('_', '_'), ('a', 'z')]);
+        for text in ["non-sealed", "else if"] {
+            let classes = derive(&dfas, text);
+            assert_eq!(classes.precede, expected, "{text}");
+            assert_eq!(classes.follow, expected, "{text}");
+        }
+    }
+
+    /// An identifier can continue after `@interface` but not before it,
+    /// and before `else+` but not after it.
+    #[test]
+    fn each_end_of_a_literal_is_decided_on_its_own() {
+        let dfas = identifier();
+        let expected = class(&[('0', '9'), ('A', 'Z'), ('_', '_'), ('a', 'z')]);
+
+        let classes = derive(&dfas, "@interface");
+        assert!(classes.precede.is_none());
+        assert_eq!(classes.follow, expected);
+
+        let classes = derive(&dfas, "else+");
+        assert_eq!(classes.precede, expected);
+        assert!(classes.follow.is_none());
+    }
+
+    /// `[a-z][a-z0-9]*` has only lowercase letters, and `i"Go"` gets both
+    /// character classes from its lowercase spelling. With uppercase
+    /// letters in the identifier, `i"select"` gets them from every
+    /// spelling.
+    #[test]
+    fn a_case_insensitive_literal_gets_the_char_classes_of_its_consumed_spellings() {
+        let lowercase = dfa(Regex::seq(vec![
             Regex::range('a', 'z'),
-            Regex::range('a', 'z'),
+            Regex::star(Regex::alt(vec![
+                Regex::range('a', 'z'),
+                Regex::range('0', '9'),
+            ])),
         ]));
-        let dfas = [two_letters];
-        assert!(derive_restrictions(&dfas, "else").is_none());
-        assert!(derive_restrictions(&dfas, "el").is_some());
+        let expected = class(&[('0', '9'), ('a', 'z')]);
+        let classes = derive_ignore_case(&lowercase, "Go");
+        assert_eq!(classes.precede, expected);
+        assert_eq!(classes.follow, expected);
+
+        let classes = derive_ignore_case(&identifier(), "select");
+        let expected = class(&[('0', '9'), ('A', 'Z'), ('_', '_'), ('a', 'z')]);
+        assert_eq!(classes.precede, expected);
+        assert_eq!(classes.follow, expected);
     }
 
-    /// `[a-z]+ [0-9]` does not accept `else`, but it can extend across it
-    /// with a digit, so the digit lands in the follow-class union.
+    /// `[a-z]+ | "r#" [a-z]+`: `#` is a character of an identifier, but an
+    /// identifier does not start or end with it. The literal `#` does not
+    /// get a restriction, and a letter can directly follow it.
     #[test]
-    fn non_accepting_rule_contributes_to_the_follow_class() {
-        let letters = dfa(Regex::plus(Regex::range('a', 'z')));
-        let letters_then_digit = dfa(Regex::seq(vec![
+    fn a_character_inside_an_identifier_does_not_restrict_its_literal() {
+        let id = dfa(Regex::alt(vec![
             Regex::plus(Regex::range('a', 'z')),
-            Regex::range('0', '9'),
+            Regex::seq(vec![
+                Regex::literal("r#"),
+                Regex::plus(Regex::range('a', 'z')),
+            ]),
         ]));
-        let classes = derive_restrictions(&[letters, letters_then_digit], "else").unwrap();
-        assert_eq!(classes.follow, class(&[('0', '9'), ('a', 'z')]));
+        let classes = derive(&id, "#");
+        assert!(classes.precede.is_none());
+        assert!(classes.follow.is_none());
+    }
+
+    /// With identifiers of exactly two letters, the longest prefix of
+    /// `else` that ends an identifier is `el`, and the longest suffix that
+    /// starts one is `se`. Both are whole identifiers, so no character can
+    /// come before `el` or after `se`.
+    #[test]
+    fn the_char_classes_come_from_the_longest_prefix_and_suffix() {
+        let dfas = dfa(Regex::seq(vec![
+            Regex::range('a', 'z'),
+            Regex::range('a', 'z'),
+        ]));
+        let classes = derive(&dfas, "else");
+        assert!(classes.precede.is_none());
+        assert!(classes.follow.is_none());
+        let classes = derive(&dfas, "e");
+        assert_eq!(classes.precede, class(&[('a', 'z')]));
+        assert_eq!(classes.follow, class(&[('a', 'z')]));
     }
 
     /// `[a-z][0-9]*`: a letter occurs only at an identifier start, so
     /// nothing can precede the literal `a` mid-identifier, while digits
     /// extend it.
     #[test]
-    fn precede_and_follow_classes_differ_in_an_asymmetric_automaton() {
+    fn precede_and_follow_char_classes_differ_in_an_asymmetric_automaton() {
         let id = dfa(Regex::seq(vec![
             Regex::range('a', 'z'),
             Regex::star(Regex::range('0', '9')),
         ]));
-        let classes = derive_restrictions(&[id], "a").unwrap();
-        assert!(classes.precede.is_empty());
+        let classes = derive(&id, "a");
+        assert!(classes.precede.is_none());
         assert_eq!(classes.follow, class(&[('0', '9')]));
-    }
-
-    #[test]
-    fn adjacent_and_overlapping_ranges_merge() {
-        assert_eq!(
-            merge_ranges(class(&[('n', 'z'), ('a', 'm'), ('c', 'f')])),
-            class(&[('a', 'z')])
-        );
     }
 
     use crate::grammar::def::{SymbolTable, create_symbol_table};
@@ -600,7 +696,7 @@ mod tests {
     }
 
     #[test]
-    fn non_identifier_shaped_literals_stay_untouched() {
+    fn a_literal_without_restrictions_stays_untouched() {
         let (out, lexical) = run_transform(
             |table| vec![refer("\"++\"", table)],
             vec![identifier_rule(), literal_rule("++")],
@@ -648,7 +744,7 @@ mod tests {
     /// identifier start,
     /// so only the follow restriction is inserted.
     #[test]
-    fn empty_precede_class_inserts_only_the_follow_restriction() {
+    fn empty_precede_char_class_inserts_only_the_follow_restriction() {
         let (out, lexical) = run_transform(
             |table| vec![refer("\"a\"", table)],
             vec![
@@ -688,10 +784,39 @@ mod tests {
         assert_eq!(lexical[2].head.name, "[0-9 a-z]");
     }
 
-    /// `Op = "true" | "++"`: the pair would apply to `++` matches too, so
-    /// a rule with a literal that is not identifier-shaped gets nothing.
+    /// `Id = [a-z]+` and `Id2 = [a-z]+ [0-9]`: an identifier is a string of
+    /// either rule. A letter or a digit can come after `else`, and only a
+    /// letter can come before it.
     #[test]
-    fn a_rule_with_a_non_shaped_literal_stays_untouched() {
+    fn several_identifier_rules_give_one_char_class_per_restriction() {
+        let letters = || Regex::plus(Regex::range('a', 'z'));
+        let id = LexicalRule::new(Terminal::new("Id"), letters());
+        let id2 = LexicalRule::new(
+            Terminal::new("Id2"),
+            Regex::seq(vec![letters(), Regex::range('0', '9')]),
+        );
+        let identifier_rules: Vec<Identifier> = ["Id", "Id2"]
+            .iter()
+            .map(|name| Identifier {
+                name: name.to_string(),
+                definition: None,
+            })
+            .collect();
+        let (out, _) = run_transform(
+            |table| vec![refer("\"else\"", table)],
+            vec![id, id2, literal_rule("else")],
+            &identifier_rules,
+        );
+        let restrictions = restrictions(first_symbol(&out));
+        assert_eq!(names(&restrictions.precede), ["[a-z]"]);
+        assert_eq!(names(&restrictions.follow), ["[0-9 a-z]"]);
+    }
+
+    /// `Op = "true" | "++"`: a restriction would apply to `++` matches too,
+    /// so a rule with a literal that does not get a restriction stays
+    /// untouched.
+    #[test]
+    fn a_rule_with_a_literal_without_restrictions_stays_untouched() {
         let op_rule = LexicalRule::new(
             Terminal::new("Op"),
             Regex::alt(vec![Regex::literal("true"), Regex::literal("++")]),
@@ -703,6 +828,46 @@ mod tests {
         );
         assert!(matches!(first_symbol(&out), Symbol::Identifier(_)));
         assert_eq!(lexical.len(), 2, "no operand rule should be synthesized");
+    }
+
+    /// `Reserved = i"go" | "end"`: a case-insensitive literal is a keyword
+    /// like a plain one.
+    #[test]
+    fn a_rule_with_a_case_insensitive_literal_gets_the_pair() {
+        let reserved = LexicalRule::new(
+            Terminal::new("Reserved"),
+            Regex::alt(vec![
+                Regex::ignore_case_literal("go"),
+                Regex::literal("end"),
+            ]),
+        );
+        let (out, _) = run_transform(
+            |table| vec![refer("Reserved", table)],
+            vec![identifier_rule(), reserved],
+            &id_rules(),
+        );
+        let restrictions = restrictions(first_symbol(&out));
+        assert_eq!(names(&restrictions.precede), ["[0-9 a-z]"]);
+        assert_eq!(names(&restrictions.follow), ["[0-9 a-z]"]);
+    }
+
+    /// `Op = "true" | "+x"`: `true` and `x` can each be the start of an
+    /// identifier, but `+x` cannot be the end of an identifier. References
+    /// get only the follow restriction.
+    #[test]
+    fn a_rule_gets_only_the_restriction_that_all_its_literals_get() {
+        let op_rule = LexicalRule::new(
+            Terminal::new("Op"),
+            Regex::alt(vec![Regex::literal("true"), Regex::literal("+x")]),
+        );
+        let (out, _) = run_transform(
+            |table| vec![refer("Op", table)],
+            vec![identifier_rule(), op_rule],
+            &id_rules(),
+        );
+        let restrictions = restrictions(first_symbol(&out));
+        assert!(restrictions.precede.is_empty());
+        assert_eq!(names(&restrictions.follow), ["[0-9 a-z]"]);
     }
 
     /// `Else = "else"`: a named single-literal rule is a keyword set of one.

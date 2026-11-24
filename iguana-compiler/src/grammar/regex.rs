@@ -159,6 +159,25 @@ impl Regex {
         }
     }
 
+    /// The regex that matches every string of this regex with its
+    /// characters in the opposite order. The reverse of `"r#" [a-z]+` is
+    /// `[a-z]+ "#r"`.
+    pub fn reversed(&self) -> Regex {
+        match self {
+            Regex::Char(_) | Regex::CharRange(_) | Regex::CharClass(_) | Regex::Epsilon => {
+                self.clone()
+            }
+            Regex::Seq(parts) => Regex::Seq(parts.iter().rev().map(Regex::reversed).collect()),
+            Regex::Alt(choices) => Regex::Alt(choices.iter().map(Regex::reversed).collect()),
+            Regex::Star(inner) => Regex::Star(Box::new(inner.reversed())),
+            Regex::Plus(inner) => Regex::Plus(Box::new(inner.reversed())),
+            Regex::Opt(inner) => Regex::Opt(Box::new(inner.reversed())),
+            Regex::Identifier(_) => {
+                unreachable!("Regex::Identifier should be inlined before calling reversed")
+            }
+        }
+    }
+
     pub fn char(c: char) -> Self {
         Regex::Char(c)
     }
@@ -367,6 +386,21 @@ mod tests {
     fn plus_is_nullable_when_its_operand_is_nullable() {
         assert!(Regex::Plus(Box::new(Regex::Opt(Box::new(Regex::Char('a'))))).is_nullable());
         assert!(!Regex::Plus(Box::new(Regex::Char('a'))).is_nullable());
+    }
+
+    /// `("r#" | "_") [a-z]+` reversed is `[a-z]+ ("#r" | "_")`.
+    #[test]
+    fn reversed_reverses_every_sequence() {
+        let letters = Regex::plus(Regex::range('a', 'z'));
+        let regex = Regex::seq(vec![
+            Regex::alt(vec![Regex::literal("r#"), Regex::literal("_")]),
+            letters.clone(),
+        ]);
+        let expected = Regex::seq(vec![
+            letters,
+            Regex::alt(vec![Regex::literal("#r"), Regex::literal("_")]),
+        ]);
+        assert_eq!(regex.reversed(), expected);
     }
 
     #[test]

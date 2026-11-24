@@ -1,0 +1,17 @@
+grammar ExactKeywordIgnoreCase
+
+// A case-insensitive keyword gets the same restrictions as a plain keyword.
+// The restrictions apply to every spelling of the keyword, such as `ELSE`
+// and `eLsE`.
+S
+  = Num? i"else" Id ";" #Else
+  | Id ";"              #Id
+
+@Identifier @Regex
+Id = [a-zA-Z][a-zA-Z_0-9]*
+
+@Regex
+Num = [0-9]+
+
+@Layout @Regex
+WS = [\ \n\t]*
