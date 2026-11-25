@@ -63,6 +63,7 @@ pub fn validate<'a>(grammar_def: &'a GrammarDef, spans: &GrammarSpans<'a>) -> Ve
     check_reserved_names(grammar_def, spans, &mut errors);
     check_duplicate_layout_rules(spans, &mut errors);
     check_layout_is_not_an_identifier_rule(grammar_def, spans, &mut errors);
+    check_string_literals_are_not_empty(grammar_def, spans, &mut errors);
     check_ignore_case_literals_have_letters(grammar_def, spans, &mut errors);
     check_grammar_has_a_syntax_rule(grammar_def, &mut errors);
     errors
@@ -784,11 +785,34 @@ fn check_duplicate_layout_rules(spans: &GrammarSpans<'_>, errors: &mut Vec<Gramm
     }
 }
 
+/// A string literal must not be empty. For example, `""` and `i""` are
+/// errors in both syntax and lexical rules. An optional part is written
+/// `A?` instead of `A | ""`.
+fn check_string_literals_are_not_empty<'a>(
+    grammar_def: &'a GrammarDef,
+    spans: &GrammarSpans<'a>,
+    errors: &mut Vec<GrammarError>,
+) {
+    let mut report = |span| {
+        errors.push(GrammarError {
+            message: "a string literal must not be empty".to_string(),
+            span,
+        });
+    };
+    grammar_def.for_each_symbol(&mut |symbol| {
+        if matches!(symbol, Symbol::Literal { text, .. } if text.is_empty()) {
+            report(spans.symbol(symbol).span);
+        }
+    });
+    spans.empty_strings.iter().copied().for_each(report);
+}
+
 /// An `i` literal of a syntax rule must have at least one ASCII letter. For
 /// example, `i"+"` is an error, because the prefix changes only how ASCII
 /// letters match, and `i"+"` would be a second terminal for the text of
 /// `"+"`. An `i` literal of a lexical rule is not a terminal, so it is not
-/// checked.
+/// checked. An empty `i` literal is an error of
+/// `check_string_literals_are_not_empty`.
 fn check_ignore_case_literals_have_letters<'a>(
     grammar_def: &'a GrammarDef,
     spans: &GrammarSpans<'a>,
@@ -802,7 +826,7 @@ fn check_ignore_case_literals_have_letters<'a>(
         else {
             return;
         };
-        if !text.contains(|c: char| c.is_ascii_alphabetic()) {
+        if !text.is_empty() && !text.contains(|c: char| c.is_ascii_alphabetic()) {
             errors.push(GrammarError {
                 message: "a literal with the `i` prefix must have at least one ASCII letter"
                     .to_string(),
@@ -1089,6 +1113,24 @@ Group3 = [g]
             errors[0].message,
             "a literal with the `i` prefix must have at least one ASCII letter"
         );
+    }
+
+    #[test]
+    fn an_empty_string_literal_is_rejected() {
+        let source =
+            "grammar G\n\nS = \"\" i\"\" \"a\" T\n\n@Regex\nT = \"\" \"b\" | (i\"\" \"c\")+\n";
+        let errors = parse_grammar(source).unwrap_err();
+        let spans: Vec<String> = errors
+            .iter()
+            .map(|error| {
+                let span = error.span;
+                source[span.left_extent as usize..span.right_extent as usize].to_string()
+            })
+            .collect();
+        assert_eq!(spans, ["\"\"", "i\"\"", "\"\"", "i\"\""]);
+        for error in &errors {
+            assert_eq!(error.message, "a string literal must not be empty");
+        }
     }
 
     #[test]

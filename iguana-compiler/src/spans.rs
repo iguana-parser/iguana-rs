@@ -83,6 +83,9 @@ pub struct GrammarSpans<'a> {
     /// `GrammarDef::layout` keeps only one rule, so validation needs this
     /// record of every declaration to report duplicates.
     pub layout_rules: Vec<(&'a str, Span)>,
+    /// The spans of the empty string literals (`""` and `i""`) of the lexical
+    /// rules, in source order.
+    pub empty_strings: Vec<Span>,
 }
 
 impl<'a> GrammarSpans<'a> {
@@ -397,6 +400,17 @@ fn collect_regex_spans<'a>(
     spans: &mut GrammarSpans<'a>,
 ) {
     match (gr_regex, pt_regex) {
+        (Regex::Seq(parts), parse_tree::Regex::String { string, .. }) if parts.is_empty() => {
+            spans.empty_strings.push(string.span());
+        }
+        (
+            Regex::Seq(parts),
+            parse_tree::Regex::IgnoreCaseString {
+                ignore_case_string, ..
+            },
+        ) if parts.is_empty() => {
+            spans.empty_strings.push(ignore_case_string.span());
+        }
         (Regex::Identifier(id), parse_tree::Regex::Identifier { identifier, .. }) => {
             let span = identifier.span();
             spans
