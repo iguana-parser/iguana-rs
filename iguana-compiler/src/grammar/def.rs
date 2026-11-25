@@ -609,19 +609,62 @@ fn resolve_identifier(symbol: Symbol, symbol_table: &SymbolTable) -> Symbol {
     }
 }
 
-/// Removes redundant structure such as single-symbol grouping (`(A)` → `A`).
-/// A regex serves recognition (match or not), not structure capture, so
-/// grouping carries no meaning.
-fn simplify_regex(regex: &mut Regex) {
+/// Simplifies a regex by removing redundant structure. A regex only determines
+/// whether a string matches and does not capture structure, so grouping has no
+/// meaning in a regex. A sequence or an alternation with one part becomes that
+/// part. For example, `(A)` becomes `A`.
+fn simplify_regex(regex: Regex) -> Regex {
     match regex {
-        Regex::Seq(parts) | Regex::Alt(parts) => {
-            parts.iter_mut().for_each(simplify_regex);
+        Regex::Seq(parts) => {
+            let mut parts: Vec<Regex> = parts.into_iter().map(simplify_regex).collect();
             if parts.len() == 1 {
-                *regex = parts.pop().unwrap();
+                parts.pop().unwrap()
+            } else {
+                Regex::Seq(parts)
             }
         }
-        Regex::Star(inner) | Regex::Plus(inner) | Regex::Opt(inner) => simplify_regex(inner),
-        _ => {}
+        Regex::Alt(choices) => {
+            let mut choices: Vec<Regex> = choices.into_iter().map(simplify_regex).collect();
+            if choices.len() == 1 {
+                choices.pop().unwrap()
+            } else {
+                Regex::Alt(choices)
+            }
+        }
+        Regex::Star(inner) => Regex::Star(Box::new(simplify_regex(*inner))),
+        Regex::Plus(inner) => Regex::Plus(Box::new(simplify_regex(*inner))),
+        Regex::Opt(inner) => Regex::Opt(Box::new(simplify_regex(*inner))),
+        regex => regex,
+    }
+}
+
+/// Flattens each sequence inside a sequence into its parent. For example,
+/// `Seq(Seq(R1, R2), R3)` becomes `Seq(R1, R2, R3)`.
+fn flatten_sequences(regex: Regex) -> Regex {
+    match regex {
+        Regex::Seq(parts) => {
+            let mut flattened = Vec::with_capacity(parts.len());
+            for part in parts {
+                append_flattened(part, &mut flattened);
+            }
+            Regex::Seq(flattened)
+        }
+        Regex::Alt(choices) => Regex::Alt(choices.into_iter().map(flatten_sequences).collect()),
+        Regex::Star(inner) => Regex::Star(Box::new(flatten_sequences(*inner))),
+        Regex::Plus(inner) => Regex::Plus(Box::new(flatten_sequences(*inner))),
+        Regex::Opt(inner) => Regex::Opt(Box::new(flatten_sequences(*inner))),
+        regex => regex,
+    }
+}
+
+fn append_flattened(regex: Regex, flattened: &mut Vec<Regex>) {
+    match regex {
+        Regex::Seq(parts) => {
+            for part in parts {
+                append_flattened(part, flattened);
+            }
+        }
+        regex => flattened.push(flatten_sequences(regex)),
     }
 }
 
@@ -743,11 +786,15 @@ fn place(
 /// single reference inherits its referenced rule's restrictions. A reference
 /// inside a larger regex matches only a sub-span, so its restrictions can't be
 /// hoisted: that is a grammar error rather than a silent drop.
-fn inline_regex_refs(mut lexical_rules: Vec<LexicalRule>) -> Result<Vec<LexicalRule>, Vec<String>> {
+fn inline_regex_refs(lexical_rules: Vec<LexicalRule>) -> Result<Vec<LexicalRule>, Vec<String>> {
     // Simplify bodies so a whole-body reference is a bare `Regex::Identifier`.
-    for rule in &mut lexical_rules {
-        simplify_regex(&mut rule.regex);
-    }
+    let lexical_rules: Vec<LexicalRule> = lexical_rules
+        .into_iter()
+        .map(|rule| LexicalRule {
+            regex: simplify_regex(rule.regex),
+            ..rule
+        })
+        .collect();
     let rules: FxHashMap<String, &LexicalRule> = lexical_rules
         .iter()
         .map(|rule| (rule.head.name.clone(), rule))
@@ -810,7 +857,7 @@ fn inline_regex_refs(mut lexical_rules: Vec<LexicalRule>) -> Result<Vec<LexicalR
         .map(|rule| (rule.head.name.clone(), rule.regex.clone()))
         .collect();
     let mut inlined_regexes: FxHashMap<String, Option<Regex>> = FxHashMap::default();
-    Ok(lexical_rules
+    let lexical_rules: Vec<LexicalRule> = lexical_rules
         .into_iter()
         .map(|rule| {
             let restrictions = resolved.remove(&rule.head.name).unwrap();
@@ -822,7 +869,19 @@ fn inline_regex_refs(mut lexical_rules: Vec<LexicalRule>) -> Result<Vec<LexicalR
                 precede_restriction: restrictions.precede_restriction,
             }
         })
-        .collect())
+        .collect();
+
+    // Nested sequences do not change what a regex matches, and can be
+    // flattened. For example, `Seq(Seq(R1, R2), R3)` is equivalent to
+    // `Seq(R1, R2, R3)`.
+    let lexical_rules: Vec<LexicalRule> = lexical_rules
+        .into_iter()
+        .map(|rule| LexicalRule {
+            regex: flatten_sequences(rule.regex),
+            ..rule
+        })
+        .collect();
+    Ok(lexical_rules)
 }
 
 /// Substitutes each `Regex::Identifier` with the referenced rule's regex body,
@@ -1796,5 +1855,54 @@ mod tests {
         let errors = inline_regex_refs(vec![letters, identifier, foo]).unwrap_err();
         assert_eq!(errors.len(), 1);
         assert!(errors[0].contains("stacks precede restrictions"));
+    }
+
+    /// `Call = i"sum" "("` has the regex of `i"sum("`.
+    #[test]
+    fn a_sequence_inside_a_sequence_is_flattened() {
+        let call = lexical(
+            "Call",
+            Regex::Seq(vec![Regex::ignore_case_literal("sum"), Regex::literal("(")]),
+        );
+
+        let rules = inline_regex_refs(vec![call]).unwrap();
+
+        assert_eq!(
+            find(&rules, "Call").regex,
+            Regex::ignore_case_literal("sum(")
+        );
+    }
+
+    /// `Call = Callee "("` with `Callee = i"sum"` has the regex of `i"sum("`.
+    #[test]
+    fn an_inlined_sequence_is_flattened() {
+        let callee = lexical("Callee", Regex::ignore_case_literal("sum"));
+        let call = lexical(
+            "Call",
+            Regex::Seq(vec![reference("Callee"), Regex::literal("(")]),
+        );
+
+        let rules = inline_regex_refs(vec![call, callee]).unwrap();
+
+        assert_eq!(
+            find(&rules, "Call").regex,
+            Regex::ignore_case_literal("sum(")
+        );
+    }
+
+    /// Flattening the body of `Alias` would leave the reference as its only
+    /// part, and `Alias` would inherit the restriction.
+    #[test]
+    fn a_restricted_reference_beside_an_empty_sequence_is_rejected() {
+        let mut identifier = lexical("Identifier", Regex::plus(Regex::range('a', 'z')));
+        identifier.except = vec![id("Keyword")];
+        let alias = lexical(
+            "Alias",
+            Regex::Seq(vec![Regex::Seq(vec![]), reference("Identifier")]),
+        );
+
+        let errors = inline_regex_refs(vec![identifier, alias]).unwrap_err();
+        assert_eq!(errors.len(), 1);
+        assert!(errors[0].contains("`Alias` references `Identifier` inside a larger regex"));
     }
 }
