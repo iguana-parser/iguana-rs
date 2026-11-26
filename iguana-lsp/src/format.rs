@@ -202,13 +202,17 @@ impl<'a> Formatter<'a> {
     ///
     /// A blank line separates consecutive blocks, so every block after the first
     /// has a blank line before it. When `following` is `None`, the end of the
-    /// document acts as a blank line after the final block.
+    /// document acts as a blank line after the final block. When `after_header`
+    /// is true, `previous` is the `grammar` header, which does not take a comment
+    /// below it. The first block is then placed as if a blank line preceded it,
+    /// and a blank line separates it from the header.
     fn emit_rule_boundary_comments(
         &mut self,
         out: &mut String,
         previous: Span,
         following: Option<Span>,
         previous_indent: &str,
+        after_header: bool,
     ) {
         let right = following.map_or_else(|| self.input.len(), |span| span.left_extent);
         self.emit_trailing_comment_between(out, previous.right_extent, right, previous);
@@ -223,8 +227,8 @@ impl<'a> Formatter<'a> {
             return;
         }
 
-        let blank_before =
-            self.has_blank_line_between(previous.right_extent, comments[0].span().left_extent);
+        let blank_before = after_header
+            || self.has_blank_line_between(previous.right_extent, comments[0].span().left_extent);
         let blank_after = following.is_none_or(|span| {
             self.has_blank_line_between(
                 comments.last().unwrap().span().right_extent,
@@ -245,6 +249,9 @@ impl<'a> Formatter<'a> {
             return;
         }
 
+        if after_header {
+            out.push_str("\n\n");
+        }
         let mut block_start = 0;
         let mut source_previous = previous;
         for block_end in block_boundaries
@@ -351,7 +358,13 @@ impl<'a> Formatter<'a> {
                 last_syntax_token(rules[index - 1].as_parse_tree()).unwrap()
             };
             let current = first_syntax_token(rule.as_parse_tree()).unwrap();
-            self.emit_rule_boundary_comments(&mut out, previous, Some(current), previous_indent);
+            self.emit_rule_boundary_comments(
+                &mut out,
+                previous,
+                Some(current),
+                previous_indent,
+                index == 0,
+            );
             previous_indent = self.format_rule(&mut out, rule);
         }
 
@@ -359,7 +372,13 @@ impl<'a> Formatter<'a> {
             .last()
             .and_then(|rule| last_syntax_token(rule.as_parse_tree()))
             .unwrap_or_else(|| grammar.name().span());
-        self.emit_rule_boundary_comments(&mut out, previous, None, previous_indent);
+        self.emit_rule_boundary_comments(
+            &mut out,
+            previous,
+            None,
+            previous_indent,
+            rules.is_empty(),
+        );
         out.push('\n');
         out
     }
@@ -1347,6 +1366,94 @@ Second = "second"
     }
 
     #[test]
+    fn test_comments_below_the_grammar_header() {
+        let cases = [
+            (
+                r#"grammar T
+// c
+A = "x"
+"#,
+                r#"grammar T
+
+// c
+A
+  = "x"
+"#,
+            ),
+            (
+                r#"grammar T
+// c
+
+A = "x"
+"#,
+                r#"grammar T
+
+// c
+
+A
+  = "x"
+"#,
+            ),
+            (
+                r#"grammar T
+
+// c
+A = "x"
+"#,
+                r#"grammar T
+
+// c
+A
+  = "x"
+"#,
+            ),
+            (
+                r#"grammar T
+
+// c
+
+A = "x"
+"#,
+                r#"grammar T
+
+// c
+
+A
+  = "x"
+"#,
+            ),
+            (
+                r#"grammar T
+// a
+
+// b
+A = "x"
+"#,
+                r#"grammar T
+
+// a
+
+// b
+A
+  = "x"
+"#,
+            ),
+            (
+                r#"grammar T
+// c
+"#,
+                r#"grammar T
+
+// c
+"#,
+            ),
+        ];
+        for (input, expected) in cases {
+            assert_eq!(format_source(input).unwrap(), expected, "{input}");
+        }
+    }
+
+    #[test]
     fn test_comments_inside_regex_rule_layouts() {
         let input = r#"grammar Test
 
@@ -1442,7 +1549,7 @@ Token // separates the head from equals
             ),
             (
                 "grammar Test // trailing\n// explains grammar\n\nS = \"a\"\n",
-                "grammar Test // trailing\n// explains grammar\n\nS\n  = \"a\"\n",
+                "grammar Test // trailing\n\n// explains grammar\n\nS\n  = \"a\"\n",
             ),
         ];
 

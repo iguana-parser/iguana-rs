@@ -56,6 +56,11 @@ these rules for each standalone block between grammar constructs:
 - **No blank line on either side.** The formatter cannot determine an
   attachment and returns the source unchanged.
 
+A block below the `grammar` header does not attach to the header. The formatter
+writes a blank line after the header and treats the block as if the source had
+a blank line there. The block then attaches to the first rule or stands
+separate from both.
+
 When several blocks occur between two constructs, the formatter applies these
 rules to each block independently. For example, with no outer blank lines and
 one blank line between two blocks, the formatter attaches the first block to
@@ -63,11 +68,11 @@ the preceding construct and the second block to the following construct.
 
 A comment on the same line as the end of a rule stays on that line. An attached
 comment after a syntax rule or a multi-line lexical rule uses the rule body's
-two-space indentation. An attached comment after a single-line lexical rule or
-the grammar header starts at the beginning of the line. After the final rule,
-the formatter attaches an adjacent block to that rule. A blank line before the
-block separates it from the rule. The formatter returns the source unchanged
-when it encounters any other comment position that it cannot preserve.
+two-space indentation. An attached comment after a single-line lexical rule
+starts at the beginning of the line. After the final rule, the formatter
+attaches an adjacent block to that rule. A blank line before the block
+separates it from the rule. The formatter returns the source unchanged when it
+encounters any other comment position that it cannot preserve.
 
 Consecutive comment lines form one block. When one or more blank lines separate
 two comment blocks, the formatted output contains one blank line between the
