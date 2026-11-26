@@ -87,19 +87,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     SlotId(1) | SlotId(3) | SlotId(11) | SlotId(13) | SlotId(15) | SlotId(23)
                     | SlotId(25) | SlotId(27) | SlotId(29) | SlotId(31) | SlotId(33)
                     | SlotId(35) | SlotId(51) | SlotId(61) | SlotId(65) | SlotId(67)
-                    | SlotId(338) | SlotId(340) | SlotId(351) | SlotId(353) | SlotId(355)
-                    | SlotId(357) | SlotId(362) | SlotId(364) | SlotId(366) | SlotId(368)
-                    | SlotId(375) | SlotId(382) | SlotId(389) | SlotId(397) | SlotId(402)
-                    | SlotId(408) | SlotId(410) | SlotId(75) | SlotId(79) | SlotId(83)
+                    | SlotId(332) | SlotId(334) | SlotId(345) | SlotId(347) | SlotId(349)
+                    | SlotId(351) | SlotId(356) | SlotId(358) | SlotId(360) | SlotId(362)
+                    | SlotId(369) | SlotId(376) | SlotId(383) | SlotId(391) | SlotId(396)
+                    | SlotId(402) | SlotId(404) | SlotId(75) | SlotId(79) | SlotId(83)
                     | SlotId(87) | SlotId(91) | SlotId(95) | SlotId(99) | SlotId(103)
                     | SlotId(105) | SlotId(122) | SlotId(124) | SlotId(126) | SlotId(142)
-                    | SlotId(154) | SlotId(156) | SlotId(174) | SlotId(180) | SlotId(182)
-                    | SlotId(200) | SlotId(202) | SlotId(211) | SlotId(220) | SlotId(222)
-                    | SlotId(228) | SlotId(234) | SlotId(243) | SlotId(262) | SlotId(266)
-                    | SlotId(270) | SlotId(274) | SlotId(278) | SlotId(282) | SlotId(286)
-                    | SlotId(290) | SlotId(294) | SlotId(298) | SlotId(302) | SlotId(306)
-                    | SlotId(310) | SlotId(314) | SlotId(318) | SlotId(322) | SlotId(326)
-                    | SlotId(330) => {
+                    | SlotId(154) | SlotId(156) | SlotId(171) | SlotId(177) | SlotId(179)
+                    | SlotId(197) | SlotId(199) | SlotId(205) | SlotId(214) | SlotId(216)
+                    | SlotId(222) | SlotId(228) | SlotId(237) | SlotId(256) | SlotId(260)
+                    | SlotId(264) | SlotId(268) | SlotId(272) | SlotId(276) | SlotId(280)
+                    | SlotId(284) | SlotId(288) | SlotId(292) | SlotId(296) | SlotId(300)
+                    | SlotId(304) | SlotId(308) | SlotId(312) | SlotId(316) | SlotId(320)
+                    | SlotId(324) => {
                         if let Some((j, right_child)) = self.ll1_parse_layout(input_index, None) {
                             if let Some(new_node) = self.create_intermediate_node(
                                 result,
@@ -153,7 +153,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_GRAMMAR);
                     }
                     // Rule : . SyntaxRule, and StartSyntaxRule : Layout . start:SyntaxRule Layout
-                    SlotId(6) | SlotId(269) => {
+                    SlotId(6) | SlotId(263) => {
                         self.create(
                             NonterminalId(2),
                             &PREDICTION_SYNTAX_RULE,
@@ -171,7 +171,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_RULE);
                     }
                     // Rule : . RegexRule, and StartRegexRule : Layout . start:RegexRule Layout
-                    SlotId(8) | SlotId(277) => {
+                    SlotId(8) | SlotId(271) => {
                         self.create(
                             NonterminalId(4),
                             &PREDICTION_REGEX_RULE,
@@ -181,7 +181,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                             env,
                         );
                     }
-                    // SyntaxRule : . Opt_0 Layout head:Identifier Layout "=" Layout Star_1
+                    // SyntaxRule : . Opt_0 Layout head:Identifier Layout "=" Layout Plus_1
                     SlotId(10) => {
                         if let Some((j, right_child)) = self.ll1_parse_opt_0(input_index, None) {
                             input_index = j;
@@ -189,9 +189,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                             next = Some(slot_id.next());
                         }
                     }
-                    // SyntaxRule : Opt_0 Layout head:Identifier Layout . "=" Layout Star_1, and RegexRule :
+                    // SyntaxRule : Opt_0 Layout head:Identifier Layout . "=" Layout Plus_1, and RegexRule :
                     // layout:Opt_1 Layout id_annot:Opt_2 Layout "@Regex" Layout Identifier Layout . "=" Layout
-                    // Opt_3 Layout body:Plus_2 Layout Star_2
+                    // Opt_3 Layout body:Plus_2 Layout Star_1
                     SlotId(14) | SlotId(30) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(12),
@@ -211,18 +211,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                             }
                         }
                     }
-                    // SyntaxRule : Opt_0 Layout head:Identifier Layout "=" Layout . Star_1
-                    SlotId(16) => {
+                    // SyntaxRule : Opt_0 Layout head:Identifier Layout "=" Layout . Plus_1, and Plus_1 : .
+                    // Plus_1 Layout ">" Layout PriorityLevel
+                    SlotId(16) | SlotId(153) => {
                         self.create(
-                            NonterminalId(22),
-                            &PREDICTION_STAR_1,
+                            NonterminalId(21),
+                            &PREDICTION_PLUS_1,
                             result,
                             gss_node_id,
                             slot_id.next(),
                             env,
                         );
                     }
-                    // SyntaxRule : Opt_0 Layout head:Identifier Layout "=" Layout Star_1.
+                    // SyntaxRule : Opt_0 Layout head:Identifier Layout "=" Layout Plus_1.
                     SlotId(17) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -230,7 +231,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_SYNTAX_RULE);
                     }
                     // RegexRule : . layout:Opt_1 Layout id_annot:Opt_2 Layout "@Regex" Layout Identifier Layout
-                    // "=" Layout Opt_3 Layout body:Plus_2 Layout Star_2
+                    // "=" Layout Opt_3 Layout body:Plus_2 Layout Star_1
                     SlotId(22) => {
                         if let Some((j, right_child)) = self.ll1_parse_opt_1(input_index, None) {
                             input_index = j;
@@ -239,7 +240,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         }
                     }
                     // RegexRule : layout:Opt_1 Layout . id_annot:Opt_2 Layout "@Regex" Layout Identifier Layout
-                    // "=" Layout Opt_3 Layout body:Plus_2 Layout Star_2
+                    // "=" Layout Opt_3 Layout body:Plus_2 Layout Star_1
                     SlotId(24) => {
                         if let Some((j, right_child)) = self.ll1_parse_opt_2(input_index, None) {
                             if let Some(new_node) = self.create_intermediate_node(
@@ -255,7 +256,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         }
                     }
                     // RegexRule : layout:Opt_1 Layout id_annot:Opt_2 Layout . "@Regex" Layout Identifier Layout
-                    // "=" Layout Opt_3 Layout body:Plus_2 Layout Star_2
+                    // "=" Layout Opt_3 Layout body:Plus_2 Layout Star_1
                     SlotId(26) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(17),
@@ -276,10 +277,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         }
                     }
                     // RegexRule : layout:Opt_1 Layout id_annot:Opt_2 Layout "@Regex" Layout Identifier Layout
-                    // "=" Layout . Opt_3 Layout body:Plus_2 Layout Star_2
+                    // "=" Layout . Opt_3 Layout body:Plus_2 Layout Star_1
                     SlotId(32) => {
                         self.create(
-                            NonterminalId(25),
+                            NonterminalId(24),
                             &PREDICTION_OPT_3,
                             result,
                             gss_node_id,
@@ -288,10 +289,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         );
                     }
                     // RegexRule : layout:Opt_1 Layout id_annot:Opt_2 Layout "@Regex" Layout Identifier Layout
-                    // "=" Layout Opt_3 Layout . body:Plus_2 Layout Star_2, and 2 more slots
-                    SlotId(34) | SlotId(104) | SlotId(179) => {
+                    // "=" Layout Opt_3 Layout . body:Plus_2 Layout Star_1, and 2 more slots
+                    SlotId(34) | SlotId(104) | SlotId(176) => {
                         self.create(
-                            NonterminalId(27),
+                            NonterminalId(26),
                             &PREDICTION_PLUS_2,
                             result,
                             gss_node_id,
@@ -300,9 +301,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         );
                     }
                     // RegexRule : layout:Opt_1 Layout id_annot:Opt_2 Layout "@Regex" Layout Identifier Layout
-                    // "=" Layout Opt_3 Layout body:Plus_2 Layout . Star_2
+                    // "=" Layout Opt_3 Layout body:Plus_2 Layout . Star_1
                     SlotId(36) => {
-                        if let Some((j, right_child)) = self.ll1_parse_star_2(input_index, None) {
+                        if let Some((j, right_child)) = self.ll1_parse_star_1(input_index, None) {
                             if let Some(new_node) = self.create_intermediate_node(
                                 result,
                                 right_child,
@@ -316,17 +317,17 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         }
                     }
                     // RegexRule : layout:Opt_1 Layout id_annot:Opt_2 Layout "@Regex" Layout Identifier Layout
-                    // "=" Layout Opt_3 Layout body:Plus_2 Layout Star_2.
+                    // "=" Layout Opt_3 Layout body:Plus_2 Layout Star_1.
                     SlotId(37) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_REGEX_RULE);
                     }
-                    // PriorityLevel : . Opt_4 Layout Star_3
+                    // PriorityLevel : . Opt_4 Layout Plus_5
                     SlotId(50) => {
                         self.create(
-                            NonterminalId(30),
+                            NonterminalId(29),
                             &PREDICTION_OPT_4,
                             result,
                             gss_node_id,
@@ -334,18 +335,18 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                             env,
                         );
                     }
-                    // PriorityLevel : Opt_4 Layout . Star_3
-                    SlotId(52) => {
+                    // PriorityLevel : Opt_4 Layout . Plus_5, and Plus_5 : . Plus_5 Layout "|" Layout Alternative
+                    SlotId(52) | SlotId(196) => {
                         self.create(
-                            NonterminalId(32),
-                            &PREDICTION_STAR_3,
+                            NonterminalId(30),
+                            &PREDICTION_PLUS_5,
                             result,
                             gss_node_id,
                             slot_id.next(),
                             env,
                         );
                     }
-                    // PriorityLevel : Opt_4 Layout Star_3.
+                    // PriorityLevel : Opt_4 Layout Plus_5.
                     SlotId(53) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
@@ -359,9 +360,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         );
                     }
                     // Alternative : . Plus_6 Layout Opt_5, and 3 more slots
-                    SlotId(60) | SlotId(210) | SlotId(223) | SlotId(225) => {
+                    SlotId(60) | SlotId(204) | SlotId(217) | SlotId(219) => {
                         self.create(
-                            NonterminalId(33),
+                            NonterminalId(31),
                             &PREDICTION_PLUS_6,
                             result,
                             gss_node_id,
@@ -392,7 +393,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_ALTERNATIVE);
                     }
                     // Alternative : . "(" Layout ")" Layout Opt_5, and 2 more slots
-                    SlotId(64) | SlotId(337) | SlotId(102) => {
+                    SlotId(64) | SlotId(331) | SlotId(102) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(25),
                             input_index,
@@ -405,7 +406,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         }
                     }
                     // Alternative : "(" Layout . ")" Layout Opt_5, and 2 more slots
-                    SlotId(66) | SlotId(341) | SlotId(106) => {
+                    SlotId(66) | SlotId(335) | SlotId(106) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(26),
                             input_index,
@@ -425,7 +426,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         }
                     }
                     // Symbol(p: i32) : . Identifier return (0, 0), and 2 more slots
-                    SlotId(334) | SlotId(407) | SlotId(116) => {
+                    SlotId(328) | SlotId(401) | SlotId(116) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(2),
                             input_index,
@@ -438,14 +439,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         }
                     }
                     // Symbol(p: i32) : Identifier . return (0, 0), and 17 more slots
-                    SlotId(335) | SlotId(342) | SlotId(345) | SlotId(348) | SlotId(359)
-                    | SlotId(370) | SlotId(374) | SlotId(377) | SlotId(381) | SlotId(384)
-                    | SlotId(388) | SlotId(391) | SlotId(395) | SlotId(396) | SlotId(399)
-                    | SlotId(404) | SlotId(405) | SlotId(412) => {
+                    SlotId(329) | SlotId(336) | SlotId(339) | SlotId(342) | SlotId(353)
+                    | SlotId(364) | SlotId(368) | SlotId(371) | SlotId(375) | SlotId(378)
+                    | SlotId(382) | SlotId(385) | SlotId(389) | SlotId(390) | SlotId(393)
+                    | SlotId(398) | SlotId(399) | SlotId(406) => {
                         next = Some(slot_id.next());
                     }
                     // Symbol(p: i32) : Identifier return (0, 0).
-                    SlotId(336) => {
+                    SlotId(330) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
@@ -460,9 +461,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Symbol(p: i32) : "(" Layout . seqs:Plus_7 Layout ")" return (0, 1), and Plus_7 : . Plus_7
                     // Layout "|" Layout Plus_6
-                    SlotId(339) | SlotId(219) => {
+                    SlotId(333) | SlotId(213) => {
                         self.create(
-                            NonterminalId(35),
+                            NonterminalId(33),
                             &PREDICTION_PLUS_7,
                             result,
                             gss_node_id,
@@ -471,7 +472,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         );
                     }
                     // Symbol(p: i32) : "(" Layout seqs:Plus_7 Layout ")" return (0, 1).
-                    SlotId(343) => {
+                    SlotId(337) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
@@ -485,7 +486,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         );
                     }
                     // Symbol(p: i32) : . String return (0, 2), and Regex : . String
-                    SlotId(344) | SlotId(112) => {
+                    SlotId(338) | SlotId(112) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(3),
                             input_index,
@@ -498,7 +499,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         }
                     }
                     // Symbol(p: i32) : String return (0, 2).
-                    SlotId(346) => {
+                    SlotId(340) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
@@ -512,7 +513,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         );
                     }
                     // Symbol(p: i32) : . IgnoreCaseString return (0, 3), and Regex : . IgnoreCaseString
-                    SlotId(347) | SlotId(114) => {
+                    SlotId(341) | SlotId(114) => {
                         if let Some((j, right_child)) =
                             self.ll1_parse_ignore_case_string(input_index, None)
                         {
@@ -529,7 +530,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         }
                     }
                     // Symbol(p: i32) : IgnoreCaseString return (0, 3).
-                    SlotId(349) => {
+                    SlotId(343) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
@@ -545,7 +546,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     // Symbol(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*"
                     // return (0, 4), and Symbol(p: i32) : . "{" Layout symbol:Symbol(0) Layout sep:Symbol(0)
                     // Layout "}" Layout "+" return (0, 5)
-                    SlotId(350) | SlotId(361) => {
+                    SlotId(344) | SlotId(355) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(27),
                             input_index,
@@ -559,14 +560,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Symbol(p: i32) : "{" Layout . symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*"
                     // return (0, 4), and 6 more slots
-                    SlotId(352) | SlotId(354) | SlotId(363) | SlotId(365) | SlotId(212)
-                    | SlotId(214) | SlotId(301) => {
+                    SlotId(346) | SlotId(348) | SlotId(357) | SlotId(359) | SlotId(206)
+                    | SlotId(208) | SlotId(295) => {
                         self.create_symbol(result, gss_node_id, slot_id.next(), env, 0);
                     }
                     // Symbol(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout . "}" Layout "*"
                     // return (0, 4), and Symbol(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0)
                     // Layout . "}" Layout "+" return (0, 5)
-                    SlotId(356) | SlotId(367) => {
+                    SlotId(350) | SlotId(361) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(28),
                             input_index,
@@ -587,7 +588,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Symbol(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout . "*"
                     // return (0, 4), and 2 more slots
-                    SlotId(358) | SlotId(376) | SlotId(96) => {
+                    SlotId(352) | SlotId(370) | SlotId(96) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(29),
                             input_index,
@@ -608,7 +609,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Symbol(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "*"
                     // return (0, 4).
-                    SlotId(360) => {
+                    SlotId(354) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
@@ -623,7 +624,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Symbol(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout . "+"
                     // return (0, 5), and 2 more slots
-                    SlotId(369) | SlotId(383) | SlotId(92) => {
+                    SlotId(363) | SlotId(377) | SlotId(92) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(30),
                             input_index,
@@ -644,7 +645,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Symbol(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) Layout "}" Layout "+"
                     // return (0, 5).
-                    SlotId(371) => {
+                    SlotId(365) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
@@ -659,14 +660,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Symbol(p: i32) : . [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout
                     // "*" return (0, 6), and 3 more slots
-                    SlotId(372) | SlotId(379) | SlotId(386) | SlotId(393) => {
+                    SlotId(366) | SlotId(373) | SlotId(380) | SlotId(387) => {
                         if 3 >= self.lookup(BINDING_P, env.unwrap()) {
                             next = Some(slot_id.next());
                         }
                     }
                     // Symbol(p: i32) : [3 >= p] . (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout
                     // "*" return (0, 6), and 3 more slots
-                    SlotId(373) | SlotId(380) | SlotId(387) | SlotId(394) => {
+                    SlotId(367) | SlotId(374) | SlotId(381) | SlotId(388) => {
                         self.create_symbol(
                             result,
                             gss_node_id,
@@ -677,7 +678,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Symbol(p: i32) : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout
                     // "*" return (0, 6).
-                    SlotId(378) => {
+                    SlotId(372) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
@@ -692,7 +693,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Symbol(p: i32) : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout
                     // "+" return (0, 7).
-                    SlotId(385) => {
+                    SlotId(379) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
@@ -707,7 +708,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Symbol(p: i32) : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout .
                     // "?" return (0, 8), and Regex : Regex Layout . "?"
-                    SlotId(390) | SlotId(100) => {
+                    SlotId(384) | SlotId(100) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(31),
                             input_index,
@@ -728,7 +729,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Symbol(p: i32) : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_pr == 0) || (l_pr >= 3)] Layout
                     // "?" return (0, 8).
-                    SlotId(392) => {
+                    SlotId(386) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
@@ -744,9 +745,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     // Symbol(p: i32) : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_label == NO_LABEL) || ((512 >>
                     // l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] Layout . conditions:Plus_8 return (0, 9),
                     // and Plus_8 : . Plus_8 Layout PostCondition
-                    SlotId(398) | SlotId(227) => {
+                    SlotId(392) | SlotId(221) => {
                         self.create(
-                            NonterminalId(36),
+                            NonterminalId(34),
                             &PREDICTION_PLUS_8,
                             result,
                             gss_node_id,
@@ -756,7 +757,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Symbol(p: i32) : [3 >= p] (l_pr, l_label)=Symbol(p) [(l_label == NO_LABEL) || ((512 >>
                     // l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] Layout conditions:Plus_8 return (0, 9).
-                    SlotId(400) => {
+                    SlotId(394) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
@@ -772,9 +773,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     // Symbol(p: i32) : . conditions:Plus_9 Layout (r_pr, r_label)=Symbol(2) [(r_label ==
                     // NO_LABEL) || ((1024 >> r_label) & 1 == 0)] return ((r_pr == 0) ? 2 : min(r_pr, 2), 10),
                     // and Plus_9 : . Plus_9 Layout PreCondition
-                    SlotId(401) | SlotId(233) => {
+                    SlotId(395) | SlotId(227) => {
                         self.create(
-                            NonterminalId(37),
+                            NonterminalId(35),
                             &PREDICTION_PLUS_9,
                             result,
                             gss_node_id,
@@ -784,12 +785,12 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Symbol(p: i32) : conditions:Plus_9 Layout . (r_pr, r_label)=Symbol(2) [(r_label ==
                     // NO_LABEL) || ((1024 >> r_label) & 1 == 0)] return ((r_pr == 0) ? 2 : min(r_pr, 2), 10)
-                    SlotId(403) => {
+                    SlotId(397) => {
                         self.create_symbol(result, gss_node_id, slot_id.next(), env, 2);
                     }
                     // Symbol(p: i32) : conditions:Plus_9 Layout (r_pr, r_label)=Symbol(2) [(r_label == NO_LABEL)
                     // || ((1024 >> r_label) & 1 == 0)] return ((r_pr == 0) ? 2 : min(r_pr, 2), 10).
-                    SlotId(406) => {
+                    SlotId(400) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
@@ -808,7 +809,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         );
                     }
                     // Symbol(p: i32) : label:Identifier Layout . ":" Layout Symbol(1) return (1, 11)
-                    SlotId(409) => {
+                    SlotId(403) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(32),
                             input_index,
@@ -828,11 +829,11 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         }
                     }
                     // Symbol(p: i32) : label:Identifier Layout ":" Layout . Symbol(1) return (1, 11)
-                    SlotId(411) => {
+                    SlotId(405) => {
                         self.create_symbol(result, gss_node_id, slot_id.next(), env, 1);
                     }
                     // Symbol(p: i32) : label:Identifier Layout ":" Layout Symbol(1) return (1, 11).
-                    SlotId(413) => {
+                    SlotId(407) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
@@ -911,8 +912,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         }
                     }
                     // Regex : . Regex Layout "+", and 5 more slots
-                    SlotId(90) | SlotId(94) | SlotId(98) | SlotId(175) | SlotId(177)
-                    | SlotId(313) => {
+                    SlotId(90) | SlotId(94) | SlotId(98) | SlotId(172) | SlotId(174)
+                    | SlotId(307) => {
                         self.create(
                             NonterminalId(12),
                             &PREDICTION_REGEX,
@@ -931,7 +932,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_REGEX);
                     }
                     // Regex : . CharClass, and StartCharClass : Layout . start:CharClass Layout
-                    SlotId(108) | SlotId(321) => {
+                    SlotId(108) | SlotId(315) => {
                         self.create(
                             NonterminalId(14),
                             &PREDICTION_CHAR_CLASS,
@@ -984,9 +985,9 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // CharClass : neg:Opt_6 Layout "[" Layout . Plus_10 Layout "]", and Plus_10 : . Plus_10
                     // Layout RangeElement
-                    SlotId(125) | SlotId(242) => {
+                    SlotId(125) | SlotId(236) => {
                         self.create(
-                            NonterminalId(39),
+                            NonterminalId(37),
                             &PREDICTION_PLUS_10,
                             result,
                             gss_node_id,
@@ -1074,7 +1075,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         );
                     }
                     // Plus_0 : Plus_0 Layout . Rule, and 2 more slots
-                    SlotId(143) | SlotId(145) | SlotId(265) => {
+                    SlotId(143) | SlotId(145) | SlotId(259) => {
                         self.create(
                             NonterminalId(1),
                             &PREDICTION_RULE,
@@ -1103,17 +1104,6 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         let result = self.get_or_create_epsilon_node(input_index);
                         self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_STAR_0);
                     }
-                    // Plus_1 : . Plus_1 Layout ">" Layout PriorityLevel, and Star_1 : . Plus_1
-                    SlotId(153) | SlotId(161) => {
-                        self.create(
-                            NonterminalId(21),
-                            &PREDICTION_PLUS_1,
-                            result,
-                            gss_node_id,
-                            slot_id.next(),
-                            env,
-                        );
-                    }
                     // Plus_1 : Plus_1 Layout . ">" Layout PriorityLevel
                     SlotId(155) => {
                         if let Some((j, right_child)) = self.match_terminal(
@@ -1135,7 +1125,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         }
                     }
                     // Plus_1 : Plus_1 Layout ">" Layout . PriorityLevel, and 2 more slots
-                    SlotId(157) | SlotId(159) | SlotId(289) => {
+                    SlotId(157) | SlotId(159) | SlotId(283) => {
                         self.create(
                             NonterminalId(7),
                             &PREDICTION_PRIORITY_LEVEL,
@@ -1152,20 +1142,8 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         };
                         self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_PLUS_1);
                     }
-                    // Star_1 : Plus_1.
-                    SlotId(162) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_STAR_1);
-                    }
-                    // Star_1 : .
-                    SlotId(163) => {
-                        let result = self.get_or_create_epsilon_node(input_index);
-                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_STAR_1);
-                    }
                     // Opt_3 : . RegexPreCondition
-                    SlotId(170) => {
+                    SlotId(167) => {
                         if let Some((j, right_child)) =
                             self.ll1_parse_regex_pre_condition(input_index, None)
                         {
@@ -1182,21 +1160,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         }
                     }
                     // Opt_3 : RegexPreCondition.
-                    SlotId(171) => {
+                    SlotId(168) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_OPT_3);
                     }
                     // Opt_3 : .
-                    SlotId(172) => {
+                    SlotId(169) => {
                         let result = self.get_or_create_epsilon_node(input_index);
                         self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_OPT_3);
                     }
                     // Plus_3 : . Plus_3 Layout Regex, and 2 more slots
-                    SlotId(173) | SlotId(183) | SlotId(185) => {
+                    SlotId(170) | SlotId(180) | SlotId(182) => {
                         self.create(
-                            NonterminalId(26),
+                            NonterminalId(25),
                             &PREDICTION_PLUS_3,
                             result,
                             gss_node_id,
@@ -1205,14 +1183,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         );
                     }
                     // Plus_3 : Plus_3 Layout Regex., and Plus_3 : Regex.
-                    SlotId(176) | SlotId(178) => {
+                    SlotId(173) | SlotId(175) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_PLUS_3);
                     }
                     // Plus_2 : Plus_2 Layout . "|" Layout Plus_3, and 2 more slots
-                    SlotId(181) | SlotId(201) | SlotId(221) => {
+                    SlotId(178) | SlotId(198) | SlotId(215) => {
                         if let Some((j, right_child)) = self.match_terminal(
                             TerminalId(18),
                             input_index,
@@ -1232,14 +1210,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         }
                     }
                     // Plus_2 : Plus_2 Layout "|" Layout Plus_3., and Plus_2 : Plus_3.
-                    SlotId(184) | SlotId(186) => {
+                    SlotId(181) | SlotId(183) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_PLUS_2);
                     }
                     // Opt_4 : . Associativity
-                    SlotId(196) => {
+                    SlotId(193) => {
                         if let Some((j, right_child)) =
                             self.ll1_parse_associativity(input_index, None)
                         {
@@ -1256,30 +1234,19 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         }
                     }
                     // Opt_4 : Associativity.
-                    SlotId(197) => {
+                    SlotId(194) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_OPT_4);
                     }
                     // Opt_4 : .
-                    SlotId(198) => {
+                    SlotId(195) => {
                         let result = self.get_or_create_epsilon_node(input_index);
                         self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_OPT_4);
                     }
-                    // Plus_5 : . Plus_5 Layout "|" Layout Alternative, and Star_3 : . Plus_5
-                    SlotId(199) | SlotId(207) => {
-                        self.create(
-                            NonterminalId(31),
-                            &PREDICTION_PLUS_5,
-                            result,
-                            gss_node_id,
-                            slot_id.next(),
-                            env,
-                        );
-                    }
                     // Plus_5 : Plus_5 Layout "|" Layout . Alternative, and 2 more slots
-                    SlotId(203) | SlotId(205) | SlotId(297) => {
+                    SlotId(200) | SlotId(202) | SlotId(291) => {
                         self.create(
                             NonterminalId(9),
                             &PREDICTION_ALTERNATIVE,
@@ -1290,40 +1257,28 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         );
                     }
                     // Plus_5 : Plus_5 Layout "|" Layout Alternative., and Plus_5 : Alternative.
-                    SlotId(204) | SlotId(206) => {
+                    SlotId(201) | SlotId(203) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_PLUS_5);
                     }
-                    // Star_3 : Plus_5.
-                    SlotId(208) => {
-                        let Some(result) = result else {
-                            unreachable!("result cannot be None here.")
-                        };
-                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_STAR_3);
-                    }
-                    // Star_3 : .
-                    SlotId(209) => {
-                        let result = self.get_or_create_epsilon_node(input_index);
-                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_STAR_3);
-                    }
                     // Plus_6 : Plus_6 Layout Symbol(0)., and Plus_6 : Symbol(0).
-                    SlotId(213) | SlotId(215) => {
+                    SlotId(207) | SlotId(209) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_PLUS_6);
                     }
                     // Plus_7 : Plus_7 Layout "|" Layout Plus_6., and Plus_7 : Plus_6.
-                    SlotId(224) | SlotId(226) => {
+                    SlotId(218) | SlotId(220) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_PLUS_7);
                     }
                     // Plus_8 : Plus_8 Layout . PostCondition, and 2 more slots
-                    SlotId(229) | SlotId(231) | SlotId(309) => {
+                    SlotId(223) | SlotId(225) | SlotId(303) => {
                         self.create(
                             NonterminalId(11),
                             &PREDICTION_POST_CONDITION,
@@ -1334,7 +1289,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         );
                     }
                     // Plus_8 : Plus_8 Layout PostCondition., and Plus_8 : PostCondition.
-                    SlotId(230) | SlotId(232) => {
+                    SlotId(224) | SlotId(226) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
@@ -1342,7 +1297,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                     }
                     // Plus_9 : Plus_9 Layout . PreCondition, and StartPreCondition : Layout . start:PreCondition
                     // Layout
-                    SlotId(235) | SlotId(305) => {
+                    SlotId(229) | SlotId(299) => {
                         if let Some((j, right_child)) =
                             self.ll1_parse_pre_condition(input_index, None)
                         {
@@ -1366,14 +1321,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         }
                     }
                     // Plus_9 : Plus_9 Layout PreCondition., and Plus_9 : PreCondition.
-                    SlotId(236) | SlotId(238) => {
+                    SlotId(230) | SlotId(232) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_PLUS_9);
                     }
                     // Plus_9 : . PreCondition
-                    SlotId(237) => {
+                    SlotId(231) => {
                         if let Some((j, right_child)) =
                             self.ll1_parse_pre_condition(input_index, None)
                         {
@@ -1390,7 +1345,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         }
                     }
                     // Plus_10 : Plus_10 Layout . RangeElement, and 2 more slots
-                    SlotId(244) | SlotId(246) | SlotId(325) => {
+                    SlotId(238) | SlotId(240) | SlotId(319) => {
                         self.create(
                             NonterminalId(15),
                             &PREDICTION_RANGE_ELEMENT,
@@ -1401,17 +1356,17 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         );
                     }
                     // Plus_10 : Plus_10 Layout RangeElement., and Plus_10 : RangeElement.
-                    SlotId(245) | SlotId(247) => {
+                    SlotId(239) | SlotId(241) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_PLUS_10);
                     }
                     // StartGrammar : . Layout start:Grammar Layout, and 18 more slots
-                    SlotId(260) | SlotId(264) | SlotId(268) | SlotId(272) | SlotId(276)
-                    | SlotId(280) | SlotId(284) | SlotId(288) | SlotId(292) | SlotId(296)
-                    | SlotId(300) | SlotId(304) | SlotId(308) | SlotId(312) | SlotId(316)
-                    | SlotId(320) | SlotId(324) | SlotId(328) | SlotId(332) => {
+                    SlotId(254) | SlotId(258) | SlotId(262) | SlotId(266) | SlotId(270)
+                    | SlotId(274) | SlotId(278) | SlotId(282) | SlotId(286) | SlotId(290)
+                    | SlotId(294) | SlotId(298) | SlotId(302) | SlotId(306) | SlotId(310)
+                    | SlotId(314) | SlotId(318) | SlotId(322) | SlotId(326) => {
                         if let Some((j, right_child)) = self.ll1_parse_layout(input_index, None) {
                             input_index = j;
                             result = Some(right_child);
@@ -1419,7 +1374,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         }
                     }
                     // StartGrammar : Layout . start:Grammar Layout
-                    SlotId(261) => {
+                    SlotId(255) => {
                         self.create(
                             NonterminalId(0),
                             &PREDICTION_GRAMMAR,
@@ -1430,7 +1385,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         );
                     }
                     // StartGrammar : Layout start:Grammar Layout.
-                    SlotId(263) => {
+                    SlotId(257) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
@@ -1443,14 +1398,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         );
                     }
                     // StartRule : Layout start:Rule Layout.
-                    SlotId(267) => {
+                    SlotId(261) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_RULE);
                     }
                     // StartSyntaxRule : Layout start:SyntaxRule Layout.
-                    SlotId(271) => {
+                    SlotId(265) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
@@ -1463,7 +1418,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         );
                     }
                     // StartAnnotation : Layout . start:Annotation Layout
-                    SlotId(273) => {
+                    SlotId(267) => {
                         if let Some((j, right_child)) = self.ll1_parse_annotation(input_index, None)
                         {
                             if let Some(new_node) = self.create_intermediate_node(
@@ -1486,7 +1441,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         }
                     }
                     // StartAnnotation : Layout start:Annotation Layout.
-                    SlotId(275) => {
+                    SlotId(269) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
@@ -1499,7 +1454,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         );
                     }
                     // StartRegexRule : Layout start:RegexRule Layout.
-                    SlotId(279) => {
+                    SlotId(273) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
@@ -1512,7 +1467,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         );
                     }
                     // StartRegexPreCondition : Layout . start:RegexPreCondition Layout
-                    SlotId(281) => {
+                    SlotId(275) => {
                         if let Some((j, right_child)) =
                             self.ll1_parse_regex_pre_condition(input_index, None)
                         {
@@ -1536,7 +1491,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         }
                     }
                     // StartRegexPreCondition : Layout start:RegexPreCondition Layout.
-                    SlotId(283) => {
+                    SlotId(277) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
@@ -1549,7 +1504,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         );
                     }
                     // StartRegexPostCondition : Layout . start:RegexPostCondition Layout
-                    SlotId(285) => {
+                    SlotId(279) => {
                         if let Some((j, right_child)) =
                             self.ll1_parse_regex_post_condition(input_index, None)
                         {
@@ -1573,7 +1528,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         }
                     }
                     // StartRegexPostCondition : Layout start:RegexPostCondition Layout.
-                    SlotId(287) => {
+                    SlotId(281) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
@@ -1586,7 +1541,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         );
                     }
                     // StartPriorityLevel : Layout start:PriorityLevel Layout.
-                    SlotId(291) => {
+                    SlotId(285) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
@@ -1599,7 +1554,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         );
                     }
                     // StartAssociativity : Layout . start:Associativity Layout
-                    SlotId(293) => {
+                    SlotId(287) => {
                         if let Some((j, right_child)) =
                             self.ll1_parse_associativity(input_index, None)
                         {
@@ -1623,7 +1578,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         }
                     }
                     // StartAssociativity : Layout start:Associativity Layout.
-                    SlotId(295) => {
+                    SlotId(289) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
@@ -1636,7 +1591,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         );
                     }
                     // StartAlternative : Layout start:Alternative Layout.
-                    SlotId(299) => {
+                    SlotId(293) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
@@ -1649,14 +1604,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         );
                     }
                     // StartSymbol : Layout start:Symbol(0) Layout.
-                    SlotId(303) => {
+                    SlotId(297) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_SYMBOL);
                     }
                     // StartPreCondition : Layout start:PreCondition Layout.
-                    SlotId(307) => {
+                    SlotId(301) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
@@ -1669,7 +1624,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         );
                     }
                     // StartPostCondition : Layout start:PostCondition Layout.
-                    SlotId(311) => {
+                    SlotId(305) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
@@ -1682,14 +1637,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         );
                     }
                     // StartRegex : Layout start:Regex Layout.
-                    SlotId(315) => {
+                    SlotId(309) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_REGEX);
                     }
                     // StartIgnoreCaseString : Layout . start:IgnoreCaseString Layout
-                    SlotId(317) => {
+                    SlotId(311) => {
                         if let Some((j, right_child)) =
                             self.ll1_parse_ignore_case_string(input_index, None)
                         {
@@ -1713,7 +1668,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         }
                     }
                     // StartIgnoreCaseString : Layout start:IgnoreCaseString Layout.
-                    SlotId(319) => {
+                    SlotId(313) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
@@ -1726,7 +1681,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         );
                     }
                     // StartCharClass : Layout start:CharClass Layout.
-                    SlotId(323) => {
+                    SlotId(317) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
@@ -1739,7 +1694,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         );
                     }
                     // StartRangeElement : Layout start:RangeElement Layout.
-                    SlotId(327) => {
+                    SlotId(321) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
@@ -1752,7 +1707,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         );
                     }
                     // StartRange : Layout . start:Range Layout
-                    SlotId(329) => {
+                    SlotId(323) => {
                         if let Some((j, right_child)) = self.ll1_parse_range(input_index, None) {
                             if let Some(new_node) = self.create_intermediate_node(
                                 result,
@@ -1774,14 +1729,14 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
                         }
                     }
                     // StartRange : Layout start:Range Layout.
-                    SlotId(331) => {
+                    SlotId(325) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_RANGE);
                     }
                     // StartLayout : start:Layout.
-                    SlotId(333) => {
+                    SlotId(327) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
@@ -2057,7 +2012,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
     }
     fn start_env(&mut self, start: NonterminalId) -> Option<EnvId> {
         match start {
-            NonterminalId(62) => {
+            NonterminalId(60) => {
                 let arena = self.vec_arena;
                 let (env_id, env) = self.new_env();
                 env.bind(BINDING_P, 0, arena);
@@ -2078,7 +2033,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
         gss_node_id: GssNodeId,
     ) {
         match nonterminal_id {
-            NonterminalId(62) => self.add_gss_node_symbol(input_index, 0, gss_node_id),
+            NonterminalId(60) => self.add_gss_node_symbol(input_index, 0, gss_node_id),
             _ => self.add_gss_node(nonterminal_id, input_index, gss_node_id),
         }
     }
@@ -2103,7 +2058,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
         value: i32,
     ) -> Option<EnvId> {
         let bindings: &[(BindingId, i32)] = match return_slot {
-            SlotId(404) => &[(BINDING_R_PR, (value) >> 16)],
+            SlotId(398) => &[(BINDING_R_PR, (value) >> 16)],
             _ => return env,
         };
         let arena = self.vec_arena;
@@ -2196,25 +2151,27 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
     ) -> bool {
         let lookahead: Option<(bool, &'static TerminalSet)> = match return_slot {
             // RegexRule : layout:Opt_1 Layout id_annot:Opt_2 Layout "@Regex" Layout Identifier Layout
-            // "=" Layout Opt_3 . Layout body:Plus_2 Layout Star_2
+            // "=" Layout Opt_3 . Layout body:Plus_2 Layout Star_1
             SlotId(33) => Some((true, &RETURN_SLOT_LOOKAHEAD_REGEX_RULE_ALT0_POS11)),
+            // PriorityLevel : Opt_4 . Layout Plus_5
+            SlotId(51) => Some((true, &RETURN_SLOT_LOOKAHEAD_PRIORITY_LEVEL_ALT0_POS1)),
             // Symbol(p: i32) : "(" Layout seqs:Plus_7 . Layout ")" return (0, 1)
-            SlotId(340) => Some((true, &RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT1_POS3)),
+            SlotId(334) => Some((true, &RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT1_POS3)),
             // Symbol(p: i32) : "{" Layout symbol:Symbol(0) . Layout sep:Symbol(0) Layout "}" Layout "*"
             // return (0, 4)
-            SlotId(353) => Some((true, &RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT4_POS3)),
+            SlotId(347) => Some((true, &RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT4_POS3)),
             // Symbol(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) . Layout "}" Layout "*"
             // return (0, 4)
-            SlotId(355) => Some((true, &RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT4_POS5)),
+            SlotId(349) => Some((true, &RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT4_POS5)),
             // Symbol(p: i32) : "{" Layout symbol:Symbol(0) . Layout sep:Symbol(0) Layout "}" Layout "+"
             // return (0, 5)
-            SlotId(364) => Some((true, &RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT5_POS3)),
+            SlotId(358) => Some((true, &RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT5_POS3)),
             // Symbol(p: i32) : "{" Layout symbol:Symbol(0) Layout sep:Symbol(0) . Layout "}" Layout "+"
             // return (0, 5)
-            SlotId(366) => Some((true, &RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT5_POS5)),
+            SlotId(360) => Some((true, &RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT5_POS5)),
             // Symbol(p: i32) : [3 >= p] (l_pr, l_label)=Symbol(p) . [(l_pr == 0) || (l_pr >= 3)] Layout
             // "*" return (0, 6)
-            SlotId(374) => {
+            SlotId(368) => {
                 let value = return_value.expect("a bound call returns a value");
                 if !((((value) >> 16) == 0) || (((value) >> 16) >= 3)) {
                     return false;
@@ -2223,7 +2180,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
             }
             // Symbol(p: i32) : [3 >= p] (l_pr, l_label)=Symbol(p) . [(l_pr == 0) || (l_pr >= 3)] Layout
             // "+" return (0, 7)
-            SlotId(381) => {
+            SlotId(375) => {
                 let value = return_value.expect("a bound call returns a value");
                 if !((((value) >> 16) == 0) || (((value) >> 16) >= 3)) {
                     return false;
@@ -2232,7 +2189,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
             }
             // Symbol(p: i32) : [3 >= p] (l_pr, l_label)=Symbol(p) . [(l_pr == 0) || (l_pr >= 3)] Layout
             // "?" return (0, 8)
-            SlotId(388) => {
+            SlotId(382) => {
                 let value = return_value.expect("a bound call returns a value");
                 if !((((value) >> 16) == 0) || (((value) >> 16) >= 3)) {
                     return false;
@@ -2241,7 +2198,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
             }
             // Symbol(p: i32) : [3 >= p] (l_pr, l_label)=Symbol(p) . [(l_label == NO_LABEL) || ((512 >>
             // l_label) & 1 == 0)] [(l_pr == 0) || (l_pr >= 3)] Layout conditions:Plus_8 return (0, 9)
-            SlotId(395) => {
+            SlotId(389) => {
                 let value = return_value.expect("a bound call returns a value");
                 if !((((value) & 65535) == 31) || (((512) >> ((value) & 65535)) & (1) == 0)) {
                     return false;
@@ -2253,10 +2210,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
             }
             // Symbol(p: i32) : conditions:Plus_9 . Layout (r_pr, r_label)=Symbol(2) [(r_label ==
             // NO_LABEL) || ((1024 >> r_label) & 1 == 0)] return ((r_pr == 0) ? 2 : min(r_pr, 2), 10)
-            SlotId(402) => Some((true, &RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT10_POS1)),
+            SlotId(396) => Some((true, &RETURN_SLOT_LOOKAHEAD_SYMBOL_ALT10_POS1)),
             // Symbol(p: i32) : conditions:Plus_9 Layout (r_pr, r_label)=Symbol(2) . [(r_label ==
             // NO_LABEL) || ((1024 >> r_label) & 1 == 0)] return ((r_pr == 0) ? 2 : min(r_pr, 2), 10)
-            SlotId(404) => {
+            SlotId(398) => {
                 let value = return_value.expect("a bound call returns a value");
                 if !((((value) & 65535) == 31) || (((1024) >> ((value) & 65535)) & (1) == 0)) {
                     return false;
@@ -2278,21 +2235,21 @@ impl<'i, 'arena> Parser<'i, 'arena> for IggyParser<'i, 'arena> {
             // Plus_1 : Plus_1 . Layout ">" Layout PriorityLevel
             SlotId(154) => Some((true, &RETURN_SLOT_LOOKAHEAD_PLUS_1_ALT0_POS1)),
             // Plus_3 : Plus_3 . Layout Regex
-            SlotId(174) => Some((true, &RETURN_SLOT_LOOKAHEAD_PLUS_3_ALT0_POS1)),
+            SlotId(171) => Some((true, &RETURN_SLOT_LOOKAHEAD_PLUS_3_ALT0_POS1)),
             // Plus_2 : Plus_2 . Layout "|" Layout Plus_3
-            SlotId(180) => Some((true, &RETURN_SLOT_LOOKAHEAD_PLUS_2_ALT0_POS1)),
+            SlotId(177) => Some((true, &RETURN_SLOT_LOOKAHEAD_PLUS_2_ALT0_POS1)),
             // Plus_5 : Plus_5 . Layout "|" Layout Alternative
-            SlotId(200) => Some((true, &RETURN_SLOT_LOOKAHEAD_PLUS_5_ALT0_POS1)),
+            SlotId(197) => Some((true, &RETURN_SLOT_LOOKAHEAD_PLUS_5_ALT0_POS1)),
             // Plus_6 : Plus_6 . Layout Symbol(0)
-            SlotId(211) => Some((true, &RETURN_SLOT_LOOKAHEAD_PLUS_6_ALT0_POS1)),
+            SlotId(205) => Some((true, &RETURN_SLOT_LOOKAHEAD_PLUS_6_ALT0_POS1)),
             // Plus_7 : Plus_7 . Layout "|" Layout Plus_6
-            SlotId(220) => Some((true, &RETURN_SLOT_LOOKAHEAD_PLUS_7_ALT0_POS1)),
+            SlotId(214) => Some((true, &RETURN_SLOT_LOOKAHEAD_PLUS_7_ALT0_POS1)),
             // Plus_8 : Plus_8 . Layout PostCondition
-            SlotId(228) => Some((true, &RETURN_SLOT_LOOKAHEAD_PLUS_8_ALT0_POS1)),
+            SlotId(222) => Some((true, &RETURN_SLOT_LOOKAHEAD_PLUS_8_ALT0_POS1)),
             // Plus_9 : Plus_9 . Layout PreCondition
-            SlotId(234) => Some((true, &RETURN_SLOT_LOOKAHEAD_PLUS_9_ALT0_POS1)),
+            SlotId(228) => Some((true, &RETURN_SLOT_LOOKAHEAD_PLUS_9_ALT0_POS1)),
             // Plus_10 : Plus_10 . Layout RangeElement
-            SlotId(243) => Some((true, &RETURN_SLOT_LOOKAHEAD_PLUS_10_ALT0_POS1)),
+            SlotId(237) => Some((true, &RETURN_SLOT_LOOKAHEAD_PLUS_10_ALT0_POS1)),
             _ => None,
         };
         if let Some(failure) = self.post_conditions(return_slot, left_extent, right_extent) {
@@ -2691,7 +2648,7 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
         };
         // If there is already a GSS node for this call, add an edge.
         if let Some(existing_gss_node_id) = self.get_gss_node_symbol(i, p) {
-            record!(self, GSSNodeFound, NonterminalId(62), i);
+            record!(self, GSSNodeFound, NonterminalId(60), i);
             self.add_edge_to_existing_gss_node(
                 existing_gss_node_id,
                 gss_node_id,
@@ -2703,14 +2660,14 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
         }
         let alternatives = self.predict(&PREDICTION_SYMBOL, i);
         if !alternatives.is_empty() {
-            record!(self, GSSNodeNotFound, NonterminalId(62), i);
-            let new_gss_node_id = self.new_gss_node(NonterminalId(62), i);
+            record!(self, GSSNodeNotFound, NonterminalId(60), i);
+            let new_gss_node_id = self.new_gss_node(NonterminalId(60), i);
             self.add_gss_edge(new_gss_node_id, gss_node_id, sppf_node_id, return_slot, env);
             let arena = self.vec_arena;
             let (env_id, env) = self.new_env();
             env.bind(BINDING_P, p, arena);
             self.add_first_descriptors(
-                NonterminalId(62),
+                NonterminalId(60),
                 i,
                 new_gss_node_id,
                 Some(env_id),
@@ -3411,7 +3368,7 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
         let mut j = i;
         let right_child = {
             let start = j;
-            let (end, node) = self.ll1_parse_star_4(start, Some(SlotId(140)))?;
+            let (end, node) = self.ll1_parse_star_2(start, Some(SlotId(140)))?;
             j = end;
             if let Some(failure) = self.post_conditions(SlotId(140), start, end) {
                 self.add_failure(end, SlotId(140), None, failure);
@@ -3496,8 +3453,63 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
         _failure_context: Option<SlotId>,
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
-        self.ll1_call_log.push((NonterminalId(23), i));
+        self.ll1_call_log.push((NonterminalId(22), i));
         let Some((matched, _)) = self.scanner.longest_match(FIRST_SET_OPT_1.terminals, i) else {
+            return {
+                let epsilon_node_id = self.get_or_create_epsilon_node(i);
+                Some((
+                    i,
+                    self.add_nonterminal_node(NonterminalNode {
+                        nonterminal_id: NonterminalId(22),
+                        return_slot: SlotId(163),
+                        span: Span {
+                            left_extent: i,
+                            right_extent: i,
+                        },
+                        child: epsilon_node_id,
+                        ambiguous: false,
+                    }),
+                ))
+            };
+        };
+        match matched {
+            TerminalId(15) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(15), start, SlotId(162), None)?;
+                    j = end;
+                    node
+                };
+                let left_extent = i;
+                let current = right_child;
+                Some((
+                    j,
+                    self.add_nonterminal_node(NonterminalNode {
+                        nonterminal_id: NonterminalId(22),
+                        return_slot: SlotId(162),
+                        span: Span {
+                            left_extent,
+                            right_extent: j,
+                        },
+                        child: current,
+                        ambiguous: false,
+                    }),
+                ))
+            }
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
+        }
+    }
+    #[inline(never)]
+    fn ll1_parse_opt_2(
+        &mut self,
+        i: u32,
+        _failure_context: Option<SlotId>,
+    ) -> Option<(u32, SPPFNodeId)> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(23), i));
+        let Some((matched, _)) = self.scanner.longest_match(FIRST_SET_OPT_2.terminals, i) else {
             return {
                 let epsilon_node_id = self.get_or_create_epsilon_node(i);
                 Some((
@@ -3516,12 +3528,12 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
             };
         };
         match matched {
-            TerminalId(15) => {
+            TerminalId(16) => {
                 let mut j = i;
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(15), start, SlotId(165), None)?;
+                        self.match_terminal(TerminalId(16), start, SlotId(165), None)?;
                     j = end;
                     node
                 };
@@ -3544,61 +3556,6 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
             _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
         }
     }
-    #[inline(never)]
-    fn ll1_parse_opt_2(
-        &mut self,
-        i: u32,
-        _failure_context: Option<SlotId>,
-    ) -> Option<(u32, SPPFNodeId)> {
-        #[cfg(feature = "instrument")]
-        self.ll1_call_log.push((NonterminalId(24), i));
-        let Some((matched, _)) = self.scanner.longest_match(FIRST_SET_OPT_2.terminals, i) else {
-            return {
-                let epsilon_node_id = self.get_or_create_epsilon_node(i);
-                Some((
-                    i,
-                    self.add_nonterminal_node(NonterminalNode {
-                        nonterminal_id: NonterminalId(24),
-                        return_slot: SlotId(169),
-                        span: Span {
-                            left_extent: i,
-                            right_extent: i,
-                        },
-                        child: epsilon_node_id,
-                        ambiguous: false,
-                    }),
-                ))
-            };
-        };
-        match matched {
-            TerminalId(16) => {
-                let mut j = i;
-                let right_child = {
-                    let start = j;
-                    let (end, node) =
-                        self.match_terminal(TerminalId(16), start, SlotId(168), None)?;
-                    j = end;
-                    node
-                };
-                let left_extent = i;
-                let current = right_child;
-                Some((
-                    j,
-                    self.add_nonterminal_node(NonterminalNode {
-                        nonterminal_id: NonterminalId(24),
-                        return_slot: SlotId(168),
-                        span: Span {
-                            left_extent,
-                            right_extent: j,
-                        },
-                        child: current,
-                        ambiguous: false,
-                    }),
-                ))
-            }
-            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
-        }
-    }
     #[inline(always)]
     fn ll1_parse_plus_4(
         &mut self,
@@ -3606,7 +3563,7 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
         failure_context: Option<SlotId>,
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
-        self.ll1_call_log.push((NonterminalId(28), i));
+        self.ll1_call_log.push((NonterminalId(27), i));
         let result = self.ll1_body_plus_4(i);
         if result.is_none() {
             if let Some(slot_id) = failure_context {
@@ -3627,8 +3584,8 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
         let mut current = base_node_0;
         let mut j = base_pos_0;
         current = self.add_nonterminal_node(NonterminalNode {
-            nonterminal_id: NonterminalId(28),
-            return_slot: SlotId(192),
+            nonterminal_id: NonterminalId(27),
+            return_slot: SlotId(189),
             span: Span {
                 left_extent,
                 right_extent: j,
@@ -3646,12 +3603,12 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
             };
             j = pos_1;
             current =
-                self.create_intermediate_node_ll1(SlotId(189), left_extent, pos_0, current, node_0);
+                self.create_intermediate_node_ll1(SlotId(186), left_extent, pos_0, current, node_0);
             current =
-                self.create_intermediate_node_ll1(SlotId(190), left_extent, pos_1, current, node_1);
+                self.create_intermediate_node_ll1(SlotId(187), left_extent, pos_1, current, node_1);
             current = self.add_nonterminal_node(NonterminalNode {
-                nonterminal_id: NonterminalId(28),
-                return_slot: SlotId(190),
+                nonterminal_id: NonterminalId(27),
+                return_slot: SlotId(187),
                 span: Span {
                     left_extent,
                     right_extent: j,
@@ -3663,21 +3620,21 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
         Some((j, current))
     }
     #[inline(never)]
-    fn ll1_parse_star_2(
+    fn ll1_parse_star_1(
         &mut self,
         i: u32,
         _failure_context: Option<SlotId>,
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
-        self.ll1_call_log.push((NonterminalId(29), i));
-        let Some((matched, _)) = self.scanner.longest_match(FIRST_SET_STAR_2.terminals, i) else {
+        self.ll1_call_log.push((NonterminalId(28), i));
+        let Some((matched, _)) = self.scanner.longest_match(FIRST_SET_STAR_1.terminals, i) else {
             return {
                 let epsilon_node_id = self.get_or_create_epsilon_node(i);
                 Some((
                     i,
                     self.add_nonterminal_node(NonterminalNode {
-                        nonterminal_id: NonterminalId(29),
-                        return_slot: SlotId(195),
+                        nonterminal_id: NonterminalId(28),
+                        return_slot: SlotId(192),
                         span: Span {
                             left_extent: i,
                             right_extent: i,
@@ -3693,7 +3650,7 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let (end, node) = self.ll1_parse_plus_4(start, Some(SlotId(194)))?;
+                    let (end, node) = self.ll1_parse_plus_4(start, Some(SlotId(191)))?;
                     j = end;
                     node
                 };
@@ -3702,8 +3659,8 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
                 Some((
                     j,
                     self.add_nonterminal_node(NonterminalNode {
-                        nonterminal_id: NonterminalId(29),
-                        return_slot: SlotId(194),
+                        nonterminal_id: NonterminalId(28),
+                        return_slot: SlotId(191),
                         span: Span {
                             left_extent,
                             right_extent: j,
@@ -3723,15 +3680,15 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
         _failure_context: Option<SlotId>,
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
-        self.ll1_call_log.push((NonterminalId(34), i));
+        self.ll1_call_log.push((NonterminalId(32), i));
         let Some((matched, _)) = self.scanner.longest_match(FIRST_SET_OPT_5.terminals, i) else {
             return {
                 let epsilon_node_id = self.get_or_create_epsilon_node(i);
                 Some((
                     i,
                     self.add_nonterminal_node(NonterminalNode {
-                        nonterminal_id: NonterminalId(34),
-                        return_slot: SlotId(218),
+                        nonterminal_id: NonterminalId(32),
+                        return_slot: SlotId(212),
                         span: Span {
                             left_extent: i,
                             right_extent: i,
@@ -3748,7 +3705,7 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(7), start, SlotId(217), None)?;
+                        self.match_terminal(TerminalId(7), start, SlotId(211), None)?;
                     j = end;
                     node
                 };
@@ -3757,8 +3714,8 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
                 Some((
                     j,
                     self.add_nonterminal_node(NonterminalNode {
-                        nonterminal_id: NonterminalId(34),
-                        return_slot: SlotId(217),
+                        nonterminal_id: NonterminalId(32),
+                        return_slot: SlotId(211),
                         span: Span {
                             left_extent,
                             right_extent: j,
@@ -3778,15 +3735,15 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
         _failure_context: Option<SlotId>,
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
-        self.ll1_call_log.push((NonterminalId(38), i));
+        self.ll1_call_log.push((NonterminalId(36), i));
         let Some((matched, _)) = self.scanner.longest_match(FIRST_SET_OPT_6.terminals, i) else {
             return {
                 let epsilon_node_id = self.get_or_create_epsilon_node(i);
                 Some((
                     i,
                     self.add_nonterminal_node(NonterminalNode {
-                        nonterminal_id: NonterminalId(38),
-                        return_slot: SlotId(241),
+                        nonterminal_id: NonterminalId(36),
+                        return_slot: SlotId(235),
                         span: Span {
                             left_extent: i,
                             right_extent: i,
@@ -3803,7 +3760,7 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(34), start, SlotId(240), None)?;
+                        self.match_terminal(TerminalId(34), start, SlotId(234), None)?;
                     j = end;
                     node
                 };
@@ -3812,8 +3769,8 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
                 Some((
                     j,
                     self.add_nonterminal_node(NonterminalNode {
-                        nonterminal_id: NonterminalId(38),
-                        return_slot: SlotId(240),
+                        nonterminal_id: NonterminalId(36),
+                        return_slot: SlotId(234),
                         span: Span {
                             left_extent,
                             right_extent: j,
@@ -3833,7 +3790,7 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
         failure_context: Option<SlotId>,
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
-        self.ll1_call_log.push((NonterminalId(40), i));
+        self.ll1_call_log.push((NonterminalId(38), i));
         let result = self.ll1_body_alt_0(i);
         if result.is_none() {
             if let Some(slot_id) = failure_context {
@@ -3856,7 +3813,7 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(8), start, SlotId(249), None)?;
+                        self.match_terminal(TerminalId(8), start, SlotId(243), None)?;
                     j = end;
                     node
                 };
@@ -3865,8 +3822,8 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
                 Some((
                     j,
                     self.add_nonterminal_node(NonterminalNode {
-                        nonterminal_id: NonterminalId(40),
-                        return_slot: SlotId(249),
+                        nonterminal_id: NonterminalId(38),
+                        return_slot: SlotId(243),
                         span: Span {
                             left_extent,
                             right_extent: j,
@@ -3881,7 +3838,7 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(10), start, SlotId(251), None)?;
+                        self.match_terminal(TerminalId(10), start, SlotId(245), None)?;
                     j = end;
                     node
                 };
@@ -3890,8 +3847,8 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
                 Some((
                     j,
                     self.add_nonterminal_node(NonterminalNode {
-                        nonterminal_id: NonterminalId(40),
-                        return_slot: SlotId(251),
+                        nonterminal_id: NonterminalId(38),
+                        return_slot: SlotId(245),
                         span: Span {
                             left_extent,
                             right_extent: j,
@@ -3911,7 +3868,7 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
         failure_context: Option<SlotId>,
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
-        self.ll1_call_log.push((NonterminalId(41), i));
+        self.ll1_call_log.push((NonterminalId(39), i));
         let result = self.ll1_body_plus_11(i);
         if result.is_none() {
             if let Some(slot_id) = failure_context {
@@ -3932,8 +3889,8 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
         let mut current = base_node_0;
         let mut j = base_pos_0;
         current = self.add_nonterminal_node(NonterminalNode {
-            nonterminal_id: NonterminalId(41),
-            return_slot: SlotId(256),
+            nonterminal_id: NonterminalId(39),
+            return_slot: SlotId(250),
             span: Span {
                 left_extent,
                 right_extent: j,
@@ -3948,10 +3905,10 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
             };
             j = pos_0;
             current =
-                self.create_intermediate_node_ll1(SlotId(254), left_extent, pos_0, current, node_0);
+                self.create_intermediate_node_ll1(SlotId(248), left_extent, pos_0, current, node_0);
             current = self.add_nonterminal_node(NonterminalNode {
-                nonterminal_id: NonterminalId(41),
-                return_slot: SlotId(254),
+                nonterminal_id: NonterminalId(39),
+                return_slot: SlotId(248),
                 span: Span {
                     left_extent,
                     right_extent: j,
@@ -3963,21 +3920,21 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
         Some((j, current))
     }
     #[inline(always)]
-    fn ll1_parse_star_4(
+    fn ll1_parse_star_2(
         &mut self,
         i: u32,
         _failure_context: Option<SlotId>,
     ) -> Option<(u32, SPPFNodeId)> {
         #[cfg(feature = "instrument")]
-        self.ll1_call_log.push((NonterminalId(42), i));
-        let Some((matched, _)) = self.scanner.longest_match(FIRST_SET_STAR_4.terminals, i) else {
+        self.ll1_call_log.push((NonterminalId(40), i));
+        let Some((matched, _)) = self.scanner.longest_match(FIRST_SET_STAR_2.terminals, i) else {
             return {
                 let epsilon_node_id = self.get_or_create_epsilon_node(i);
                 Some((
                     i,
                     self.add_nonterminal_node(NonterminalNode {
-                        nonterminal_id: NonterminalId(42),
-                        return_slot: SlotId(259),
+                        nonterminal_id: NonterminalId(40),
+                        return_slot: SlotId(253),
                         span: Span {
                             left_extent: i,
                             right_extent: i,
@@ -3993,7 +3950,7 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let (end, node) = self.ll1_parse_plus_11(start, Some(SlotId(258)))?;
+                    let (end, node) = self.ll1_parse_plus_11(start, Some(SlotId(252)))?;
                     j = end;
                     node
                 };
@@ -4002,8 +3959,8 @@ impl<'i, 'arena> IggyParser<'i, 'arena> {
                 Some((
                     j,
                     self.add_nonterminal_node(NonterminalNode {
-                        nonterminal_id: NonterminalId(42),
-                        return_slot: SlotId(258),
+                        nonterminal_id: NonterminalId(40),
+                        return_slot: SlotId(252),
                         span: Span {
                             left_extent,
                             right_extent: j,

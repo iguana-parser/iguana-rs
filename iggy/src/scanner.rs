@@ -11,17 +11,16 @@ use iguana_runtime::{
     utils::bit_set::BitSet,
 };
 const MATCH_MEMO_WORDS: usize = 1;
-static MATCH_ANY_FIRST_CHARS: [CharSet; 38] = [
+static MATCH_ANY_FIRST_CHARS: [CharSet; 37] = [
     CharSet::new(0x800100000600, &[]),
     CharSet::new(0x7fffffe07ffffff0000800100000600, &[]),
     CharSet::new(0x7fffffe07fffffe0000800100000600, &[]),
     CharSet::new(0x7fffffe0ffffffe0000818700000600, &[]),
     CharSet::new(0x7fffffe17ffffff0000800300000600, &[]),
     CharSet::new(0x7fffffe07ffffff4000800100000600, &[]),
-    CharSet::new(0xffffffe07ffffff4000810500000600, &[]),
+    CharSet::new(0xffffffe07fffffe0000810500000600, &[]),
     CharSet::new(0x17fffffe07ffffff4000800100000600, &[]),
     CharSet::new(0x3ffffffe17ffffffc0008f0f00000600, &[]),
-    CharSet::new(0xffffffe07fffffe0000810500000600, &[]),
     CharSet::new(0x17fffffe1fffffff80008f8700000600, &[]),
     CharSet::new(0x3ffffffe1fffffffc0008f8f00000600, &[]),
     CharSet::new(
@@ -73,8 +72,8 @@ static MATCH_ANY_FIRST_CHARS: [CharSet; 38] = [
     ),
     CharSet::new(0x0, &[]),
     CharSet::new(0x7fffffe0ffffffe0000818700000600, &[]),
-    CharSet::new(0x20000000000, &[]),
     CharSet::new(0xffffffe07fffffe0000010400000000, &[]),
+    CharSet::new(0x20000000000, &[]),
     CharSet::new(0x20000000000000000000000000000000, &[]),
     CharSet::new(0x40000000000, &[]),
     CharSet::new(0x80000000000, &[]),
@@ -99,19 +98,18 @@ static MATCH_ANY_FIRST_CHARS: [CharSet; 38] = [
         ],
     ),
 ];
-static MATCH_ANY_MASKS: [BitSet<MATCH_MEMO_WORDS>; 38] = [
+static MATCH_ANY_MASKS: [BitSet<MATCH_MEMO_WORDS>; 37] = [
     BitSet::from_members(&[8, 10, 40]),
     BitSet::from_members(&[2, 8, 10, 14, 15, 16, 17, 40]),
     BitSet::from_members(&[2, 8, 10, 40]),
     BitSet::from_members(&[2, 3, 4, 8, 10, 25, 34, 35, 36, 40]),
     BitSet::from_members(&[2, 8, 10, 14, 15, 16, 17, 20, 21, 40]),
     BitSet::from_members(&[2, 8, 10, 13, 14, 15, 16, 17, 40]),
-    BitSet::from_members(&[2, 3, 8, 10, 13, 14, 15, 16, 17, 25, 27, 35, 40]),
+    BitSet::from_members(&[2, 3, 8, 10, 25, 27, 35, 40]),
     BitSet::from_members(&[2, 8, 10, 13, 14, 15, 16, 17, 18, 40]),
     BitSet::from_members(&[
         2, 3, 7, 8, 10, 13, 14, 15, 16, 17, 18, 20, 21, 25, 26, 27, 28, 29, 30, 31, 33, 34, 35, 40,
     ]),
-    BitSet::from_members(&[2, 3, 8, 10, 25, 27, 35, 40]),
     BitSet::from_members(&[
         2, 3, 4, 8, 10, 14, 15, 16, 17, 18, 20, 21, 25, 26, 29, 30, 31, 34, 35, 36, 40,
     ]),
@@ -140,8 +138,8 @@ static MATCH_ANY_MASKS: [BitSet<MATCH_MEMO_WORDS>; 38] = [
     ]),
     BitSet::from_members(&[40]),
     BitSet::from_members(&[2, 3, 4, 8, 10, 25, 34, 35, 36]),
-    BitSet::from_members(&[26]),
     BitSet::from_members(&[2, 3, 25, 27, 35]),
+    BitSet::from_members(&[26]),
     BitSet::from_members(&[28]),
     BitSet::from_members(&[29]),
     BitSet::from_members(&[30]),
@@ -1038,7 +1036,7 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
     #[inline(never)]
     pub fn match_any(&mut self, set: &TerminalSet, input_index: u32) -> bool {
         debug_assert!(
-            set.id < 38,
+            set.id < 37,
             "terminal set {} does not have a match_any id",
             set.id,
         );
