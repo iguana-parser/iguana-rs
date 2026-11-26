@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
-  "comment": "Canonical home: iguana-rs/editors/vscode/syntaxes/iggy.tmLanguage.json. The website repo vendors a byte-identical copy at syntaxes/iggy.tmLanguage.json; keep the two in sync. Token roles mirror iggy/iggy.iggy and iguana-lsp/src/semantic_tokens.rs: in editors, LSP semantic tokens override these scopes once the server is up; this grammar covers the pre-LSP window, markdown fences, and static rendering.",
+  "comment": "Canonical home: iguana-rs/editors/vscode/syntaxes/iggy.tmLanguage.json. The website repo vendors a byte-identical copy at syntaxes/iggy.tmLanguage.json; keep the two in sync. Token roles mirror iggy/iggy.iggy and iguana-lsp/src/semantic_tokens.rs: in editors, LSP semantic tokens override these scopes once the server is up; this grammar covers the pre-LSP window and the website's static rendering of Iggy code blocks. A string or character literal must be on one line. A string scope ends at the closing quote or at the end of the line.",
   "name": "iggy",
   "scopeName": "source.iggy",
   "patterns": [
@@ -31,11 +31,11 @@
     },
     "string": {
       "patterns": [
-        { "begin": "\\bi\"", "end": "\"", "name": "string.quoted.double.ignore-case.iggy",
+        { "begin": "\\bi\"", "end": "\"|$", "name": "string.quoted.double.ignore-case.iggy",
           "patterns": [{ "match": "\\\\.", "name": "constant.character.escape.iggy" }] },
-        { "begin": "\"", "end": "\"", "name": "string.quoted.double.iggy",
+        { "begin": "\"", "end": "\"|$", "name": "string.quoted.double.iggy",
           "patterns": [{ "match": "\\\\.", "name": "constant.character.escape.iggy" }] },
-        { "begin": "'", "end": "'", "name": "string.quoted.single.iggy",
+        { "begin": "'", "end": "'|$", "name": "string.quoted.single.iggy",
           "patterns": [{ "match": "\\\\.", "name": "constant.character.escape.iggy" }] }
       ]
     },

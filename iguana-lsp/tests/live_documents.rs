@@ -392,12 +392,14 @@ fn diagnostics_follow_each_document_change() {
 }
 
 #[test]
-fn multiline_literal_publishes_diagnostics() {
+fn raw_newline_in_a_literal_publishes_a_parse_error() {
     let uri = editor_uri();
 
     let mut server = LspProcess::start();
     server.open(&uri, "grammar T\nS = \"abc\nx\"\n");
-    assert_eq!(server.receive_diagnostics(), vec![]);
+    let diagnostics = server.receive_diagnostics();
+    assert_eq!(diagnostics.len(), 1);
+    assert_eq!(diagnostics[0].range.start, Position::new(1, 4));
 
     server.shutdown();
 }

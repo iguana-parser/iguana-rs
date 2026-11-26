@@ -104,10 +104,10 @@ NameChar = [a-zA-Z_0-9]
 Identifier = NameChar !<< [a-zA-Z] [a-zA-Z_0-9]* \ Keyword
 
 @Regex
-String = "\"" (EscapeChar | !["\\])* "\""
+String = "\"" (EscapeChar | !["\\\r\n])* "\""
 
 @Regex
-Char = "'" (EscapeChar | !['\\]) "'"
+Char = "'" (EscapeChar | !['\\\r\n]) "'"
 
 @Regex
 EscapeChar = "\\" ["'\\tfrn]

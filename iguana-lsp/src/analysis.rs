@@ -434,13 +434,21 @@ Long
         assert!(analysis.definition(Position::new(0, 0)).is_none());
     }
 
+    // A string or character literal must be on one line. The error is at the
+    // opening quote, because the scanner does not match a `String` or a
+    // `Char` there.
     #[test]
-    fn multiline_literal_has_every_answer() {
-        let analysis = Analysis::new("grammar T\nS = \"abc\nx\"\n");
-        assert!(analysis.diagnostics().is_empty());
-        assert!(analysis.parse_durations().is_some());
-        assert!(!analysis.semantic_tokens().is_empty());
-        assert_eq!(analysis.document_symbols().len(), 1);
+    fn a_raw_newline_in_a_literal_is_a_parse_error() {
+        for source in ["grammar T\nS = \"abc\nx\"\n", "grammar T\nS = '\n'\n"] {
+            let analysis = Analysis::new(source);
+            assert_eq!(analysis.diagnostics().len(), 1, "{source}");
+            assert_eq!(
+                analysis.diagnostics()[0].range.start,
+                Position::new(1, 4),
+                "{source}"
+            );
+            assert!(analysis.parse_durations().is_none(), "{source}");
+        }
     }
 
     #[test]

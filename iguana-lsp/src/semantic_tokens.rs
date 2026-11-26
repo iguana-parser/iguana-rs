@@ -155,22 +155,21 @@ impl SemanticTokensBuilder {
         }
     }
 
-    /// Pushes one token of `group` per line of `span`, because an LSP client
-    /// does not have to support a token that spans lines. A string literal
-    /// can contain a newline.
+    /// Pushes a token of `group` for `span`. `span` must be on one line,
+    /// because an LSP client does not have to support a token that spans
+    /// lines. Each highlight is the span of a token, and no highlighted
+    /// terminal of Iggy matches a line break.
     fn push_span(&mut self, span: Span, group: Group, input: &Input, columns: &Utf16Columns) {
-        let token_type = token_type(group);
-        let mut start = span.left_extent;
-        while start < span.right_extent {
-            let end = input.line_end(start).min(span.right_extent);
-            if start < end {
-                let (line, column) = input.line_column(start);
-                let utf16_start = columns.utf16_column(line, column);
-                let utf16_end = columns.utf16_column(line, column + (end - start));
-                self.push(line, utf16_start, utf16_end - utf16_start, token_type);
-            }
-            start = end + 1;
-        }
+        let (line, column) = input.line_column(span.left_extent);
+        let length = span.right_extent - span.left_extent;
+        let utf16_start = columns.utf16_column(line, column);
+        let utf16_end = columns.utf16_column(line, column + length);
+        self.push(
+            line,
+            utf16_start,
+            utf16_end - utf16_start,
+            token_type(group),
+        );
     }
 
     /// Pushes a token at `line` and the column in UTF-16 `column`, `length`
@@ -442,18 +441,25 @@ mod tests {
         );
     }
 
+    // The source does not parse, because a raw newline follows `"abc`, and
+    // the tokens come from the scanner alone. The scanner does not match a
+    // `String` at either `"`, because no closing quote follows on the same
+    // line. The quotes do not get a token, and the scanner matches `abc` and
+    // `x` as identifiers.
     #[test]
-    fn multiline_literal_has_one_token_per_line() {
-        let tokens = tokenize("grammar T\nS = \"abc\n\nx\" | \"y\"\n");
-        let strings: Vec<_> = tokens
-            .iter()
-            .filter(|token| token.token_type == token_type(Group::String))
-            .map(|token| (token.delta_line, token.delta_start, token.length))
-            .collect();
-        // The deltas are relative to the previous token, which is `=` before
-        // `"abc` and `|` before `"y"`. The empty line in the literal does not
-        // have a token.
-        assert_eq!(strings, [(0, 2, 4), (2, 0, 2), (0, 2, 3)]);
+    fn a_string_does_not_continue_on_the_next_line() {
+        let source = "grammar T\nS = \"abc\nx\"\n";
+        assert_eq!(
+            tokens_of(source),
+            expected(&[
+                ("grammar", "keyword"),
+                ("T", "rule"),
+                ("S", "rule"),
+                ("=", "operator"),
+                ("abc", "rule"),
+                ("x", "rule"),
+            ])
+        );
     }
 
     #[test]

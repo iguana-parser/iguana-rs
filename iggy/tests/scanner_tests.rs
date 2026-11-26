@@ -13,6 +13,23 @@ fn match_identifier_at(input: &str, index: u32) -> Option<u32> {
     scanner.match_terminal_2(index)
 }
 
+/// Matches a `String` (terminal 3) at the start of `input`. Returns the
+/// offset where the match ends, or `None` when `input` does not start with a
+/// `String`.
+fn match_string(input: &str) -> Option<u32> {
+    let input = Input::from(input);
+    let arena = Arena::new();
+    IggyScanner::new(&input, &arena).match_terminal_3(0)
+}
+
+/// Matches a `Char` (terminal 4) at the start of `input`. Returns the offset
+/// where the match ends, or `None` when `input` does not start with a `Char`.
+fn match_char(input: &str) -> Option<u32> {
+    let input = Input::from(input);
+    let arena = Arena::new();
+    IggyScanner::new(&input, &arena).match_terminal_4(0)
+}
+
 #[test]
 fn test_valid_identifiers() {
     assert_eq!(match_identifier("a"), Some(1));
@@ -42,4 +59,19 @@ fn test_identifier_cannot_start_after_a_name_character() {
     assert_eq!(match_identifier_at("leftx", 4), None);
     assert_eq!(match_identifier_at("a b", 2), Some(3));
     assert_eq!(match_identifier_at("(x)", 1), Some(2));
+}
+
+#[test]
+fn test_string_is_on_one_line() {
+    assert_eq!(match_string(r#""a\nb""#), Some(6));
+    assert_eq!(match_string("\"a\nb\""), None);
+    assert_eq!(match_string("\"a\rb\""), None);
+    assert_eq!(match_string("\"a\r\nb\""), None);
+}
+
+#[test]
+fn test_char_is_on_one_line() {
+    assert_eq!(match_char(r"'\n'"), Some(4));
+    assert_eq!(match_char("'\n'"), None);
+    assert_eq!(match_char("'\r'"), None);
 }

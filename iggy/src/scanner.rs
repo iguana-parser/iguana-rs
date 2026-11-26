@@ -362,11 +362,11 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
         }
         Some(end)
     }
-    // String = \"(\\[\" \' \\ t f r n]|![\" \\])*\"
+    // String = \"(\\[\" \' \\ t f r n]|![\" \\ \r \n])*\"
     pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
         self.scan_dfa_3(input_index, self.input.len())
     }
-    // Char = \'(\\[\" \' \\ t f r n]|![\' \\])\'
+    // Char = \'(\\[\" \' \\ t f r n]|![\' \\ \r \n])\'
     pub fn match_terminal_4(&self, input_index: u32) -> Option<u32> {
         self.scan_dfa_4(input_index, self.input.len())
     }
@@ -613,9 +613,15 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
                         break;
                     };
                     state = match ch {
-                        '\0'..='!' | '#'..='[' | ']'..='\u{d7ff}' | '\u{e000}'..='\u{10ffff}' => 2,
+                        '\0'..='\t'
+                        | '\u{b}'..='\u{c}'
+                        | '\u{e}'..='!'
+                        | '#'..='['
+                        | ']'..='\u{d7ff}'
+                        | '\u{e000}'..='\u{10ffff}' => 2,
                         '"' => 3,
                         '\\' => 4,
+                        _ => break,
                     };
                 }
                 2 => {
@@ -626,9 +632,15 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
                         break;
                     };
                     state = match ch {
-                        '\0'..='!' | '#'..='[' | ']'..='\u{d7ff}' | '\u{e000}'..='\u{10ffff}' => 2,
+                        '\0'..='\t'
+                        | '\u{b}'..='\u{c}'
+                        | '\u{e}'..='!'
+                        | '#'..='['
+                        | ']'..='\u{d7ff}'
+                        | '\u{e000}'..='\u{10ffff}' => 2,
                         '"' => 3,
                         '\\' => 4,
+                        _ => break,
                     };
                 }
                 3 => {
@@ -655,9 +667,15 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
                         break;
                     };
                     state = match ch {
-                        '\0'..='!' | '#'..='[' | ']'..='\u{d7ff}' | '\u{e000}'..='\u{10ffff}' => 2,
+                        '\0'..='\t'
+                        | '\u{b}'..='\u{c}'
+                        | '\u{e}'..='!'
+                        | '#'..='['
+                        | ']'..='\u{d7ff}'
+                        | '\u{e000}'..='\u{10ffff}' => 2,
                         '"' => 3,
                         '\\' => 4,
+                        _ => break,
                     };
                 }
                 _ => unreachable!(),
@@ -693,7 +711,12 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
                         break;
                     };
                     state = match ch {
-                        '\0'..='&' | '('..='[' | ']'..='\u{d7ff}' | '\u{e000}'..='\u{10ffff}' => 2,
+                        '\0'..='\t'
+                        | '\u{b}'..='\u{c}'
+                        | '\u{e}'..='&'
+                        | '('..='['
+                        | ']'..='\u{d7ff}'
+                        | '\u{e000}'..='\u{10ffff}' => 2,
                         '\\' => 3,
                         _ => break,
                     };
