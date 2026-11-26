@@ -1,6 +1,7 @@
-use std::{fs, io};
+use std::io;
 
 use iguana_lsp::analysis::Analysis;
+use iguana_runtime::input::read_to_string;
 use lsp_types::{Position, Uri};
 use rustc_hash::FxHashMap;
 
@@ -26,7 +27,7 @@ impl DocumentStore {
         match self.open.get(uri) {
             Some(analysis) => Ok(f(analysis)),
             None => {
-                let source = fs::read_to_string(uri.path().as_str())?;
+                let source = read_to_string(uri.path().as_str())?;
                 Ok(f(&Analysis::new(&source)))
             }
         }

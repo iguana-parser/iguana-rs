@@ -12,6 +12,7 @@ use iguana_compiler::{
     },
     grammar::def::{Grammar, Phase},
     iggy::parse_grammar,
+    input::read_to_string,
     utils::{to_pascal_case, to_snake_case},
     validation::{crate_name_error, render_errors},
 };
@@ -205,7 +206,7 @@ fn run() -> io::Result<()> {
             } else {
                 output
             };
-            let source = std::fs::read_to_string(path)
+            let source = read_to_string(path)
                 .map_err(|e| io::Error::new(e.kind(), format!("{}: {e}", path.display())))?;
             let grammar_def = parse_grammar(&source)
                 .map_err(|errors| io::Error::other(render_errors(&errors, path, &source)))?;

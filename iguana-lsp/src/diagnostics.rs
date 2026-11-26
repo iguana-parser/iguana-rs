@@ -111,6 +111,14 @@ Expr
     }
 
     #[test]
+    fn unresolved_identifier_range_with_crlf_line_endings() {
+        let d = diags("grammar T\r\n\r\n// Expressions\r\nExpr\r\n  = Foo\r\n");
+        assert_eq!(d.len(), 1);
+        assert_eq!(d[0].range.start, Position::new(4, 4));
+        assert_eq!(d[0].range.end, Position::new(4, 7));
+    }
+
+    #[test]
     fn multiple_unresolved() {
         let d = diags(
             r#"

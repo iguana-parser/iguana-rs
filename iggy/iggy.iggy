@@ -124,7 +124,7 @@ Label = "#" [a-zA-Z] [a-zA-Z_0-9]*
 WS = WSChar+
 
 @Regex
-WSChar = [\ \n\t]
+WSChar = [\ \r\n\t]
 
 @Regex
-LineComment = "//" ![\n]*
+LineComment = "//" ![\r\n]*

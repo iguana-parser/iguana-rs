@@ -7,7 +7,7 @@ use std::{
 use crate::{
     arena::Arena,
     ids::NonterminalId,
-    input::Input,
+    input::{Input, read_to_string},
     parse_tree::{is_ambiguous, tree_digest},
     parser::{GLLResult, Parser},
 };
@@ -79,7 +79,7 @@ fn digest_file<'i, 'arena, P: Parser<'i, 'arena>>(
     tree_arena: &mut Arena,
     parser_arena: &mut Arena,
 ) -> (&'static str, Option<u64>) {
-    let Ok(text) = fs::read_to_string(path) else {
+    let Ok(text) = read_to_string(path) else {
         return ("ioerror", None);
     };
     let input = Input::from(text);

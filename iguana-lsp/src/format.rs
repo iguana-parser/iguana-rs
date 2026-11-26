@@ -40,26 +40,38 @@ const ALT_PREFIX: &str = "  | ";
 const PRIO_PREFIX: &str = "  > ";
 const CONT_INDENT: &str = "      "; // 6 spaces for continuation lines
 
-/// The formatted text of `source`, or `None` when `source` does not parse or is
-/// ambiguous. The text is `source` unchanged when the formatter cannot preserve
-/// a comment's position.
+/// Formats `source`, or returns `None` when `source` does not parse or is
+/// ambiguous. The line endings of the formatted text follow the first line of
+/// `source`: CRLF when that line ends with CRLF, and LF when it does not.
+///
+/// The formatter does not support every comment position, for example a
+/// comment inside a group, such as after `"a"` in `("a" | "b")`. It leaves out
+/// such a comment, and `format_source` then returns `source` unchanged instead
+/// of the formatted text.
 pub fn format_source(source: &str) -> Option<String> {
     let input = Input::from(source);
     let tree_arena = Arena::new();
     let BuildResult::Success { tree, .. } = build(&input, &tree_arena) else {
         return None;
     };
-    Some(format(tree, &input))
+    let mut formatter = Formatter::new(tree, &input);
+    let formatted = formatter.format_grammar(tree);
+    if !formatter.all_comments_emitted() {
+        return Some(source.to_string());
+    }
+    // The formatter writes LF line endings.
+    if uses_crlf(source) {
+        Some(formatted.replace('\n', "\r\n"))
+    } else {
+        Some(formatted)
+    }
 }
 
-fn format(tree: &Start<&Grammar<'_>, &Layout<'_>>, input: &Input) -> String {
-    let mut formatter = Formatter::new(tree, input);
-    let formatted = formatter.format_grammar(tree);
-    if formatter.all_comments_emitted() {
-        formatted
-    } else {
-        input.text(Span::new(0, input.len()))
-    }
+/// Whether the first line of `source` ends with CRLF.
+fn uses_crlf(source: &str) -> bool {
+    source
+        .find('\n')
+        .is_some_and(|i| source[..i].ends_with('\r'))
 }
 
 struct Formatter<'a> {
@@ -185,8 +197,8 @@ impl<'a> Formatter<'a> {
     /// - **Blank lines on both sides.** The formatter separates the block from
     ///   both constructs.
     /// - **No blank line on either side.** The formatter cannot determine the
-    ///   attachment. The block stays unemitted, and `format` returns the source
-    ///   unchanged.
+    ///   attachment. The block stays unemitted, and `format_source` returns the
+    ///   source unchanged.
     ///
     /// A blank line separates consecutive blocks, so every block after the first
     /// has a blank line before it. When `following` is `None`, the end of the
@@ -992,6 +1004,16 @@ mod tests {
     }
 
     #[test]
+    fn test_crlf_line_endings() {
+        let lf = "grammar T\n\n// Expressions\nA\n  = \"x\" // first\n  > \"y\"\n";
+        let crlf = lf.replace('\n', "\r\n");
+        assert_eq!(format_source(lf).unwrap(), lf);
+        assert_eq!(format_source(&crlf).unwrap(), crlf);
+        let unformatted = "grammar T\r\n\r\n// Expressions\r\nA = \"x\" // first\r\n> \"y\"\r\n";
+        assert_eq!(format_source(unformatted).unwrap(), crlf);
+    }
+
+    #[test]
     fn test_comments_before_alternatives_and_priority_levels() {
         let input = r#"grammar       Test
 
@@ -1319,6 +1341,8 @@ Second = "second"
             "grammar Test\n\nA=\"a\"\n// ambiguous attachment\nB=\"b\"\n",
         ] {
             assert_eq!(format_source(input).unwrap(), input);
+            let crlf = input.replace('\n', "\r\n");
+            assert_eq!(format_source(&crlf).unwrap(), crlf);
         }
     }
 

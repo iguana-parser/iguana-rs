@@ -72,9 +72,24 @@ impl TryFrom<&Path> for Input {
     type Error = io::Error;
 
     fn try_from(path: &Path) -> Result<Self, Self::Error> {
-        let input = fs::read_to_string(path)?;
+        let input = read_to_string(path)?;
         Ok(Self::from(input))
     }
+}
+
+/// Reads the file at `path` into a string, without a leading byte order mark.
+/// The file is read with `fs::read_to_string`, which returns an error if the
+/// file is not valid UTF-8.
+///
+/// A UTF-8 file can start with the byte order mark U+FEFF. The mark is
+/// uncommon in UTF-8 and has no meaning there, because UTF-8 has only one
+/// byte order.
+pub fn read_to_string(path: impl AsRef<Path>) -> io::Result<String> {
+    let mut text = fs::read_to_string(path)?;
+    if text.starts_with('\u{FEFF}') {
+        text.drain(..'\u{FEFF}'.len_utf8());
+    }
+    Ok(text)
 }
 
 impl Input {
@@ -247,7 +262,21 @@ impl Input {
 
 #[cfg(test)]
 mod tests {
-    use crate::input::Input;
+    use crate::input::{Input, read_to_string};
+    use std::fs;
+
+    #[test]
+    fn test_read_to_string_strips_leading_byte_order_mark() {
+        let file = std::env::temp_dir().join(format!(
+            "iguana-runtime-read-to-string-{}.txt",
+            std::process::id()
+        ));
+        fs::write(&file, "\u{FEFF}a\u{FEFF}b").unwrap();
+        assert_eq!(read_to_string(&file).unwrap(), "a\u{FEFF}b");
+        fs::write(&file, "ab").unwrap();
+        assert_eq!(read_to_string(&file).unwrap(), "ab");
+        fs::remove_file(&file).unwrap();
+    }
 
     #[test]
     fn test_offset_is_none_outside_the_input() {

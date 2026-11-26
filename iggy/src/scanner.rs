@@ -12,19 +12,19 @@ use iguana_runtime::{
 };
 const MATCH_MEMO_WORDS: usize = 1;
 static MATCH_ANY_FIRST_CHARS: [CharSet; 37] = [
-    CharSet::new(0x800100000600, &[]),
-    CharSet::new(0x7fffffe07ffffff0000800100000600, &[]),
-    CharSet::new(0x7fffffe07fffffe0000800100000600, &[]),
-    CharSet::new(0x7fffffe0ffffffe0000818700000600, &[]),
-    CharSet::new(0x7fffffe17ffffff0000800300000600, &[]),
-    CharSet::new(0x7fffffe07ffffff4000800100000600, &[]),
-    CharSet::new(0xffffffe07fffffe0000810500000600, &[]),
-    CharSet::new(0x17fffffe07ffffff4000800100000600, &[]),
-    CharSet::new(0x3ffffffe17ffffffc0008f0f00000600, &[]),
-    CharSet::new(0x17fffffe1fffffff80008f8700000600, &[]),
-    CharSet::new(0x3ffffffe1fffffffc0008f8f00000600, &[]),
+    CharSet::new(0x800100002600, &[]),
+    CharSet::new(0x7fffffe07ffffff0000800100002600, &[]),
+    CharSet::new(0x7fffffe07fffffe0000800100002600, &[]),
+    CharSet::new(0x7fffffe0ffffffe0000818700002600, &[]),
+    CharSet::new(0x7fffffe17ffffff0000800300002600, &[]),
+    CharSet::new(0x7fffffe07ffffff4000800100002600, &[]),
+    CharSet::new(0xffffffe07fffffe0000810500002600, &[]),
+    CharSet::new(0x17fffffe07ffffff4000800100002600, &[]),
+    CharSet::new(0x3ffffffe17ffffffc0008f0f00002600, &[]),
+    CharSet::new(0x17fffffe1fffffff80008f8700002600, &[]),
+    CharSet::new(0x3ffffffe1fffffffc0008f8f00002600, &[]),
     CharSet::new(
-        0xfffffffff7ffffffffffdfffffffcfff,
+        0xfffffffff7ffffffffffdfffffffefff,
         &[
             CharRange {
                 start: '\u{80}',
@@ -37,7 +37,7 @@ static MATCH_ANY_FIRST_CHARS: [CharSet; 37] = [
         ],
     ),
     CharSet::new(
-        0xffffffffffffffffffffffffffffcfff,
+        0xffffffffffffffffffffffffffffefff,
         &[
             CharRange {
                 start: '\u{80}',
@@ -49,14 +49,14 @@ static MATCH_ANY_FIRST_CHARS: [CharSet; 37] = [
             },
         ],
     ),
-    CharSet::new(0x800100000600, &[]),
-    CharSet::new(0x10000800100000600, &[]),
-    CharSet::new(0x10000800100000600, &[]),
-    CharSet::new(0x17fffffe1fffffff0000838700000600, &[]),
-    CharSet::new(0x17fffffe17ffffff0000820300000600, &[]),
-    CharSet::new(0x1ffffffe07ffffff4000830d00000600, &[]),
-    CharSet::new(0x10000000000000000000820100000600, &[]),
-    CharSet::new(0x80000000000800100000600, &[]),
+    CharSet::new(0x800100002600, &[]),
+    CharSet::new(0x10000800100002600, &[]),
+    CharSet::new(0x10000800100002600, &[]),
+    CharSet::new(0x17fffffe1fffffff0000838700002600, &[]),
+    CharSet::new(0x17fffffe17ffffff0000820300002600, &[]),
+    CharSet::new(0x1ffffffe07ffffff4000830d00002600, &[]),
+    CharSet::new(0x10000000000000000000820100002600, &[]),
+    CharSet::new(0x80000000000800100002600, &[]),
     CharSet::new(
         0xfffffffffffffffffffffffeffffc9ff,
         &[
@@ -71,7 +71,7 @@ static MATCH_ANY_FIRST_CHARS: [CharSet; 37] = [
         ],
     ),
     CharSet::new(0x0, &[]),
-    CharSet::new(0x7fffffe0ffffffe0000818700000600, &[]),
+    CharSet::new(0x7fffffe0ffffffe0000818700002600, &[]),
     CharSet::new(0xffffffe07fffffe0000010400000000, &[]),
     CharSet::new(0x20000000000, &[]),
     CharSet::new(0x20000000000000000000000000000000, &[]),
@@ -80,7 +80,7 @@ static MATCH_ANY_FIRST_CHARS: [CharSet; 37] = [
     CharSet::new(0x8000000000000000, &[]),
     CharSet::new(0x100000000000000200000000, &[]),
     CharSet::new(0x200000000000000000000000, &[]),
-    CharSet::new(0x7fffffe07ffffff0000800100000600, &[]),
+    CharSet::new(0x7fffffe07ffffff0000800100002600, &[]),
     CharSet::new(0x4000000000000000, &[]),
     CharSet::new(0x10000000000000000000000000000000, &[]),
     CharSet::new(0x7fffffe07fffffe0000000000000000, &[]),
@@ -171,7 +171,7 @@ static FIRST_CHAR_MASKS: [BitSet<MATCH_MEMO_WORDS>; 128] = [
     BitSet::from_members(&[8, 9]),
     BitSet::from_members(&[6]),
     BitSet::from_members(&[]),
-    BitSet::from_members(&[]),
+    BitSet::from_members(&[8, 9]),
     BitSet::from_members(&[6]),
     BitSet::from_members(&[6]),
     BitSet::from_members(&[6]),
@@ -382,15 +382,15 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
     pub fn match_terminal_7(&self, input_index: u32) -> Option<u32> {
         self.scan_dfa_7(input_index, self.input.len())
     }
-    // WS = [ \n \t]+
+    // WS = [ \r \n \t]+
     pub fn match_terminal_8(&self, input_index: u32) -> Option<u32> {
         self.scan_dfa_8(input_index, self.input.len())
     }
-    // WSChar = [ \n \t]
+    // WSChar = [ \r \n \t]
     pub fn match_terminal_9(&self, input_index: u32) -> Option<u32> {
         self.scan_dfa_9(input_index, self.input.len())
     }
-    // LineComment = //![\n]*
+    // LineComment = //![\r \n]*
     pub fn match_terminal_10(&self, input_index: u32) -> Option<u32> {
         self.scan_dfa_10(input_index, self.input.len())
     }
@@ -915,7 +915,7 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
                         break;
                     };
                     state = match ch {
-                        '\t' | '\n' | ' ' => 1,
+                        '\t' | '\n' | '\r' | ' ' => 1,
                         _ => break,
                     };
                 }
@@ -928,7 +928,7 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
                         break;
                     };
                     state = match ch {
-                        '\t' | '\n' | ' ' => 1,
+                        '\t' | '\n' | '\r' | ' ' => 1,
                         _ => break,
                     };
                 }
@@ -953,7 +953,7 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
                         break;
                     };
                     state = match ch {
-                        '\t' | '\n' | ' ' => 1,
+                        '\t' | '\n' | '\r' | ' ' => 1,
                         _ => break,
                     };
                 }
@@ -1007,7 +1007,10 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
                         break;
                     };
                     state = match ch {
-                        '\0'..='\t' | '\u{b}'..='\u{d7ff}' | '\u{e000}'..='\u{10ffff}' => 3,
+                        '\0'..='\t'
+                        | '\u{b}'..='\u{c}'
+                        | '\u{e}'..='\u{d7ff}'
+                        | '\u{e000}'..='\u{10ffff}' => 3,
                         _ => break,
                     };
                 }
@@ -1020,7 +1023,10 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
                         break;
                     };
                     state = match ch {
-                        '\0'..='\t' | '\u{b}'..='\u{d7ff}' | '\u{e000}'..='\u{10ffff}' => 3,
+                        '\0'..='\t'
+                        | '\u{b}'..='\u{c}'
+                        | '\u{e}'..='\u{d7ff}'
+                        | '\u{e000}'..='\u{10ffff}' => 3,
                         _ => break,
                     };
                 }

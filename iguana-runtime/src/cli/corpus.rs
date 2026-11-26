@@ -7,7 +7,7 @@ use std::{
 
 use crate::{
     arena::Arena,
-    input::Input,
+    input::{Input, read_to_string},
     parse_tree::is_ambiguous,
     parser::{GLLResult, Parser},
 };
@@ -156,7 +156,7 @@ pub(super) struct CorpusEntry {
 /// Reads `repos.txt`: one corpus per line as whitespace-separated
 /// `name ext start repo ref`. Blank lines and `#` comments are skipped.
 pub(super) fn read_repos(path: &Path) -> io::Result<Vec<CorpusEntry>> {
-    let text = fs::read_to_string(path)?;
+    let text = read_to_string(path)?;
     parse_repos_text(&text).map_err(|msg| {
         io::Error::new(
             io::ErrorKind::InvalidData,

@@ -14,6 +14,7 @@ use std::{
 use iguana_lsp::analysis::Analysis;
 use iguana_lsp::format::format_source;
 use iguana_runtime::ids::SPPFNodeId;
+use iguana_runtime::input::read_to_string;
 use iguana_runtime::result::ParseSummary;
 use iguana_runtime::visualization::{gss::GSS, sppf::SPPF};
 use lsp_types::{DiagnosticSeverity, DocumentSymbol, Position, Range, SymbolKind};
@@ -335,7 +336,7 @@ fn load_grammar(directory: String) -> Result<(String, String), String> {
         1 => {
             let path = iggy_files[0].path();
             let content =
-                fs::read_to_string(&path).map_err(|e| format!("Cannot read grammar file: {e}"))?;
+                read_to_string(&path).map_err(|e| format!("Cannot read grammar file: {e}"))?;
             let filename = path
                 .file_name()
                 .unwrap_or_default()

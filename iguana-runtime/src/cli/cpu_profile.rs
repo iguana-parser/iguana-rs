@@ -9,7 +9,7 @@ use std::{
 use crate::{
     arena::Arena,
     ids::NonterminalId,
-    input::Input,
+    input::{Input, read_to_string},
     parser::{GLLResult, Parser},
 };
 
@@ -165,7 +165,7 @@ fn parse_files<'i, 'arena, P: Parser<'i, 'arena>>(
 /// without files is an error, since its profile would be empty.
 fn batch_files(args: &Args) -> io::Result<Vec<PathBuf>> {
     let files = if let Some(list) = args.files_from.as_ref() {
-        let text = fs::read_to_string(list)
+        let text = read_to_string(list)
             .map_err(|e| io::Error::new(e.kind(), format!("{}: {}", list.display(), e)))?;
         file_list(&text)
     } else if let Some(dir) = args.dir.as_ref() {

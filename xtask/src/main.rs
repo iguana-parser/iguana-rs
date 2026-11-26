@@ -13,6 +13,7 @@ use iguana_compiler::{
     },
     grammar::def::Grammar,
     iggy::parse_grammar,
+    input::read_to_string,
     utils::to_pascal_case,
     validation::render_errors,
 };
@@ -391,7 +392,7 @@ fn regenerate_with(
     runtime_path: Option<&Path>,
     force: bool,
 ) -> io::Result<GenerateResult> {
-    let source = fs::read_to_string(grammar_path)?;
+    let source = read_to_string(grammar_path)?;
     let grammar_def = parse_grammar(&source)
         .map_err(|errors| io::Error::other(render_errors(&errors, grammar_path, &source)))?;
     let grammar: Grammar = grammar_def

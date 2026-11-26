@@ -8,7 +8,7 @@ use std::{
 use crate::{
     arena::Arena,
     ids::NonterminalId,
-    input::Input,
+    input::{Input, read_to_string},
     parse_tree::is_ambiguous,
     parser::{GLLResult, Parser},
 };
@@ -96,7 +96,7 @@ pub(super) fn run<'i, 'arena, P: Parser<'i, 'arena>>(args: &Args) -> io::Result<
     if let Some(list) = args.files_from.as_ref() {
         let start_nonterminal_id =
             start_nonterminal_id::<P::Grammar>(start_nonterminal_name(args)?)?;
-        let text = fs::read_to_string(list)
+        let text = read_to_string(list)
             .map_err(|e| io::Error::new(e.kind(), format!("{}: {}", list.display(), e)))?;
         let paired = file_list(&text)
             .into_iter()
@@ -276,7 +276,7 @@ fn bench_parse_file<'i, 'arena, P: Parser<'i, 'arena>>(
     // Reading the file is deliberately not included in benchmarks. It
     // measures the file system rather than the parser, and its time varies
     // between runs because of factors like the page cache.
-    let text = match fs::read_to_string(path) {
+    let text = match read_to_string(path) {
         Ok(text) => text,
         Err(_) => {
             let bytes = fs::metadata(path).map(|m| m.len()).unwrap_or(0);
