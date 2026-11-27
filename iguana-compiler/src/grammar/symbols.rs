@@ -8,6 +8,7 @@ use specta::Type;
 
 use crate::escapes::escape_literal;
 use crate::grammar::def::Grammar;
+use crate::grammar::regex::Regex;
 use crate::grammar::transformations::transform_symbol;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
@@ -53,17 +54,7 @@ pub enum Symbol {
         symbol: Box<Symbol>,
     },
     Identifier(Identifier),
-    /// A string literal, such as `"else"`. When `ignore_ascii_case` is true,
-    /// the literal is written with the `i` prefix, e.g. `i"select"`, or
-    /// without a prefix in a grammar with `@IgnoreCase`, and each ASCII
-    /// letter of `text` matches in both upper and lower case.
-    /// Such a literal stores `text` in lowercase, so that two spellings of
-    /// the same literal, e.g. `i"select"` and `i"SELECT"`, are equal symbols
-    /// and refer to one terminal.
-    Literal {
-        text: String,
-        ignore_ascii_case: bool,
-    },
+    Literal(Literal),
     Group(Vec<Symbol>),
     Opt(Box<Symbol>),
     Alt(Vec<Symbol>),
@@ -337,15 +328,15 @@ impl IntoExpr for Expr {
 #[derive(Debug, Default, Clone, PartialEq, Eq, Hash)]
 pub struct Restrictions {
     /// The `!<<` restrictions.
-    pub precede: Vec<Identifier>,
+    pub precede: Vec<RestrictionOperand>,
     /// The `\` restrictions.
-    pub excepts: Vec<Identifier>,
+    pub excepts: Vec<RestrictionOperand>,
     /// The `&` restrictions.
-    pub required: Vec<Identifier>,
+    pub required: Vec<RestrictionOperand>,
     /// The `!>>` restrictions.
-    pub follow: Vec<Identifier>,
+    pub follow: Vec<RestrictionOperand>,
     /// The `!>>>` restrictions.
-    pub layout_aware_follow: Vec<Identifier>,
+    pub layout_aware_follow: Vec<RestrictionOperand>,
 }
 
 impl Restrictions {
@@ -366,7 +357,8 @@ impl Restrictions {
             || !self.layout_aware_follow.is_empty()
     }
 
-    /// The identifiers of all restrictions.
+    /// The identifiers of all restrictions. A literal operand has no
+    /// identifier and is skipped.
     pub fn ids(&self) -> impl Iterator<Item = &Identifier> {
         self.precede
             .iter()
@@ -374,26 +366,14 @@ impl Restrictions {
             .chain(&self.required)
             .chain(&self.follow)
             .chain(&self.layout_aware_follow)
+            .filter_map(|operand| match operand {
+                RestrictionOperand::Identifier(identifier) => Some(identifier),
+                RestrictionOperand::Literal(_) => None,
+            })
     }
 }
 
 impl Symbol {
-    pub fn literal(text: impl Into<String>) -> Self {
-        Symbol::Literal {
-            text: text.into(),
-            ignore_ascii_case: false,
-        }
-    }
-
-    /// The literal whose ASCII letters match in both cases, written
-    /// `i"text"` in Iggy. The literal holds `text` in lowercase.
-    pub fn ignore_case_literal(text: &str) -> Self {
-        Symbol::Literal {
-            text: text.to_ascii_lowercase(),
-            ignore_ascii_case: true,
-        }
-    }
-
     /// The symbol with `restrictions` attached, or the symbol itself when
     /// `restrictions` is empty. `Restricted` nodes do not nest: a symbol
     /// reference holds all its restrictions in one node.
@@ -440,7 +420,7 @@ impl Symbol {
             | Symbol::Restricted { symbol, .. }
             | Symbol::Exclude { symbol, .. } => symbol,
             Symbol::Identifier(_)
-            | Symbol::Literal { .. }
+            | Symbol::Literal(_)
             | Symbol::Group(_)
             | Symbol::Opt(_)
             | Symbol::Alt(_)
@@ -467,7 +447,7 @@ impl Symbol {
             | Symbol::Binding { symbol, .. }
             | Symbol::Restricted { symbol, .. }
             | Symbol::Exclude { symbol, .. } => symbol.as_identifier(),
-            Symbol::Literal { .. }
+            Symbol::Literal(_)
             | Symbol::Group(_)
             | Symbol::Opt(_)
             | Symbol::Alt(_)
@@ -489,7 +469,7 @@ impl Symbol {
             | Symbol::Restricted { symbol, .. }
             | Symbol::Exclude { symbol, .. } => symbol.call_arguments(),
             Symbol::Identifier(_)
-            | Symbol::Literal { .. }
+            | Symbol::Literal(_)
             | Symbol::Group(_)
             | Symbol::Opt(_)
             | Symbol::Alt(_)
@@ -509,7 +489,7 @@ impl Symbol {
             | Symbol::Exclude { symbol, .. } => symbol.binding_pattern(),
             Symbol::Identifier(_)
             | Symbol::Call { .. }
-            | Symbol::Literal { .. }
+            | Symbol::Literal(_)
             | Symbol::Group(_)
             | Symbol::Opt(_)
             | Symbol::Alt(_)
@@ -537,7 +517,7 @@ impl Symbol {
             | Symbol::Binding { symbol, .. }
             | Symbol::Exclude { symbol, .. } => symbol.restrictions(),
             Symbol::Identifier(_)
-            | Symbol::Literal { .. }
+            | Symbol::Literal(_)
             | Symbol::Group(_)
             | Symbol::Opt(_)
             | Symbol::Alt(_)
@@ -565,7 +545,7 @@ impl Symbol {
                 let definition = grammar.definition(def_id);
                 definition.display_name()
             }
-            Symbol::Literal { .. } => self.to_string(),
+            Symbol::Literal(literal) => literal.to_string(),
             Symbol::Group(symbols) => format!(
                 "({})",
                 symbols.iter().map(|s| s.display_name(grammar)).join(" "),
@@ -657,10 +637,7 @@ impl Display for Symbol {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Symbol::Labeled { label, symbol } => write!(f, "{label}:{symbol}"),
-            Symbol::Literal {
-                text,
-                ignore_ascii_case,
-            } => f.write_str(&Terminal::name_from_literal(text, *ignore_ascii_case)),
+            Symbol::Literal(literal) => write!(f, "{literal}"),
             Symbol::Identifier(identifier) => write!(f, "{}", identifier.name),
             Symbol::Group(symbols) => write!(f, "({})", symbols.iter().join(" ")),
             Symbol::Opt(opt) => write!(f, "{opt}?"),
@@ -730,6 +707,104 @@ impl Display for Identifier {
     }
 }
 
+/// A string literal of a grammar, such as `"else"` or `i"select"`.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct Literal {
+    text: String,
+    ignore_case: bool,
+}
+
+impl Literal {
+    /// Creates a literal that matches `text` exactly. It is written
+    /// `s"text"`, or `"text"` in a grammar without `@IgnoreCase`.
+    pub fn exact(text: impl Into<String>) -> Self {
+        Self {
+            text: text.into(),
+            ignore_case: false,
+        }
+    }
+
+    /// Creates a literal whose ASCII letters match in both cases. It is
+    /// written `i"text"`, or `"text"` in a grammar with `@IgnoreCase`. The
+    /// literal holds `text` in lowercase, so that `i"select"` and
+    /// `i"SELECT"` are equal and refer to one terminal.
+    pub fn ignore_case(text: &str) -> Self {
+        Self {
+            text: text.to_ascii_lowercase(),
+            ignore_case: true,
+        }
+    }
+
+    pub fn text(&self) -> &str {
+        &self.text
+    }
+
+    pub fn ignores_case(&self) -> bool {
+        self.ignore_case
+    }
+
+    /// The terminal of the literal. Each literal in a syntax rule becomes a
+    /// reference to this terminal. Its name is the literal as written, with
+    /// special characters escaped: the name of the terminal of `"\n"` is the
+    /// Rust string `"\"\\n\""`.
+    pub fn terminal(&self) -> Terminal {
+        let kind = if self.ignore_case {
+            TerminalKind::IgnoreCaseLiteral
+        } else {
+            TerminalKind::Literal
+        };
+        Terminal {
+            name: self.to_string(),
+            kind,
+        }
+    }
+
+    pub fn regex(&self) -> Regex {
+        if self.ignore_case {
+            Regex::ignore_case_literal(&self.text)
+        } else {
+            Regex::exact_literal(&self.text)
+        }
+    }
+}
+
+impl Display for Literal {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let prefix = if self.ignore_case { "i" } else { "" };
+        write!(f, "{prefix}\"{}\"", escape_literal(&self.text))
+    }
+}
+
+/// The operand of a restriction in a syntax rule, such as `Else` in
+/// `Statement !>>> Else` or `"+"` in `"+" !>> "+"`.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum RestrictionOperand {
+    Identifier(Identifier),
+    Literal(Literal),
+}
+
+impl RestrictionOperand {
+    /// The identifier of the operand. Panics on a literal, which validation
+    /// rejects (`check_restriction_targets`).
+    pub fn identifier(&self) -> &Identifier {
+        match self {
+            RestrictionOperand::Identifier(identifier) => identifier,
+            RestrictionOperand::Literal(literal) => {
+                panic!("unexpected literal restriction operand {literal}")
+            }
+        }
+    }
+}
+
+impl Display for RestrictionOperand {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            RestrictionOperand::Identifier(identifier) => write!(f, "{identifier}"),
+            RestrictionOperand::Literal(literal) => write!(f, "{literal}"),
+        }
+    }
+}
+
 /// What a terminal is defined by.
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Serialize, Deserialize, Type)]
 pub enum TerminalKind {
@@ -758,38 +833,8 @@ impl Terminal {
         }
     }
 
-    /// Each string literal in a grammar becomes a reference to a terminal
-    /// with the same name as the literal. The terminal name escapes special
-    /// characters so that it can be printed. For example, the name of the
-    /// terminal for the literal `"\n"` is the Rust string `"\"\\n\""`.
-    ///
-    /// This function creates a `Terminal` for the literal with the given
-    /// text by escaping the text.
-    pub fn literal(text: &str) -> Self {
-        Self {
-            name: Self::name_from_literal(text, false),
-            kind: TerminalKind::Literal,
-        }
-    }
-
-    /// Similar to `literal`, but for a literal that ignores case when
-    /// matching. The name of the terminal has the `i` prefix, as in
-    /// `i"select"`.
-    pub fn ignore_case_literal(text: &str) -> Self {
-        Self {
-            name: Self::name_from_literal(text, true),
-            kind: TerminalKind::IgnoreCaseLiteral,
-        }
-    }
-
     pub fn is_literal(&self) -> bool {
         self.kind != TerminalKind::LexicalRule
-    }
-
-    /// The name of the terminal from the text of a literal.
-    fn name_from_literal(text: &str, ignore_case: bool) -> String {
-        let prefix = if ignore_case { "i" } else { "" };
-        format!("{prefix}\"{}\"", escape_literal(text))
     }
 }
 
@@ -974,26 +1019,26 @@ mod tests {
 
     #[test]
     fn a_literal_terminal_has_the_name_of_the_literal() {
-        let terminal = Terminal::literal("else");
+        let terminal = Literal::exact("else").terminal();
         assert_eq!(terminal.name, "\"else\"");
         assert_eq!(terminal.kind, TerminalKind::Literal);
         assert!(terminal.is_literal());
 
-        let terminal = Terminal::ignore_case_literal("select");
+        let terminal = Literal::ignore_case("select").terminal();
         assert_eq!(terminal.name, "i\"select\"");
         assert_eq!(terminal.kind, TerminalKind::IgnoreCaseLiteral);
         assert!(terminal.is_literal());
 
-        assert_eq!(Terminal::literal("\n").name, "\"\\n\"");
+        assert_eq!(Literal::exact("\n").terminal().name, "\"\\n\"");
         assert!(!Terminal::new("Identifier").is_literal());
     }
 
     #[test]
     fn an_ignore_case_literal_is_in_lowercase() {
-        let symbol = Symbol::ignore_case_literal("SeLect_1");
-        assert_eq!(symbol, Symbol::ignore_case_literal("select_1"));
-        assert_eq!(symbol.to_string(), "i\"select_1\"");
-        assert_ne!(symbol, Symbol::literal("select_1"));
+        let literal = Literal::ignore_case("SeLect_1");
+        assert_eq!(literal, Literal::ignore_case("select_1"));
+        assert_eq!(literal.to_string(), "i\"select_1\"");
+        assert_ne!(literal, Literal::exact("select_1"));
     }
 
     #[test]
@@ -1011,8 +1056,11 @@ mod tests {
         assert_eq!(nonterminal.display_name(), "(\"else\" B)?");
     }
 
-    fn names(ids: &[Identifier]) -> Vec<&str> {
-        ids.iter().map(|id| id.name.as_str()).collect()
+    fn names(operands: &[RestrictionOperand]) -> Vec<&str> {
+        operands
+            .iter()
+            .map(|operand| operand.identifier().name.as_str())
+            .collect()
     }
 
     #[test]

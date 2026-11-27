@@ -365,7 +365,7 @@ impl<'a> ScannerGen<'a> {
                 for symbol in &alternative.symbols {
                     let restrictions = symbol.restrictions();
                     for operand in restrictions.excepts.iter().chain(&restrictions.required) {
-                        let (terminal, _) = self.grammar.match_exact_operand(operand);
+                        let (terminal, _) = self.grammar.match_exact_operand(operand.identifier());
                         let id = self.terminal_ids.get_id(terminal);
                         if !ids.contains(&id) {
                             ids.push(id);
@@ -775,7 +775,7 @@ impl<'a> ScannerGen<'a> {
         let mut except_checks = Vec::new();
         let mut set_checks: [Vec<Ident>; 2] = Default::default();
         for except in &rule.except {
-            let (except_terminal, _) = self.grammar.match_exact_operand(except);
+            let (except_terminal, _) = self.grammar.match_exact_operand(except.identifier());
             let except_id = self.terminal_ids.get_id(except_terminal).index();
             if let (scan_id, Scan::Trie(set)) = self.scan(except_id) {
                 set_checks[set.ignore_ascii_case as usize].push(literal_set_ident(scan_id));
@@ -811,7 +811,7 @@ impl<'a> ScannerGen<'a> {
             .follow_restriction
             .iter()
             .map(|restriction| {
-                let restriction_fn = self.restriction_fn(restriction, "Follow");
+                let restriction_fn = self.restriction_fn(restriction.identifier(), "Follow");
                 quote! {
                     if self.#restriction_fn(end).is_some() {
                         return None;
@@ -821,7 +821,7 @@ impl<'a> ScannerGen<'a> {
             .collect();
 
         let precede_restriction_check = rule.precede_restriction.as_ref().map(|restriction| {
-            let restriction_fn = self.restriction_fn(restriction, "Precede");
+            let restriction_fn = self.restriction_fn(restriction.identifier(), "Precede");
             quote! {
                 if input_index > 0 && self.#restriction_fn(input_index - 1).is_some() {
                     return None;

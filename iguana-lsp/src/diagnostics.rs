@@ -357,12 +357,10 @@ B
         }
     }
 
-    /// A restriction name written twice is stored once, keeping its first
-    /// spelling. A later restriction with a different name pairs with its
-    /// own token, so its diagnostic points at that token rather than at the
-    /// repeated one.
+    /// A restriction written twice keeps both operands, so each occurrence of
+    /// an unresolved name gets its own diagnostic at its own token.
     #[test]
-    fn duplicate_restriction_leaves_later_spans_aligned() {
+    fn duplicate_restriction_is_reported_at_each_token() {
         let d = diags(
             r#"
 grammar T
@@ -375,15 +373,20 @@ A
 "#,
         );
         let names: Vec<_> = d.iter().map(|d| &d.message).collect();
-        assert_eq!(d.len(), 2, "one per stored name, got: {names:?}");
+        assert_eq!(d.len(), 3, "one per operand, got: {names:?}");
         let line = "  = A !>> X !>> X !>> Y A";
-        for name in ["X", "Y"] {
-            let character = line.find(name).unwrap() as u32;
+        let first_x = line.find('X').unwrap();
+        let tokens = [
+            ("X", first_x),
+            ("X", line[first_x + 1..].find('X').unwrap() + first_x + 1),
+            ("Y", line.find('Y').unwrap()),
+        ];
+        for (name, character) in tokens {
             assert!(
                 d.iter().any(|d| d.message.contains(name)
                     && d.range.start.line == 3
-                    && d.range.start.character == character),
-                "{name} not reported at its own token, got: {d:?}",
+                    && d.range.start.character == character as u32),
+                "{name} not reported at column {character}, got: {d:?}",
             );
         }
     }

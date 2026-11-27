@@ -256,7 +256,7 @@ mod tests {
 
     #[test]
     fn char_atom() {
-        let actual = Nfa::from_regex(&Regex::char('a'), t(0));
+        let actual = Nfa::from_regex(&Regex::Char('a'), t(0));
         let expected = nfa_from(2, 0, &[(1, t(0))], &[(0, Some(cc('a')), 1)]);
         assert_eq!(actual, expected);
     }
@@ -284,7 +284,7 @@ mod tests {
 
     #[test]
     fn seq_chains_via_epsilon() {
-        let actual = Nfa::from_regex(&Regex::seq(vec![Regex::char('a'), Regex::char('b')]), t(0));
+        let actual = Nfa::from_regex(&Regex::seq(vec![Regex::Char('a'), Regex::Char('b')]), t(0));
         let expected = nfa_from(
             4,
             0,
@@ -296,7 +296,7 @@ mod tests {
 
     #[test]
     fn alt_branches_from_start_and_joins_at_accept() {
-        let actual = Nfa::from_regex(&Regex::alt(vec![Regex::char('a'), Regex::char('b')]), t(0));
+        let actual = Nfa::from_regex(&Regex::alt(vec![Regex::Char('a'), Regex::Char('b')]), t(0));
         let expected = nfa_from(
             6,
             0,
@@ -315,7 +315,7 @@ mod tests {
 
     #[test]
     fn opt_adds_a_bypass_from_start_to_accept() {
-        let actual = Nfa::from_regex(&Regex::Opt(Box::new(Regex::char('a'))), t(0));
+        let actual = Nfa::from_regex(&Regex::Opt(Box::new(Regex::Char('a'))), t(0));
         let expected = nfa_from(
             4,
             0,
@@ -332,7 +332,7 @@ mod tests {
 
     #[test]
     fn star_has_bypass_and_loop() {
-        let actual = Nfa::from_regex(&Regex::star(Regex::char('a')), t(0));
+        let actual = Nfa::from_regex(&Regex::star(Regex::Char('a')), t(0));
         let expected = nfa_from(
             4,
             0,
@@ -350,7 +350,7 @@ mod tests {
 
     #[test]
     fn plus_has_loop_but_no_bypass() {
-        let actual = Nfa::from_regex(&Regex::plus(Regex::char('a')), t(0));
+        let actual = Nfa::from_regex(&Regex::plus(Regex::Char('a')), t(0));
         let expected = nfa_from(
             3,
             0,
@@ -362,8 +362,8 @@ mod tests {
 
     #[test]
     fn union_branches_from_shared_start() {
-        let r1 = Regex::char('a');
-        let r2 = Regex::char('b');
+        let r1 = Regex::Char('a');
+        let r2 = Regex::Char('b');
         let mut builder = NfaBuilder::new();
         let start = builder.new_state();
         let mut accepts = Vec::new();

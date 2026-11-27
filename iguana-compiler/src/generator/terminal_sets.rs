@@ -5,7 +5,9 @@ use crate::generator::id::TerminalIds;
 use crate::grammar::def::Grammar;
 use crate::grammar::first_follow::FirstFollowSets;
 use crate::grammar::slot::Slot;
-use crate::grammar::symbols::{Definition, Identifier, Nonterminal, Symbol, Terminal};
+use crate::grammar::symbols::{
+    Definition, Identifier, Nonterminal, RestrictionOperand, Symbol, Terminal,
+};
 use crate::ids::TerminalId;
 
 pub enum TerminalSetKind<'a> {
@@ -153,22 +155,19 @@ pub fn terminal_sets<'a>(
                     continue;
                 }
                 let restrictions = symbol.restrictions();
-                let operands = |ids: &[Identifier]| -> Vec<Terminal> {
-                    ids.iter()
-                        .map(|id| grammar.match_exact_operand(id).0.clone())
-                        .collect()
-                };
-                if !restrictions.excepts.is_empty() {
-                    sets.push(first_set(
-                        TerminalSetKind::Except(Slot::new(nonterminal, alternative, pos)),
-                        operands(&restrictions.excepts),
-                    ));
-                }
-                if !restrictions.required.is_empty() {
-                    sets.push(first_set(
-                        TerminalSetKind::Required(Slot::new(nonterminal, alternative, pos)),
-                        operands(&restrictions.required),
-                    ));
+                let slot = Slot::new(nonterminal, alternative, pos);
+                for (kind, operands) in [
+                    (TerminalSetKind::Except(slot.clone()), &restrictions.excepts),
+                    (TerminalSetKind::Required(slot), &restrictions.required),
+                ] {
+                    if operands.is_empty() {
+                        continue;
+                    }
+                    let terminals = operands
+                        .iter()
+                        .map(|operand| grammar.match_exact_operand(operand.identifier()).0.clone())
+                        .collect();
+                    sets.push(first_set(kind, terminals));
                 }
             }
         }
@@ -264,11 +263,11 @@ fn canonical_order(mut terminals: Vec<Terminal>, terminal_ids: &TerminalIds) -> 
     terminals
 }
 
-fn restriction_terminals(grammar: &Grammar, restrictions: &[Identifier]) -> Vec<Terminal> {
+fn restriction_terminals(grammar: &Grammar, restrictions: &[RestrictionOperand]) -> Vec<Terminal> {
     restrictions
         .iter()
         .map(|r| {
-            let Definition::Terminal(t) = grammar.definition(r.resolve()) else {
+            let Definition::Terminal(t) = grammar.definition(r.identifier().resolve()) else {
                 panic!("follow restriction must resolve to a terminal");
             };
             t.clone()

@@ -648,46 +648,40 @@ impl<'a> Formatter<'a> {
                 let mut layout_aware_follow = Vec::new();
                 for condition in conditions.post_conditions() {
                     match condition {
-                        PostCondition::Exclude { identifier, .. } => excludes.push(identifier),
-                        PostCondition::Except { identifier, .. } => excepts.push(identifier),
-                        PostCondition::Require { identifier, .. } => required.push(identifier),
-                        PostCondition::FollowRestriction { identifier, .. } => {
-                            follow.push(identifier)
+                        PostCondition::Exclude { identifier, .. } => {
+                            excludes.push(identifier.span())
                         }
-                        PostCondition::LayoutAwareFollowRestriction { identifier, .. } => {
-                            layout_aware_follow.push(identifier)
+                        PostCondition::Except { operand, .. } => excepts.push(operand.span()),
+                        PostCondition::Require { operand, .. } => required.push(operand.span()),
+                        PostCondition::FollowRestriction { operand, .. } => {
+                            follow.push(operand.span())
+                        }
+                        PostCondition::LayoutAwareFollowRestriction { operand, .. } => {
+                            layout_aware_follow.push(operand.span())
                         }
                         PostCondition::Amb(_) => {
                             unreachable!("ambiguous trees are rejected before this point")
                         }
                     }
                 }
-                for id in excludes {
-                    out.push('!');
-                    out.push_str(&self.input.text(id.span()));
-                }
-                for id in excepts {
-                    out.push_str(" \\ ");
-                    out.push_str(&self.input.text(id.span()));
-                }
-                for id in required {
-                    out.push_str(" & ");
-                    out.push_str(&self.input.text(id.span()));
-                }
-                for id in follow {
-                    out.push_str(" !>> ");
-                    out.push_str(&self.input.text(id.span()));
-                }
-                for id in layout_aware_follow {
-                    out.push_str(" !>>> ");
-                    out.push_str(&self.input.text(id.span()));
+                for (operator, spans) in [
+                    ("!", excludes),
+                    (" \\ ", excepts),
+                    (" & ", required),
+                    (" !>> ", follow),
+                    (" !>>> ", layout_aware_follow),
+                ] {
+                    for span in spans {
+                        out.push_str(operator);
+                        out.push_str(&self.input.text(span));
+                    }
                 }
             }
             Symbol::PreCondition {
                 conditions, symbol, ..
             } => {
                 for condition in conditions.pre_conditions() {
-                    out.push_str(&self.input.text(condition.identifier().span()));
+                    out.push_str(&self.input.text(condition.operand().span()));
                     out.push_str(" !<< ");
                 }
                 self.format_symbol(out, symbol);
@@ -705,13 +699,13 @@ impl<'a> Formatter<'a> {
         let mut s = String::new();
         for condition in rule.regex_post_conditions().regex_post_conditions() {
             match condition {
-                RegexPostCondition::Except { identifier, .. } => {
+                RegexPostCondition::Except { regex_operand, .. } => {
                     s.push_str(" \\ ");
-                    s.push_str(&self.input.text(identifier.span()));
+                    self.format_regex_operand(&mut s, regex_operand);
                 }
-                RegexPostCondition::FollowRestriction { identifier, .. } => {
+                RegexPostCondition::FollowRestriction { regex_operand, .. } => {
                     s.push_str(" !>> ");
-                    s.push_str(&self.input.text(identifier.span()));
+                    self.format_regex_operand(&mut s, regex_operand);
                 }
                 RegexPostCondition::Amb(_) => {
                     unreachable!("ambiguous trees are rejected before this point")
@@ -751,10 +745,12 @@ impl<'a> Formatter<'a> {
             .map(|group| group.collect::<Vec<_>>())
             .collect();
 
-        let pre_prefix = rule
-            .regex_pre_condition()
-            .value()
-            .map(|pre| format!("{} !<< ", self.input.text(pre.identifier().span())));
+        let pre_prefix = rule.regex_pre_condition().value().map(|pre| {
+            let mut s = String::new();
+            self.format_regex_operand(&mut s, pre.regex_operand());
+            s.push_str(" !<< ");
+            s
+        });
         let pre_str = pre_prefix.as_deref().unwrap_or("");
         let postcond = self.postconditions_to_string(rule);
         let name_span = rule.identifier().span();
@@ -878,6 +874,16 @@ impl<'a> Formatter<'a> {
                 out.push_str(&self.input.text(identifier.span()));
             }
             Regex::Amb(_) => unreachable!("ambiguous trees are rejected before this point"),
+        }
+    }
+
+    /// Formats a restriction operand of a lexical rule. A character class is
+    /// formatted as in a regex, and any other operand is a single token.
+    fn format_regex_operand(&self, out: &mut String, operand: &RegexOperand) {
+        match operand {
+            RegexOperand::CharClass { char_class, .. } => self.format_char_class(out, char_class),
+            RegexOperand::Amb(_) => unreachable!("ambiguous trees are rejected before this point"),
+            _ => out.push_str(&self.input.text(operand.span())),
         }
     }
 
@@ -1113,6 +1119,26 @@ S
         assert_eq!(
             formatted,
             "grammar T\n\nS\n  = A !>>> B\n\n@Regex\nA = \"a\"\n\n@Regex\nB = \"b\"\n"
+        );
+    }
+
+    #[test]
+    fn test_literal_restriction_operands() {
+        let input = "grammar T\n\nS\n  = \"+\"  !<<  A  !>>  \"+\"  !>>>  i\"else\"  \\  s\"Do\"\n\n@Regex\nA = \"a\"\n";
+        let formatted = format_source(input).unwrap();
+        assert_eq!(
+            formatted,
+            "grammar T\n\nS\n  = \"+\" !<< A \\ s\"Do\" !>> \"+\" !>>> i\"else\"\n\n@Regex\nA = \"a\"\n"
+        );
+    }
+
+    #[test]
+    fn test_lexical_restriction_operands() {
+        let input = "grammar T\n\nS\n  = A\n\n@Regex\nA = 'x'  !<<  \"a\"  \\  i\"ab\"  !>>  [ a-z 0-9 ]  !>>  s\"b\"\n";
+        let formatted = format_source(input).unwrap();
+        assert_eq!(
+            formatted,
+            "grammar T\n\nS\n  = A\n\n@Regex\nA = 'x' !<< \"a\" \\ i\"ab\" !>> [a-z0-9] !>> s\"b\"\n"
         );
     }
 

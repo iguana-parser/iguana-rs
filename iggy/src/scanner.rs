@@ -11,18 +11,21 @@ use iguana_runtime::{
     utils::bit_set::BitSet,
 };
 const MATCH_MEMO_WORDS: usize = 1;
-static MATCH_ANY_FIRST_CHARS: [CharSet; 38] = [
+static MATCH_ANY_FIRST_CHARS: [CharSet; 43] = [
     CharSet::new(0x800100002600, &[]),
     CharSet::new(0x7fffffe07ffffff0000800100002600, &[]),
     CharSet::new(0x7fffffe07fffffe0000800100002600, &[]),
     CharSet::new(0x7fffffe0ffffffe0000818700002600, &[]),
     CharSet::new(0x7fffffe17ffffff0000800300002600, &[]),
+    CharSet::new(0x7fffffe17ffffff0000800300002600, &[]),
     CharSet::new(0x7fffffe07ffffff4000800100002600, &[]),
     CharSet::new(0xffffffe07fffffe0000810500002600, &[]),
     CharSet::new(0x17fffffe07ffffff4000800100002600, &[]),
     CharSet::new(0x3ffffffe17ffffffc0008f4f00002600, &[]),
+    CharSet::new(0x3ffffffe17ffffffc0008f4f00002600, &[]),
     CharSet::new(0x17fffffe1fffffff80008f8700002600, &[]),
     CharSet::new(0x3ffffffe1fffffffc0008fcf00002600, &[]),
+    CharSet::new(0x17fffffe1fffffff80008f8700002600, &[]),
     CharSet::new(
         0xfffffffff7ffffffffffdfffffffefff,
         &[
@@ -73,6 +76,7 @@ static MATCH_ANY_FIRST_CHARS: [CharSet; 38] = [
     ),
     CharSet::new(0x0, &[]),
     CharSet::new(0x7fffffe0ffffffe0000818700002600, &[]),
+    CharSet::new(0x200000000, &[]),
     CharSet::new(0xffffffe07fffffe0000010400000000, &[]),
     CharSet::new(0x20000000000, &[]),
     CharSet::new(0x20000000000000000000000000000000, &[]),
@@ -84,7 +88,8 @@ static MATCH_ANY_FIRST_CHARS: [CharSet; 38] = [
     CharSet::new(0x7fffffe07ffffff0000800100002600, &[]),
     CharSet::new(0x4000000000000000, &[]),
     CharSet::new(0x10000000000000000000000000000000, &[]),
-    CharSet::new(0x7fffffe07fffffe0000000000000000, &[]),
+    CharSet::new(0x100000000000000200000000, &[]),
+    CharSet::new(0x7fffffe07fffffe0000000400000000, &[]),
     CharSet::new(
         0xffffffffd7ffffffffffdffeffffc9ff,
         &[
@@ -99,12 +104,13 @@ static MATCH_ANY_FIRST_CHARS: [CharSet; 38] = [
         ],
     ),
 ];
-static MATCH_ANY_MASKS: [BitSet<MATCH_MEMO_WORDS>; 38] = [
+static MATCH_ANY_MASKS: [BitSet<MATCH_MEMO_WORDS>; 43] = [
     BitSet::from_members(&[8, 10, 43]),
     BitSet::from_members(&[2, 8, 10, 15, 16, 17, 18, 43]),
     BitSet::from_members(&[2, 8, 10, 43]),
     BitSet::from_members(&[2, 3, 4, 8, 10, 26, 36, 37, 38, 39, 43]),
     BitSet::from_members(&[2, 8, 10, 15, 16, 17, 18, 21, 22, 43]),
+    BitSet::from_members(&[2, 8, 10, 15, 16, 17, 18, 20, 21, 22, 43]),
     BitSet::from_members(&[2, 8, 10, 14, 15, 16, 17, 18, 43]),
     BitSet::from_members(&[2, 3, 8, 10, 26, 28, 37, 38, 43]),
     BitSet::from_members(&[2, 8, 10, 14, 15, 16, 17, 18, 19, 43]),
@@ -113,11 +119,18 @@ static MATCH_ANY_MASKS: [BitSet<MATCH_MEMO_WORDS>; 38] = [
         38, 43,
     ]),
     BitSet::from_members(&[
+        2, 3, 7, 8, 10, 14, 15, 16, 17, 18, 19, 20, 21, 22, 26, 27, 28, 29, 30, 31, 32, 34, 35, 36,
+        37, 38, 43,
+    ]),
+    BitSet::from_members(&[
         2, 3, 4, 8, 10, 15, 16, 17, 18, 19, 21, 22, 26, 27, 30, 31, 32, 36, 37, 38, 39, 43,
     ]),
     BitSet::from_members(&[
-        2, 3, 4, 7, 8, 10, 14, 15, 16, 17, 18, 19, 21, 22, 26, 27, 28, 29, 30, 31, 32, 34, 35, 36,
-        37, 38, 39, 43,
+        2, 3, 4, 7, 8, 10, 14, 15, 16, 17, 18, 19, 20, 21, 22, 26, 27, 28, 29, 30, 31, 32, 34, 35,
+        36, 37, 38, 39, 43,
+    ]),
+    BitSet::from_members(&[
+        2, 3, 4, 8, 10, 15, 16, 17, 18, 19, 20, 21, 22, 26, 27, 30, 31, 32, 36, 37, 38, 39, 43,
     ]),
     BitSet::from_members(&[6, 8, 10, 40, 43]),
     BitSet::from_members(&[
@@ -143,6 +156,7 @@ static MATCH_ANY_MASKS: [BitSet<MATCH_MEMO_WORDS>; 38] = [
     ]),
     BitSet::from_members(&[43]),
     BitSet::from_members(&[2, 3, 4, 8, 10, 26, 36, 37, 38, 39]),
+    BitSet::from_members(&[20]),
     BitSet::from_members(&[2, 3, 26, 28, 37, 38]),
     BitSet::from_members(&[27]),
     BitSet::from_members(&[29]),
@@ -154,7 +168,8 @@ static MATCH_ANY_MASKS: [BitSet<MATCH_MEMO_WORDS>; 38] = [
     BitSet::from_members(&[2, 8, 10, 15, 16, 17, 18]),
     BitSet::from_members(&[14]),
     BitSet::from_members(&[19]),
-    BitSet::from_members(&[2]),
+    BitSet::from_members(&[21, 22]),
+    BitSet::from_members(&[2, 3, 37, 38]),
     BitSet::from_members(&[6]),
 ];
 // Indexed by ASCII character. `FIRST_CHAR_MASKS[c]` is a bitset indexed by terminal id, and
@@ -1276,7 +1291,7 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
     #[inline(never)]
     pub fn match_any(&mut self, set: &TerminalSet, input_index: u32) -> bool {
         debug_assert!(
-            set.id < 38,
+            set.id < 43,
             "terminal set {} does not have a match_any id",
             set.id,
         );

@@ -168,7 +168,7 @@ use rustc_hash::FxHashMap;
 use crate::dfa::Dfa;
 use crate::grammar::def::{LayoutStrategy, LexicalRule, SyntaxRule};
 use crate::grammar::regex::{CharClass, CharRange, Regex, merge_ranges};
-use crate::grammar::symbols::{Identifier, Restrictions, Symbol, Terminal};
+use crate::grammar::symbols::{Identifier, RestrictionOperand, Restrictions, Symbol, Terminal};
 use crate::grammar::transformations::{transform_symbol, transform_syntax_rule};
 
 /// Inserts the derived restriction pair on every keyword reference in
@@ -272,7 +272,7 @@ pub fn transform(
 fn restriction_operand(
     class: Option<&CharClass>,
     lexical_rules: &mut Vec<LexicalRule>,
-) -> Vec<Identifier> {
+) -> Vec<RestrictionOperand> {
     let Some(class) = class else {
         return vec![];
     };
@@ -281,10 +281,10 @@ fn restriction_operand(
     if !lexical_rules.iter().any(|rule| rule.head.name == name) {
         lexical_rules.push(LexicalRule::new(Terminal::new(name.clone()), class));
     }
-    vec![Identifier {
+    vec![RestrictionOperand::Identifier(Identifier {
         name,
         definition: None,
-    }]
+    })]
 }
 
 /// The two restriction sets combined: each list is the concatenation in
@@ -420,7 +420,7 @@ mod tests {
             Regex::star(Regex::alt(vec![
                 Regex::range('A', 'Z'),
                 Regex::range('a', 'z'),
-                Regex::char('_'),
+                Regex::Char('_'),
                 Regex::range('0', '9'),
             ])),
         ]))
@@ -428,7 +428,7 @@ mod tests {
 
     /// The restrictions of the literal `text`.
     fn derive((dfa, reversed_dfa): &(Dfa, Dfa), text: &str) -> KeywordRestrictions {
-        keyword_restrictions(dfa, reversed_dfa, &Regex::literal(text)).unwrap()
+        keyword_restrictions(dfa, reversed_dfa, &Regex::exact_literal(text)).unwrap()
     }
 
     /// The restrictions of the case-insensitive literal `text`.
@@ -525,7 +525,7 @@ mod tests {
         let id = dfa(Regex::alt(vec![
             Regex::plus(Regex::range('a', 'z')),
             Regex::seq(vec![
-                Regex::literal("r#"),
+                Regex::exact_literal("r#"),
                 Regex::plus(Regex::range('a', 'z')),
             ]),
         ]));
@@ -567,6 +567,7 @@ mod tests {
     }
 
     use crate::grammar::def::{SymbolTable, create_symbol_table};
+    use crate::grammar::symbols::Literal;
     use crate::{alternative, follow, opt, priority_level, syntax_rule};
 
     /// `Id = [a-z][a-z0-9]*`; both derived classes come out `[0-9 a-z]`.
@@ -584,7 +585,8 @@ mod tests {
     }
 
     fn literal_rule(text: &str) -> LexicalRule {
-        LexicalRule::new(Terminal::literal(text), Regex::literal(text))
+        let literal = Literal::exact(text);
+        LexicalRule::new(literal.terminal(), literal.regex())
     }
 
     fn id_rules() -> Vec<Identifier> {
@@ -619,8 +621,11 @@ mod tests {
         &rules[0].priority_levels[0].alternatives[0].symbols[0]
     }
 
-    fn names(ids: &[Identifier]) -> Vec<&str> {
-        ids.iter().map(|id| id.name.as_str()).collect()
+    fn names(operands: &[RestrictionOperand]) -> Vec<&str> {
+        operands
+            .iter()
+            .map(|operand| operand.identifier().name.as_str())
+            .collect()
     }
 
     fn restrictions(symbol: &Symbol) -> &Restrictions {
@@ -749,7 +754,10 @@ mod tests {
     fn references_to_a_rule_of_literals_get_the_pair() {
         let bool_rule = LexicalRule::new(
             Terminal::new("Bool"),
-            Regex::alt(vec![Regex::literal("true"), Regex::literal("false")]),
+            Regex::alt(vec![
+                Regex::exact_literal("true"),
+                Regex::exact_literal("false"),
+            ]),
         );
         let (out, lexical) = run_transform(
             |table| vec![refer("Bool", table)],
@@ -797,7 +805,10 @@ mod tests {
     fn a_rule_with_a_literal_without_restrictions_stays_untouched() {
         let op_rule = LexicalRule::new(
             Terminal::new("Op"),
-            Regex::alt(vec![Regex::literal("true"), Regex::literal("++")]),
+            Regex::alt(vec![
+                Regex::exact_literal("true"),
+                Regex::exact_literal("++"),
+            ]),
         );
         let (out, lexical) = run_transform(
             |table| vec![refer("Op", table)],
@@ -816,7 +827,7 @@ mod tests {
             Terminal::new("Reserved"),
             Regex::alt(vec![
                 Regex::ignore_case_literal("go"),
-                Regex::literal("end"),
+                Regex::exact_literal("end"),
             ]),
         );
         let (out, _) = run_transform(
@@ -836,7 +847,10 @@ mod tests {
     fn a_rule_gets_only_the_restriction_that_all_its_literals_get() {
         let op_rule = LexicalRule::new(
             Terminal::new("Op"),
-            Regex::alt(vec![Regex::literal("true"), Regex::literal("+x")]),
+            Regex::alt(vec![
+                Regex::exact_literal("true"),
+                Regex::exact_literal("+x"),
+            ]),
         );
         let (out, _) = run_transform(
             |table| vec![refer("Op", table)],
@@ -851,7 +865,7 @@ mod tests {
     /// `Else = "else"`: a named single-literal rule is a keyword set of one.
     #[test]
     fn a_named_single_literal_rule_gets_the_pair() {
-        let else_rule = LexicalRule::new(Terminal::new("Else"), Regex::literal("else"));
+        let else_rule = LexicalRule::new(Terminal::new("Else"), Regex::exact_literal("else"));
         let (out, _) = run_transform(
             |table| vec![refer("Else", table)],
             vec![identifier_rule(), else_rule],

@@ -9,6 +9,7 @@ pub mod exact_keyword_match;
 pub mod exclude_desugaring;
 pub mod layout_insertion;
 pub mod precedence_desugaring;
+pub mod restriction_dedup;
 pub(crate) mod return_value;
 
 /// Transforms a syntax rule by applying `f` to each individual symbol in every alternative.
@@ -132,7 +133,7 @@ where
             sep.map(|sep| Box::new(transform_symbol(*sep, f))),
         ),
         leaf @ (Symbol::Identifier(_)
-        | Symbol::Literal { .. }
+        | Symbol::Literal(_)
         | Symbol::Call { .. }
         | Symbol::Condition(_)
         | Symbol::Return(_)) => leaf,
@@ -169,7 +170,7 @@ pub(crate) fn visit_symbol<'a>(symbol: &'a Symbol, f: &mut impl FnMut(&'a Symbol
             }
         }
         Symbol::Identifier(_)
-        | Symbol::Literal { .. }
+        | Symbol::Literal(_)
         | Symbol::Call { .. }
         | Symbol::Condition(_)
         | Symbol::Return(_) => {}

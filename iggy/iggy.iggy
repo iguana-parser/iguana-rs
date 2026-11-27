@@ -19,11 +19,19 @@ RegexRule
       RegexPreCondition? body:{ Regex+ "|" }+ RegexPostCondition*
 
 RegexPreCondition
-  = Identifier "!<<"
+  = RegexOperand "!<<"
 
 RegexPostCondition
-  = "\\" Identifier  #Except
-  | "!>>" Identifier #FollowRestriction
+  = "\\" RegexOperand  #Except
+  | "!>>" RegexOperand #FollowRestriction
+
+RegexOperand
+  = CharClass        #CharClass
+  | Char             #Char
+  | String           #String
+  | IgnoreCaseString #IgnoreCaseString
+  | ExactString      #ExactString
+  | Identifier       #Identifier
 
 PriorityLevel
   = Associativity? { Alternative "|" }+
@@ -53,14 +61,20 @@ Symbol
   > label:Identifier ":" Symbol                    #Labeled
 
 PreCondition
-  = Identifier "!<<"
+  = Operand "!<<"
 
 PostCondition
-  = "\\" Identifier   #Except
-  | "&" Identifier    #Require
-  | "!>>" Identifier  #FollowRestriction
-  | "!>>>" Identifier #LayoutAwareFollowRestriction
-  | "!" Identifier    #Exclude
+  = "\\" Operand   #Except
+  | "&" Operand    #Require
+  | "!>>" Operand  #FollowRestriction
+  | "!>>>" Operand #LayoutAwareFollowRestriction
+  | "!" Identifier #Exclude
+
+Operand
+  = Identifier       #Identifier
+  | String           #Lit
+  | IgnoreCaseString #IgnoreCaseLit
+  | ExactString      #ExactLit
 
 Regex
   = Regex "+"                    #Plus

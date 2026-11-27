@@ -60,7 +60,7 @@ impl<'a> ReachabilityGraph<'a> {
             Symbol::Call { name, .. } => {
                 Self::visit_symbol(grammar, &Symbol::Identifier(name.clone()), visited);
             }
-            Symbol::Literal { .. } | Symbol::Condition(_) | Symbol::Return(_) => {}
+            Symbol::Literal(_) | Symbol::Condition(_) | Symbol::Return(_) => {}
         }
     }
 

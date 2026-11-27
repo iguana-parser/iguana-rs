@@ -191,8 +191,14 @@ impl Regex {
         }
     }
 
-    pub fn char(c: char) -> Self {
-        Regex::Char(c)
+    /// The identifier of a reference to a rule, such as `Keyword`. Panics on
+    /// any other regex. A restriction operand of a lexical rule is a reference,
+    /// which validation checks (`check_restriction_targets`).
+    pub fn identifier(&self) -> &Identifier {
+        match self {
+            Regex::Identifier(identifier) => identifier,
+            _ => panic!("expected a rule name, found the regex {self}"),
+        }
     }
 
     pub fn range(start: char, end: char) -> Self {
@@ -219,7 +225,7 @@ impl Regex {
         Regex::CharClass(CharClass { ranges, negated })
     }
 
-    pub fn literal(s: &str) -> Self {
+    pub fn exact_literal(s: &str) -> Self {
         Regex::Seq(s.chars().map(Regex::Char).collect())
     }
 
@@ -245,7 +251,8 @@ impl Regex {
 
     /// Whether the regex is a literal: a single character
     /// (`is_single_char`), or a sequence of at least one single character.
-    /// `Regex::literal` and `Regex::ignore_case_literal` build this form.
+    /// `Regex::exact_literal` and `Regex::ignore_case_literal` build this
+    /// form.
     pub fn is_literal(&self) -> bool {
         match self {
             Regex::Seq(chars) => !chars.is_empty() && chars.iter().all(Regex::is_single_char),
@@ -433,30 +440,30 @@ mod tests {
     fn reversed_reverses_every_sequence() {
         let letters = Regex::plus(Regex::range('a', 'z'));
         let regex = Regex::seq(vec![
-            Regex::alt(vec![Regex::literal("r#"), Regex::literal("_")]),
+            Regex::alt(vec![Regex::exact_literal("r#"), Regex::exact_literal("_")]),
             letters.clone(),
         ]);
         let expected = Regex::seq(vec![
             letters,
-            Regex::alt(vec![Regex::literal("#r"), Regex::literal("_")]),
+            Regex::alt(vec![Regex::exact_literal("#r"), Regex::exact_literal("_")]),
         ]);
         assert_eq!(regex.reversed(), expected);
     }
 
     #[test]
     fn a_literal_is_a_character_or_a_sequence_of_characters() {
-        assert!(Regex::literal("else").is_literal());
+        assert!(Regex::exact_literal("else").is_literal());
         assert!(Regex::ignore_case_literal("else").is_literal());
-        assert!(Regex::char('+').is_literal());
+        assert!(Regex::Char('+').is_literal());
         // `i"e" 'x'` after simplification.
         let case_pair = ['E', 'e'].map(|c| CharRange { start: c, end: c }).to_vec();
-        let mixed = Regex::seq(vec![Regex::char_class(case_pair, false), Regex::char('x')]);
+        let mixed = Regex::seq(vec![Regex::char_class(case_pair, false), Regex::Char('x')]);
         assert!(mixed.is_literal());
 
-        assert!(!Regex::literal("").is_literal());
+        assert!(!Regex::exact_literal("").is_literal());
         assert!(!Regex::range('a', 'z').is_literal());
-        assert!(!Regex::plus(Regex::char('a')).is_literal());
-        let nested = Regex::seq(vec![Regex::literal("fg"), Regex::char('h')]);
+        assert!(!Regex::plus(Regex::Char('a')).is_literal());
+        let nested = Regex::seq(vec![Regex::exact_literal("fg"), Regex::Char('h')]);
         assert!(!nested.is_literal());
     }
 
@@ -535,10 +542,10 @@ mod tests {
     #[test]
     fn first_chars_of_a_sequence_stop_at_the_first_part_that_is_not_nullable() {
         let regex = Regex::seq(vec![
-            Regex::Opt(Box::new(Regex::char('-'))),
-            Regex::star(Regex::char('_')),
+            Regex::Opt(Box::new(Regex::Char('-'))),
+            Regex::star(Regex::Char('_')),
             Regex::range('0', '9'),
-            Regex::char('x'),
+            Regex::Char('x'),
         ]);
         assert_eq!(
             regex.first_chars(),
@@ -553,8 +560,8 @@ mod tests {
     #[test]
     fn first_chars_of_an_alternation_are_the_union_of_its_choices() {
         let regex = Regex::alt(vec![
-            Regex::literal("if"),
-            Regex::literal("int"),
+            Regex::exact_literal("if"),
+            Regex::exact_literal("int"),
             Regex::plus(Regex::range('0', '9')),
         ]);
         assert_eq!(

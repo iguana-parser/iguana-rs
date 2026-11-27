@@ -3,7 +3,10 @@ use iggy::{
     parse_tree::{Grammar, Layout, Start, Token},
     scanner::IggyScanner,
 };
-use iguana_compiler::{grammar::def::GrammarDef, spans::GrammarSpans};
+use iguana_compiler::{
+    grammar::{def::GrammarDef, regex::Regex},
+    spans::GrammarSpans,
+};
 use iguana_runtime::{
     arena::Arena,
     highlight::{Highlight, flatten, group_name, highlight, lexical_highlight},
@@ -113,7 +116,11 @@ fn name_groups<'a>(
             .except
             .iter()
             .chain(&rule.follow_restriction)
-            .chain(&rule.precede_restriction);
+            .chain(&rule.precede_restriction)
+            .filter_map(|operand| match operand {
+                Regex::Identifier(identifier) => Some(identifier),
+                _ => None,
+            });
         for identifier in restrictions {
             let group = symbol_table
                 .get(&identifier.name)

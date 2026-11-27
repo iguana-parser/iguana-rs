@@ -1895,7 +1895,7 @@ fn get_symbol_base_name(grammar: &Grammar, symbol: &Symbol) -> Option<String> {
         }
         Symbol::Binding { symbol, .. } => get_symbol_base_name(grammar, symbol),
         Symbol::Labeled { .. } => None,
-        Symbol::Literal { .. } => None,
+        Symbol::Literal(_) => None,
         Symbol::Group(_) => None,
         Symbol::Alt(_) => None,
         Symbol::Restricted { symbol, .. } => get_symbol_base_name(grammar, symbol),
@@ -2012,7 +2012,7 @@ fn gen_field_name(
         }
         Symbol::Binding { symbol, .. } => gen_field_name(grammar, symbol, position, needs_index),
         Symbol::Labeled { .. } => format!("field_{}", position),
-        Symbol::Literal { .. } => format!("field_{}", position),
+        Symbol::Literal(_) => format!("field_{}", position),
         Symbol::Group(_) => format!("field_{}", position),
         Symbol::Alt(_) => format!("field_{}", position),
         Symbol::Restricted { symbol, .. } => gen_field_name(grammar, symbol, position, needs_index),

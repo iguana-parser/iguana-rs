@@ -11,7 +11,8 @@ use crate::generator::grammar_utils::parse_tree_builder_ident;
 use crate::generator::utils::is_rust_keyword;
 use crate::grammar::{
     def::{GrammarDef, LexicalRule, SyntaxRule},
-    symbols::{Identifier, Symbol, Terminal},
+    regex::Regex,
+    symbols::{Identifier, RestrictionOperand, Symbol, Terminal},
 };
 use crate::spans::GrammarSpans;
 use crate::utils::{to_pascal_case, to_snake_case};
@@ -274,7 +275,10 @@ fn check_unresolved_identifiers<'a>(
     // names.
     let defined = defined_names(grammar_def);
     for rule in &grammar_def.lexical_rules {
-        for (_, identifier) in lexical_restrictions(rule) {
+        for (_, operand) in lexical_restrictions(rule) {
+            let Regex::Identifier(identifier) = operand else {
+                continue;
+            };
             if !defined.contains(identifier.name.as_str()) {
                 errors.push(GrammarError {
                     message: format!("unresolved identifier `{}`", identifier.name),
@@ -297,17 +301,18 @@ fn defined_names(grammar_def: &GrammarDef) -> FxHashSet<&str> {
     names
 }
 
-/// A lexical rule's own restrictions, each paired with its operator.
-fn lexical_restrictions(rule: &LexicalRule) -> Vec<(RestrictionKind, &Identifier)> {
+/// The operands of a lexical rule's own restrictions, each paired with its
+/// operator.
+fn lexical_restrictions(rule: &LexicalRule) -> Vec<(RestrictionKind, &Regex)> {
     let mut restrictions = Vec::new();
-    for identifier in &rule.except {
-        restrictions.push((RestrictionKind::Except, identifier));
+    for operand in &rule.except {
+        restrictions.push((RestrictionKind::Except, operand));
     }
-    for identifier in &rule.follow_restriction {
-        restrictions.push((RestrictionKind::Follow, identifier));
+    for operand in &rule.follow_restriction {
+        restrictions.push((RestrictionKind::Follow, operand));
     }
-    if let Some(identifier) = &rule.precede_restriction {
-        restrictions.push((RestrictionKind::Precede, identifier));
+    if let Some(operand) = &rule.precede_restriction {
+        restrictions.push((RestrictionKind::Precede, operand));
     }
     restrictions
 }
@@ -402,8 +407,12 @@ impl RestrictionKind {
     }
 }
 
-/// - The operand of a restriction (`\`, `&`, `!>>`, `!>>>`, or `!<<`) must
-///   refer to a lexical rule, because the scanner matches only lexical rules.
+/// - The operand of a restriction (`\`, `&`, `!>>`, `!>>>`, or `!<<`) must be
+///   a rule name. A string literal, such as `"+"` in `"+" !>> "+"`, is an
+///   error, and so are a character and a character class in a lexical rule,
+///   such as `[a-z]` in `Keyword = "if" !>> [a-z]`.
+/// - The operand of a restriction must refer to a lexical rule, because the
+///   scanner matches only lexical rules.
 /// - The operand of an except (`\`) or a required match (`&`) must refer to a
 ///   lexical rule without restrictions of its own, because both use only the
 ///   regex of their operand. For example, `Id \ Keyword` is an error when
@@ -426,7 +435,7 @@ fn check_restriction_targets<'a>(
         let Symbol::Restricted { restrictions, .. } = symbol else {
             return;
         };
-        for (kind, identifiers) in [
+        for (kind, operands) in [
             (RestrictionKind::Except, &restrictions.excepts),
             (RestrictionKind::Require, &restrictions.required),
             (RestrictionKind::Follow, &restrictions.follow),
@@ -436,8 +445,28 @@ fn check_restriction_targets<'a>(
             ),
             (RestrictionKind::Precede, &restrictions.precede),
         ] {
-            for identifier in identifiers.iter().filter(|id| id.definition.is_some()) {
-                check_restriction_target(kind, identifier, &lexical_rules, spans, errors);
+            for operand in operands {
+                match operand {
+                    RestrictionOperand::Identifier(identifier) => {
+                        if identifier.definition.is_some() {
+                            check_restriction_target(
+                                kind,
+                                identifier,
+                                &lexical_rules,
+                                spans,
+                                errors,
+                            );
+                        }
+                    }
+                    RestrictionOperand::Literal(_) => errors.push(GrammarError {
+                        message: format!(
+                            "{} must be a rule name: a string literal is not supported as a \
+                             restriction operand",
+                            kind.name()
+                        ),
+                        span: spans.restriction_operand(operand).span,
+                    }),
+                }
             }
         }
     });
@@ -447,9 +476,21 @@ fn check_restriction_targets<'a>(
     // `check_unresolved_identifiers` reports missing names.
     let defined = defined_names(grammar_def);
     for rule in &grammar_def.lexical_rules {
-        for (kind, identifier) in lexical_restrictions(rule) {
-            if defined.contains(identifier.name.as_str()) {
-                check_restriction_target(kind, identifier, &lexical_rules, spans, errors);
+        for (kind, operand) in lexical_restrictions(rule) {
+            match operand {
+                Regex::Identifier(identifier) => {
+                    if defined.contains(identifier.name.as_str()) {
+                        check_restriction_target(kind, identifier, &lexical_rules, spans, errors);
+                    }
+                }
+                _ => errors.push(GrammarError {
+                    message: format!(
+                        "{} must be a rule name: a character, a string, or a character class \
+                         is not supported as a restriction operand",
+                        kind.name()
+                    ),
+                    span: spans.restriction_regex(operand).span,
+                }),
             }
         }
     }
@@ -861,7 +902,7 @@ fn check_string_literals_are_not_empty<'a>(
         });
     };
     grammar_def.for_each_symbol(&mut |symbol| {
-        if matches!(symbol, Symbol::Literal { text, .. } if text.is_empty()) {
+        if matches!(symbol, Symbol::Literal(literal) if literal.text().is_empty()) {
             report(spans.symbol(symbol).span);
         }
     });
@@ -886,14 +927,12 @@ fn check_ignore_case_literals_have_letters<'a>(
     errors: &mut Vec<GrammarError>,
 ) {
     grammar_def.for_each_symbol(&mut |symbol| {
-        let Symbol::Literal {
-            text,
-            ignore_ascii_case: true,
-        } = symbol
-        else {
+        let Symbol::Literal(literal) = symbol else {
             return;
         };
-        if !text.is_empty()
+        let text = literal.text();
+        if literal.ignores_case()
+            && !text.is_empty()
             && !text.contains(char::REPLACEMENT_CHARACTER)
             && !text.contains(|c: char| c.is_ascii_alphabetic())
         {

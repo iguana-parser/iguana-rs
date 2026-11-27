@@ -11,7 +11,9 @@ use crate::grammar::{
         SyntaxRule,
     },
     regex::{CharClass, CharRange, Regex},
-    symbols::{Identifier, Nonterminal, Restrictions, Symbol, Terminal},
+    symbols::{
+        Identifier, Literal, Nonterminal, RestrictionOperand, Restrictions, Symbol, Terminal,
+    },
 };
 use crate::spans;
 use crate::validation::{GrammarError, validate, validate_escapes};
@@ -259,20 +261,16 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input, ignore_case: bool)
             }
         }
         parse_tree::Symbol::Lit { string, .. } => {
-            let text = string_text(*string, input);
-            // A literal without an ASCII letter matches the same strings
-            // with and without `@IgnoreCase`, and stays an exact literal.
-            if ignore_case && text.contains(|c: char| c.is_ascii_alphabetic()) {
-                Symbol::ignore_case_literal(&text)
-            } else {
-                Symbol::literal(text)
-            }
+            Symbol::Literal(convert_string(*string, input, ignore_case))
         }
         parse_tree::Symbol::IgnoreCaseLit {
             ignore_case_string, ..
-        } => Symbol::ignore_case_literal(&string_text(ignore_case_string.string(), input)),
+        } => Symbol::Literal(Literal::ignore_case(&string_text(
+            ignore_case_string.string(),
+            input,
+        ))),
         parse_tree::Symbol::ExactLit { exact_string, .. } => {
-            Symbol::literal(string_text(exact_string.string(), input))
+            Symbol::Literal(Literal::exact(string_text(exact_string.string(), input)))
         }
         parse_tree::Symbol::StarSep { symbol, sep, .. } => Symbol::Star(
             Box::new(convert_symbol(symbol, input, ignore_case)),
@@ -302,7 +300,8 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input, ignore_case: bool)
             } = node
             {
                 for condition in conditions.pre_conditions() {
-                    add_restriction(&mut restrictions.precede, condition.identifier(), input);
+                    let operand = convert_operand(condition.operand(), input, ignore_case);
+                    restrictions.precede.push(operand);
                 }
                 node = symbol;
             }
@@ -312,31 +311,26 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input, ignore_case: bool)
             } = node
             {
                 for condition in conditions.post_conditions() {
-                    match condition {
-                        parse_tree::PostCondition::Except { identifier, .. } => {
-                            add_restriction(&mut restrictions.excepts, *identifier, input);
+                    let (list, operand) = match condition {
+                        parse_tree::PostCondition::Except { operand, .. } => {
+                            (&mut restrictions.excepts, operand)
                         }
-                        parse_tree::PostCondition::Require { identifier, .. } => {
-                            add_restriction(&mut restrictions.required, *identifier, input);
+                        parse_tree::PostCondition::Require { operand, .. } => {
+                            (&mut restrictions.required, operand)
                         }
-                        parse_tree::PostCondition::FollowRestriction { identifier, .. } => {
-                            add_restriction(&mut restrictions.follow, *identifier, input);
+                        parse_tree::PostCondition::FollowRestriction { operand, .. } => {
+                            (&mut restrictions.follow, operand)
                         }
                         parse_tree::PostCondition::LayoutAwareFollowRestriction {
-                            identifier,
-                            ..
-                        } => {
-                            add_restriction(
-                                &mut restrictions.layout_aware_follow,
-                                *identifier,
-                                input,
-                            );
-                        }
+                            operand, ..
+                        } => (&mut restrictions.layout_aware_follow, operand),
                         parse_tree::PostCondition::Exclude { identifier, .. } => {
                             labels.push(input.text(identifier.span()));
+                            continue;
                         }
                         parse_tree::PostCondition::Amb(_) => panic!("unexpected ambiguity"),
-                    }
+                    };
+                    list.push(convert_operand(operand, input, ignore_case));
                 }
                 node = symbol;
             }
@@ -353,14 +347,45 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input, ignore_case: bool)
     }
 }
 
-/// Appends the restriction unless `list` already holds it.
-fn add_restriction(list: &mut Vec<Identifier>, token: parse_tree::Token, input: &Input) {
-    let id = Identifier {
-        name: input.text(token.span()),
-        definition: None,
-    };
-    if !list.contains(&id) {
-        list.push(id);
+fn convert_operand(
+    operand: &parse_tree::Operand,
+    input: &Input,
+    ignore_case: bool,
+) -> RestrictionOperand {
+    match operand {
+        parse_tree::Operand::Identifier { identifier, .. } => {
+            RestrictionOperand::Identifier(Identifier {
+                name: input.text(identifier.span()),
+                definition: None,
+            })
+        }
+        parse_tree::Operand::Lit { string, .. } => {
+            RestrictionOperand::Literal(convert_string(*string, input, ignore_case))
+        }
+        parse_tree::Operand::IgnoreCaseLit {
+            ignore_case_string, ..
+        } => RestrictionOperand::Literal(Literal::ignore_case(&string_text(
+            ignore_case_string.string(),
+            input,
+        ))),
+        parse_tree::Operand::ExactLit { exact_string, .. } => {
+            RestrictionOperand::Literal(Literal::exact(string_text(exact_string.string(), input)))
+        }
+        parse_tree::Operand::Amb(_) => panic!("unexpected ambiguity"),
+    }
+}
+
+/// The literal of a string without a prefix, such as `"else"`. In a grammar
+/// with `@IgnoreCase`, the literal ignores case if it has an ASCII letter. A
+/// string without one, such as `"+"`, stays exact, because ignoring case
+/// changes only ASCII letters and validation rejects an `i` literal without a
+/// letter (`check_ignore_case_literals_have_letters`).
+fn convert_string(string: parse_tree::Token, input: &Input, ignore_case: bool) -> Literal {
+    let text = string_text(string, input);
+    if ignore_case && text.contains(|c: char| c.is_ascii_alphabetic()) {
+        Literal::ignore_case(&text)
+    } else {
+        Literal::exact(text)
     }
 }
 
@@ -386,29 +411,59 @@ fn convert_regex_rule(
     );
     let mut lexical_rule = LexicalRule::new(head, regex);
     for post_condition in rule.regex_post_conditions().regex_post_conditions() {
-        match post_condition {
-            parse_tree::RegexPostCondition::Except { identifier, .. } => {
-                lexical_rule.except.push(Identifier {
-                    name: input.text(identifier.span()),
-                    definition: None,
-                });
+        let (list, operand) = match post_condition {
+            parse_tree::RegexPostCondition::Except { regex_operand, .. } => {
+                (&mut lexical_rule.except, regex_operand)
             }
-            parse_tree::RegexPostCondition::FollowRestriction { identifier, .. } => {
-                lexical_rule.follow_restriction.push(Identifier {
-                    name: input.text(identifier.span()),
-                    definition: None,
-                });
+            parse_tree::RegexPostCondition::FollowRestriction { regex_operand, .. } => {
+                (&mut lexical_rule.follow_restriction, regex_operand)
             }
             parse_tree::RegexPostCondition::Amb(_) => panic!("unexpected ambiguity"),
-        }
+        };
+        list.push(convert_regex_operand(operand, input, ignore_case));
     }
     if let Some(condition) = rule.regex_pre_condition().value() {
-        lexical_rule.precede_restriction = Some(Identifier {
-            name: input.text(condition.identifier().span()),
-            definition: None,
-        });
+        lexical_rule.precede_restriction = Some(convert_regex_operand(
+            condition.regex_operand(),
+            input,
+            ignore_case,
+        ));
     }
     lexical_rule
+}
+
+fn convert_regex_operand(
+    operand: &parse_tree::RegexOperand,
+    input: &Input,
+    ignore_case: bool,
+) -> Regex {
+    match operand {
+        parse_tree::RegexOperand::CharClass { char_class, .. } => {
+            convert_char_class(char_class, input)
+        }
+        parse_tree::RegexOperand::Char { char, .. } => {
+            let c = char_text(*char, input);
+            if ignore_case {
+                Regex::ignore_case_char(c)
+            } else {
+                Regex::Char(c)
+            }
+        }
+        parse_tree::RegexOperand::String { string, .. } => {
+            convert_string(*string, input, ignore_case).regex()
+        }
+        parse_tree::RegexOperand::IgnoreCaseString {
+            ignore_case_string, ..
+        } => Regex::ignore_case_literal(&string_text(ignore_case_string.string(), input)),
+        parse_tree::RegexOperand::ExactString { exact_string, .. } => {
+            Regex::exact_literal(&string_text(exact_string.string(), input))
+        }
+        parse_tree::RegexOperand::Identifier { identifier, .. } => Regex::Identifier(Identifier {
+            name: input.text(identifier.span()),
+            definition: None,
+        }),
+        parse_tree::RegexOperand::Amb(_) => panic!("unexpected ambiguity"),
+    }
 }
 
 fn convert_regex(regex: &parse_tree::Regex, input: &Input, ignore_case: bool) -> Regex {
@@ -459,18 +514,13 @@ fn convert_regex(regex: &parse_tree::Regex, input: &Input, ignore_case: bool) ->
             }
         }
         parse_tree::Regex::String { string, .. } => {
-            let text = string_text(*string, input);
-            if ignore_case {
-                Regex::ignore_case_literal(&text)
-            } else {
-                Regex::literal(&text)
-            }
+            convert_string(*string, input, ignore_case).regex()
         }
         parse_tree::Regex::IgnoreCaseString {
             ignore_case_string, ..
         } => Regex::ignore_case_literal(&string_text(ignore_case_string.string(), input)),
         parse_tree::Regex::ExactString { exact_string, .. } => {
-            Regex::literal(&string_text(exact_string.string(), input))
+            Regex::exact_literal(&string_text(exact_string.string(), input))
         }
         parse_tree::Regex::Identifier { identifier, .. } => {
             let name = input.text(identifier.span());
@@ -538,7 +588,9 @@ fn single_char(mut chars: &[char]) -> char {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::lit;
     use iguana_runtime::input::Span;
+    use std::fmt::Display;
 
     /// Parses without validating. The fragments below exercise one construct
     /// each and leave the names they mention undefined.
@@ -559,8 +611,8 @@ mod tests {
         grammar.syntax_rules[0].priority_levels[0].alternatives[0].symbols[0].clone()
     }
 
-    fn names(ids: &[Identifier]) -> Vec<&str> {
-        ids.iter().map(|id| id.name.as_str()).collect()
+    fn names(items: &[impl Display]) -> Vec<String> {
+        items.iter().map(ToString::to_string).collect()
     }
 
     fn messages(errors: &[GrammarError]) -> Vec<&str> {
@@ -867,10 +919,34 @@ S = "a"
         assert_eq!(names(&restrictions.excepts), ["K1", "K2"]);
     }
 
+    /// The conversion keeps a repeated operand, and `restriction_dedup`
+    /// removes it.
     #[test]
-    fn test_restriction_written_twice_is_recorded_once() {
+    fn test_restriction_written_twice_is_recorded_twice() {
         let symbol = first_symbol("grammar g S = A !>> B \\ K !>> B C");
-        assert_eq!(names(&restrictions(&symbol).follow), ["B"]);
+        assert_eq!(names(&restrictions(&symbol).follow), ["B", "B"]);
+    }
+
+    #[test]
+    fn test_literal_operands_convert_like_literal_symbols() {
+        let symbol = first_symbol(r#"grammar g S = A !>> "+" !>> i"if" !>> s"Do" B"#);
+        assert_eq!(
+            restrictions(&symbol).follow,
+            [
+                RestrictionOperand::Literal(Literal::exact("+")),
+                RestrictionOperand::Literal(Literal::ignore_case("if")),
+                RestrictionOperand::Literal(Literal::exact("Do")),
+            ]
+        );
+    }
+
+    #[test]
+    fn test_a_literal_operand_ignores_case_in_an_ignore_case_grammar() {
+        let symbol = first_symbol(r#"@IgnoreCase grammar g S = A !>> "Else" !>> "+" B"#);
+        assert_eq!(
+            names(&restrictions(&symbol).follow),
+            [r#"i"else""#, r#""+""#]
+        );
     }
 
     #[test]
@@ -1075,6 +1151,57 @@ S = "a"
     }
 
     #[test]
+    fn test_restriction_operand_must_not_be_a_literal() {
+        let source = r#"grammar g S = A !>> "+" A = "a""#;
+        let errors = parse_grammar(source).expect_err("a literal operand is not supported");
+        assert_eq!(
+            messages(&errors),
+            [
+                "follow restriction must be a rule name: a string literal is not supported as a restriction operand"
+            ]
+        );
+        let start = source.find(r#""+""#).unwrap() as u32;
+        assert_eq!(errors[0].span, Span::new(start, start + 3));
+    }
+
+    #[test]
+    fn test_lexical_operands_convert_like_regexes() {
+        let grammar = parse_unvalidated(
+            r#"@IgnoreCase grammar g S = Kw @Regex Kw = 'a' !<< "if" \ s"If" !>> [0-9] !>> 'x'"#,
+        );
+        let rule = &grammar.lexical_rules[0];
+        assert_eq!(rule.precede_restriction, Some(Regex::ignore_case_char('a')));
+        assert_eq!(rule.except, [Regex::exact_literal("If")]);
+        assert_eq!(
+            rule.follow_restriction,
+            [
+                Regex::char_class(
+                    vec![CharRange {
+                        start: '0',
+                        end: '9'
+                    }],
+                    false
+                ),
+                Regex::ignore_case_char('x')
+            ]
+        );
+    }
+
+    #[test]
+    fn test_lexical_restriction_operand_must_be_a_rule_name() {
+        let source = r#"grammar g S = Kw @Regex Kw = "if" !>> [a-z]"#;
+        let errors = parse_grammar(source).expect_err("a class operand is not supported");
+        assert_eq!(
+            messages(&errors),
+            [
+                "follow restriction must be a rule name: a character, a string, or a character class is not supported as a restriction operand"
+            ]
+        );
+        let start = source.find("[a-z]").unwrap() as u32;
+        assert_eq!(errors[0].span, Span::new(start, start + 5));
+    }
+
+    #[test]
     fn test_except_operand_cannot_have_restrictions() {
         let errors = parse_grammar(
             r#"grammar g
@@ -1191,8 +1318,8 @@ T = '\u{0}' [\u{41}-\u{5A}\u{3C0}] "\u{1F600}"
 "#,
         );
         let symbols = &grammar.syntax_rules[0].priority_levels[0].alternatives[0].symbols;
-        assert_eq!(symbols[0], Symbol::literal("πAb".to_string()));
-        assert_eq!(symbols[1], Symbol::literal(r"\u{41}".to_string()));
+        assert_eq!(symbols[0], lit!("πAb"));
+        assert_eq!(symbols[1], lit!(r"\u{41}"));
         let class = CharClass {
             ranges: vec![
                 CharRange {
@@ -1211,7 +1338,7 @@ T = '\u{0}' [\u{41}-\u{5A}\u{3C0}] "\u{1F600}"
             Regex::Alt(vec![Regex::Seq(vec![
                 Regex::Char('\0'),
                 Regex::CharClass(class),
-                Regex::literal("😀"),
+                Regex::exact_literal("😀"),
             ])])
         );
     }
@@ -1268,17 +1395,17 @@ A = "ab" s"cd" 'e' '_' [f]
         assert_eq!(
             grammar.syntax_rules[0].priority_levels[0].alternatives[0].symbols,
             [
-                Symbol::ignore_case_literal("select"),
-                Symbol::literal("("),
-                Symbol::ignore_case_literal("from"),
-                Symbol::literal("0x"),
+                Symbol::Literal(Literal::ignore_case("select")),
+                lit!("("),
+                Symbol::Literal(Literal::ignore_case("from")),
+                lit!("0x"),
             ]
         );
         assert_eq!(
             grammar.lexical_rules[0].regex,
             Regex::Alt(vec![Regex::Seq(vec![
                 Regex::ignore_case_literal("ab"),
-                Regex::literal("cd"),
+                Regex::exact_literal("cd"),
                 Regex::ignore_case_char('e'),
                 Regex::Char('_'),
                 Regex::char_class(
@@ -1303,9 +1430,9 @@ S = "Select" i"from" s"0x"
         assert_eq!(
             grammar.syntax_rules[0].priority_levels[0].alternatives[0].symbols,
             [
-                Symbol::literal("Select"),
-                Symbol::ignore_case_literal("from"),
-                Symbol::literal("0x"),
+                lit!("Select"),
+                Symbol::Literal(Literal::ignore_case("from")),
+                lit!("0x"),
             ]
         );
     }

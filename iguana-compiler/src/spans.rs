@@ -10,7 +10,7 @@ use crate::comments::{leading_comments, trailing_comment};
 use crate::grammar::{
     def::{Alternative, GrammarDef, LexicalRule, SyntaxRule},
     regex::Regex,
-    symbols::{Identifier, Nonterminal, Symbol, Terminal},
+    symbols::{Identifier, Nonterminal, RestrictionOperand, Symbol, Terminal},
 };
 use crate::iggy::has_layout_annotation;
 
@@ -74,6 +74,10 @@ pub struct GrammarSpans<'a> {
     pub alternatives: FxHashMap<ByAddress<&'a Alternative>, SourceRegion>,
     pub symbols: FxHashMap<ByAddress<&'a Symbol>, SourceRegion>,
     pub identifiers: FxHashMap<ByAddress<&'a Identifier>, SourceRegion>,
+    /// A map from each restriction operand of a syntax rule to its region.
+    pub restriction_operands: FxHashMap<ByAddress<&'a RestrictionOperand>, SourceRegion>,
+    /// A map from each restriction operand of a lexical rule to its region.
+    pub restriction_regexes: FxHashMap<ByAddress<&'a Regex>, SourceRegion>,
     pub nonterminals: FxHashMap<ByAddress<&'a Nonterminal>, SourceRegion>,
     pub terminals: FxHashMap<ByAddress<&'a Terminal>, SourceRegion>,
     /// A map from an `Exclude` symbol to one span per `!label` on it, in
@@ -117,6 +121,18 @@ impl<'a> GrammarSpans<'a> {
         self.identifiers
             .get(&ByAddress(identifier))
             .unwrap_or_else(|| panic!("identifier `{}` has no source region", identifier.name))
+    }
+
+    pub fn restriction_operand(&self, operand: &'a RestrictionOperand) -> &SourceRegion {
+        self.restriction_operands
+            .get(&ByAddress(operand))
+            .unwrap_or_else(|| panic!("restriction operand `{operand}` has no source region"))
+    }
+
+    pub fn restriction_regex(&self, operand: &'a Regex) -> &SourceRegion {
+        self.restriction_regexes
+            .get(&ByAddress(operand))
+            .unwrap_or_else(|| panic!("restriction operand `{operand}` has no source region"))
     }
 
     pub fn nonterminal(&self, nonterminal: &'a Nonterminal) -> &SourceRegion {
@@ -357,28 +373,22 @@ fn collect_regex_rule_spans<'a>(
     let mut excepts = gr_rule.except.iter();
     let mut follow = gr_rule.follow_restriction.iter();
     for condition in pt_rule.regex_post_conditions().regex_post_conditions() {
-        let (bucket, identifier) = match condition {
-            parse_tree::RegexPostCondition::Except { identifier, .. } => (&mut excepts, identifier),
-            parse_tree::RegexPostCondition::FollowRestriction { identifier, .. } => {
-                (&mut follow, identifier)
+        let (bucket, operand) = match condition {
+            parse_tree::RegexPostCondition::Except { regex_operand, .. } => {
+                (&mut excepts, regex_operand)
+            }
+            parse_tree::RegexPostCondition::FollowRestriction { regex_operand, .. } => {
+                (&mut follow, regex_operand)
             }
             parse_tree::RegexPostCondition::Amb(_) => {
                 unreachable!("ambiguous trees are rejected before this point")
             }
         };
-        if let Some(id) = bucket.next() {
-            spans
-                .identifiers
-                .insert(ByAddress(id), SourceRegion::new(identifier.span()));
-        }
+        assign_regex_operand_span(bucket.next(), operand, spans);
     }
-    if let Some(id) = &gr_rule.precede_restriction
-        && let Some(condition) = pt_rule.regex_pre_condition().value()
-    {
-        spans.identifiers.insert(
-            ByAddress(id),
-            SourceRegion::new(condition.identifier().span()),
-        );
+    if let Some(condition) = pt_rule.regex_pre_condition().value() {
+        let operand = gr_rule.precede_restriction.as_ref();
+        assign_regex_operand_span(operand, condition.regex_operand(), spans);
     }
 
     let Regex::Alt(alts) = &gr_rule.regex else {
@@ -392,6 +402,24 @@ fn collect_regex_rule_spans<'a>(
             collect_regex_spans(gr_regex, pt_regex, spans);
         }
     }
+}
+
+/// Records the span of `pt_operand` for `operand`, the restriction operand of
+/// a lexical rule it converted to. A rule name also gets the span as an
+/// identifier.
+fn assign_regex_operand_span<'a>(
+    operand: Option<&'a Regex>,
+    pt_operand: &parse_tree::RegexOperand,
+    spans: &mut GrammarSpans<'a>,
+) {
+    let operand = operand.expect("each restriction operand converts to one operand");
+    let region = SourceRegion::new(pt_operand.span());
+    if let Regex::Identifier(identifier) = operand {
+        spans
+            .identifiers
+            .insert(ByAddress(identifier), region.clone());
+    }
+    spans.restriction_regexes.insert(ByAddress(operand), region);
 }
 
 fn collect_regex_spans<'a>(
@@ -492,23 +520,23 @@ fn collect_symbol_seq_spans<'a>(
     }
 }
 
-/// Records `token`'s span for the restriction it converted to. The conversion
-/// stores each restriction name once, keeping the first spelling, so the
-/// token pairs with the stored identifier of its own name, and a repeated
-/// token pairs with nothing.
+/// Records the span of `pt_operand` for `operand`, the operand it converted
+/// to. An identifier operand also gets the span as an identifier.
 fn assign_restriction_span<'a>(
-    pending: &mut Vec<&'a Identifier>,
-    token: parse_tree::Token,
-    input: &Input,
+    operand: Option<&'a RestrictionOperand>,
+    pt_operand: &parse_tree::Operand,
     spans: &mut GrammarSpans<'a>,
 ) {
-    let name = input.text(token.span());
-    if let Some(index) = pending.iter().position(|id| id.name == name) {
-        let id = pending.remove(index);
+    let operand = operand.expect("each restriction operand converts to one operand");
+    let region = SourceRegion::new(pt_operand.span());
+    if let RestrictionOperand::Identifier(identifier) = operand {
         spans
             .identifiers
-            .insert(ByAddress(id), SourceRegion::new(token.span()));
+            .insert(ByAddress(identifier), region.clone());
     }
+    spans
+        .restriction_operands
+        .insert(ByAddress(operand), region);
 }
 
 fn collect_symbol_spans<'a>(
@@ -573,20 +601,16 @@ fn collect_symbol_spans<'a>(
         }
         // The conditions of one symbol reference become one `Restricted`
         // node, with the `!label` conditions as an `Exclude` node below it.
-        // The conversion stores each restriction name once, keeping the
-        // first occurrence, so a condition token pairs with the stored
-        // identifier of its own name rather than with the next identifier
-        // of its kind (`assign_restriction_span`).
+        // The conversion keeps every operand in source order, so the n-th
+        // condition of a kind pairs with the n-th operand of that kind.
         (
             Symbol::Restricted { .. } | Symbol::Exclude { .. },
             parse_tree::Symbol::PreCondition { .. } | parse_tree::Symbol::PostCondition { .. },
         ) => {
-            let (restrictions, gr_inner) = match gr_sym {
-                Symbol::Restricted {
-                    symbol,
-                    restrictions,
-                } => (Some(restrictions), symbol.as_ref()),
-                _ => (None, gr_sym),
+            let restrictions = gr_sym.restrictions();
+            let gr_inner = match gr_sym {
+                Symbol::Restricted { symbol, .. } => symbol.as_ref(),
+                _ => gr_sym,
             };
 
             let mut pt_node = pt_sym;
@@ -594,47 +618,36 @@ fn collect_symbol_spans<'a>(
                 conditions, symbol, ..
             } = pt_node
             {
-                let mut precede: Vec<&Identifier> = restrictions
-                    .map(|r| r.precede.iter().collect())
-                    .unwrap_or_default();
+                let mut precede = restrictions.precede.iter();
                 for condition in conditions.pre_conditions() {
-                    assign_restriction_span(&mut precede, condition.identifier(), input, spans);
+                    assign_restriction_span(precede.next(), condition.operand(), spans);
                 }
                 pt_node = symbol;
             }
 
-            let mut excepts: Vec<&Identifier> = restrictions
-                .map(|r| r.excepts.iter().collect())
-                .unwrap_or_default();
-            let mut required: Vec<&Identifier> = restrictions
-                .map(|r| r.required.iter().collect())
-                .unwrap_or_default();
-            let mut follow: Vec<&Identifier> = restrictions
-                .map(|r| r.follow.iter().collect())
-                .unwrap_or_default();
-            let mut layout_aware_follow: Vec<&Identifier> = restrictions
-                .map(|r| r.layout_aware_follow.iter().collect())
-                .unwrap_or_default();
+            let mut excepts = restrictions.excepts.iter();
+            let mut required = restrictions.required.iter();
+            let mut follow = restrictions.follow.iter();
+            let mut layout_aware_follow = restrictions.layout_aware_follow.iter();
             let mut label_spans = Vec::new();
             if let parse_tree::Symbol::PostCondition {
                 conditions, symbol, ..
             } = pt_node
             {
                 for condition in conditions.post_conditions() {
-                    let (bucket, identifier) = match condition {
-                        parse_tree::PostCondition::Except { identifier, .. } => {
-                            (&mut excepts, identifier)
+                    let (bucket, operand) = match condition {
+                        parse_tree::PostCondition::Except { operand, .. } => {
+                            (&mut excepts, operand)
                         }
-                        parse_tree::PostCondition::Require { identifier, .. } => {
-                            (&mut required, identifier)
+                        parse_tree::PostCondition::Require { operand, .. } => {
+                            (&mut required, operand)
                         }
-                        parse_tree::PostCondition::FollowRestriction { identifier, .. } => {
-                            (&mut follow, identifier)
+                        parse_tree::PostCondition::FollowRestriction { operand, .. } => {
+                            (&mut follow, operand)
                         }
                         parse_tree::PostCondition::LayoutAwareFollowRestriction {
-                            identifier,
-                            ..
-                        } => (&mut layout_aware_follow, identifier),
+                            operand, ..
+                        } => (&mut layout_aware_follow, operand),
                         parse_tree::PostCondition::Exclude { identifier, .. } => {
                             label_spans.push(identifier.span());
                             continue;
@@ -643,7 +656,7 @@ fn collect_symbol_spans<'a>(
                             unreachable!("ambiguous trees are rejected before this point")
                         }
                     };
-                    assign_restriction_span(bucket, *identifier, input, spans);
+                    assign_restriction_span(bucket.next(), operand, spans);
                 }
                 pt_node = symbol;
             }
@@ -737,13 +750,16 @@ WS = [\ ]*
         for rule in &grammar_def.lexical_rules {
             spans.lexical_rule(rule);
             spans.terminal(&rule.head);
-            for identifier in rule
+            for operand in rule
                 .except
                 .iter()
                 .chain(rule.follow_restriction.iter())
                 .chain(rule.precede_restriction.iter())
             {
-                spans.identifier(identifier);
+                spans.restriction_regex(operand);
+                if let Regex::Identifier(identifier) = operand {
+                    spans.identifier(identifier);
+                }
             }
         }
         grammar_def.for_each_symbol(&mut |symbol| {

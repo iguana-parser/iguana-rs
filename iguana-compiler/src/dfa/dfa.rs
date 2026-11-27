@@ -521,8 +521,8 @@ mod tests {
     #[test]
     fn earlier_accept_wins_when_a_dfa_state_covers_two_nfa_accepts() {
         // Both branches accept 'a'; declaration order should pick terminal 0.
-        let mut nfa = Nfa::from_regex(&Regex::char('a'), t(0));
-        let second = Nfa::from_regex(&Regex::char('a'), t(1));
+        let mut nfa = Nfa::from_regex(&Regex::Char('a'), t(0));
+        let second = Nfa::from_regex(&Regex::Char('a'), t(1));
         let offset = nfa.num_states();
         for state in &second.states {
             nfa.states.push(nfa::State {
@@ -562,7 +562,10 @@ mod tests {
             Regex::range('a', 'z'),
             Regex::Opt(Box::new(Regex::range('a', 'z'))),
         ]);
-        let keywords = Regex::alt(vec![Regex::literal("if"), Regex::literal("iffy")]);
+        let keywords = Regex::alt(vec![
+            Regex::exact_literal("if"),
+            Regex::exact_literal("iffy"),
+        ]);
         Dfa::from_nfa(&Nfa::with_excepts(&id, t(0), &[&keywords]))
     }
 
@@ -597,7 +600,7 @@ mod tests {
         // [a-z]+ \ "if" on "iff": the accept at "if" is excluded, the accept
         // at "iff" is not, so maximal munch keeps the longer match.
         let id = Regex::plus(Regex::range('a', 'z'));
-        let keyword = Regex::literal("if");
+        let keyword = Regex::exact_literal("if");
         let dfa = Dfa::from_nfa(&Nfa::with_excepts(&id, t(0), &[&keyword]));
         assert!(state_after(&dfa, "if").unwrap().excluded);
         let state = state_after(&dfa, "iff").unwrap();
@@ -612,33 +615,33 @@ mod tests {
     #[test]
     fn shorter_literal_prefixes_longer_only_one_way() {
         // "a" is a prefix of "ab", but "ab" is not a prefix of "a".
-        assert!(dfa(Regex::literal("a")).is_prefix_of(&dfa(Regex::literal("ab"))));
-        assert!(!dfa(Regex::literal("ab")).is_prefix_of(&dfa(Regex::literal("a"))));
+        assert!(dfa(Regex::exact_literal("a")).is_prefix_of(&dfa(Regex::exact_literal("ab"))));
+        assert!(!dfa(Regex::exact_literal("ab")).is_prefix_of(&dfa(Regex::exact_literal("a"))));
     }
 
     #[test]
     fn equal_languages_prefix_each_other() {
-        assert!(dfa(Regex::literal("ab")).is_prefix_of(&dfa(Regex::literal("ab"))));
+        assert!(dfa(Regex::exact_literal("ab")).is_prefix_of(&dfa(Regex::exact_literal("ab"))));
     }
 
     #[test]
     fn disjoint_literals_do_not_prefix() {
-        assert!(!dfa(Regex::literal("ab")).is_prefix_of(&dfa(Regex::literal("cd"))));
+        assert!(!dfa(Regex::exact_literal("ab")).is_prefix_of(&dfa(Regex::exact_literal("cd"))));
     }
 
     #[test]
     fn shared_first_char_without_prefix_does_not_count() {
         // "if" and "int" share their first character, but neither is a prefix
         // of the other, so a keyword-versus-keyword pair stays distinguishable.
-        assert!(!dfa(Regex::literal("if")).is_prefix_of(&dfa(Regex::literal("int"))));
-        assert!(!dfa(Regex::literal("int")).is_prefix_of(&dfa(Regex::literal("if"))));
+        assert!(!dfa(Regex::exact_literal("if")).is_prefix_of(&dfa(Regex::exact_literal("int"))));
+        assert!(!dfa(Regex::exact_literal("int")).is_prefix_of(&dfa(Regex::exact_literal("if"))));
     }
 
     #[test]
     fn integer_prefixes_float() {
         // [0-9]+ is a prefix of [0-9]+ ".", the Int/Float selector case.
         let int = Regex::plus(Regex::range('0', '9'));
-        let float = Regex::seq(vec![Regex::plus(Regex::range('0', '9')), Regex::char('.')]);
+        let float = Regex::seq(vec![Regex::plus(Regex::range('0', '9')), Regex::Char('.')]);
         assert!(dfa(int).is_prefix_of(&dfa(float)));
     }
 
@@ -655,14 +658,14 @@ mod tests {
 
     #[test]
     fn next_chars_after_a_consumed_string_are_the_outgoing_labels() {
-        let chars = identifier().next_chars_after(&dfa(Regex::literal("else")), 0);
+        let chars = identifier().next_chars_after(&dfa(Regex::exact_literal("else")), 0);
         assert_eq!(chars, Some(vec![cr('0', '9'), cr('a', 'z')]));
     }
 
     #[test]
     fn next_chars_after_a_string_that_is_not_consumed_is_none() {
         for text in ["-else", "non-sealed", "else+"] {
-            let chars = identifier().next_chars_after(&dfa(Regex::literal(text)), 0);
+            let chars = identifier().next_chars_after(&dfa(Regex::exact_literal(text)), 0);
             assert_eq!(chars, None, "{text}");
         }
     }
@@ -671,7 +674,7 @@ mod tests {
     /// the identifier consumes. Without its first three, it is `-sealed`.
     #[test]
     fn next_chars_after_skip_the_first_characters_of_the_string() {
-        let non_sealed = dfa(Regex::literal("non-sealed"));
+        let non_sealed = dfa(Regex::exact_literal("non-sealed"));
         let chars = identifier().next_chars_after(&non_sealed, 4);
         assert_eq!(chars, Some(vec![cr('0', '9'), cr('a', 'z')]));
         assert_eq!(identifier().next_chars_after(&non_sealed, 3), None);
@@ -687,7 +690,7 @@ mod tests {
             Regex::plus(Regex::range('a', 'z')),
             Regex::range('0', '9'),
         ]));
-        let chars = letters_then_digit.next_chars_after(&dfa(Regex::literal("else")), 0);
+        let chars = letters_then_digit.next_chars_after(&dfa(Regex::exact_literal("else")), 0);
         assert_eq!(chars, Some(vec![cr('0', '9'), cr('a', 'z')]));
     }
 
@@ -699,7 +702,7 @@ mod tests {
             Regex::range('a', 'z'),
             Regex::range('a', 'z'),
         ]));
-        let chars = two_letters.next_chars_after(&dfa(Regex::literal("el")), 0);
+        let chars = two_letters.next_chars_after(&dfa(Regex::exact_literal("el")), 0);
         assert_eq!(chars, Some(vec![]));
     }
 

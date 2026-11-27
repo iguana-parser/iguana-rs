@@ -34,9 +34,9 @@ use crate::grammar::symbols::BindingPattern;
 use crate::grammar::symbols::CondOp;
 use crate::grammar::symbols::Definition;
 use crate::grammar::symbols::Expr;
-use crate::grammar::symbols::Identifier;
 use crate::grammar::symbols::Nonterminal;
 use crate::grammar::symbols::Parameter;
+use crate::grammar::symbols::RestrictionOperand;
 use crate::grammar::symbols::Symbol;
 use crate::grammar::symbols::Terminal;
 use crate::ids::NonterminalId;
@@ -574,7 +574,7 @@ impl<'a> ParserGen<'a> {
             Some(
                 Symbol::Labeled { .. }
                 | Symbol::Identifier(_)
-                | Symbol::Literal { .. }
+                | Symbol::Literal(_)
                 | Symbol::Group(_)
                 | Symbol::Opt(_)
                 | Symbol::Alt(_)
@@ -628,12 +628,16 @@ impl<'a> ParserGen<'a> {
     /// restricted terminal does not match at the previous position. With
     /// more than one check, each is parenthesized so the caller can join
     /// them with `&&`.
-    fn gen_precede_checks(&self, precede: &[Identifier], pos: TokenStream) -> Vec<TokenStream> {
+    fn gen_precede_checks(
+        &self,
+        precede: &[RestrictionOperand],
+        pos: TokenStream,
+    ) -> Vec<TokenStream> {
         let checks: Vec<_> = precede
             .iter()
             .map(|restriction| {
-                let Definition::Terminal(terminal) = self.grammar.definition(restriction.resolve())
-                else {
+                let definition = self.grammar.definition(restriction.identifier().resolve());
+                let Definition::Terminal(terminal) = definition else {
                     panic!("Precede restriction identifier must resolve to a terminal");
                 };
                 let terminal_id = self.terminal_ids.get_id(terminal);
@@ -715,7 +719,8 @@ impl<'a> ParserGen<'a> {
                             .excepts
                             .iter()
                             .map(|e| {
-                                let (terminal, _) = self.grammar.match_exact_operand(e);
+                                let (terminal, _) =
+                                    self.grammar.match_exact_operand(e.identifier());
                                 let id = self.terminal_ids.get_id(terminal);
                                 quote! {
                                     self.scanner.match_exact(#id, left_extent, right_extent)
@@ -739,7 +744,8 @@ impl<'a> ParserGen<'a> {
                             .required
                             .iter()
                             .map(|r| {
-                                let (terminal, _) = self.grammar.match_exact_operand(r);
+                                let (terminal, _) =
+                                    self.grammar.match_exact_operand(r.identifier());
                                 let id = self.terminal_ids.get_id(terminal);
                                 quote! {
                                     self.scanner.match_exact(#id, left_extent, right_extent)

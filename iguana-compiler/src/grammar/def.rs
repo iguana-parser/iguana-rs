@@ -9,11 +9,13 @@ use crate::{
     grammar::{
         regex::Regex,
         symbols::{
-            Definition, DefinitionId, Expr, Identifier, Nonterminal, Restrictions, Symbol, Terminal,
+            Definition, DefinitionId, Expr, Identifier, Nonterminal, RestrictionOperand,
+            Restrictions, Symbol, Terminal,
         },
         transformations::{
             ebnf_to_bnf, exact_keyword_match, exclude_desugaring, layout_insertion,
-            precedence_desugaring, transform_regex, transform_syntax_rule, visit_syntax_rule,
+            precedence_desugaring, restriction_dedup, transform_regex, transform_syntax_rule,
+            visit_syntax_rule,
         },
     },
     priority_level,
@@ -152,9 +154,9 @@ impl From<Alternative> for PriorityLevel {
 pub struct LexicalRule {
     pub head: Terminal,
     pub regex: Regex,
-    pub except: Vec<Identifier>,
-    pub follow_restriction: Vec<Identifier>,
-    pub precede_restriction: Option<Identifier>,
+    pub except: Vec<Regex>,
+    pub follow_restriction: Vec<Regex>,
+    pub precede_restriction: Option<Regex>,
 }
 
 impl LexicalRule {
@@ -398,18 +400,9 @@ fn add_lexical_rules(
                 symbol: Box::new(transformed),
             }
         }
-        Symbol::Literal {
-            text,
-            ignore_ascii_case,
-        } => {
-            let (terminal, regex) = if ignore_ascii_case {
-                (
-                    Terminal::ignore_case_literal(&text),
-                    Regex::ignore_case_literal(&text),
-                )
-            } else {
-                (Terminal::literal(&text), Regex::literal(&text))
-            };
+        Symbol::Literal(literal) => {
+            let terminal = literal.terminal();
+            let regex = literal.regex();
             let terminal_name = terminal.name.clone();
             if !added_terminals.contains(&terminal) {
                 added_terminals.insert(terminal.clone());
@@ -583,11 +576,17 @@ fn resolve_identifier(symbol: Symbol, symbol_table: &SymbolTable) -> Symbol {
             symbol,
             restrictions,
         } => {
-            let resolve = |ids: Vec<Identifier>| -> Vec<Identifier> {
-                ids.into_iter()
-                    .map(|id| Identifier {
-                        definition: symbol_table.get(&id.name),
-                        name: id.name,
+            let resolve = |operands: Vec<RestrictionOperand>| -> Vec<RestrictionOperand> {
+                operands
+                    .into_iter()
+                    .map(|operand| match operand {
+                        RestrictionOperand::Identifier(id) => {
+                            RestrictionOperand::Identifier(Identifier {
+                                definition: symbol_table.get(&id.name),
+                                name: id.name,
+                            })
+                        }
+                        literal @ RestrictionOperand::Literal(_) => literal,
                     })
                     .collect()
             };
@@ -606,7 +605,7 @@ fn resolve_identifier(symbol: Symbol, symbol_table: &SymbolTable) -> Symbol {
             symbol: Box::new(resolve_identifier(*symbol, symbol_table)),
             labels,
         },
-        Symbol::Literal { .. } | Symbol::Condition(_) | Symbol::Return(_) => symbol,
+        Symbol::Literal(_) | Symbol::Condition(_) | Symbol::Return(_) => symbol,
     }
 }
 
@@ -673,9 +672,9 @@ fn append_flattened(regex: Regex, flattened: &mut Vec<Regex>) {
 /// and a precede restriction (`!<<`).
 #[derive(Default, Clone)]
 struct LexicalRestrictions {
-    except: Vec<Identifier>,
-    follow_restriction: Vec<Identifier>,
-    precede_restriction: Option<Identifier>,
+    except: Vec<Regex>,
+    follow_restriction: Vec<Regex>,
+    precede_restriction: Option<Regex>,
 }
 
 impl LexicalRestrictions {
@@ -693,27 +692,23 @@ impl LexicalRestrictions {
             && self.precede_restriction.is_none()
     }
 
-    /// Adds `other`'s restrictions, deduping excludes and follow restrictions by
-    /// name. Two different precede restrictions can't share a rule, so they are
-    /// an error.
+    /// Adds the restrictions of `other`. An except or a follow restriction
+    /// that is already present is not added again. Two different precede
+    /// restrictions are an error, because a rule can have only one.
     fn merge(&mut self, other: LexicalRestrictions, head: &Terminal, errors: &mut Vec<String>) {
         for restriction in other.except {
-            if !self.except.iter().any(|e| e.name == restriction.name) {
+            if !self.except.contains(&restriction) {
                 self.except.push(restriction);
             }
         }
         for restriction in other.follow_restriction {
-            if !self
-                .follow_restriction
-                .iter()
-                .any(|r| r.name == restriction.name)
-            {
+            if !self.follow_restriction.contains(&restriction) {
                 self.follow_restriction.push(restriction);
             }
         }
         if let Some(precede) = other.precede_restriction {
             match &self.precede_restriction {
-                Some(existing) if existing.name != precede.name => {
+                Some(existing) if *existing != precede => {
                     errors.push(format!(
                         "`{head}` stacks precede restrictions `!<< {existing}` and `!<< {precede}`; \
                          a rule can have only one"
@@ -1025,6 +1020,7 @@ fn build_grammar(grammar_def: GrammarDef, dump: &[Phase]) -> Result<Grammar, Vec
         .map(|(i, r)| (r.head.name.clone(), i as u16))
         .collect();
     let syntax_rules = add_lexical_rules_for_literals(syntax_rules, &mut lexical_rules);
+    let syntax_rules = restriction_dedup::transform(syntax_rules);
     let (_, symbol_table) = create_symbol_table(&syntax_rules, &lexical_rules);
     let (syntax_rules, lexical_rules) =
         resolve_identifiers(syntax_rules, lexical_rules, &symbol_table);
@@ -1054,27 +1050,23 @@ fn build_grammar(grammar_def: GrammarDef, dump: &[Phase]) -> Result<Grammar, Vec
     let lexical_rules: Vec<LexicalRule> = lexical_rules
         .into_iter()
         .map(|mut r| {
+            let resolve = |operand: &mut Regex, kind: &str| {
+                let Regex::Identifier(identifier) = operand else {
+                    panic!("{kind} operand {operand} is not a rule name");
+                };
+                identifier.definition =
+                    Some(symbol_table.get(&identifier.name).unwrap_or_else(|| {
+                        panic!("{kind} terminal {} not found", identifier.name)
+                    }));
+            };
             for except in &mut r.except {
-                except.definition = Some(
-                    symbol_table
-                        .get(&except.name)
-                        .unwrap_or_else(|| panic!("Except terminal {} not found", except.name)),
-                );
+                resolve(except, "Except");
             }
             for restriction in &mut r.follow_restriction {
-                restriction.definition =
-                    Some(symbol_table.get(&restriction.name).unwrap_or_else(|| {
-                        panic!("Follow restriction terminal {} not found", restriction.name)
-                    }));
+                resolve(restriction, "Follow restriction");
             }
             if let Some(restriction) = &mut r.precede_restriction {
-                restriction.definition =
-                    Some(symbol_table.get(&restriction.name).unwrap_or_else(|| {
-                        panic!(
-                            "Precede restriction terminal {} not found",
-                            restriction.name
-                        )
-                    }));
+                resolve(restriction, "Precede restriction");
             }
             r
         })
@@ -1334,7 +1326,7 @@ macro_rules! id {
 #[macro_export]
 macro_rules! lit {
     ($name:literal) => {
-        $crate::grammar::symbols::Symbol::literal($name)
+        $crate::grammar::symbols::Symbol::Literal($crate::grammar::symbols::Literal::exact($name))
     };
 }
 
@@ -1431,16 +1423,19 @@ macro_rules! precede {
     };
 }
 
-/// The identifier list of one restriction kind.
+/// The operand list of one restriction kind, with an identifier operand for
+/// each name.
 #[macro_export]
 macro_rules! restriction_ids {
     ($($name:expr),+ $(,)?) => {
         vec![
             $(
-                $crate::grammar::symbols::Identifier {
-                    name: $name.into(),
-                    definition: None,
-                },
+                $crate::grammar::symbols::RestrictionOperand::Identifier(
+                    $crate::grammar::symbols::Identifier {
+                        name: $name.into(),
+                        definition: None,
+                    },
+                ),
             )+
         ]
     };
@@ -1806,8 +1801,11 @@ mod tests {
         Regex::Identifier(id(name))
     }
 
-    fn names(identifiers: &[Identifier]) -> Vec<&str> {
-        identifiers.iter().map(|i| i.name.as_str()).collect()
+    fn names(operands: &[Regex]) -> Vec<&str> {
+        operands
+            .iter()
+            .map(|operand| operand.identifier().name.as_str())
+            .collect()
     }
 
     fn find<'a>(rules: &'a [LexicalRule], name: &str) -> &'a LexicalRule {
@@ -1821,11 +1819,11 @@ mod tests {
     fn whole_body_reference_inherits_restrictions() {
         let letters = lexical("Letters", Regex::plus(Regex::range('a', 'z')));
         let mut identifier = lexical("Identifier", reference("Letters"));
-        identifier.except = vec![id("Keyword")];
-        identifier.follow_restriction = vec![id("Digit")];
-        identifier.precede_restriction = Some(id("JavaLetter"));
+        identifier.except = vec![reference("Keyword")];
+        identifier.follow_restriction = vec![reference("Digit")];
+        identifier.precede_restriction = Some(reference("JavaLetter"));
         let mut type_id = lexical("TypeId", reference("Identifier"));
-        type_id.except = vec![id("Var")];
+        type_id.except = vec![reference("Var")];
 
         let rules = inline_regex_refs(vec![letters, identifier, type_id]).unwrap();
 
@@ -1833,7 +1831,12 @@ mod tests {
         assert_eq!(names(&type_id.except), ["Var", "Keyword"]);
         assert_eq!(names(&type_id.follow_restriction), ["Digit"]);
         assert_eq!(
-            type_id.precede_restriction.as_ref().unwrap().name,
+            type_id
+                .precede_restriction
+                .as_ref()
+                .unwrap()
+                .identifier()
+                .name,
             "JavaLetter"
         );
         assert_eq!(type_id.regex, Regex::plus(Regex::range('a', 'z')));
@@ -1847,7 +1850,7 @@ mod tests {
     #[test]
     fn restricted_reference_in_a_sequence_is_rejected() {
         let mut identifier = lexical("Identifier", Regex::plus(Regex::range('a', 'z')));
-        identifier.except = vec![id("Keyword")];
+        identifier.except = vec![reference("Keyword")];
         let bar = lexical("Bar", Regex::plus(Regex::range('0', '9')));
         let foo = lexical(
             "Foo",
@@ -1865,9 +1868,9 @@ mod tests {
     fn conflicting_precede_restrictions_are_rejected() {
         let letters = lexical("Letters", Regex::plus(Regex::range('a', 'z')));
         let mut identifier = lexical("Identifier", reference("Letters"));
-        identifier.precede_restriction = Some(id("Bang"));
+        identifier.precede_restriction = Some(reference("Bang"));
         let mut foo = lexical("Foo", reference("Identifier"));
-        foo.precede_restriction = Some(id("Dot"));
+        foo.precede_restriction = Some(reference("Dot"));
 
         let errors = inline_regex_refs(vec![letters, identifier, foo]).unwrap_err();
         assert_eq!(errors.len(), 1);
@@ -1879,7 +1882,10 @@ mod tests {
     fn a_sequence_inside_a_sequence_is_flattened() {
         let call = lexical(
             "Call",
-            Regex::Seq(vec![Regex::ignore_case_literal("sum"), Regex::literal("(")]),
+            Regex::Seq(vec![
+                Regex::ignore_case_literal("sum"),
+                Regex::exact_literal("("),
+            ]),
         );
 
         let rules = inline_regex_refs(vec![call]).unwrap();
@@ -1896,7 +1902,7 @@ mod tests {
         let callee = lexical("Callee", Regex::ignore_case_literal("sum"));
         let call = lexical(
             "Call",
-            Regex::Seq(vec![reference("Callee"), Regex::literal("(")]),
+            Regex::Seq(vec![reference("Callee"), Regex::exact_literal("(")]),
         );
 
         let rules = inline_regex_refs(vec![call, callee]).unwrap();
@@ -1912,7 +1918,7 @@ mod tests {
     #[test]
     fn a_restricted_reference_beside_an_empty_sequence_is_rejected() {
         let mut identifier = lexical("Identifier", Regex::plus(Regex::range('a', 'z')));
-        identifier.except = vec![id("Keyword")];
+        identifier.except = vec![reference("Keyword")];
         let alias = lexical(
             "Alias",
             Regex::Seq(vec![Regex::Seq(vec![]), reference("Identifier")]),

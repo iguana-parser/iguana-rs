@@ -2,7 +2,7 @@ use std::mem;
 
 use crate::grammar::{
     def::{LayoutStrategy, SyntaxRule},
-    symbols::{Identifier, Restrictions, Symbol},
+    symbols::{RestrictionOperand, Restrictions, Symbol},
     transformations::{transform_rule_by_symbols, transform_syntax_rule},
 };
 
@@ -79,10 +79,10 @@ fn insert_layout(symbols: &[Symbol], layout: &Symbol) -> Vec<Symbol> {
 }
 
 /// Strips the layout-aware follow restrictions (`!>>>`) off a symbol,
-/// returning the symbol and the restriction identifiers. As a `Restricted`
+/// returning the symbol and the restriction operands. As a `Restricted`
 /// node can sit inside a `Labeled` or `Binding` wrapper, the walk descends
 /// through those wrappers.
-fn strip_layout_aware_restrictions(symbol: Symbol) -> (Symbol, Vec<Identifier>) {
+fn strip_layout_aware_restrictions(symbol: Symbol) -> (Symbol, Vec<RestrictionOperand>) {
     match symbol {
         Symbol::Labeled { label, symbol } => {
             let (symbol, stripped) = strip_layout_aware_restrictions(*symbol);
@@ -111,7 +111,7 @@ fn strip_layout_aware_restrictions(symbol: Symbol) -> (Symbol, Vec<Identifier>) 
     }
 }
 
-fn add_follow_restriction(symbol: Symbol, follow: Vec<Identifier>) -> Symbol {
+fn add_follow_restriction(symbol: Symbol, follow: Vec<RestrictionOperand>) -> Symbol {
     if follow.is_empty() {
         return symbol;
     }
@@ -128,9 +128,9 @@ fn add_follow_restriction(symbol: Symbol, follow: Vec<Identifier>) -> Symbol {
             symbol,
             mut restrictions,
         } => {
-            for id in follow {
-                if !restrictions.follow.contains(&id) {
-                    restrictions.follow.push(id);
+            for operand in follow {
+                if !restrictions.follow.contains(&operand) {
+                    restrictions.follow.push(operand);
                 }
             }
             Symbol::Restricted {
@@ -172,7 +172,7 @@ mod tests {
             .restrictions()
             .follow
             .iter()
-            .map(|id| id.name.as_str())
+            .map(|operand| operand.identifier().name.as_str())
             .collect();
         assert_eq!(follow, ["B"]);
     }

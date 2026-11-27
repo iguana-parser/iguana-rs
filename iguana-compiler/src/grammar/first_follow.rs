@@ -242,7 +242,7 @@ impl<'a> FirstFollowSets<'a> {
             let excepts: Vec<_> = rule
                 .except
                 .iter()
-                .map(|e| &self.grammar.match_exact_operand(e).1.regex)
+                .map(|e| &self.grammar.match_exact_operand(e.identifier()).1.regex)
                 .collect();
             Nfa::with_excepts(&rule.regex, placeholder, &excepts)
         };
@@ -471,10 +471,12 @@ impl<'a> FirstFollowSets<'a> {
             .restrictions()
             .follow
             .iter()
-            .filter_map(|r| match self.grammar.definition(r.resolve()) {
-                Definition::Terminal(t) => Some(t.clone()),
-                Definition::Nonterminal(_) => None,
-            })
+            .filter_map(
+                |r| match self.grammar.definition(r.identifier().resolve()) {
+                    Definition::Terminal(t) => Some(t.clone()),
+                    Definition::Nonterminal(_) => None,
+                },
+            )
             .collect()
     }
 
@@ -627,7 +629,7 @@ impl<'a> FirstFollowSets<'a> {
                     Definition::Nonterminal(nt) => self.nullables.contains(nt),
                 }
             }
-            Symbol::Literal { .. } => false,
+            Symbol::Literal(_) => false,
             Symbol::Group(symbols) => symbols.iter().all(|s| self.is_nullable(s)),
             Symbol::Opt(_) | Symbol::Star(_, _) => true,
             Symbol::Alt(symbols) => symbols.iter().any(|s| self.is_nullable(s)),
@@ -695,17 +697,10 @@ impl<'a> FirstFollowSets<'a> {
                     }
                 }
             }
-            Symbol::Literal {
-                text,
-                ignore_ascii_case,
-            } => {
-                let literal = if *ignore_ascii_case {
-                    Terminal::ignore_case_literal(text)
-                } else {
-                    Terminal::literal(text)
-                };
-                if self.grammar.terminals().any(|t| *t == literal) {
-                    result.insert(literal);
+            Symbol::Literal(literal) => {
+                let terminal = literal.terminal();
+                if self.grammar.terminals().any(|t| *t == terminal) {
+                    result.insert(terminal);
                 }
             }
             Symbol::Labeled { symbol, .. } | Symbol::Binding { symbol, .. } => {
@@ -832,6 +827,7 @@ impl<'a> FirstFollowSets<'a> {
 mod tests {
     use super::*;
     use crate::grammar::def::GrammarDef;
+    use crate::grammar::symbols::Literal;
     use crate::{alternative, follow, grammar_def, id, lit, priority_level, syntax_rule};
 
     #[test]
@@ -959,7 +955,7 @@ mod tests {
                     alternative!(lit!("b"))
                 ))
             ],
-            lexical: [lexical_rule!("W" => Regex::star(Regex::char(' ')))]
+            lexical: [lexical_rule!("W" => Regex::star(Regex::Char(' ')))]
         )
         .try_into()
         .unwrap();
@@ -1077,11 +1073,11 @@ mod tests {
         assert!(!ff.is_nonterminal_nullable(grammar.nonterminal("F").unwrap()));
 
         // FIRST sets
-        let lparen = Terminal::literal("(");
-        let rparen = Terminal::literal(")");
-        let plus = Terminal::literal("+");
-        let star = Terminal::literal("*");
-        let id_terminal = Terminal::literal("id");
+        let lparen = Literal::exact("(").terminal();
+        let rparen = Literal::exact(")").terminal();
+        let plus = Literal::exact("+").terminal();
+        let star = Literal::exact("*").terminal();
+        let id_terminal = Literal::exact("id").terminal();
         let layout = Terminal::new("Layout");
         let eof = FirstFollowSets::eof();
 
@@ -1197,10 +1193,10 @@ mod tests {
         assert!(!ff.is_nonterminal_nullable(grammar.nonterminal("S").unwrap()));
 
         // FIRST sets
-        let ta = Terminal::literal("a");
-        let tb = Terminal::literal("b");
-        let tc = Terminal::literal("c");
-        let td = Terminal::literal("d");
+        let ta = Literal::exact("a").terminal();
+        let tb = Literal::exact("b").terminal();
+        let tc = Literal::exact("c").terminal();
+        let td = Literal::exact("d").terminal();
 
         let first_s = &ff.first_sets[grammar.nonterminal("S").unwrap()];
         assert!(first_s.contains(&ta));
@@ -1268,9 +1264,9 @@ mod tests {
         assert!(!ff.is_nonterminal_nullable(grammar.nonterminal("S").unwrap()));
 
         // FIRST sets
-        let ta = Terminal::literal("a");
-        let tc = Terminal::literal("c");
-        let td = Terminal::literal("d");
+        let ta = Literal::exact("a").terminal();
+        let tc = Literal::exact("c").terminal();
+        let td = Literal::exact("d").terminal();
         let eof = FirstFollowSets::eof();
 
         let first_s = &ff.first_sets[grammar.nonterminal("S").unwrap()];
@@ -1334,8 +1330,8 @@ mod tests {
         assert!(!ff.is_nonterminal_nullable(grammar.nonterminal("S").unwrap()));
 
         // FIRST sets
-        let ta = Terminal::literal("a");
-        let tb = Terminal::literal("b");
+        let ta = Literal::exact("a").terminal();
+        let tb = Literal::exact("b").terminal();
 
         let first_s = &ff.first_sets[grammar.nonterminal("S").unwrap()];
         assert!(first_s.contains(&ta));
@@ -1390,7 +1386,7 @@ mod tests {
         assert!(!ff.is_nonterminal_nullable(grammar.nonterminal("S").unwrap()));
 
         // FIRST sets
-        let tb = Terminal::literal("b");
+        let tb = Literal::exact("b").terminal();
 
         let first_s = &ff.first_sets[grammar.nonterminal("S").unwrap()];
         assert!(first_s.contains(&tb));
@@ -1484,9 +1480,9 @@ mod tests {
                 syntax_rule!("T" => alternative!(id!("O"), id!("AB")))
             ],
             lexical: [
-                lexical_rule!("AB" => Regex::literal("ab")),
-                lexical_rule!("A" => Regex::literal("a")),
-                lexical_rule!("B" => Regex::literal("b"))
+                lexical_rule!("AB" => Regex::exact_literal("ab")),
+                lexical_rule!("A" => Regex::exact_literal("a")),
+                lexical_rule!("B" => Regex::exact_literal("b"))
             ]
         )
     }
@@ -1497,13 +1493,13 @@ mod tests {
     fn test_first_of_a_literal_is_the_terminal_of_the_literal() {
         use crate::grammar::regex::Regex;
         use crate::lexical_rule;
-        let ignore_case = Symbol::ignore_case_literal("ABC");
+        let ignore_case = Symbol::Literal(Literal::ignore_case("ABC"));
         let grammar: Grammar = grammar_def!("literal_first",
             syntax: [
                 syntax_rule!("S" => alternative!(ignore_case.clone(), lit!("abc"), id!("abc")))
             ],
             lexical: [
-                lexical_rule!("abc" => Regex::literal("x"))
+                lexical_rule!("abc" => Regex::exact_literal("x"))
             ]
         )
         .try_into()
@@ -1511,13 +1507,15 @@ mod tests {
         let ff = FirstFollowSets::new(&grammar);
         assert_eq!(
             ff.first_of_symbol(&ignore_case),
-            [Terminal::ignore_case_literal("abc")].into_iter().collect()
+            [Literal::ignore_case("abc").terminal()]
+                .into_iter()
+                .collect()
         );
         assert_eq!(
-            ff.first_of_symbol(&Symbol::literal("abc")),
-            [Terminal::literal("abc")].into_iter().collect()
+            ff.first_of_symbol(&lit!("abc")),
+            [Literal::exact("abc").terminal()].into_iter().collect()
         );
-        assert!(ff.first_of_symbol(&Symbol::literal("none")).is_empty());
+        assert!(ff.first_of_symbol(&lit!("none")).is_empty());
     }
 
     #[test]
