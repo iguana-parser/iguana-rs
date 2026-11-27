@@ -13,30 +13,41 @@ use iguana_runtime::{
 pub enum TokenKind {
     // Id
     T0,
-    // WS
+    // Greek
     T1,
-    // "\""
+    // WS
     T2,
-    // "\\"
+    // "\""
     T3,
-    // "\f'"
+    // "\\"
     T4,
+    // "\f'"
+    T5,
+    // "π"
+    T6,
+    // "😀"
+    T7,
 }
 impl TokenKind {
     pub fn name(&self) -> &'static str {
         match self {
             TokenKind::T0 => "Id",
-            TokenKind::T1 => "WS",
-            TokenKind::T2 => "\"\\\"\"",
-            TokenKind::T3 => "\"\\\\\"",
-            TokenKind::T4 => "\"\\f'\"",
+            TokenKind::T1 => "Greek",
+            TokenKind::T2 => "WS",
+            TokenKind::T3 => "\"\\\"\"",
+            TokenKind::T4 => "\"\\\\\"",
+            TokenKind::T5 => "\"\\f'\"",
+            TokenKind::T6 => "\"π\"",
+            TokenKind::T7 => "\"😀\"",
         }
     }
 }
 pub type StartS<'a> = Start<&'a S<'a>, Token>;
+pub type StartU<'a> = Start<&'a U<'a>, Token>;
 #[derive(Debug, Clone, Copy)]
 pub enum ParseTree<'a> {
     S(&'a S<'a>),
+    U(&'a U<'a>),
     // Every start nonterminal. `before` and `after` are `None` without layout.
     Start(&'a Start<ParseTree<'a>, Option<ParseTree<'a>>>),
     Token(Token),
@@ -45,6 +56,7 @@ impl<'a> ParseTree<'a> {
     pub fn display_name(&self) -> &'static str {
         match self {
             ParseTree::S(node) => node.display_name(),
+            ParseTree::U(node) => node.display_name(),
             ParseTree::Start(start) => start.display_name(),
             ParseTree::Token(token) => token.kind.name(),
         }
@@ -52,6 +64,7 @@ impl<'a> ParseTree<'a> {
     pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
         match self {
             ParseTree::S(node) => node.child(index),
+            ParseTree::U(node) => node.child(index),
             ParseTree::Start(start) => start.child(index),
             ParseTree::Token(_) => None,
         }
@@ -59,6 +72,7 @@ impl<'a> ParseTree<'a> {
     pub(crate) fn child_count(&self) -> usize {
         match self {
             ParseTree::S(node) => node.child_count(),
+            ParseTree::U(node) => node.child_count(),
             ParseTree::Start(start) => start.child_count(),
             ParseTree::Token(_) => 0,
         }
@@ -66,6 +80,7 @@ impl<'a> ParseTree<'a> {
     pub fn span(&self) -> Span {
         match self {
             ParseTree::S(node) => node.span(),
+            ParseTree::U(node) => node.span(),
             ParseTree::Start(start) => start.span(),
             ParseTree::Token(token) => token.span(),
         }
@@ -75,6 +90,7 @@ impl<'a> ParseTree<'a> {
     pub fn is_amb(&self) -> bool {
         match self {
             ParseTree::S(node) => matches!(node, S::Amb(_)),
+            ParseTree::U(node) => matches!(node, U::Amb(_)),
             ParseTree::Start(_) | ParseTree::Token(_) => false,
         }
     }
@@ -84,6 +100,7 @@ impl<'a> ParseTree<'a> {
     pub fn node_id(&self) -> Option<usize> {
         match self {
             ParseTree::S(node) => Some(*node as *const _ as usize),
+            ParseTree::U(node) => Some(*node as *const _ as usize),
             ParseTree::Start(start) => Some(*start as *const _ as usize),
             ParseTree::Token(_) => None,
         }
@@ -91,12 +108,14 @@ impl<'a> ParseTree<'a> {
     pub fn nonterminal_id(&self) -> Option<ids::NonterminalId> {
         match self {
             ParseTree::S(_) => Some(grammar::S),
+            ParseTree::U(_) => Some(grammar::U),
             ParseTree::Start(_) | ParseTree::Token(_) => None,
         }
     }
     pub fn origin(&self) -> Option<Origin> {
         match self {
             ParseTree::S(node) => node.origin(),
+            ParseTree::U(node) => node.origin(),
             ParseTree::Start(start) => start.origin(),
             ParseTree::Token(_) => None,
         }
@@ -104,6 +123,12 @@ impl<'a> ParseTree<'a> {
     pub(crate) fn unwrap_s(self) -> &'a S<'a> {
         match self {
             ParseTree::S(node) => node,
+            _ => Self::unexpected_node(),
+        }
+    }
+    pub(crate) fn unwrap_u(self) -> &'a U<'a> {
+        match self {
+            ParseTree::U(node) => node,
             _ => Self::unexpected_node(),
         }
     }
@@ -146,6 +171,19 @@ pub enum S<'a> {
         id_8: Token,
         ws_9: Token,
         lit_10: Token,
+        span: Span,
+    },
+    Amb(&'a [ParseTree<'a>]),
+}
+// U = "π" WS Greek WS "😀"
+#[derive(Debug)]
+pub enum U<'a> {
+    Alt0 {
+        lit_0: Token,
+        ws_1: Token,
+        greek: Token,
+        ws_3: Token,
+        lit_4: Token,
         span: Span,
     },
     Amb(&'a [ParseTree<'a>]),
@@ -259,6 +297,73 @@ impl<'a> S<'a> {
         }
     }
 }
+impl<'a> U<'a> {
+    pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
+        ParseTree::U(self)
+    }
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+        match (self, index) {
+            (U::Alt0 { lit_0, .. }, 0) => Some(ParseTree::Token(*lit_0)),
+            (U::Alt0 { ws_1, .. }, 1) => Some(ParseTree::Token(*ws_1)),
+            (U::Alt0 { greek, .. }, 2) => Some(ParseTree::Token(*greek)),
+            (U::Alt0 { ws_3, .. }, 3) => Some(ParseTree::Token(*ws_3)),
+            (U::Alt0 { lit_4, .. }, 4) => Some(ParseTree::Token(*lit_4)),
+            (U::Alt0 { .. }, _) => None,
+            (U::Amb(alts), _) => alts.get(index).copied(),
+        }
+    }
+    pub(crate) fn child_count(&self) -> usize {
+        match self {
+            U::Alt0 { .. } => 5usize,
+            U::Amb(alts) => alts.len(),
+        }
+    }
+    pub fn span(&self) -> Span {
+        match self {
+            U::Alt0 { span, .. } => *span,
+            U::Amb(alts) => alts[0].span(),
+        }
+    }
+    pub fn display_name(&self) -> &'static str {
+        match self {
+            U::Amb(_) => "Amb",
+            _ => "U",
+        }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        None
+    }
+    pub fn lit_0(&self) -> Token {
+        match self {
+            U::Alt0 { lit_0, .. } => *lit_0,
+            U::Amb(_) => panic!("U is ambiguous"),
+        }
+    }
+    pub fn ws_1(&self) -> Token {
+        match self {
+            U::Alt0 { ws_1, .. } => *ws_1,
+            U::Amb(_) => panic!("U is ambiguous"),
+        }
+    }
+    pub fn greek(&self) -> Token {
+        match self {
+            U::Alt0 { greek, .. } => *greek,
+            U::Amb(_) => panic!("U is ambiguous"),
+        }
+    }
+    pub fn ws_3(&self) -> Token {
+        match self {
+            U::Alt0 { ws_3, .. } => *ws_3,
+            U::Amb(_) => panic!("U is ambiguous"),
+        }
+    }
+    pub fn lit_4(&self) -> Token {
+        match self {
+            U::Alt0 { lit_4, .. } => *lit_4,
+            U::Amb(_) => panic!("U is ambiguous"),
+        }
+    }
+}
 #[derive(Debug, Clone, Copy)]
 pub struct Token {
     pub kind: TokenKind,
@@ -282,14 +387,20 @@ fn token_kind(terminal_id: ids::TerminalId) -> TokenKind {
     match terminal_id {
         // Id
         ids::TerminalId(0) => TokenKind::T0,
-        // WS
+        // Greek
         ids::TerminalId(1) => TokenKind::T1,
-        // "\""
+        // WS
         ids::TerminalId(2) => TokenKind::T2,
-        // "\\"
+        // "\""
         ids::TerminalId(3) => TokenKind::T3,
-        // "\f'"
+        // "\\"
         ids::TerminalId(4) => TokenKind::T4,
+        // "\f'"
+        ids::TerminalId(5) => TokenKind::T5,
+        // "π"
+        ids::TerminalId(6) => TokenKind::T6,
+        // "😀"
+        ids::TerminalId(7) => TokenKind::T7,
         _ => unreachable!("Unknown TerminalId: {:?}", terminal_id),
     }
 }
@@ -307,7 +418,9 @@ impl<'a> EscapedLitParseTreeBuilder<'a> {
     ) -> ParseTree<'a> {
         match parent {
             grammar::S => ParseTree::S(self.arena.alloc(S::Amb(alternatives))),
+            grammar::U => ParseTree::U(self.arena.alloc(U::Amb(alternatives))),
             grammar::START_S => self.start_ambiguity_node(grammar::S, alternatives),
+            grammar::START_U => self.start_ambiguity_node(grammar::U, alternatives),
             _ => unreachable!("nonterminal cannot be ambiguous"),
         }
     }
@@ -369,8 +482,22 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for EscapedLitParseTreeBuil
                     span,
                 }))
             }
+            // U = "π" WS Greek WS "😀"
+            SlotId(17) => {
+                let &[lit_4, ws_3, greek, ws_1, lit_0] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::U(self.arena.alloc(U::Alt0 {
+                    lit_0: lit_0.unwrap_token(),
+                    ws_1: ws_1.unwrap_token(),
+                    greek: greek.unwrap_token(),
+                    ws_3: ws_3.unwrap_token(),
+                    lit_4: lit_4.unwrap_token(),
+                    span,
+                }))
+            }
             // The start nonterminals with layout
-            SlotId(15) => {
+            SlotId(21) | SlotId(25) => {
                 let &[after, node, before] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -408,7 +535,10 @@ pub fn create_parse_tree<'a>(
     };
     match root.nonterminal_id {
         grammar::S => ParseTree::S(visit_sppf(root_id, parser, builder).unwrap_s()),
-        grammar::START_S => ParseTree::Start(visit_sppf(root_id, parser, builder).unwrap_start()),
+        grammar::U => ParseTree::U(visit_sppf(root_id, parser, builder).unwrap_u()),
+        grammar::START_S | grammar::START_U => {
+            ParseTree::Start(visit_sppf(root_id, parser, builder).unwrap_start())
+        }
         _ => panic!(),
     }
 }

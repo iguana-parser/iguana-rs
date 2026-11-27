@@ -4,6 +4,7 @@ use iggy::{
 };
 use iguana_runtime::{arena::Arena, input::Input};
 
+use crate::escapes::{decode_next, unescape};
 use crate::grammar::{
     def::{
         Alternative, Associativity, GrammarDef, LayoutStrategy, LexicalRule, PriorityLevel,
@@ -13,7 +14,7 @@ use crate::grammar::{
     symbols::{Identifier, Nonterminal, Restrictions, Symbol, Terminal},
 };
 use crate::spans;
-use crate::validation::{GrammarError, validate};
+use crate::validation::{GrammarError, validate, validate_escapes};
 
 /// Parses a grammar and returns a validated `GrammarDef` with its rule
 /// references resolved.
@@ -24,11 +25,14 @@ pub fn parse_grammar(source: &str) -> Result<GrammarDef, Vec<GrammarError>> {
     let success = IggyParser::new(&input, &parser_arena)
         .parse_grammar(&tree_arena)
         .map_err(parse_error)?;
+    // The escapes are checked on the parse tree, because the grammar has a
+    // placeholder for an invalid escape (`build_grammar`).
+    let mut errors = validate_escapes(&success.tree, &input);
     let grammar_def = build_grammar(&success.tree, &input).resolve();
 
     // Validate here because source spans require the parse tree.
     let spans = spans::build_spans(&grammar_def, &success.tree, &input);
-    let errors = validate(&grammar_def, &spans);
+    errors.extend(validate(&grammar_def, &spans));
     if !errors.is_empty() {
         return Err(errors);
     }
@@ -43,6 +47,14 @@ fn parse_error(error: ParseError) -> Vec<GrammarError> {
     }]
 }
 
+/// Builds the `GrammarDef` of a parse tree.
+///
+/// An invalid `\u{...}` escape, such as `\u{D800}`, has no character, and the
+/// `GrammarDef` has U+FFFD, the replacement character, in its place. The
+/// placeholder lets validation check the rest of the grammar, so the errors of
+/// the invalid escapes (`validate_escapes`) and of the other checks are
+/// reported together. `parse_grammar` rejects a grammar with an invalid escape,
+/// so no parser is generated from it.
 pub fn build_grammar(
     start_grammar: &Start<&parse_tree::Grammar<'_>, &parse_tree::Layout<'_>>,
     input: &Input,
@@ -391,10 +403,7 @@ fn convert_regex(regex: &parse_tree::Regex, input: &Input) -> Regex {
             }
         }
         parse_tree::Regex::CharClass { char_class, .. } => convert_char_class(char_class, input),
-        parse_tree::Regex::Char { char, .. } => {
-            let raw = input.text(char.span());
-            Regex::Char(parse_char(&raw[1..raw.len() - 1]))
-        }
+        parse_tree::Regex::Char { char, .. } => Regex::Char(char_text(*char, input)),
         parse_tree::Regex::String { string, .. } => Regex::literal(&string_text(*string, input)),
         parse_tree::Regex::IgnoreCaseString {
             ignore_case_string, ..
@@ -417,11 +426,11 @@ fn convert_char_class(char_class: &parse_tree::CharClass, input: &Input) -> Rege
         .range_elements()
         .map(|e| {
             if let Some(range) = e.as_range() {
-                let start = parse_range_char(&input.text(range.start().span()));
-                let end = parse_range_char(&input.text(range.end().span()));
+                let start = range_char(range.start(), input);
+                let end = range_char(range.end(), input);
                 CharRange { start, end }
-            } else if let Some(range_char) = e.as_range_char() {
-                let ch = parse_range_char(&input.text(range_char.span()));
+            } else if let Some(token) = e.as_range_char() {
+                let ch = range_char(*token, input);
                 CharRange { start: ch, end: ch }
             } else {
                 unreachable!()
@@ -435,55 +444,31 @@ fn convert_char_class(char_class: &parse_tree::CharClass, input: &Input) -> Rege
 /// escape sequence replaced by the character it represents. For example,
 /// the text of `"\n"` is one newline character, not a backslash and an `n`.
 fn string_text(string: parse_tree::Token, input: &Input) -> String {
-    let raw = input.text(string.span());
-    unescape_string(&raw[1..raw.len() - 1])
+    let chars = input.chars(string.span());
+    unescape(&chars[1..chars.len() - 1])
 }
 
-fn unescape_string(s: &str) -> String {
-    let mut result = String::new();
-    let mut chars = s.chars().peekable();
-    while let Some(c) = chars.next() {
-        if c == '\\' {
-            if let Some(&next) = chars.peek() {
-                let escaped = match next {
-                    'n' => '\n',
-                    'r' => '\r',
-                    't' => '\t',
-                    'f' => '\x0c', // form feed
-                    '\\' => '\\',
-                    '"' => '"',
-                    '\'' => '\'',
-                    other => other,
-                };
-                result.push(escaped);
-                chars.next();
-            }
-        } else {
-            result.push(c);
-        }
-    }
-    result
+/// The character of a `Char` token, such as `'a'` or `'\u{3C0}'`.
+fn char_text(char: parse_tree::Token, input: &Input) -> char {
+    let chars = input.chars(char.span());
+    single_char(&chars[1..chars.len() - 1])
 }
 
-fn parse_char(s: &str) -> char {
-    if s.starts_with('\\') && s.len() > 1 {
-        match s.chars().nth(1) {
-            Some('n') => '\n',
-            Some('r') => '\r',
-            Some('t') => '\t',
-            Some('f') => '\x0c', // form feed
-            Some('\\') => '\\',
-            Some('"') => '"',
-            Some(c) => c,
-            None => s.chars().next().unwrap(),
-        }
-    } else {
-        s.chars().next().unwrap()
-    }
+/// The character of a `RangeChar` token, such as `a` or `\-` in `[a\-z]`.
+fn range_char(token: parse_tree::Token, input: &Input) -> char {
+    single_char(input.chars(token.span()))
 }
 
-fn parse_range_char(s: &str) -> char {
-    parse_char(s)
+/// The character of `chars`, the text of one character or one escape. An
+/// invalid escape is U+FFFD, the replacement character, as a placeholder
+/// (`build_grammar`).
+fn single_char(mut chars: &[char]) -> char {
+    let c = decode_next(&mut chars).unwrap_or(char::REPLACEMENT_CHARACTER);
+    debug_assert!(
+        chars.is_empty(),
+        "`chars` is more than one character or escape"
+    );
+    c
 }
 
 #[cfg(test)]
@@ -1051,6 +1036,80 @@ Tail = [a-z]
                 messages(&errors),
                 ["exclusion `!label` only applies to a syntax rule reference"],
                 "{source}",
+            );
+        }
+    }
+
+    #[test]
+    fn test_unicode_escapes_are_decoded() {
+        let grammar = parse_unvalidated(
+            r#"grammar g
+
+S = "\u{3C0}\u{000041}b" "\\u{41}"
+
+@Regex
+T = '\u{0}' [\u{41}-\u{5A}\u{3C0}] "\u{1F600}"
+"#,
+        );
+        let symbols = &grammar.syntax_rules[0].priority_levels[0].alternatives[0].symbols;
+        assert_eq!(symbols[0], Symbol::literal("πAb".to_string()));
+        assert_eq!(symbols[1], Symbol::literal(r"\u{41}".to_string()));
+        let class = CharClass {
+            ranges: vec![
+                CharRange {
+                    start: 'A',
+                    end: 'Z',
+                },
+                CharRange {
+                    start: 'π',
+                    end: 'π',
+                },
+            ],
+            negated: false,
+        };
+        assert_eq!(
+            grammar.lexical_rules[0].regex,
+            Regex::Alt(vec![Regex::Seq(vec![
+                Regex::Char('\0'),
+                Regex::CharClass(class),
+                Regex::literal("😀"),
+            ])])
+        );
+    }
+
+    /// The other checks still run, so the unresolved `Missing` is reported
+    /// after the escapes. The placeholder of `\u{0000041}` does not make
+    /// `i"\u{0000041}"` an `i` literal without a letter.
+    #[test]
+    fn test_invalid_unicode_escapes_are_rejected_at_the_escape() {
+        let source = r#"grammar g
+
+S = "a\u{D800}" i"b\u{DFFF}" i"\u{0000041}" T Missing
+
+@Regex
+T = [\u{110000}] '\u{1234567}' "\u{10FFFF}"
+"#;
+        let errors = parse_grammar(source).expect_err("the grammar has invalid escapes");
+        let spans: Vec<&str> = errors
+            .iter()
+            .map(|error| &source[error.span.left_extent as usize..error.span.right_extent as usize])
+            .collect();
+        assert_eq!(
+            spans,
+            [
+                r"\u{D800}",
+                r"\u{DFFF}",
+                r"\u{0000041}",
+                r"\u{110000}",
+                r"\u{1234567}",
+                "Missing"
+            ]
+        );
+        for error in &errors[..5] {
+            assert_eq!(
+                error.message,
+                "the code point of a `\\u{...}` escape must have at most six hexadecimal \
+                 digits, be at most `10FFFF`, and not be a surrogate (`D800` to `DFFF`)"
             );
         }
     }

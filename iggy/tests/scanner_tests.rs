@@ -75,3 +75,14 @@ fn test_char_is_on_one_line() {
     assert_eq!(match_char("'\n'"), None);
     assert_eq!(match_char("'\r'"), None);
 }
+
+#[test]
+fn test_unicode_escape_has_hexadecimal_digits_in_braces() {
+    assert_eq!(match_string(r#""\u{41}""#), Some(8));
+    assert_eq!(match_string(r#""a\u{1F600}b""#), Some(13));
+    assert_eq!(match_char(r"'\u{3C0}'"), Some(9));
+    assert_eq!(match_string(r#""\u{}""#), None);
+    assert_eq!(match_string(r#""\u{4G}""#), None);
+    assert_eq!(match_string(r#""\u41""#), None);
+    assert_eq!(match_char(r"'\u{41'"), None);
+}

@@ -2,23 +2,28 @@
 // validation, so the editor and `iguana generate` report the same errors.
 // Each error becomes a `Diagnostic`.
 
+use iggy::parse_tree::{Grammar, Layout, Start};
 use iguana_compiler::grammar::def::GrammarDef;
 use iguana_compiler::spans::GrammarSpans;
-use iguana_compiler::validation::{GrammarError, validate};
+use iguana_compiler::validation::{GrammarError, validate, validate_escapes};
 use iguana_runtime::input::Input;
 use iguana_runtime::utf16::Utf16Columns;
 use lsp_types::{Diagnostic, DiagnosticSeverity};
 
 use crate::to_range;
 
+/// The diagnostics of the escapes of `tree` and of `grammar_def`, which is
+/// built from `tree`, in the order `parse_grammar` reports them.
 pub fn diagnostics<'a>(
+    tree: &Start<&Grammar<'_>, &Layout<'_>>,
     grammar_def: &'a GrammarDef,
     spans: &GrammarSpans<'a>,
     input: &Input,
     columns: &Utf16Columns,
 ) -> Vec<Diagnostic> {
-    validate(grammar_def, spans)
+    validate_escapes(tree, input)
         .into_iter()
+        .chain(validate(grammar_def, spans))
         .map(|error| to_diagnostic(error, input, columns))
         .collect()
 }
@@ -50,7 +55,13 @@ mod tests {
         };
         let grammar_def = crate::build_grammar_def(tree, &input);
         let spans = build_spans(&grammar_def, tree, &input);
-        diagnostics(&grammar_def, &spans, &input, &Utf16Columns::new(&input))
+        diagnostics(
+            tree,
+            &grammar_def,
+            &spans,
+            &input,
+            &Utf16Columns::new(&input),
+        )
     }
 
     /// A parse failure at the end of the input has the empty span at the

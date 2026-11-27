@@ -1,6 +1,7 @@
 // Generator-specific modules
 pub mod comments;
 pub mod dfa;
+pub mod escapes;
 pub mod generator;
 pub mod grammar;
 pub mod iggy;

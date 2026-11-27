@@ -110,12 +110,15 @@ String = "\"" (EscapeChar | !["\\\r\n])* "\""
 Char = "'" (EscapeChar | !['\\\r\n]) "'"
 
 @Regex
-EscapeChar = "\\" ["'\\tfrn]
+EscapeChar
+  = "\\" ["'\\tfrn]
+  | "\\u{" [0-9a-fA-F]+ "}"
 
 @Regex
 RangeChar
   = ![\\\-\[\]\t\f\r\n\ ]
   | "\\" [\\\-\[\]tfrn\ ]
+  | "\\u{" [0-9a-fA-F]+ "}"
 
 @Regex
 Label = "#" [a-zA-Z] [a-zA-Z_0-9]*

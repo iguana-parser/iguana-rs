@@ -8,7 +8,9 @@ use iguana_runtime::{
     utils::bit_set::BitSet,
 };
 pub const S: NonterminalId = NonterminalId(0);
-pub const START_S: NonterminalId = NonterminalId(1);
+pub const U: NonterminalId = NonterminalId(1);
+pub const START_S: NonterminalId = NonterminalId(2);
+pub const START_U: NonterminalId = NonterminalId(3);
 pub struct EscapedLitGrammar;
 impl Grammar for EscapedLitGrammar {
     type Alternatives = BitSet<1>;
@@ -19,13 +21,15 @@ impl Grammar for EscapedLitGrammar {
     const SLOTS: &'static [Slot] = &data::SLOTS;
     const FIRST_SLOTS: &'static [&'static [SlotId]] = &data::FIRST_SLOTS;
     const LAYOUT_NAME: Option<&'static str> = Some("WS");
-    const LAYOUT_TERMINALS: &'static [TerminalId] = &[TerminalId(1)];
+    const LAYOUT_TERMINALS: &'static [TerminalId] = &[TerminalId(2)];
     const SINGLE_TERMINAL_SETS: &'static [TerminalSet] = &data::SINGLE_TERMINAL_SETS;
     const TERMINAL_FIRST_CHARS: &'static [CharSet<'static>] = &data::TERMINAL_FIRST_CHARS;
     fn nonterminal_id(name: &str) -> Option<NonterminalId> {
         match name {
             "S" => Some(S),
+            "U" => Some(U),
             "StartS" => Some(START_S),
+            "StartU" => Some(START_U),
             _ => None,
         }
     }
@@ -39,35 +43,52 @@ pub mod data {
         prediction::Prediction,
         scanner::TerminalSet,
     };
-    pub(super) static NONTERMINALS: [Nonterminal; 2] =
-        [Nonterminal::new("S", "S"), Nonterminal::new("StartS", "S")];
-    pub(super) static DISPLAY_ORDER: [&str; 1] = ["S"];
-    pub(super) static TERMINALS: [Terminal; 7] = [
+    pub(super) static NONTERMINALS: [Nonterminal; 4] = [
+        Nonterminal::new("S", "S"),
+        Nonterminal::new("U", "U"),
+        Nonterminal::new("StartS", "S"),
+        Nonterminal::new("StartU", "U"),
+    ];
+    pub(super) static DISPLAY_ORDER: [&str; 2] = ["S", "U"];
+    pub(super) static TERMINALS: [Terminal; 10] = [
         Terminal::new("Id", false, true),
+        Terminal::new("Greek", false, true),
         Terminal::new("WS", false, true),
         Terminal::new("\"\\\"\"", true, true),
         Terminal::new("\"\\\\\"", true, true),
         Terminal::new("\"\\f'\"", true, true),
+        Terminal::new("\"π\"", true, true),
+        Terminal::new("\"😀\"", true, true),
         Terminal::new("Epsilon", false, false),
         Terminal::new("EOF", false, false),
     ];
-    pub(super) static SLOTS: [Slot; 16] = [
-        Slot::new(&ALT_0, 0, SlotKind::Terminal(TerminalId(2))),
-        Slot::new(&ALT_0, 1, SlotKind::Terminal(TerminalId(1))),
+    pub(super) static SLOTS: [Slot; 26] = [
+        Slot::new(&ALT_0, 0, SlotKind::Terminal(TerminalId(3))),
+        Slot::new(&ALT_0, 1, SlotKind::Terminal(TerminalId(2))),
         Slot::new(&ALT_0, 2, SlotKind::Terminal(TerminalId(0))),
-        Slot::new(&ALT_0, 3, SlotKind::Terminal(TerminalId(1))),
-        Slot::new(&ALT_0, 4, SlotKind::Terminal(TerminalId(2))),
-        Slot::new(&ALT_0, 5, SlotKind::Terminal(TerminalId(1))),
-        Slot::new(&ALT_0, 6, SlotKind::Terminal(TerminalId(3))),
-        Slot::new(&ALT_0, 7, SlotKind::Terminal(TerminalId(1))),
+        Slot::new(&ALT_0, 3, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_0, 4, SlotKind::Terminal(TerminalId(3))),
+        Slot::new(&ALT_0, 5, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_0, 6, SlotKind::Terminal(TerminalId(4))),
+        Slot::new(&ALT_0, 7, SlotKind::Terminal(TerminalId(2))),
         Slot::new(&ALT_0, 8, SlotKind::Terminal(TerminalId(0))),
-        Slot::new(&ALT_0, 9, SlotKind::Terminal(TerminalId(1))),
-        Slot::new(&ALT_0, 10, SlotKind::Terminal(TerminalId(4))),
+        Slot::new(&ALT_0, 9, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_0, 10, SlotKind::Terminal(TerminalId(5))),
         Slot::new(&ALT_0, 11, SlotKind::End),
-        Slot::new(&ALT_1, 0, SlotKind::Terminal(TerminalId(1))),
-        Slot::new(&ALT_1, 1, SlotKind::Nonterminal(NonterminalId(0))),
+        Slot::new(&ALT_1, 0, SlotKind::Terminal(TerminalId(6))),
+        Slot::new(&ALT_1, 1, SlotKind::Terminal(TerminalId(2))),
         Slot::new(&ALT_1, 2, SlotKind::Terminal(TerminalId(1))),
-        Slot::new(&ALT_1, 3, SlotKind::End),
+        Slot::new(&ALT_1, 3, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_1, 4, SlotKind::Terminal(TerminalId(7))),
+        Slot::new(&ALT_1, 5, SlotKind::End),
+        Slot::new(&ALT_2, 0, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_2, 1, SlotKind::Nonterminal(NonterminalId(0))),
+        Slot::new(&ALT_2, 2, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_2, 3, SlotKind::End),
+        Slot::new(&ALT_3, 0, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_3, 1, SlotKind::Nonterminal(NonterminalId(1))),
+        Slot::new(&ALT_3, 2, SlotKind::Terminal(TerminalId(2))),
+        Slot::new(&ALT_3, 3, SlotKind::End),
     ];
     static ALT_0: Alternative = Alternative::new(
         NonterminalId(0),
@@ -76,26 +97,40 @@ pub mod data {
             "\"\\f'\"",
         ],
     );
-    static ALT_1: Alternative = Alternative::new(NonterminalId(1), &["WS", "start:S", "WS"]);
-    pub(super) static FIRST_SLOTS: [&[SlotId]; 2] = [&[SlotId(0)], &[SlotId(12)]];
+    static ALT_1: Alternative =
+        Alternative::new(NonterminalId(1), &["\"π\"", "WS", "Greek", "WS", "\"😀\""]);
+    static ALT_2: Alternative = Alternative::new(NonterminalId(2), &["WS", "start:S", "WS"]);
+    static ALT_3: Alternative = Alternative::new(NonterminalId(3), &["WS", "start:U", "WS"]);
+    pub(super) static FIRST_SLOTS: [&[SlotId]; 4] =
+        [&[SlotId(0)], &[SlotId(12)], &[SlotId(18)], &[SlotId(22)]];
     // A failed terminal match refers to a static terminal set like every other failure, so the
     // error reporting path needs to reach a terminal set from a terminal id. This table, indexed
     // by terminal id, serves only that.
-    pub(super) static SINGLE_TERMINAL_SETS: [TerminalSet; 7] = [
-        TerminalSet::new(4, &[TerminalId(0)]),
-        TerminalSet::new(5, &[TerminalId(1)]),
-        TerminalSet::new(6, &[TerminalId(2)]),
-        TerminalSet::new(7, &[TerminalId(3)]),
-        TerminalSet::new(8, &[TerminalId(4)]),
-        TerminalSet::new(9, &[TerminalId(5)]),
-        TerminalSet::new(10, &[TerminalId(6)]),
+    pub(super) static SINGLE_TERMINAL_SETS: [TerminalSet; 10] = [
+        TerminalSet::new(6, &[TerminalId(0)]),
+        TerminalSet::new(7, &[TerminalId(1)]),
+        TerminalSet::new(8, &[TerminalId(2)]),
+        TerminalSet::new(9, &[TerminalId(3)]),
+        TerminalSet::new(10, &[TerminalId(4)]),
+        TerminalSet::new(11, &[TerminalId(5)]),
+        TerminalSet::new(12, &[TerminalId(6)]),
+        TerminalSet::new(13, &[TerminalId(7)]),
+        TerminalSet::new(14, &[TerminalId(8)]),
+        TerminalSet::new(15, &[TerminalId(9)]),
     ];
     // Indexed by terminal id. `TERMINAL_FIRST_CHARS[t]` holds the characters that can begin a
     // match of the terminal `t`. A nullable terminal can match at every position, so its entry
     // holds every character. The scanner's `match_token` tests the character at a position
     // against it before it matches the terminal.
-    pub(crate) static TERMINAL_FIRST_CHARS: [CharSet; 7] = [
+    pub(crate) static TERMINAL_FIRST_CHARS: [CharSet; 10] = [
         CharSet::new(0x7fffffe000000000000000000000000, &[]),
+        CharSet::new(
+            0x0,
+            &[CharRange {
+                start: 'α',
+                end: 'α',
+            }],
+        ),
         CharSet::new(
             0xffffffffffffffffffffffffffffffff,
             &[CharRange {
@@ -107,6 +142,20 @@ pub mod data {
         CharSet::new(0x100000000000000000000000, &[]),
         CharSet::new(0x1000, &[]),
         CharSet::new(
+            0x0,
+            &[CharRange {
+                start: 'π',
+                end: 'π',
+            }],
+        ),
+        CharSet::new(
+            0x0,
+            &[CharRange {
+                start: '😀',
+                end: '😀',
+            }],
+        ),
+        CharSet::new(
             0xffffffffffffffffffffffffffffffff,
             &[CharRange {
                 start: '\u{80}',
@@ -116,12 +165,21 @@ pub mod data {
         CharSet::new(0x0, &[]),
     ];
     // S { WS, EOF }
-    pub static FOLLOW_SET_S: TerminalSet = TerminalSet::new(0, &[TerminalId(1), TerminalId(6)]);
+    pub static FOLLOW_SET_S: TerminalSet = TerminalSet::new(0, &[TerminalId(2), TerminalId(9)]);
+    // U { WS, EOF }
+    pub static FOLLOW_SET_U: TerminalSet = TerminalSet::new(0, &[TerminalId(2), TerminalId(9)]);
     // StartS { EOF }
-    pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet::new(1, &[TerminalId(6)]);
+    pub static FOLLOW_SET_START_S: TerminalSet = TerminalSet::new(1, &[TerminalId(9)]);
+    // StartU { EOF }
+    pub static FOLLOW_SET_START_U: TerminalSet = TerminalSet::new(1, &[TerminalId(9)]);
     // S { "\"" }
-    pub static FIRST_SET_S: TerminalSet = TerminalSet::new(2, &[TerminalId(2)]);
+    pub static FIRST_SET_S: TerminalSet = TerminalSet::new(2, &[TerminalId(3)]);
+    // U { "π" }
+    pub static FIRST_SET_U: TerminalSet = TerminalSet::new(3, &[TerminalId(6)]);
     // StartS { WS, "\"" }
     pub static FIRST_SET_START_S: TerminalSet =
-        TerminalSet::new(3, &[TerminalId(1), TerminalId(2)]);
+        TerminalSet::new(4, &[TerminalId(2), TerminalId(3)]);
+    // StartU { WS, "π" }
+    pub static FIRST_SET_START_U: TerminalSet =
+        TerminalSet::new(5, &[TerminalId(2), TerminalId(6)]);
 }

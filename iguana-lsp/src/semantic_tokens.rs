@@ -386,6 +386,17 @@ mod tests {
         }
     }
 
+    // A `\u{...}` escape in a string or a character literal is one escape
+    // token, up to the closing brace.
+    #[test]
+    fn a_unicode_escape_is_one_escape_token() {
+        let source = "grammar G\nS = \"\\u{41}\"\n@Regex\nT = '\\u{42}'";
+        assert_eq!(
+            tokens_with_text(source, &["\\u{41}", "\\u{42}"]),
+            expected(&[("\\u{41}", "string.escape"), ("\\u{42}", "string.escape")])
+        );
+    }
+
     // The prefix of an `i` literal and its string are two string tokens, with
     // the tree and without it.
     #[test]

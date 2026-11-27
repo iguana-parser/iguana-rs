@@ -1,9 +1,12 @@
 use std::iter;
 use std::path::Path;
 
+use iggy::parse_tree::{self, ParseTree, Start, TokenKind};
 use iguana_runtime::input::{Input, Span};
+use iguana_runtime::parse_tree::{TreeVisitor, Visit, walk};
 use rustc_hash::{FxHashMap, FxHashSet};
 
+use crate::escapes::invalid_escapes;
 use crate::generator::grammar_utils::parse_tree_builder_ident;
 use crate::generator::utils::is_rust_keyword;
 use crate::grammar::{
@@ -67,6 +70,60 @@ pub fn validate<'a>(grammar_def: &'a GrammarDef, spans: &GrammarSpans<'a>) -> Ve
     check_ignore_case_literals_have_letters(grammar_def, spans, &mut errors);
     check_grammar_has_a_syntax_rule(grammar_def, &mut errors);
     errors
+}
+
+/// The code point of a `\u{...}` escape must have at most six hexadecimal
+/// digits, and it must be a Unicode scalar value. A scalar value is at most
+/// `10FFFF` and is not a surrogate (`D800` to `DFFF`). For example,
+/// `"\u{D800}"` and `[\u{110000}]` are errors, because no character has these
+/// code points.
+///
+/// The check runs on the parse tree, because the `GrammarDef` has a
+/// placeholder in place of an invalid escape (`build_grammar`).
+pub fn validate_escapes(
+    tree: &Start<&parse_tree::Grammar<'_>, &parse_tree::Layout<'_>>,
+    input: &Input,
+) -> Vec<GrammarError> {
+    let mut validator = EscapeValidator {
+        input,
+        errors: Vec::new(),
+    };
+    walk(tree.node.as_parse_tree(), &mut validator);
+    validator.errors
+}
+
+/// Collects the errors of the invalid escapes in the tokens it visits
+/// (`validate_escapes`).
+struct EscapeValidator<'i> {
+    input: &'i Input,
+    errors: Vec<GrammarError>,
+}
+
+impl<'t> TreeVisitor<ParseTree<'t>> for EscapeValidator<'_> {
+    fn enter(&mut self, node: ParseTree<'t>) -> Visit {
+        let ParseTree::Token(token) = node else {
+            return Visit::Children;
+        };
+        // String, Char, and RangeChar, the tokens that can contain an escape.
+        // The escapes of a String or a Char are between the quotes.
+        let span = token.span();
+        let chars = self.input.chars(span);
+        let (start, inner) = match token.kind {
+            TokenKind::T3 | TokenKind::T4 => (span.left_extent + 1, &chars[1..chars.len() - 1]),
+            TokenKind::T6 => (span.left_extent, chars),
+            _ => return Visit::Skip,
+        };
+        for range in invalid_escapes(inner) {
+            self.errors.push(GrammarError {
+                message: "the code point of a `\\u{...}` escape must have at most six \
+                          hexadecimal digits, be at most `10FFFF`, and not be a surrogate \
+                          (`D800` to `DFFF`)"
+                    .to_string(),
+                span: Span::new(start + range.start as u32, start + range.end as u32),
+            });
+        }
+        Visit::Skip
+    }
 }
 
 /// The dependencies of every generated crate shape, as crate names. Keep in
@@ -813,6 +870,12 @@ fn check_string_literals_are_not_empty<'a>(
 /// `"+"`. An `i` literal of a lexical rule is not a terminal, so it is not
 /// checked. An empty `i` literal is an error of
 /// `check_string_literals_are_not_empty`.
+///
+/// An `i` literal with U+FFFD is not checked, because U+FFFD is the
+/// placeholder of an invalid escape (`build_grammar`). The escape can be a
+/// mistyped letter, such as `\u{0000041}` for `A`, and `validate_escapes`
+/// reports it. An `i` literal with a U+FFFD of its own and no letter is
+/// therefore not reported.
 fn check_ignore_case_literals_have_letters<'a>(
     grammar_def: &'a GrammarDef,
     spans: &GrammarSpans<'a>,
@@ -826,7 +889,10 @@ fn check_ignore_case_literals_have_letters<'a>(
         else {
             return;
         };
-        if !text.is_empty() && !text.contains(|c: char| c.is_ascii_alphabetic()) {
+        if !text.is_empty()
+            && !text.contains(char::REPLACEMENT_CHARACTER)
+            && !text.contains(|c: char| c.is_ascii_alphabetic())
+        {
             errors.push(GrammarError {
                 message: "a literal with the `i` prefix must have at least one ASCII letter"
                     .to_string(),

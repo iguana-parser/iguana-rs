@@ -22,141 +22,141 @@ static MATCH_ANY_FIRST_CHARS: [CharSet; 2] = [
     CharSet::new(0x0, &[]),
 ];
 static MATCH_ANY_MASKS: [BitSet<MATCH_MEMO_WORDS>; 2] =
-    [BitSet::from_members(&[1, 6]), BitSet::from_members(&[6])];
+    [BitSet::from_members(&[2, 9]), BitSet::from_members(&[9])];
 // Indexed by ASCII character. `FIRST_CHAR_MASKS[c]` is a bitset indexed by terminal id, and
 // the bit of a terminal is set if the terminal can begin with the character `c`. It holds
 // the same information as `TERMINAL_FIRST_CHARS`, inverted. `match_any` clears the bits of
 // the terminals of a set that cannot begin with the character at a position, so
 // `match_any_untried` visits only the terminals that can match there.
 static FIRST_CHAR_MASKS: [BitSet<MATCH_MEMO_WORDS>; 128] = [
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1, 4]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1, 2]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1, 3]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[0, 1]),
-    BitSet::from_members(&[0, 1]),
-    BitSet::from_members(&[0, 1]),
-    BitSet::from_members(&[0, 1]),
-    BitSet::from_members(&[0, 1]),
-    BitSet::from_members(&[0, 1]),
-    BitSet::from_members(&[0, 1]),
-    BitSet::from_members(&[0, 1]),
-    BitSet::from_members(&[0, 1]),
-    BitSet::from_members(&[0, 1]),
-    BitSet::from_members(&[0, 1]),
-    BitSet::from_members(&[0, 1]),
-    BitSet::from_members(&[0, 1]),
-    BitSet::from_members(&[0, 1]),
-    BitSet::from_members(&[0, 1]),
-    BitSet::from_members(&[0, 1]),
-    BitSet::from_members(&[0, 1]),
-    BitSet::from_members(&[0, 1]),
-    BitSet::from_members(&[0, 1]),
-    BitSet::from_members(&[0, 1]),
-    BitSet::from_members(&[0, 1]),
-    BitSet::from_members(&[0, 1]),
-    BitSet::from_members(&[0, 1]),
-    BitSet::from_members(&[0, 1]),
-    BitSet::from_members(&[0, 1]),
-    BitSet::from_members(&[0, 1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
-    BitSet::from_members(&[1]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2, 5]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2, 3]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2, 4]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[0, 2]),
+    BitSet::from_members(&[0, 2]),
+    BitSet::from_members(&[0, 2]),
+    BitSet::from_members(&[0, 2]),
+    BitSet::from_members(&[0, 2]),
+    BitSet::from_members(&[0, 2]),
+    BitSet::from_members(&[0, 2]),
+    BitSet::from_members(&[0, 2]),
+    BitSet::from_members(&[0, 2]),
+    BitSet::from_members(&[0, 2]),
+    BitSet::from_members(&[0, 2]),
+    BitSet::from_members(&[0, 2]),
+    BitSet::from_members(&[0, 2]),
+    BitSet::from_members(&[0, 2]),
+    BitSet::from_members(&[0, 2]),
+    BitSet::from_members(&[0, 2]),
+    BitSet::from_members(&[0, 2]),
+    BitSet::from_members(&[0, 2]),
+    BitSet::from_members(&[0, 2]),
+    BitSet::from_members(&[0, 2]),
+    BitSet::from_members(&[0, 2]),
+    BitSet::from_members(&[0, 2]),
+    BitSet::from_members(&[0, 2]),
+    BitSet::from_members(&[0, 2]),
+    BitSet::from_members(&[0, 2]),
+    BitSet::from_members(&[0, 2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
+    BitSet::from_members(&[2]),
 ];
 pub struct EscapedLitScanner<'i, 'arena> {
     pub input: &'i Input,
@@ -171,21 +171,33 @@ impl<'i, 'arena> EscapedLitScanner<'i, 'arena> {
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         self.scan_dfa_0(input_index, self.input.len())
     }
-    // WS = [ ]*
+    // Greek = α[β-ω]*
     pub fn match_terminal_1(&self, input_index: u32) -> Option<u32> {
         self.scan_dfa_1(input_index, self.input.len())
     }
-    // "\"" = \"
+    // WS = [ ]*
     pub fn match_terminal_2(&self, input_index: u32) -> Option<u32> {
+        self.scan_dfa_2(input_index, self.input.len())
+    }
+    // "\"" = \"
+    pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b"\"")
     }
     // "\\" = \\
-    pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_4(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b"\\")
     }
     // "\f'" = \u{c}\'
-    pub fn match_terminal_4(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_5(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b"\x0C'")
+    }
+    // "π" = π
+    pub fn match_terminal_6(&self, input_index: u32) -> Option<u32> {
+        self.scan_dfa_6(input_index, self.input.len())
+    }
+    // "😀" = 😀
+    pub fn match_terminal_7(&self, input_index: u32) -> Option<u32> {
+        self.scan_dfa_7(input_index, self.input.len())
     }
     #[inline]
     fn scan_dfa_0(&self, start: u32, end: u32) -> Option<u32> {
@@ -229,6 +241,57 @@ impl<'i, 'arena> EscapedLitScanner<'i, 'arena> {
     fn scan_dfa_1(&self, start: u32, end: u32) -> Option<u32> {
         let mut state: u32 = 0;
         let mut position = start;
+        let mut last_accept = None;
+        loop {
+            match state {
+                0 => {
+                    if position == end {
+                        break;
+                    }
+                    let Some(ch) = self.input.char_at(position) else {
+                        break;
+                    };
+                    state = match ch {
+                        'α' => 1,
+                        _ => break,
+                    };
+                }
+                1 => {
+                    last_accept = Some(position);
+                    if position == end {
+                        break;
+                    }
+                    let Some(ch) = self.input.char_at(position) else {
+                        break;
+                    };
+                    state = match ch {
+                        'β'..='ω' => 2,
+                        _ => break,
+                    };
+                }
+                2 => {
+                    last_accept = Some(position);
+                    if position == end {
+                        break;
+                    }
+                    let Some(ch) = self.input.char_at(position) else {
+                        break;
+                    };
+                    state = match ch {
+                        'β'..='ω' => 2,
+                        _ => break,
+                    };
+                }
+                _ => unreachable!(),
+            }
+            position += 1;
+        }
+        last_accept
+    }
+    #[inline]
+    fn scan_dfa_2(&self, start: u32, end: u32) -> Option<u32> {
+        let mut state: u32 = 0;
+        let mut position = start;
         let mut last_accept;
         loop {
             match state {
@@ -257,6 +320,64 @@ impl<'i, 'arena> EscapedLitScanner<'i, 'arena> {
                         ' ' => 1,
                         _ => break,
                     };
+                }
+                _ => unreachable!(),
+            }
+            position += 1;
+        }
+        last_accept
+    }
+    #[inline]
+    fn scan_dfa_6(&self, start: u32, end: u32) -> Option<u32> {
+        let mut state: u32 = 0;
+        let mut position = start;
+        let mut last_accept = None;
+        loop {
+            match state {
+                0 => {
+                    if position == end {
+                        break;
+                    }
+                    let Some(ch) = self.input.char_at(position) else {
+                        break;
+                    };
+                    state = match ch {
+                        'π' => 1,
+                        _ => break,
+                    };
+                }
+                1 => {
+                    last_accept = Some(position);
+                    break;
+                }
+                _ => unreachable!(),
+            }
+            position += 1;
+        }
+        last_accept
+    }
+    #[inline]
+    fn scan_dfa_7(&self, start: u32, end: u32) -> Option<u32> {
+        let mut state: u32 = 0;
+        let mut position = start;
+        let mut last_accept = None;
+        loop {
+            match state {
+                0 => {
+                    if position == end {
+                        break;
+                    }
+                    let Some(ch) = self.input.char_at(position) else {
+                        break;
+                    };
+                    state = match ch {
+                        '😀' => 1,
+                        _ => break,
+                    };
+                }
+                1 => {
+                    last_accept = Some(position);
+                    break;
                 }
                 _ => unreachable!(),
             }
@@ -328,7 +449,10 @@ impl<'i, 'arena> EscapedLitScanner<'i, 'arena> {
             TerminalId(2) => self.match_terminal_2(input_index),
             TerminalId(3) => self.match_terminal_3(input_index),
             TerminalId(4) => self.match_terminal_4(input_index),
-            TerminalId(6) => {
+            TerminalId(5) => self.match_terminal_5(input_index),
+            TerminalId(6) => self.match_terminal_6(input_index),
+            TerminalId(7) => self.match_terminal_7(input_index),
+            TerminalId(9) => {
                 if input_index == self.input.len() {
                     Some(input_index)
                 } else {

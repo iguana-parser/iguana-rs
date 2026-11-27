@@ -3,7 +3,7 @@
 
 use iguana_runtime::{
     highlight::{Highlight, backslash_escapes},
-    input::Input,
+    input::{Input, Span},
     serde::Serialize,
 };
 
@@ -95,7 +95,7 @@ pub fn token_rules(token: Token, input: &Input, highlights: &mut Vec<Highlight<G
         TokenKind::T3 | TokenKind::T4 => {
             let span = token.span();
             highlights.push(Highlight::new(span, Group::String));
-            for escape in backslash_escapes(span, input.chars(span)) {
+            for escape in escapes(span, input.chars(span)) {
                 highlights.push(Highlight::new(escape, Group::StringEscape));
             }
         }
@@ -132,6 +132,23 @@ pub fn rules(node: ParseTree<'_>, input: &Input, highlights: &mut Vec<Highlight<
         }
         _ => {}
     }
+}
+
+/// The spans of the escapes in `text`, the characters at `span` of a `String`
+/// or a `Char` token. An escape is a backslash and the character after it
+/// (`backslash_escapes`), except that `\u{...}`, such as `\u{3C0}`, is one
+/// escape up to its `}`.
+fn escapes(span: Span, text: &[char]) -> Vec<Span> {
+    let mut escapes = backslash_escapes(span, text);
+    for escape in &mut escapes {
+        let start = (escape.left_extent - span.left_extent) as usize;
+        if text[start + 1..].starts_with(&['u', '{'])
+            && let Some(close) = text[start..].iter().position(|&c| c == '}')
+        {
+            escape.right_extent = escape.left_extent + close as u32 + 1;
+        }
+    }
+    escapes
 }
 
 fn push(highlights: &mut Vec<Highlight<Group>>, token: Token, group: Group) {

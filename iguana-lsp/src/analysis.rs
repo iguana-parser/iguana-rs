@@ -66,7 +66,7 @@ impl Analysis {
                     names,
                     document_symbols: document_symbols(&grammar_def, &spans, &input, &columns),
                     folding_ranges: folding_ranges(&grammar_def, &spans, &input),
-                    diagnostics: diagnostics(&grammar_def, &spans, &input, &columns),
+                    diagnostics: diagnostics(tree, &grammar_def, &spans, &input, &columns),
                     input,
                     columns,
                 }
@@ -449,6 +449,30 @@ Long
             );
             assert!(analysis.parse_durations().is_none(), "{source}");
         }
+    }
+
+    // An invalid escape has a diagnostic at the escape, and the rest of the
+    // grammar is checked and answered as usual. The unresolved `X` is
+    // reported after the escapes.
+    #[test]
+    fn invalid_escapes_do_not_hide_the_rest_of_the_grammar() {
+        let analysis =
+            Analysis::new("grammar T\nS = \"\\u{D800}\" R X\n@Regex\nR = [\\u{110000}]\n");
+        let starts: Vec<_> = analysis
+            .diagnostics()
+            .iter()
+            .map(|diagnostic| diagnostic.range.start)
+            .collect();
+        assert_eq!(
+            starts,
+            [
+                Position::new(1, 5),
+                Position::new(3, 5),
+                Position::new(1, 17)
+            ]
+        );
+        assert!(analysis.parse_durations().is_some());
+        assert_eq!(analysis.document_symbols().len(), 2);
     }
 
     #[test]

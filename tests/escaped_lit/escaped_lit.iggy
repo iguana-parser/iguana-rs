@@ -2,8 +2,13 @@ grammar EscapedLit
 
 S = "\"" Id "\"" "\\" Id "\f'"
 
+U = "\u{3C0}" Greek "\u{1F600}"
+
 @Regex
 Id = [a-z]+
+
+@Regex
+Greek = '\u{3B1}' [\u{3B2}-\u{3C9}]*
 
 @Layout @Regex
 WS = [\ ]*

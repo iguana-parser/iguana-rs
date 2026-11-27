@@ -67,10 +67,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for EscapedLitParser<'i, 'arena> {
                     gss_node_id
                 );
                 match slot_id {
-                    // StartS : . WS start:S WS
-                    SlotId(12) => {
+                    // StartS : . WS start:S WS, and StartU : . WS start:U WS
+                    SlotId(18) | SlotId(22) => {
                         if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
+                            TerminalId(2),
                             input_index,
                             slot_id,
                             Some(gss_node_id),
@@ -81,7 +81,7 @@ impl<'i, 'arena> Parser<'i, 'arena> for EscapedLitParser<'i, 'arena> {
                         }
                     }
                     // StartS : WS . start:S WS
-                    SlotId(13) => {
+                    SlotId(19) => {
                         if let Some((j, right_child)) = self.ll1_parse_s(input_index, None) {
                             if let Some(new_node) = self.create_intermediate_node(
                                 result,
@@ -102,10 +102,10 @@ impl<'i, 'arena> Parser<'i, 'arena> for EscapedLitParser<'i, 'arena> {
                             );
                         }
                     }
-                    // StartS : WS start:S . WS
-                    SlotId(14) => {
+                    // StartS : WS start:S . WS, and StartU : WS start:U . WS
+                    SlotId(20) | SlotId(24) => {
                         if let Some((j, right_child)) = self.match_terminal(
-                            TerminalId(1),
+                            TerminalId(2),
                             input_index,
                             slot_id,
                             Some(gss_node_id),
@@ -123,11 +123,40 @@ impl<'i, 'arena> Parser<'i, 'arena> for EscapedLitParser<'i, 'arena> {
                         }
                     }
                     // StartS : WS start:S WS.
-                    SlotId(15) => {
+                    SlotId(21) => {
                         let Some(result) = result else {
                             unreachable!("result cannot be None here.")
                         };
                         self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_S);
+                    }
+                    // StartU : WS . start:U WS
+                    SlotId(23) => {
+                        if let Some((j, right_child)) = self.ll1_parse_u(input_index, None) {
+                            if let Some(new_node) = self.create_intermediate_node(
+                                result,
+                                right_child,
+                                slot_id.next(),
+                                env,
+                            ) {
+                                input_index = j;
+                                result = Some(new_node);
+                                next = Some(slot_id.next());
+                            }
+                        } else {
+                            self.add_failure(
+                                input_index,
+                                slot_id,
+                                Some(gss_node_id),
+                                GLLFailureKind::UnexpectedToken(&FIRST_SET_U),
+                            );
+                        }
+                    }
+                    // StartU : WS start:U WS.
+                    SlotId(25) => {
+                        let Some(result) = result else {
+                            unreachable!("result cannot be None here.")
+                        };
+                        self.pop(gss_node_id, slot_id, result, None, &FOLLOW_SET_START_U);
                     }
                     _ => {
                         panic!("Unknown grammar slot id: {slot_id}");
@@ -612,6 +641,12 @@ impl<'i, 'arena> EscapedLitParser<'i, 'arena> {
     ) -> Result<ParseSuccess<parse_tree::StartS<'_>>, ParseError> {
         self.typed_parse(grammar::START_S, tree_arena, ParseTree::unwrap_s)
     }
+    pub fn parse_u(
+        self,
+        tree_arena: &Arena,
+    ) -> Result<ParseSuccess<parse_tree::StartU<'_>>, ParseError> {
+        self.typed_parse(grammar::START_U, tree_arena, ParseTree::unwrap_u)
+    }
     fn typed_parse<'a, T>(
         self,
         start: NonterminalId,
@@ -653,11 +688,11 @@ impl<'i, 'arena> EscapedLitParser<'i, 'arena> {
     fn ll1_body_s(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
         let (matched, _) = self.scanner.longest_match(FIRST_SET_S.terminals, i)?;
         match matched {
-            TerminalId(2) => {
+            TerminalId(3) => {
                 let mut j = i;
                 let right_child = {
                     let start = j;
-                    let (end, node) = self.match_terminal(TerminalId(2), start, SlotId(1), None)?;
+                    let (end, node) = self.match_terminal(TerminalId(3), start, SlotId(1), None)?;
                     j = end;
                     node
                 };
@@ -665,7 +700,7 @@ impl<'i, 'arena> EscapedLitParser<'i, 'arena> {
                 let mut current = right_child;
                 let right_child = {
                     let start = j;
-                    let (end, node) = self.match_terminal(TerminalId(1), start, SlotId(2), None)?;
+                    let (end, node) = self.match_terminal(TerminalId(2), start, SlotId(2), None)?;
                     j = end;
                     node
                 };
@@ -691,7 +726,7 @@ impl<'i, 'arena> EscapedLitParser<'i, 'arena> {
                 );
                 let right_child = {
                     let start = j;
-                    let (end, node) = self.match_terminal(TerminalId(1), start, SlotId(4), None)?;
+                    let (end, node) = self.match_terminal(TerminalId(2), start, SlotId(4), None)?;
                     j = end;
                     node
                 };
@@ -704,7 +739,7 @@ impl<'i, 'arena> EscapedLitParser<'i, 'arena> {
                 );
                 let right_child = {
                     let start = j;
-                    let (end, node) = self.match_terminal(TerminalId(2), start, SlotId(5), None)?;
+                    let (end, node) = self.match_terminal(TerminalId(3), start, SlotId(5), None)?;
                     j = end;
                     node
                 };
@@ -717,7 +752,7 @@ impl<'i, 'arena> EscapedLitParser<'i, 'arena> {
                 );
                 let right_child = {
                     let start = j;
-                    let (end, node) = self.match_terminal(TerminalId(1), start, SlotId(6), None)?;
+                    let (end, node) = self.match_terminal(TerminalId(2), start, SlotId(6), None)?;
                     j = end;
                     node
                 };
@@ -730,7 +765,7 @@ impl<'i, 'arena> EscapedLitParser<'i, 'arena> {
                 );
                 let right_child = {
                     let start = j;
-                    let (end, node) = self.match_terminal(TerminalId(3), start, SlotId(7), None)?;
+                    let (end, node) = self.match_terminal(TerminalId(4), start, SlotId(7), None)?;
                     j = end;
                     node
                 };
@@ -743,7 +778,7 @@ impl<'i, 'arena> EscapedLitParser<'i, 'arena> {
                 );
                 let right_child = {
                     let start = j;
-                    let (end, node) = self.match_terminal(TerminalId(1), start, SlotId(8), None)?;
+                    let (end, node) = self.match_terminal(TerminalId(2), start, SlotId(8), None)?;
                     j = end;
                     node
                 };
@@ -770,7 +805,7 @@ impl<'i, 'arena> EscapedLitParser<'i, 'arena> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(1), start, SlotId(10), None)?;
+                        self.match_terminal(TerminalId(2), start, SlotId(10), None)?;
                     j = end;
                     node
                 };
@@ -784,7 +819,7 @@ impl<'i, 'arena> EscapedLitParser<'i, 'arena> {
                 let right_child = {
                     let start = j;
                     let (end, node) =
-                        self.match_terminal(TerminalId(4), start, SlotId(11), None)?;
+                        self.match_terminal(TerminalId(5), start, SlotId(11), None)?;
                     j = end;
                     node
                 };
@@ -800,6 +835,115 @@ impl<'i, 'arena> EscapedLitParser<'i, 'arena> {
                     self.add_nonterminal_node(NonterminalNode {
                         nonterminal_id: NonterminalId(0),
                         return_slot: SlotId(11),
+                        span: Span {
+                            left_extent,
+                            right_extent: j,
+                        },
+                        child: current,
+                        ambiguous: false,
+                    }),
+                ))
+            }
+            _ => unreachable!("LL(1) dispatch covers every terminal in FIRST_SET"),
+        }
+    }
+    #[inline(never)]
+    fn ll1_parse_u(
+        &mut self,
+        i: u32,
+        failure_context: Option<SlotId>,
+    ) -> Option<(u32, SPPFNodeId)> {
+        #[cfg(feature = "instrument")]
+        self.ll1_call_log.push((NonterminalId(1), i));
+        let result = self.ll1_body_u(i);
+        if result.is_none() {
+            if let Some(slot_id) = failure_context {
+                self.add_failure(
+                    i,
+                    slot_id,
+                    None,
+                    GLLFailureKind::UnexpectedToken(&FIRST_SET_U),
+                );
+            }
+        }
+        result
+    }
+    #[inline(always)]
+    fn ll1_body_u(&mut self, i: u32) -> Option<(u32, SPPFNodeId)> {
+        let (matched, _) = self.scanner.longest_match(FIRST_SET_U.terminals, i)?;
+        match matched {
+            TerminalId(6) => {
+                let mut j = i;
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(6), start, SlotId(13), None)?;
+                    j = end;
+                    node
+                };
+                let left_extent = i;
+                let mut current = right_child;
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(2), start, SlotId(14), None)?;
+                    j = end;
+                    node
+                };
+                current = self.create_intermediate_node_ll1(
+                    SlotId(14),
+                    left_extent,
+                    j,
+                    current,
+                    right_child,
+                );
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(1), start, SlotId(15), None)?;
+                    j = end;
+                    node
+                };
+                current = self.create_intermediate_node_ll1(
+                    SlotId(15),
+                    left_extent,
+                    j,
+                    current,
+                    right_child,
+                );
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(2), start, SlotId(16), None)?;
+                    j = end;
+                    node
+                };
+                current = self.create_intermediate_node_ll1(
+                    SlotId(16),
+                    left_extent,
+                    j,
+                    current,
+                    right_child,
+                );
+                let right_child = {
+                    let start = j;
+                    let (end, node) =
+                        self.match_terminal(TerminalId(7), start, SlotId(17), None)?;
+                    j = end;
+                    node
+                };
+                current = self.create_intermediate_node_ll1(
+                    SlotId(17),
+                    left_extent,
+                    j,
+                    current,
+                    right_child,
+                );
+                Some((
+                    j,
+                    self.add_nonterminal_node(NonterminalNode {
+                        nonterminal_id: NonterminalId(1),
+                        return_slot: SlotId(17),
                         span: Span {
                             left_extent,
                             right_extent: j,

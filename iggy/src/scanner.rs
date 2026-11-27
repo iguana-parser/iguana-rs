@@ -362,19 +362,19 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
         }
         Some(end)
     }
-    // String = \"(\\[\" \' \\ t f r n]|![\" \\ \r \n])*\"
+    // String = \"((\\[\" \' \\ t f r n]|\\u{[0-9 a-f A-F]+})|![\" \\ \r \n])*\"
     pub fn match_terminal_3(&self, input_index: u32) -> Option<u32> {
         self.scan_dfa_3(input_index, self.input.len())
     }
-    // Char = \'(\\[\" \' \\ t f r n]|![\' \\ \r \n])\'
+    // Char = \'((\\[\" \' \\ t f r n]|\\u{[0-9 a-f A-F]+})|![\' \\ \r \n])\'
     pub fn match_terminal_4(&self, input_index: u32) -> Option<u32> {
         self.scan_dfa_4(input_index, self.input.len())
     }
-    // EscapeChar = \\[\" \' \\ t f r n]
+    // EscapeChar = (\\[\" \' \\ t f r n]|\\u{[0-9 a-f A-F]+})
     pub fn match_terminal_5(&self, input_index: u32) -> Option<u32> {
         self.scan_dfa_5(input_index, self.input.len())
     }
-    // RangeChar = (![\\ - [ ] \t \u{c} \r \n ]|\\[\\ - [ ] t f r n ])
+    // RangeChar = (![\\ - [ ] \t \u{c} \r \n ]|\\[\\ - [ ] t f r n ]|\\u{[0-9 a-f A-F]+})
     pub fn match_terminal_6(&self, input_index: u32) -> Option<u32> {
         self.scan_dfa_6(input_index, self.input.len())
     }
@@ -656,10 +656,67 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
                     };
                     state = match ch {
                         '"' | '\'' | '\\' | 'f' | 'n' | 'r' | 't' => 5,
+                        'u' => 6,
                         _ => break,
                     };
                 }
                 5 => {
+                    if position == end {
+                        break;
+                    }
+                    let Some(ch) = self.input.char_at(position) else {
+                        break;
+                    };
+                    state = match ch {
+                        '\0'..='\t'
+                        | '\u{b}'..='\u{c}'
+                        | '\u{e}'..='!'
+                        | '#'..='['
+                        | ']'..='\u{d7ff}'
+                        | '\u{e000}'..='\u{10ffff}' => 2,
+                        '"' => 3,
+                        '\\' => 4,
+                        _ => break,
+                    };
+                }
+                6 => {
+                    if position == end {
+                        break;
+                    }
+                    let Some(ch) = self.input.char_at(position) else {
+                        break;
+                    };
+                    state = match ch {
+                        '{' => 7,
+                        _ => break,
+                    };
+                }
+                7 => {
+                    if position == end {
+                        break;
+                    }
+                    let Some(ch) = self.input.char_at(position) else {
+                        break;
+                    };
+                    state = match ch {
+                        '0'..='9' | 'A'..='F' | 'a'..='f' => 8,
+                        _ => break,
+                    };
+                }
+                8 => {
+                    if position == end {
+                        break;
+                    }
+                    let Some(ch) = self.input.char_at(position) else {
+                        break;
+                    };
+                    state = match ch {
+                        '0'..='9' | 'A'..='F' | 'a'..='f' => 8,
+                        '}' => 9,
+                        _ => break,
+                    };
+                }
+                9 => {
                     if position == end {
                         break;
                     }
@@ -742,6 +799,7 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
                     };
                     state = match ch {
                         '"' | '\'' | '\\' | 'f' | 'n' | 'r' | 't' => 5,
+                        'u' => 6,
                         _ => break,
                     };
                 }
@@ -750,6 +808,55 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
                     break;
                 }
                 5 => {
+                    if position == end {
+                        break;
+                    }
+                    let Some(ch) = self.input.char_at(position) else {
+                        break;
+                    };
+                    state = match ch {
+                        '\'' => 4,
+                        _ => break,
+                    };
+                }
+                6 => {
+                    if position == end {
+                        break;
+                    }
+                    let Some(ch) = self.input.char_at(position) else {
+                        break;
+                    };
+                    state = match ch {
+                        '{' => 7,
+                        _ => break,
+                    };
+                }
+                7 => {
+                    if position == end {
+                        break;
+                    }
+                    let Some(ch) = self.input.char_at(position) else {
+                        break;
+                    };
+                    state = match ch {
+                        '0'..='9' | 'A'..='F' | 'a'..='f' => 8,
+                        _ => break,
+                    };
+                }
+                8 => {
+                    if position == end {
+                        break;
+                    }
+                    let Some(ch) = self.input.char_at(position) else {
+                        break;
+                    };
+                    state = match ch {
+                        '0'..='9' | 'A'..='F' | 'a'..='f' => 8,
+                        '}' => 9,
+                        _ => break,
+                    };
+                }
+                9 => {
                     if position == end {
                         break;
                     }
@@ -795,10 +902,52 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
                     };
                     state = match ch {
                         '"' | '\'' | '\\' | 'f' | 'n' | 'r' | 't' => 2,
+                        'u' => 3,
                         _ => break,
                     };
                 }
                 2 => {
+                    last_accept = Some(position);
+                    break;
+                }
+                3 => {
+                    if position == end {
+                        break;
+                    }
+                    let Some(ch) = self.input.char_at(position) else {
+                        break;
+                    };
+                    state = match ch {
+                        '{' => 4,
+                        _ => break,
+                    };
+                }
+                4 => {
+                    if position == end {
+                        break;
+                    }
+                    let Some(ch) = self.input.char_at(position) else {
+                        break;
+                    };
+                    state = match ch {
+                        '0'..='9' | 'A'..='F' | 'a'..='f' => 5,
+                        _ => break,
+                    };
+                }
+                5 => {
+                    if position == end {
+                        break;
+                    }
+                    let Some(ch) = self.input.char_at(position) else {
+                        break;
+                    };
+                    state = match ch {
+                        '0'..='9' | 'A'..='F' | 'a'..='f' => 5,
+                        '}' => 6,
+                        _ => break,
+                    };
+                }
+                6 => {
                     last_accept = Some(position);
                     break;
                 }
@@ -847,10 +996,52 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
                     };
                     state = match ch {
                         ' ' | '-' | '[' | '\\' | ']' | 'f' | 'n' | 'r' | 't' => 3,
+                        'u' => 4,
                         _ => break,
                     };
                 }
                 3 => {
+                    last_accept = Some(position);
+                    break;
+                }
+                4 => {
+                    if position == end {
+                        break;
+                    }
+                    let Some(ch) = self.input.char_at(position) else {
+                        break;
+                    };
+                    state = match ch {
+                        '{' => 5,
+                        _ => break,
+                    };
+                }
+                5 => {
+                    if position == end {
+                        break;
+                    }
+                    let Some(ch) = self.input.char_at(position) else {
+                        break;
+                    };
+                    state = match ch {
+                        '0'..='9' | 'A'..='F' | 'a'..='f' => 6,
+                        _ => break,
+                    };
+                }
+                6 => {
+                    if position == end {
+                        break;
+                    }
+                    let Some(ch) = self.input.char_at(position) else {
+                        break;
+                    };
+                    state = match ch {
+                        '0'..='9' | 'A'..='F' | 'a'..='f' => 6,
+                        '}' => 7,
+                        _ => break,
+                    };
+                }
+                7 => {
                     last_accept = Some(position);
                     break;
                 }

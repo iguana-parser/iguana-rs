@@ -32,11 +32,11 @@
     "string": {
       "patterns": [
         { "begin": "\\bi\"", "end": "\"|$", "name": "string.quoted.double.ignore-case.iggy",
-          "patterns": [{ "match": "\\\\.", "name": "constant.character.escape.iggy" }] },
+          "patterns": [{ "match": "\\\\(u\\{[0-9a-fA-F]+\\}|.)", "name": "constant.character.escape.iggy" }] },
         { "begin": "\"", "end": "\"|$", "name": "string.quoted.double.iggy",
-          "patterns": [{ "match": "\\\\.", "name": "constant.character.escape.iggy" }] },
+          "patterns": [{ "match": "\\\\(u\\{[0-9a-fA-F]+\\}|.)", "name": "constant.character.escape.iggy" }] },
         { "begin": "'", "end": "'|$", "name": "string.quoted.single.iggy",
-          "patterns": [{ "match": "\\\\.", "name": "constant.character.escape.iggy" }] }
+          "patterns": [{ "match": "\\\\(u\\{[0-9a-fA-F]+\\}|.)", "name": "constant.character.escape.iggy" }] }
       ]
     },
     "char-class": {
@@ -45,7 +45,7 @@
       "end": "\\]",
       "name": "string.regexp.character-class.iggy",
       "patterns": [
-        { "match": "\\\\.", "name": "constant.character.escape.iggy" },
+        { "match": "\\\\(u\\{[0-9a-fA-F]+\\}|.)", "name": "constant.character.escape.iggy" },
         { "match": "-", "name": "keyword.operator.range.iggy" }
       ]
     },
