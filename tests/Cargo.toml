@@ -5,6 +5,7 @@
 [workspace]
 resolver = "3"
 members = [
+    "ignore_case_grammar",
     "required_match_implication",
     "required_match_combined",
     "required_match_nonterminal",

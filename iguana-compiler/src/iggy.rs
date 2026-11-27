@@ -61,6 +61,10 @@ pub fn build_grammar(
 ) -> GrammarDef {
     let grammar = &start_grammar.node;
     let name = input.text(grammar.name().span());
+    // With `@IgnoreCase`, a string literal without a prefix ignores case,
+    // like a literal with the `i` prefix. A character literal in a lexical
+    // rule, such as `'e'`, ignores case too.
+    let ignore_case = grammar.ignore_case().value().is_some();
 
     let mut syntax_rules: Vec<SyntaxRule> = Vec::new();
     let mut lexical_rules: Vec<LexicalRule> = Vec::new();
@@ -70,14 +74,14 @@ pub fn build_grammar(
     for rule in grammar.rules().rules() {
         match rule {
             parse_tree::Rule::SyntaxRule { syntax_rule, .. } => {
-                let converted = convert_syntax_rule(syntax_rule, input);
+                let converted = convert_syntax_rule(syntax_rule, input, ignore_case);
                 if has_layout_annotation(syntax_rule) {
                     layout_name.get_or_insert_with(|| converted.head.name.clone());
                 }
                 syntax_rules.push(converted);
             }
             parse_tree::Rule::RegexRule { regex_rule, .. } => {
-                let converted = convert_regex_rule(regex_rule, input);
+                let converted = convert_regex_rule(regex_rule, input, ignore_case);
                 if regex_rule.layout().value().is_some() {
                     layout_name.get_or_insert_with(|| converted.head.name.clone());
                 }
@@ -130,14 +134,18 @@ pub(crate) fn has_layout_annotation(rule: &parse_tree::SyntaxRule) -> bool {
     )
 }
 
-fn convert_syntax_rule(rule: &parse_tree::SyntaxRule, input: &Input) -> SyntaxRule {
+fn convert_syntax_rule(
+    rule: &parse_tree::SyntaxRule,
+    input: &Input,
+    ignore_case: bool,
+) -> SyntaxRule {
     let head_name = input.text(rule.head().span());
     let head = Nonterminal::new(head_name);
 
     let priority_levels: Vec<PriorityLevel> = rule
         .priority_levels()
         .priority_levels()
-        .map(|level| convert_priority_level(level, input))
+        .map(|level| convert_priority_level(level, input, ignore_case))
         .collect();
 
     let mut layout = LayoutStrategy::Default;
@@ -159,11 +167,15 @@ fn convert_syntax_rule(rule: &parse_tree::SyntaxRule, input: &Input) -> SyntaxRu
     }
 }
 
-fn convert_priority_level(level: &parse_tree::PriorityLevel, input: &Input) -> PriorityLevel {
+fn convert_priority_level(
+    level: &parse_tree::PriorityLevel,
+    input: &Input,
+    ignore_case: bool,
+) -> PriorityLevel {
     let alternatives: Vec<Alternative> = level
         .alternatives()
         .alternatives()
-        .map(|alt| convert_alternative(alt, input))
+        .map(|alt| convert_alternative(alt, input, ignore_case))
         .collect();
 
     let associativity =
@@ -182,12 +194,16 @@ fn convert_priority_level(level: &parse_tree::PriorityLevel, input: &Input) -> P
     PriorityLevel::with_associativity(alternatives, associativity)
 }
 
-fn convert_alternative(alt: &parse_tree::Alternative, input: &Input) -> Alternative {
+fn convert_alternative(
+    alt: &parse_tree::Alternative,
+    input: &Input,
+    ignore_case: bool,
+) -> Alternative {
     let (symbols, label): (Vec<Symbol>, _) = match alt {
         parse_tree::Alternative::Symbols { symbols, label, .. } => (
             symbols
                 .symbols()
-                .map(|sym| convert_symbol(sym, input))
+                .map(|sym| convert_symbol(sym, input, ignore_case))
                 .collect(),
             label,
         ),
@@ -204,16 +220,16 @@ fn convert_alternative(alt: &parse_tree::Alternative, input: &Input) -> Alternat
     Alternative { symbols, label }
 }
 
-fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
+fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input, ignore_case: bool) -> Symbol {
     match symbol {
         parse_tree::Symbol::Star { symbol, .. } => {
-            Symbol::Star(Box::new(convert_symbol(symbol, input)), None)
+            Symbol::Star(Box::new(convert_symbol(symbol, input, ignore_case)), None)
         }
         parse_tree::Symbol::Plus { symbol, .. } => {
-            Symbol::Plus(Box::new(convert_symbol(symbol, input)), None)
+            Symbol::Plus(Box::new(convert_symbol(symbol, input, ignore_case)), None)
         }
         parse_tree::Symbol::Opt { symbol, .. } => {
-            Symbol::Opt(Box::new(convert_symbol(symbol, input)))
+            Symbol::Opt(Box::new(convert_symbol(symbol, input, ignore_case)))
         }
         // #Paren is the parenthesized form: at the syntax level one shape,
         // a list of symbol sequences separated by "|", covers both groups
@@ -224,7 +240,7 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
         parse_tree::Symbol::Paren { seqs, .. } => {
             let mut seqs: Vec<Vec<Symbol>> = seqs
                 .symbols()
-                .map(|seq| seq.map(|s| convert_symbol(s, input)).collect())
+                .map(|seq| seq.map(|s| convert_symbol(s, input, ignore_case)).collect())
                 .collect();
             if seqs.len() == 1 {
                 Symbol::Group(seqs.pop().unwrap())
@@ -242,21 +258,33 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
                 )
             }
         }
-        parse_tree::Symbol::Lit { string, .. } => Symbol::literal(string_text(*string, input)),
+        parse_tree::Symbol::Lit { string, .. } => {
+            let text = string_text(*string, input);
+            // A literal without an ASCII letter matches the same strings
+            // with and without `@IgnoreCase`, and stays an exact literal.
+            if ignore_case && text.contains(|c: char| c.is_ascii_alphabetic()) {
+                Symbol::ignore_case_literal(&text)
+            } else {
+                Symbol::literal(text)
+            }
+        }
         parse_tree::Symbol::IgnoreCaseLit {
             ignore_case_string, ..
         } => Symbol::ignore_case_literal(&string_text(ignore_case_string.string(), input)),
+        parse_tree::Symbol::ExactLit { exact_string, .. } => {
+            Symbol::literal(string_text(exact_string.string(), input))
+        }
         parse_tree::Symbol::StarSep { symbol, sep, .. } => Symbol::Star(
-            Box::new(convert_symbol(symbol, input)),
-            Some(Box::new(convert_symbol(sep, input))),
+            Box::new(convert_symbol(symbol, input, ignore_case)),
+            Some(Box::new(convert_symbol(sep, input, ignore_case))),
         ),
         parse_tree::Symbol::PlusSep { symbol, sep, .. } => Symbol::Plus(
-            Box::new(convert_symbol(symbol, input)),
-            Some(Box::new(convert_symbol(sep, input))),
+            Box::new(convert_symbol(symbol, input, ignore_case)),
+            Some(Box::new(convert_symbol(sep, input, ignore_case))),
         ),
         parse_tree::Symbol::Labeled { label, symbol, .. } => Symbol::Labeled {
             label: input.text(label.span()),
-            symbol: Box::new(convert_symbol(symbol, input)),
+            symbol: Box::new(convert_symbol(symbol, input, ignore_case)),
         },
         parse_tree::Symbol::Identifier { identifier, .. } => Symbol::Identifier(Identifier {
             name: input.text(identifier.span()),
@@ -312,7 +340,7 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
                 }
                 node = symbol;
             }
-            let mut converted = convert_symbol(node, input);
+            let mut converted = convert_symbol(node, input, ignore_case);
             if !labels.is_empty() {
                 converted = Symbol::Exclude {
                     symbol: Box::new(converted),
@@ -336,14 +364,24 @@ fn add_restriction(list: &mut Vec<Identifier>, token: parse_tree::Token, input: 
     }
 }
 
-fn convert_regex_rule(rule: &parse_tree::RegexRule, input: &Input) -> LexicalRule {
+fn convert_regex_rule(
+    rule: &parse_tree::RegexRule,
+    input: &Input,
+    ignore_case: bool,
+) -> LexicalRule {
     let name = input.text(rule.identifier().span());
     let head = Terminal::new(name);
 
     let regex = Regex::Alt(
         rule.body()
             .regexes()
-            .map(|inner| Regex::Seq(inner.map(|r| convert_regex(r, input)).collect()))
+            .map(|inner| {
+                Regex::Seq(
+                    inner
+                        .map(|r| convert_regex(r, input, ignore_case))
+                        .collect(),
+                )
+            })
             .collect(),
     );
     let mut lexical_rule = LexicalRule::new(head, regex);
@@ -373,11 +411,17 @@ fn convert_regex_rule(rule: &parse_tree::RegexRule, input: &Input) -> LexicalRul
     lexical_rule
 }
 
-fn convert_regex(regex: &parse_tree::Regex, input: &Input) -> Regex {
+fn convert_regex(regex: &parse_tree::Regex, input: &Input, ignore_case: bool) -> Regex {
     match regex {
-        parse_tree::Regex::Plus { regex, .. } => Regex::Plus(Box::new(convert_regex(regex, input))),
-        parse_tree::Regex::Star { regex, .. } => Regex::Star(Box::new(convert_regex(regex, input))),
-        parse_tree::Regex::Opt { regex, .. } => Regex::Opt(Box::new(convert_regex(regex, input))),
+        parse_tree::Regex::Plus { regex, .. } => {
+            Regex::Plus(Box::new(convert_regex(regex, input, ignore_case)))
+        }
+        parse_tree::Regex::Star { regex, .. } => {
+            Regex::Star(Box::new(convert_regex(regex, input, ignore_case)))
+        }
+        parse_tree::Regex::Opt { regex, .. } => {
+            Regex::Opt(Box::new(convert_regex(regex, input, ignore_case)))
+        }
         // #Paren is the parenthesized form: at the syntax level one shape,
         // a list of regex sequences separated by "|", covers both groups
         // and alternations. One sequence constructs a Seq. Several
@@ -387,7 +431,7 @@ fn convert_regex(regex: &parse_tree::Regex, input: &Input) -> Regex {
         parse_tree::Regex::Paren { seqs, .. } => {
             let mut seqs: Vec<Vec<Regex>> = seqs
                 .regexes()
-                .map(|seq| seq.map(|r| convert_regex(r, input)).collect())
+                .map(|seq| seq.map(|r| convert_regex(r, input, ignore_case)).collect())
                 .collect();
             if seqs.len() == 1 {
                 Regex::Seq(seqs.pop().unwrap())
@@ -406,11 +450,28 @@ fn convert_regex(regex: &parse_tree::Regex, input: &Input) -> Regex {
             }
         }
         parse_tree::Regex::CharClass { char_class, .. } => convert_char_class(char_class, input),
-        parse_tree::Regex::Char { char, .. } => Regex::Char(char_text(*char, input)),
-        parse_tree::Regex::String { string, .. } => Regex::literal(&string_text(*string, input)),
+        parse_tree::Regex::Char { char, .. } => {
+            let c = char_text(*char, input);
+            if ignore_case {
+                Regex::ignore_case_char(c)
+            } else {
+                Regex::Char(c)
+            }
+        }
+        parse_tree::Regex::String { string, .. } => {
+            let text = string_text(*string, input);
+            if ignore_case {
+                Regex::ignore_case_literal(&text)
+            } else {
+                Regex::literal(&text)
+            }
+        }
         parse_tree::Regex::IgnoreCaseString {
             ignore_case_string, ..
         } => Regex::ignore_case_literal(&string_text(ignore_case_string.string(), input)),
+        parse_tree::Regex::ExactString { exact_string, .. } => {
+            Regex::literal(&string_text(exact_string.string(), input))
+        }
         parse_tree::Regex::Identifier { identifier, .. } => {
             let name = input.text(identifier.span());
             Regex::Identifier(Identifier {
@@ -981,11 +1042,11 @@ S = "a"
 
     #[test]
     fn test_generated_names_must_be_distinct_after_case_conversion() {
-        let errors = parse_grammar("grammar g S = \"a\" s = \"b\"")
+        let errors = parse_grammar("grammar g A = \"a\" a = \"b\"")
             .expect_err("the rule names generate duplicate Rust identifiers");
         assert_eq!(
             messages(&errors),
-            ["`S` and `s` have the same generated name `S`"]
+            ["`A` and `a` have the same generated name `A`"]
         );
 
         let errors = parse_grammar("grammar g S = \"a\" #foo_bar | \"b\" #FooBar")
@@ -1190,6 +1251,63 @@ T = [\u{110000}] '\u{1234567}' "\u{10FFFF}"
                  digits, be at most `10FFFF`, and not be a surrogate (`D800` to `DFFF`)"
             );
         }
+    }
+
+    #[test]
+    fn test_plain_literal_ignores_case_with_the_ignore_case_annotation() {
+        let grammar = parse_unvalidated(
+            r#"@IgnoreCase
+grammar G
+
+S = "Select" "(" i"from" s"0x"
+
+@Regex
+A = "ab" s"cd" 'e' '_' [f]
+"#,
+        );
+        assert_eq!(
+            grammar.syntax_rules[0].priority_levels[0].alternatives[0].symbols,
+            [
+                Symbol::ignore_case_literal("select"),
+                Symbol::literal("("),
+                Symbol::ignore_case_literal("from"),
+                Symbol::literal("0x"),
+            ]
+        );
+        assert_eq!(
+            grammar.lexical_rules[0].regex,
+            Regex::Alt(vec![Regex::Seq(vec![
+                Regex::ignore_case_literal("ab"),
+                Regex::literal("cd"),
+                Regex::ignore_case_char('e'),
+                Regex::Char('_'),
+                Regex::char_class(
+                    vec![CharRange {
+                        start: 'f',
+                        end: 'f'
+                    }],
+                    false
+                ),
+            ])])
+        );
+    }
+
+    #[test]
+    fn test_plain_literal_is_exact_without_the_ignore_case_annotation() {
+        let grammar = parse_unvalidated(
+            r#"grammar G
+
+S = "Select" i"from" s"0x"
+"#,
+        );
+        assert_eq!(
+            grammar.syntax_rules[0].priority_levels[0].alternatives[0].symbols,
+            [
+                Symbol::literal("Select"),
+                Symbol::ignore_case_literal("from"),
+                Symbol::literal("0x"),
+            ]
+        );
     }
 
     #[test]

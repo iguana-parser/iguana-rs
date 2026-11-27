@@ -20,7 +20,7 @@
       "name": "comment.line.double-slash.iggy"
     },
     "annotation": {
-      "comment": "Rule annotations: @Regex, @Layout, @NoLayout, @Identifier. Scoped as a decorator (the Python/Java convention) so VS Code-family themes give them the decorator color Terrarium uses.",
+      "comment": "Annotations: @Regex, @Layout, @NoLayout, and @Identifier on a rule, and @IgnoreCase on the grammar. Scoped as a decorator (the Python/Java convention) so VS Code-family themes give them the decorator color Terrarium uses.",
       "match": "@[A-Za-z][A-Za-z0-9_]*",
       "name": "entity.name.function.decorator.iggy"
     },
@@ -32,6 +32,8 @@
     "string": {
       "patterns": [
         { "begin": "\\bi\"", "end": "\"|$", "name": "string.quoted.double.ignore-case.iggy",
+          "patterns": [{ "match": "\\\\(u\\{[0-9a-fA-F]+\\}|.)", "name": "constant.character.escape.iggy" }] },
+        { "begin": "\\bs\"", "end": "\"|$", "name": "string.quoted.double.exact.iggy",
           "patterns": [{ "match": "\\\\(u\\{[0-9a-fA-F]+\\}|.)", "name": "constant.character.escape.iggy" }] },
         { "begin": "\"", "end": "\"|$", "name": "string.quoted.double.iggy",
           "patterns": [{ "match": "\\\\(u\\{[0-9a-fA-F]+\\}|.)", "name": "constant.character.escape.iggy" }] },

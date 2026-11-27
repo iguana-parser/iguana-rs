@@ -1,0 +1,29 @@
+(Start
+  WS
+  (Query
+    i"select"
+    WS
+    ({Name ","}+ Name WS "," WS Name)
+    WS
+    i"from"
+    WS
+    Name
+    WS
+    (Order?
+      (Order
+        i"order"
+        WS
+        i"by"
+        WS
+        Name
+        WS
+        (Direction? Direction)))
+    WS
+    (Limit?
+      (Limit
+        i"limit"
+        WS
+        ((Hex | Float) Hex)))
+    WS
+    "end")
+  WS)

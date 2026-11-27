@@ -11,7 +11,7 @@ use iguana_runtime::{
     utils::bit_set::BitSet,
 };
 const MATCH_MEMO_WORDS: usize = 1;
-static MATCH_ANY_FIRST_CHARS: [CharSet; 37] = [
+static MATCH_ANY_FIRST_CHARS: [CharSet; 38] = [
     CharSet::new(0x800100002600, &[]),
     CharSet::new(0x7fffffe07ffffff0000800100002600, &[]),
     CharSet::new(0x7fffffe07fffffe0000800100002600, &[]),
@@ -50,6 +50,7 @@ static MATCH_ANY_FIRST_CHARS: [CharSet; 37] = [
         ],
     ),
     CharSet::new(0x800100002600, &[]),
+    CharSet::new(0x80000000000000800100002600, &[]),
     CharSet::new(0x10000800100002600, &[]),
     CharSet::new(0x10000800100002600, &[]),
     CharSet::new(0x17fffffe1fffffff0000838700002600, &[]),
@@ -98,58 +99,61 @@ static MATCH_ANY_FIRST_CHARS: [CharSet; 37] = [
         ],
     ),
 ];
-static MATCH_ANY_MASKS: [BitSet<MATCH_MEMO_WORDS>; 37] = [
-    BitSet::from_members(&[8, 10, 41]),
-    BitSet::from_members(&[2, 8, 10, 14, 15, 16, 17, 41]),
-    BitSet::from_members(&[2, 8, 10, 41]),
-    BitSet::from_members(&[2, 3, 4, 8, 10, 25, 35, 36, 37, 41]),
-    BitSet::from_members(&[2, 8, 10, 14, 15, 16, 17, 20, 21, 41]),
-    BitSet::from_members(&[2, 8, 10, 13, 14, 15, 16, 17, 41]),
-    BitSet::from_members(&[2, 3, 8, 10, 25, 27, 36, 41]),
-    BitSet::from_members(&[2, 8, 10, 13, 14, 15, 16, 17, 18, 41]),
+static MATCH_ANY_MASKS: [BitSet<MATCH_MEMO_WORDS>; 38] = [
+    BitSet::from_members(&[8, 10, 43]),
+    BitSet::from_members(&[2, 8, 10, 15, 16, 17, 18, 43]),
+    BitSet::from_members(&[2, 8, 10, 43]),
+    BitSet::from_members(&[2, 3, 4, 8, 10, 26, 36, 37, 38, 39, 43]),
+    BitSet::from_members(&[2, 8, 10, 15, 16, 17, 18, 21, 22, 43]),
+    BitSet::from_members(&[2, 8, 10, 14, 15, 16, 17, 18, 43]),
+    BitSet::from_members(&[2, 3, 8, 10, 26, 28, 37, 38, 43]),
+    BitSet::from_members(&[2, 8, 10, 14, 15, 16, 17, 18, 19, 43]),
     BitSet::from_members(&[
-        2, 3, 7, 8, 10, 13, 14, 15, 16, 17, 18, 20, 21, 25, 26, 27, 28, 29, 30, 31, 33, 34, 35, 36,
-        41,
+        2, 3, 7, 8, 10, 14, 15, 16, 17, 18, 19, 21, 22, 26, 27, 28, 29, 30, 31, 32, 34, 35, 36, 37,
+        38, 43,
     ]),
     BitSet::from_members(&[
-        2, 3, 4, 8, 10, 14, 15, 16, 17, 18, 20, 21, 25, 26, 29, 30, 31, 35, 36, 37, 41,
+        2, 3, 4, 8, 10, 15, 16, 17, 18, 19, 21, 22, 26, 27, 30, 31, 32, 36, 37, 38, 39, 43,
     ]),
     BitSet::from_members(&[
-        2, 3, 4, 7, 8, 10, 13, 14, 15, 16, 17, 18, 20, 21, 25, 26, 27, 28, 29, 30, 31, 33, 34, 35,
-        36, 37, 41,
+        2, 3, 4, 7, 8, 10, 14, 15, 16, 17, 18, 19, 21, 22, 26, 27, 28, 29, 30, 31, 32, 34, 35, 36,
+        37, 38, 39, 43,
     ]),
-    BitSet::from_members(&[6, 8, 10, 38, 41]),
+    BitSet::from_members(&[6, 8, 10, 40, 43]),
     BitSet::from_members(&[
         2, 3, 4, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27,
-        28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 41,
+        28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 43,
     ]),
     BitSet::from_members(&[8, 10]),
-    BitSet::from_members(&[8, 10, 16, 17, 41]),
-    BitSet::from_members(&[8, 10, 17, 41]),
+    BitSet::from_members(&[8, 10, 12, 43]),
+    BitSet::from_members(&[8, 10, 17, 18, 43]),
+    BitSet::from_members(&[8, 10, 18, 43]),
     BitSet::from_members(&[
-        2, 3, 4, 8, 10, 14, 15, 16, 17, 18, 20, 21, 25, 26, 35, 36, 37, 41,
+        2, 3, 4, 8, 10, 15, 16, 17, 18, 19, 21, 22, 26, 27, 36, 37, 38, 39, 43,
     ]),
-    BitSet::from_members(&[2, 8, 10, 14, 15, 16, 17, 18, 20, 21, 26, 41]),
-    BitSet::from_members(&[2, 3, 7, 8, 10, 13, 14, 15, 16, 17, 18, 25, 26, 27, 36, 41]),
-    BitSet::from_members(&[8, 10, 18, 26, 41]),
-    BitSet::from_members(&[8, 10, 37, 41]),
+    BitSet::from_members(&[2, 8, 10, 15, 16, 17, 18, 19, 21, 22, 27, 43]),
+    BitSet::from_members(&[
+        2, 3, 7, 8, 10, 14, 15, 16, 17, 18, 19, 26, 27, 28, 37, 38, 43,
+    ]),
+    BitSet::from_members(&[8, 10, 19, 27, 43]),
+    BitSet::from_members(&[8, 10, 39, 43]),
     BitSet::from_members(&[
         2, 3, 4, 6, 7, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
-        30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 41,
+        30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 43,
     ]),
-    BitSet::from_members(&[41]),
-    BitSet::from_members(&[2, 3, 4, 8, 10, 25, 35, 36, 37]),
-    BitSet::from_members(&[2, 3, 25, 27, 36]),
-    BitSet::from_members(&[26]),
-    BitSet::from_members(&[28]),
+    BitSet::from_members(&[43]),
+    BitSet::from_members(&[2, 3, 4, 8, 10, 26, 36, 37, 38, 39]),
+    BitSet::from_members(&[2, 3, 26, 28, 37, 38]),
+    BitSet::from_members(&[27]),
     BitSet::from_members(&[29]),
     BitSet::from_members(&[30]),
     BitSet::from_members(&[31]),
-    BitSet::from_members(&[20, 21, 33, 34, 35]),
-    BitSet::from_members(&[38]),
-    BitSet::from_members(&[2, 8, 10, 14, 15, 16, 17]),
-    BitSet::from_members(&[13]),
-    BitSet::from_members(&[18]),
+    BitSet::from_members(&[32]),
+    BitSet::from_members(&[21, 22, 34, 35, 36]),
+    BitSet::from_members(&[40]),
+    BitSet::from_members(&[2, 8, 10, 15, 16, 17, 18]),
+    BitSet::from_members(&[14]),
+    BitSet::from_members(&[19]),
     BitSet::from_members(&[2]),
     BitSet::from_members(&[6]),
 ];
@@ -192,19 +196,19 @@ static FIRST_CHAR_MASKS: [BitSet<MATCH_MEMO_WORDS>; 128] = [
     BitSet::from_members(&[6]),
     BitSet::from_members(&[6]),
     BitSet::from_members(&[8, 9]),
-    BitSet::from_members(&[6, 19, 21, 34, 35]),
+    BitSet::from_members(&[6, 20, 22, 35, 36]),
     BitSet::from_members(&[3, 6]),
     BitSet::from_members(&[6, 7]),
     BitSet::from_members(&[6]),
     BitSet::from_members(&[6]),
-    BitSet::from_members(&[6, 33]),
+    BitSet::from_members(&[6, 34]),
     BitSet::from_members(&[4, 6]),
-    BitSet::from_members(&[6, 25]),
     BitSet::from_members(&[6, 26]),
-    BitSet::from_members(&[6, 29]),
+    BitSet::from_members(&[6, 27]),
     BitSet::from_members(&[6, 30]),
+    BitSet::from_members(&[6, 31]),
     BitSet::from_members(&[6]),
-    BitSet::from_members(&[39]),
+    BitSet::from_members(&[41]),
     BitSet::from_members(&[6]),
     BitSet::from_members(&[6, 10]),
     BitSet::from_members(&[1, 6]),
@@ -217,13 +221,13 @@ static FIRST_CHAR_MASKS: [BitSet<MATCH_MEMO_WORDS>; 128] = [
     BitSet::from_members(&[1, 6]),
     BitSet::from_members(&[1, 6]),
     BitSet::from_members(&[1, 6]),
-    BitSet::from_members(&[6, 32]),
+    BitSet::from_members(&[6, 33]),
     BitSet::from_members(&[6]),
     BitSet::from_members(&[6]),
-    BitSet::from_members(&[6, 12]),
     BitSet::from_members(&[6, 13]),
-    BitSet::from_members(&[6, 31]),
-    BitSet::from_members(&[6, 14, 15, 16, 17]),
+    BitSet::from_members(&[6, 14]),
+    BitSet::from_members(&[6, 32]),
+    BitSet::from_members(&[6, 11, 15, 16, 17, 18]),
     BitSet::from_members(&[1, 2, 6]),
     BitSet::from_members(&[1, 2, 6]),
     BitSet::from_members(&[1, 2, 6]),
@@ -250,9 +254,9 @@ static FIRST_CHAR_MASKS: [BitSet<MATCH_MEMO_WORDS>; 128] = [
     BitSet::from_members(&[1, 2, 6]),
     BitSet::from_members(&[1, 2, 6]),
     BitSet::from_members(&[1, 2, 6]),
-    BitSet::from_members(&[37]),
-    BitSet::from_members(&[5, 6, 20]),
-    BitSet::from_members(&[38]),
+    BitSet::from_members(&[39]),
+    BitSet::from_members(&[5, 6, 21]),
+    BitSet::from_members(&[40]),
     BitSet::from_members(&[6]),
     BitSet::from_members(&[1, 6]),
     BitSet::from_members(&[6]),
@@ -262,19 +266,19 @@ static FIRST_CHAR_MASKS: [BitSet<MATCH_MEMO_WORDS>; 128] = [
     BitSet::from_members(&[1, 2, 6]),
     BitSet::from_members(&[1, 2, 6]),
     BitSet::from_members(&[1, 2, 6]),
-    BitSet::from_members(&[0, 1, 2, 6, 11]),
+    BitSet::from_members(&[0, 1, 2, 6, 12]),
     BitSet::from_members(&[1, 2, 6]),
-    BitSet::from_members(&[0, 1, 2, 6, 36]),
-    BitSet::from_members(&[1, 2, 6]),
-    BitSet::from_members(&[1, 2, 6]),
-    BitSet::from_members(&[0, 1, 2, 6, 22]),
-    BitSet::from_members(&[1, 2, 6]),
-    BitSet::from_members(&[0, 1, 2, 6, 24]),
-    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[0, 1, 2, 6, 37]),
     BitSet::from_members(&[1, 2, 6]),
     BitSet::from_members(&[1, 2, 6]),
     BitSet::from_members(&[0, 1, 2, 6, 23]),
     BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[0, 1, 2, 6, 25]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[1, 2, 6]),
+    BitSet::from_members(&[0, 1, 2, 6, 24]),
+    BitSet::from_members(&[0, 1, 2, 6, 38]),
     BitSet::from_members(&[1, 2, 6]),
     BitSet::from_members(&[1, 2, 6]),
     BitSet::from_members(&[1, 2, 6]),
@@ -282,9 +286,9 @@ static FIRST_CHAR_MASKS: [BitSet<MATCH_MEMO_WORDS>; 128] = [
     BitSet::from_members(&[1, 2, 6]),
     BitSet::from_members(&[1, 2, 6]),
     BitSet::from_members(&[1, 2, 6]),
-    BitSet::from_members(&[6, 27]),
-    BitSet::from_members(&[6, 18]),
     BitSet::from_members(&[6, 28]),
+    BitSet::from_members(&[6, 19]),
+    BitSet::from_members(&[6, 29]),
     BitSet::from_members(&[6]),
     BitSet::from_members(&[6]),
 ];
@@ -293,19 +297,21 @@ static FIRST_CHAR_MASKS: [BitSet<MATCH_MEMO_WORDS>; 128] = [
 // 2: left
 // 3: none
 // 4: right
+// 5: s
 static LITERAL_TRIE: LiteralTrie = LiteralTrie {
     max_len: 7,
-    alphabet: Alphabet::from_chars(b"aefghilmnort"),
+    alphabet: Alphabet::from_chars(b"aefghilmnorst"),
     transitions: &[
-        0, 0, 0, 1, 0, 8, 9, 0, 13, 0, 17, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 3, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0,
-        6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 14, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 0, 0, 0,
-        0, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 18,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 19, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 21, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 1, 0, 8, 9, 0, 13, 0, 17, 22, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 3, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        5, 0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 14,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 0, 0, 0, 0, 0, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 19, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 21, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     ],
     accepts: &[
         None,
@@ -330,9 +336,10 @@ static LITERAL_TRIE: LiteralTrie = LiteralTrie {
         None,
         None,
         Some(4),
+        Some(5),
     ],
 };
-static LITERAL_SET_0: BitSet<1> = BitSet::from_members(&[0, 1, 2, 3, 4]);
+static LITERAL_SET_0: BitSet<1> = BitSet::from_members(&[0, 1, 2, 3, 4, 5]);
 pub struct IggyScanner<'i, 'arena> {
     pub input: &'i Input,
     memo: MatchMemo<'arena, MATCH_MEMO_WORDS>,
@@ -342,7 +349,7 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
         let memo = MatchMemo::new(input.len() as usize, vec_arena);
         Self { input, memo }
     }
-    // Keyword = (grammar|left|right|none|i)
+    // Keyword = (grammar|left|right|none|i|s)
     pub fn match_terminal_0(&self, input_index: u32) -> Option<u32> {
         LITERAL_TRIE.longest_match(self.input, input_index, &LITERAL_SET_0)
     }
@@ -395,120 +402,128 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
     pub fn match_terminal_10(&self, input_index: u32) -> Option<u32> {
         self.scan_dfa_10(input_index, self.input.len())
     }
-    // "grammar" = grammar
+    // "@IgnoreCase" = @IgnoreCase
     pub fn match_terminal_11(&self, input_index: u32) -> Option<u32> {
+        self.input.match_literal(input_index, b"@IgnoreCase")
+    }
+    // "grammar" = grammar
+    pub fn match_terminal_12(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b"grammar")
     }
     // "=" = =
-    pub fn match_terminal_12(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_13(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b"=")
     }
     // ">" = >
-    pub fn match_terminal_13(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_14(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b">")
     }
     // "@NoLayout" = @NoLayout
-    pub fn match_terminal_14(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_15(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b"@NoLayout")
     }
     // "@Layout" = @Layout
-    pub fn match_terminal_15(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_16(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b"@Layout")
     }
     // "@Identifier" = @Identifier
-    pub fn match_terminal_16(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_17(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b"@Identifier")
     }
     // "@Regex" = @Regex
-    pub fn match_terminal_17(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_18(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b"@Regex")
     }
     // "|" = |
-    pub fn match_terminal_18(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_19(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b"|")
     }
     // "!<<" = !<<
-    pub fn match_terminal_19(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_20(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b"!<<")
     }
     // "\\" = \\
-    pub fn match_terminal_20(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_21(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b"\\")
     }
     // "!>>" = !>>
-    pub fn match_terminal_21(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_22(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b"!>>")
     }
     // "left" = left
-    pub fn match_terminal_22(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_23(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b"left")
     }
     // "right" = right
-    pub fn match_terminal_23(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_24(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b"right")
     }
     // "none" = none
-    pub fn match_terminal_24(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_25(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b"none")
     }
     // "(" = (
-    pub fn match_terminal_25(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_26(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b"(")
     }
     // ")" = )
-    pub fn match_terminal_26(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_27(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b")")
     }
     // "{" = {
-    pub fn match_terminal_27(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_28(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b"{")
     }
     // "}" = }
-    pub fn match_terminal_28(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_29(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b"}")
     }
     // "*" = *
-    pub fn match_terminal_29(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_30(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b"*")
     }
     // "+" = +
-    pub fn match_terminal_30(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_31(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b"+")
     }
     // "?" = ?
-    pub fn match_terminal_31(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_32(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b"?")
     }
     // ":" = :
-    pub fn match_terminal_32(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_33(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b":")
     }
     // "&" = &
-    pub fn match_terminal_33(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_34(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b"&")
     }
     // "!>>>" = !>>>
-    pub fn match_terminal_34(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_35(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b"!>>>")
     }
     // "!" = !
-    pub fn match_terminal_35(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_36(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b"!")
     }
     // "i" = i
-    pub fn match_terminal_36(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_37(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b"i")
     }
+    // "s" = s
+    pub fn match_terminal_38(&self, input_index: u32) -> Option<u32> {
+        self.input.match_literal(input_index, b"s")
+    }
     // "[" = [
-    pub fn match_terminal_37(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_39(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b"[")
     }
     // "]" = ]
-    pub fn match_terminal_38(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_40(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b"]")
     }
     // "-" = -
-    pub fn match_terminal_39(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_41(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b"-")
     }
     #[inline]
@@ -1261,7 +1276,7 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
     #[inline(never)]
     pub fn match_any(&mut self, set: &TerminalSet, input_index: u32) -> bool {
         debug_assert!(
-            set.id < 37,
+            set.id < 38,
             "terminal set {} does not have a match_any id",
             set.id,
         );
@@ -1354,7 +1369,9 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
             TerminalId(37) => self.match_terminal_37(input_index),
             TerminalId(38) => self.match_terminal_38(input_index),
             TerminalId(39) => self.match_terminal_39(input_index),
-            TerminalId(41) => {
+            TerminalId(40) => self.match_terminal_40(input_index),
+            TerminalId(41) => self.match_terminal_41(input_index),
+            TerminalId(43) => {
                 if input_index == self.input.len() {
                     Some(input_index)
                 } else {

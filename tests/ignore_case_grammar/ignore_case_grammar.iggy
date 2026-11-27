@@ -1,0 +1,30 @@
+@IgnoreCase
+grammar IgnoreCaseGrammar
+
+// With `@IgnoreCase`, a string literal without a prefix matches each of its
+// ASCII letters in both cases, like a literal with the `i` prefix, and a
+// character such as 'e' matches in both cases too. A literal with the `s`
+// prefix and a character class match only the text as written.
+Query = "select" { Name "," }+ "FROM" Name Order? Limit? s"end"
+
+Order = "order" i"by" Name Direction?
+
+Limit = "limit" (Hex | Float)
+
+@Regex
+Direction = "asc" | "desc"
+
+@Regex
+Hex = s"0x" [0-9a-f]+
+
+@Regex
+Float = [0-9]+ 'e' [0-9]+
+
+@Regex
+Name = [a-zA-Z_] [a-zA-Z_0-9]* \ Reserved
+
+@Regex
+Reserved = "select" | "from" | "order" | "by" | "limit" | Direction | s"end"
+
+@Layout @Regex
+WS = [\ \n\t]*

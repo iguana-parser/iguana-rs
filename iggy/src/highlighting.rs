@@ -61,18 +61,17 @@ impl Group {
 pub fn token_rules(token: Token, input: &Input, highlights: &mut Vec<Highlight<Group>>) {
     match token.kind {
         // "grammar", "left", "right", "none"
-        TokenKind::T11 | TokenKind::T22 | TokenKind::T23 | TokenKind::T24 => {
+        TokenKind::T12 | TokenKind::T23 | TokenKind::T24 | TokenKind::T25 => {
             push(highlights, token, Group::Keyword)
         }
         // "=", ">", "|", "!<<", "\\", "!>>", "(", ")", "{", "}", "*", "+", "?", ":",
         // "&", "!>>>", "!", "[", "]", "-"
-        TokenKind::T12
-        | TokenKind::T13
-        | TokenKind::T18
+        TokenKind::T13
+        | TokenKind::T14
         | TokenKind::T19
         | TokenKind::T20
         | TokenKind::T21
-        | TokenKind::T25
+        | TokenKind::T22
         | TokenKind::T26
         | TokenKind::T27
         | TokenKind::T28
@@ -83,11 +82,12 @@ pub fn token_rules(token: Token, input: &Input, highlights: &mut Vec<Highlight<G
         | TokenKind::T33
         | TokenKind::T34
         | TokenKind::T35
-        | TokenKind::T37
-        | TokenKind::T38
-        | TokenKind::T39 => push(highlights, token, Group::Operator),
-        // "@NoLayout", "@Layout", "@Identifier", "@Regex"
-        TokenKind::T14 | TokenKind::T15 | TokenKind::T16 | TokenKind::T17 => {
+        | TokenKind::T36
+        | TokenKind::T39
+        | TokenKind::T40
+        | TokenKind::T41 => push(highlights, token, Group::Operator),
+        // "@IgnoreCase", "@NoLayout", "@Layout", "@Identifier", "@Regex"
+        TokenKind::T11 | TokenKind::T15 | TokenKind::T16 | TokenKind::T17 | TokenKind::T18 => {
             push(highlights, token, Group::Decorator)
         }
         // Identifier
@@ -100,8 +100,9 @@ pub fn token_rules(token: Token, input: &Input, highlights: &mut Vec<Highlight<G
                 highlights.push(Highlight::new(escape, Group::StringEscape));
             }
         }
-        // "i", the prefix of an `IgnoreCaseString` such as `i"select"`
-        TokenKind::T36 => push(highlights, token, Group::String),
+        // "i" and "s", the prefixes of an `IgnoreCaseString` such as
+        // `i"select"` and of an `ExactString` such as `s"0x"`
+        TokenKind::T37 | TokenKind::T38 => push(highlights, token, Group::String),
         // Label
         TokenKind::T7 => push(highlights, token, Group::Label),
         // LineComment
@@ -179,35 +180,37 @@ mod tests {
             (TokenKind::T6, "RangeChar"),
             (TokenKind::T7, "Label"),
             (TokenKind::T10, "LineComment"),
-            (TokenKind::T11, r#""grammar""#),
-            (TokenKind::T12, r#""=""#),
-            (TokenKind::T13, r#"">""#),
-            (TokenKind::T14, r#""@NoLayout""#),
-            (TokenKind::T15, r#""@Layout""#),
-            (TokenKind::T16, r#""@Identifier""#),
-            (TokenKind::T17, r#""@Regex""#),
-            (TokenKind::T18, r#""|""#),
-            (TokenKind::T19, r#""!<<""#),
-            (TokenKind::T20, r#""\\""#),
-            (TokenKind::T21, r#""!>>""#),
-            (TokenKind::T22, r#""left""#),
-            (TokenKind::T23, r#""right""#),
-            (TokenKind::T24, r#""none""#),
-            (TokenKind::T25, r#""(""#),
-            (TokenKind::T26, r#"")""#),
-            (TokenKind::T27, r#""{""#),
-            (TokenKind::T28, r#""}""#),
-            (TokenKind::T29, r#""*""#),
-            (TokenKind::T30, r#""+""#),
-            (TokenKind::T31, r#""?""#),
-            (TokenKind::T32, r#"":""#),
-            (TokenKind::T33, r#""&""#),
-            (TokenKind::T34, r#""!>>>""#),
-            (TokenKind::T35, r#""!""#),
-            (TokenKind::T36, r#""i""#),
-            (TokenKind::T37, r#""[""#),
-            (TokenKind::T38, r#""]""#),
-            (TokenKind::T39, r#""-""#),
+            (TokenKind::T11, r#""@IgnoreCase""#),
+            (TokenKind::T12, r#""grammar""#),
+            (TokenKind::T13, r#""=""#),
+            (TokenKind::T14, r#"">""#),
+            (TokenKind::T15, r#""@NoLayout""#),
+            (TokenKind::T16, r#""@Layout""#),
+            (TokenKind::T17, r#""@Identifier""#),
+            (TokenKind::T18, r#""@Regex""#),
+            (TokenKind::T19, r#""|""#),
+            (TokenKind::T20, r#""!<<""#),
+            (TokenKind::T21, r#""\\""#),
+            (TokenKind::T22, r#""!>>""#),
+            (TokenKind::T23, r#""left""#),
+            (TokenKind::T24, r#""right""#),
+            (TokenKind::T25, r#""none""#),
+            (TokenKind::T26, r#""(""#),
+            (TokenKind::T27, r#"")""#),
+            (TokenKind::T28, r#""{""#),
+            (TokenKind::T29, r#""}""#),
+            (TokenKind::T30, r#""*""#),
+            (TokenKind::T31, r#""+""#),
+            (TokenKind::T32, r#""?""#),
+            (TokenKind::T33, r#"":""#),
+            (TokenKind::T34, r#""&""#),
+            (TokenKind::T35, r#""!>>>""#),
+            (TokenKind::T36, r#""!""#),
+            (TokenKind::T37, r#""i""#),
+            (TokenKind::T38, r#""s""#),
+            (TokenKind::T39, r#""[""#),
+            (TokenKind::T40, r#""]""#),
+            (TokenKind::T41, r#""-""#),
         ];
         for (kind, name) in names {
             assert_eq!(kind.name(), name);

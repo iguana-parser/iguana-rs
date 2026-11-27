@@ -411,6 +411,11 @@ fn collect_regex_spans<'a>(
         ) if parts.is_empty() => {
             spans.empty_strings.push(ignore_case_string.span());
         }
+        (Regex::Seq(parts), parse_tree::Regex::ExactString { exact_string, .. })
+            if parts.is_empty() =>
+        {
+            spans.empty_strings.push(exact_string.span());
+        }
         (Regex::Identifier(id), parse_tree::Regex::Identifier { identifier, .. }) => {
             let span = identifier.span();
             spans

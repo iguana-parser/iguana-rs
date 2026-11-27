@@ -1,7 +1,7 @@
 grammar Iggy
 
 Grammar
-  = "grammar" name:Identifier Rule*
+  = ignore_case:"@IgnoreCase"? "grammar" name:Identifier Rule*
 
 Rule
   = SyntaxRule #SyntaxRule
@@ -42,6 +42,7 @@ Symbol
   | "(" seqs:{ Symbol+ "|" }+ ")"                  #Paren
   | String                                         #Lit
   | IgnoreCaseString                               #IgnoreCaseLit
+  | ExactString                                    #ExactLit
   | "{" symbol:Symbol sep:Symbol "}" "*"           #StarSep
   | "{" symbol:Symbol sep:Symbol "}" "+"           #PlusSep
   > Symbol "*"                                     #Star
@@ -70,11 +71,16 @@ Regex
   | Char                         #Char
   | String                       #String
   | IgnoreCaseString             #IgnoreCaseString
+  | ExactString                  #ExactString
   | Identifier                   #Identifier
 
 @NoLayout
 IgnoreCaseString
   = "i" String
+
+@NoLayout
+ExactString
+  = "s" String
 
 CharClass
   = neg:"!"? "[" RangeElement+ "]"
@@ -97,6 +103,7 @@ Keyword
   | "right"
   | "none"
   | "i"
+  | "s"
 
 @Regex
 NameChar = [a-zA-Z_0-9]

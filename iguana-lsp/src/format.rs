@@ -343,10 +343,16 @@ impl<'a> Formatter<'a> {
             }
         }
 
+        if let Some(ignore_case) = grammar.ignore_case().value() {
+            out.push_str("@IgnoreCase");
+            self.emit_comments(&mut out, grammar.layout_1(), ignore_case.span(), "");
+            out.push('\n');
+        }
+
         // grammar Name
         out.push_str("grammar ");
         out.push_str(&self.input.text(grammar.name().span()));
-        self.emit_trailing_comments(&mut out, grammar.layout_3(), grammar.name().span());
+        self.emit_trailing_comments(&mut out, grammar.layout_5(), grammar.name().span());
 
         // Rules
         let rules: Vec<_> = grammar.rules().rules().collect();
@@ -589,6 +595,9 @@ impl<'a> Formatter<'a> {
                 ignore_case_string, ..
             } => {
                 out.push_str(&self.input.text(ignore_case_string.span()));
+            }
+            Symbol::ExactLit { exact_string, .. } => {
+                out.push_str(&self.input.text(exact_string.span()));
             }
             Symbol::Paren { seqs, .. } => {
                 out.push('(');
@@ -861,6 +870,9 @@ impl<'a> Formatter<'a> {
                 ignore_case_string, ..
             } => {
                 out.push_str(&self.input.text(ignore_case_string.span()));
+            }
+            Regex::ExactString { exact_string, .. } => {
+                out.push_str(&self.input.text(exact_string.span()));
             }
             Regex::Identifier { identifier, .. } => {
                 out.push_str(&self.input.text(identifier.span()));
@@ -1640,6 +1652,51 @@ Token // separates the head from equals
         assert_eq!(
             formatted,
             "grammar G\n\nS\n  = i\"select\" A\n\n@Regex\nA\n  = i\"as\"\n  | \"b\"\n"
+        );
+    }
+
+    #[test]
+    fn test_exact_literal_keeps_its_prefix() {
+        let input = r#"grammar G
+
+S = s"0x"   A
+
+@Regex
+A = s"as"|  "b"
+"#;
+        let formatted = format_source(input).unwrap();
+        assert_eq!(
+            formatted,
+            r#"grammar G
+
+S
+  = s"0x" A
+
+@Regex
+A
+  = s"as"
+  | "b"
+"#
+        );
+    }
+
+    #[test]
+    fn test_ignore_case_annotation_is_on_its_own_line() {
+        let input = r#"// A
+@IgnoreCase   grammar G // B
+
+S = "a"
+"#;
+        let formatted = format_source(input).unwrap();
+        assert_eq!(
+            formatted,
+            r#"// A
+@IgnoreCase
+grammar G // B
+
+S
+  = "a"
+"#
         );
     }
 }

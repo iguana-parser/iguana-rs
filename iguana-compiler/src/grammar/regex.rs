@@ -224,20 +224,23 @@ impl Regex {
     }
 
     /// The regex of the literal `s` whose ASCII letters match in both cases.
-    /// A letter becomes a class of its two cases, such as `[Ss]`, and any
-    /// other character only matches itself.
+    /// It is the sequence of the `ignore_case_char` of each character of `s`.
     pub fn ignore_case_literal(s: &str) -> Self {
-        let regexes = s.chars().map(|c| {
-            if c.is_ascii_alphabetic() {
-                let ranges = [c.to_ascii_uppercase(), c.to_ascii_lowercase()]
-                    .map(|c| CharRange { start: c, end: c })
-                    .to_vec();
-                Regex::char_class(ranges, false)
-            } else {
-                Regex::Char(c)
-            }
-        });
-        Regex::Seq(regexes.collect())
+        Regex::Seq(s.chars().map(Regex::ignore_case_char).collect())
+    }
+
+    /// The regex of the character `c` that matches in both cases if `c` is
+    /// an ASCII letter. A letter becomes a class of its two cases, such as
+    /// `[Ss]`, and any other character only matches itself.
+    pub fn ignore_case_char(c: char) -> Self {
+        if c.is_ascii_alphabetic() {
+            let ranges = [c.to_ascii_uppercase(), c.to_ascii_lowercase()]
+                .map(|c| CharRange { start: c, end: c })
+                .to_vec();
+            Regex::char_class(ranges, false)
+        } else {
+            Regex::Char(c)
+        }
     }
 
     /// Whether the regex is a literal: a single character

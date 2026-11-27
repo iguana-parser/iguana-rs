@@ -1,0 +1,17 @@
+(Start
+  WS
+  (Query
+    i"select"
+    WS
+    ({Name ","}+ Name)
+    WS
+    i"from"
+    WS
+    Name
+    WS
+    Order?
+    WS
+    Limit?
+    WS
+    "end")
+  WS)

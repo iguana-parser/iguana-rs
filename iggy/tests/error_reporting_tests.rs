@@ -3,8 +3,8 @@ use iguana_runtime::arena::Arena;
 use iguana_runtime::input::Input;
 
 const EXPECTED_LEVEL: &str =
-    "Expected one of \"left\", \"right\", \"none\", \"(\", \"{\", \"i\", Identifier, String";
-const EXPECTED_ALTERNATIVE: &str = "Expected one of \"(\", \"{\", \"i\", Identifier, String";
+    "Expected one of \"left\", \"right\", \"none\", \"(\", \"{\", \"i\", \"s\", Identifier, String";
+const EXPECTED_ALTERNATIVE: &str = "Expected one of \"(\", \"{\", \"i\", \"s\", Identifier, String";
 
 fn parse_error(source: &str) -> String {
     parse_error_at(source).1
@@ -23,7 +23,10 @@ fn parse_error_at(source: &str) -> (&str, String) {
 
 #[test]
 fn not_a_grammar() {
-    assert_eq!(parse_error("a"), "Expected \"grammar\"");
+    assert_eq!(
+        parse_error("a"),
+        "Expected one of \"@IgnoreCase\", \"grammar\""
+    );
 }
 
 #[test]

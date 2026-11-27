@@ -54,8 +54,9 @@ pub enum Symbol {
     },
     Identifier(Identifier),
     /// A string literal, such as `"else"`. When `ignore_ascii_case` is true,
-    /// the literal is written with the `i` prefix, e.g. `i"select"`, and
-    /// each ASCII letter of `text` matches in both upper and lower case.
+    /// the literal is written with the `i` prefix, e.g. `i"select"`, or
+    /// without a prefix in a grammar with `@IgnoreCase`, and each ASCII
+    /// letter of `text` matches in both upper and lower case.
     /// Such a literal stores `text` in lowercase, so that two spellings of
     /// the same literal, e.g. `i"select"` and `i"SELECT"`, are equal symbols
     /// and refer to one terminal.
