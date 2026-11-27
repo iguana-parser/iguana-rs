@@ -596,6 +596,7 @@ fn resolve_identifier(symbol: Symbol, symbol_table: &SymbolTable) -> Symbol {
                 restrictions: Restrictions {
                     precede: resolve(restrictions.precede),
                     excepts: resolve(restrictions.excepts),
+                    required: resolve(restrictions.required),
                     follow: resolve(restrictions.follow),
                     layout_aware_follow: resolve(restrictions.layout_aware_follow),
                 },
@@ -1256,13 +1257,16 @@ impl Grammar {
     pub fn lexical_rule(&self, terminal: &Terminal) -> Option<&LexicalRule> {
         self.lexical_rules.get(terminal)
     }
-    /// The terminal an except operand refers to, with its lexical rule.
-    /// Panics when the except is not a terminal or has restrictions of its
-    /// own: an except contributes only its language, so restrictions on it
-    /// have no meaning.
-    pub fn except_terminal(&self, except: &Identifier) -> (&Terminal, &LexicalRule) {
-        let Definition::Terminal(terminal) = self.definition(except.resolve()) else {
-            panic!("Except {} must refer to a terminal", except.name);
+    /// The terminal an except (`\`) or required match (`&`) operand refers
+    /// to, with its lexical rule. Panics when the operand is not a terminal or
+    /// has restrictions of its own. Both restrictions use only the language of
+    /// the operand.
+    pub fn match_exact_operand(&self, operand: &Identifier) -> (&Terminal, &LexicalRule) {
+        let Definition::Terminal(terminal) = self.definition(operand.resolve()) else {
+            panic!(
+                "The operand {} of an except or a required match must refer to a terminal",
+                operand.name
+            );
         };
         let rule = self
             .lexical_rule(terminal)
@@ -1271,7 +1275,7 @@ impl Grammar {
             rule.except.is_empty()
                 && rule.follow_restriction.is_empty()
                 && rule.precede_restriction.is_none(),
-            "Except {} has restrictions of its own; only plain terminals can be excluded",
+            "The operand {} of an except or a required match must not have restrictions of its own",
             terminal.name
         );
         (terminal, rule)
@@ -1382,6 +1386,19 @@ macro_rules! except {
             $symbol,
             $crate::grammar::symbols::Restrictions {
                 excepts: $crate::restriction_ids!($($except),+),
+                ..Default::default()
+            },
+        )
+    };
+}
+
+#[macro_export]
+macro_rules! require {
+    ($symbol:expr, $($operand:expr),+ $(,)?) => {
+        $crate::grammar::symbols::Symbol::restricted(
+            $symbol,
+            $crate::grammar::symbols::Restrictions {
+                required: $crate::restriction_ids!($($operand),+),
                 ..Default::default()
             },
         )

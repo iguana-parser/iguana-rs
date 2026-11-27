@@ -20,9 +20,9 @@ static MATCH_ANY_FIRST_CHARS: [CharSet; 37] = [
     CharSet::new(0x7fffffe07ffffff4000800100002600, &[]),
     CharSet::new(0xffffffe07fffffe0000810500002600, &[]),
     CharSet::new(0x17fffffe07ffffff4000800100002600, &[]),
-    CharSet::new(0x3ffffffe17ffffffc0008f0f00002600, &[]),
+    CharSet::new(0x3ffffffe17ffffffc0008f4f00002600, &[]),
     CharSet::new(0x17fffffe1fffffff80008f8700002600, &[]),
-    CharSet::new(0x3ffffffe1fffffffc0008f8f00002600, &[]),
+    CharSet::new(0x3ffffffe1fffffffc0008fcf00002600, &[]),
     CharSet::new(
         0xfffffffff7ffffffffffdfffffffefff,
         &[
@@ -78,7 +78,7 @@ static MATCH_ANY_FIRST_CHARS: [CharSet; 37] = [
     CharSet::new(0x40000000000, &[]),
     CharSet::new(0x80000000000, &[]),
     CharSet::new(0x8000000000000000, &[]),
-    CharSet::new(0x100000000000000200000000, &[]),
+    CharSet::new(0x100000000000004200000000, &[]),
     CharSet::new(0x200000000000000000000000, &[]),
     CharSet::new(0x7fffffe07ffffff0000800100002600, &[]),
     CharSet::new(0x4000000000000000, &[]),
@@ -99,53 +99,54 @@ static MATCH_ANY_FIRST_CHARS: [CharSet; 37] = [
     ),
 ];
 static MATCH_ANY_MASKS: [BitSet<MATCH_MEMO_WORDS>; 37] = [
-    BitSet::from_members(&[8, 10, 40]),
-    BitSet::from_members(&[2, 8, 10, 14, 15, 16, 17, 40]),
-    BitSet::from_members(&[2, 8, 10, 40]),
-    BitSet::from_members(&[2, 3, 4, 8, 10, 25, 34, 35, 36, 40]),
-    BitSet::from_members(&[2, 8, 10, 14, 15, 16, 17, 20, 21, 40]),
-    BitSet::from_members(&[2, 8, 10, 13, 14, 15, 16, 17, 40]),
-    BitSet::from_members(&[2, 3, 8, 10, 25, 27, 35, 40]),
-    BitSet::from_members(&[2, 8, 10, 13, 14, 15, 16, 17, 18, 40]),
+    BitSet::from_members(&[8, 10, 41]),
+    BitSet::from_members(&[2, 8, 10, 14, 15, 16, 17, 41]),
+    BitSet::from_members(&[2, 8, 10, 41]),
+    BitSet::from_members(&[2, 3, 4, 8, 10, 25, 35, 36, 37, 41]),
+    BitSet::from_members(&[2, 8, 10, 14, 15, 16, 17, 20, 21, 41]),
+    BitSet::from_members(&[2, 8, 10, 13, 14, 15, 16, 17, 41]),
+    BitSet::from_members(&[2, 3, 8, 10, 25, 27, 36, 41]),
+    BitSet::from_members(&[2, 8, 10, 13, 14, 15, 16, 17, 18, 41]),
     BitSet::from_members(&[
-        2, 3, 7, 8, 10, 13, 14, 15, 16, 17, 18, 20, 21, 25, 26, 27, 28, 29, 30, 31, 33, 34, 35, 40,
+        2, 3, 7, 8, 10, 13, 14, 15, 16, 17, 18, 20, 21, 25, 26, 27, 28, 29, 30, 31, 33, 34, 35, 36,
+        41,
     ]),
     BitSet::from_members(&[
-        2, 3, 4, 8, 10, 14, 15, 16, 17, 18, 20, 21, 25, 26, 29, 30, 31, 34, 35, 36, 40,
+        2, 3, 4, 8, 10, 14, 15, 16, 17, 18, 20, 21, 25, 26, 29, 30, 31, 35, 36, 37, 41,
     ]),
     BitSet::from_members(&[
         2, 3, 4, 7, 8, 10, 13, 14, 15, 16, 17, 18, 20, 21, 25, 26, 27, 28, 29, 30, 31, 33, 34, 35,
-        36, 40,
+        36, 37, 41,
     ]),
-    BitSet::from_members(&[6, 8, 10, 37, 40]),
+    BitSet::from_members(&[6, 8, 10, 38, 41]),
     BitSet::from_members(&[
         2, 3, 4, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27,
-        28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 40,
+        28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 41,
     ]),
     BitSet::from_members(&[8, 10]),
-    BitSet::from_members(&[8, 10, 16, 17, 40]),
-    BitSet::from_members(&[8, 10, 17, 40]),
+    BitSet::from_members(&[8, 10, 16, 17, 41]),
+    BitSet::from_members(&[8, 10, 17, 41]),
     BitSet::from_members(&[
-        2, 3, 4, 8, 10, 14, 15, 16, 17, 18, 20, 21, 25, 26, 34, 35, 36, 40,
+        2, 3, 4, 8, 10, 14, 15, 16, 17, 18, 20, 21, 25, 26, 35, 36, 37, 41,
     ]),
-    BitSet::from_members(&[2, 8, 10, 14, 15, 16, 17, 18, 20, 21, 26, 40]),
-    BitSet::from_members(&[2, 3, 7, 8, 10, 13, 14, 15, 16, 17, 18, 25, 26, 27, 35, 40]),
-    BitSet::from_members(&[8, 10, 18, 26, 40]),
-    BitSet::from_members(&[8, 10, 36, 40]),
+    BitSet::from_members(&[2, 8, 10, 14, 15, 16, 17, 18, 20, 21, 26, 41]),
+    BitSet::from_members(&[2, 3, 7, 8, 10, 13, 14, 15, 16, 17, 18, 25, 26, 27, 36, 41]),
+    BitSet::from_members(&[8, 10, 18, 26, 41]),
+    BitSet::from_members(&[8, 10, 37, 41]),
     BitSet::from_members(&[
         2, 3, 4, 6, 7, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
-        30, 31, 32, 33, 34, 35, 36, 37, 38, 40,
+        30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 41,
     ]),
-    BitSet::from_members(&[40]),
-    BitSet::from_members(&[2, 3, 4, 8, 10, 25, 34, 35, 36]),
-    BitSet::from_members(&[2, 3, 25, 27, 35]),
+    BitSet::from_members(&[41]),
+    BitSet::from_members(&[2, 3, 4, 8, 10, 25, 35, 36, 37]),
+    BitSet::from_members(&[2, 3, 25, 27, 36]),
     BitSet::from_members(&[26]),
     BitSet::from_members(&[28]),
     BitSet::from_members(&[29]),
     BitSet::from_members(&[30]),
     BitSet::from_members(&[31]),
-    BitSet::from_members(&[20, 21, 33, 34]),
-    BitSet::from_members(&[37]),
+    BitSet::from_members(&[20, 21, 33, 34, 35]),
+    BitSet::from_members(&[38]),
     BitSet::from_members(&[2, 8, 10, 14, 15, 16, 17]),
     BitSet::from_members(&[13]),
     BitSet::from_members(&[18]),
@@ -191,19 +192,19 @@ static FIRST_CHAR_MASKS: [BitSet<MATCH_MEMO_WORDS>; 128] = [
     BitSet::from_members(&[6]),
     BitSet::from_members(&[6]),
     BitSet::from_members(&[8, 9]),
-    BitSet::from_members(&[6, 19, 21, 33, 34]),
+    BitSet::from_members(&[6, 19, 21, 34, 35]),
     BitSet::from_members(&[3, 6]),
     BitSet::from_members(&[6, 7]),
     BitSet::from_members(&[6]),
     BitSet::from_members(&[6]),
-    BitSet::from_members(&[6]),
+    BitSet::from_members(&[6, 33]),
     BitSet::from_members(&[4, 6]),
     BitSet::from_members(&[6, 25]),
     BitSet::from_members(&[6, 26]),
     BitSet::from_members(&[6, 29]),
     BitSet::from_members(&[6, 30]),
     BitSet::from_members(&[6]),
-    BitSet::from_members(&[38]),
+    BitSet::from_members(&[39]),
     BitSet::from_members(&[6]),
     BitSet::from_members(&[6, 10]),
     BitSet::from_members(&[1, 6]),
@@ -249,9 +250,9 @@ static FIRST_CHAR_MASKS: [BitSet<MATCH_MEMO_WORDS>; 128] = [
     BitSet::from_members(&[1, 2, 6]),
     BitSet::from_members(&[1, 2, 6]),
     BitSet::from_members(&[1, 2, 6]),
-    BitSet::from_members(&[36]),
-    BitSet::from_members(&[5, 6, 20]),
     BitSet::from_members(&[37]),
+    BitSet::from_members(&[5, 6, 20]),
+    BitSet::from_members(&[38]),
     BitSet::from_members(&[6]),
     BitSet::from_members(&[1, 6]),
     BitSet::from_members(&[6]),
@@ -263,7 +264,7 @@ static FIRST_CHAR_MASKS: [BitSet<MATCH_MEMO_WORDS>; 128] = [
     BitSet::from_members(&[1, 2, 6]),
     BitSet::from_members(&[0, 1, 2, 6, 11]),
     BitSet::from_members(&[1, 2, 6]),
-    BitSet::from_members(&[0, 1, 2, 6, 35]),
+    BitSet::from_members(&[0, 1, 2, 6, 36]),
     BitSet::from_members(&[1, 2, 6]),
     BitSet::from_members(&[1, 2, 6]),
     BitSet::from_members(&[0, 1, 2, 6, 22]),
@@ -482,28 +483,32 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
     pub fn match_terminal_32(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b":")
     }
-    // "!>>>" = !>>>
+    // "&" = &
     pub fn match_terminal_33(&self, input_index: u32) -> Option<u32> {
+        self.input.match_literal(input_index, b"&")
+    }
+    // "!>>>" = !>>>
+    pub fn match_terminal_34(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b"!>>>")
     }
     // "!" = !
-    pub fn match_terminal_34(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_35(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b"!")
     }
     // "i" = i
-    pub fn match_terminal_35(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_36(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b"i")
     }
     // "[" = [
-    pub fn match_terminal_36(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_37(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b"[")
     }
     // "]" = ]
-    pub fn match_terminal_37(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_38(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b"]")
     }
     // "-" = -
-    pub fn match_terminal_38(&self, input_index: u32) -> Option<u32> {
+    pub fn match_terminal_39(&self, input_index: u32) -> Option<u32> {
         self.input.match_literal(input_index, b"-")
     }
     #[inline]
@@ -1348,7 +1353,8 @@ impl<'i, 'arena> IggyScanner<'i, 'arena> {
             TerminalId(36) => self.match_terminal_36(input_index),
             TerminalId(37) => self.match_terminal_37(input_index),
             TerminalId(38) => self.match_terminal_38(input_index),
-            TerminalId(40) => {
+            TerminalId(39) => self.match_terminal_39(input_index),
+            TerminalId(41) => {
                 if input_index == self.input.len() {
                     Some(input_index)
                 } else {

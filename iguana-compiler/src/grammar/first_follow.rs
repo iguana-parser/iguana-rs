@@ -242,7 +242,7 @@ impl<'a> FirstFollowSets<'a> {
             let excepts: Vec<_> = rule
                 .except
                 .iter()
-                .map(|e| &self.grammar.except_terminal(e).1.regex)
+                .map(|e| &self.grammar.match_exact_operand(e).1.regex)
                 .collect();
             Nfa::with_excepts(&rule.regex, placeholder, &excepts)
         };

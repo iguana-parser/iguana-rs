@@ -5,6 +5,10 @@
 [workspace]
 resolver = "3"
 members = [
+    "required_match_implication",
+    "required_match_combined",
+    "required_match_nonterminal",
+    "required_match_terminal",
     "exact_keyword_ignore_case",
     "exact_keyword_non_identifier",
     "ignore_case_literal",

@@ -80,6 +80,9 @@ pub enum GLLFailureKind {
     NoViableAlternative(&'static Prediction),
     /// Nonterminal except (`\`): matched a nonterminal but it was excluded.
     ExcludedMatch(&'static TerminalSet),
+    /// Required match (`&`): the symbol matched, but one of these terminals
+    /// does not match the same span exactly.
+    RequiredMatch(&'static TerminalSet),
     /// Follow restriction (`!>>`): the symbol after the match is forbidden.
     ForbiddenFollow(&'static TerminalSet),
 }
@@ -89,6 +92,7 @@ impl PartialEq for GLLFailureKind {
         match (self, other) {
             (Self::UnexpectedToken(a), Self::UnexpectedToken(b))
             | (Self::ExcludedMatch(a), Self::ExcludedMatch(b))
+            | (Self::RequiredMatch(a), Self::RequiredMatch(b))
             | (Self::ForbiddenFollow(a), Self::ForbiddenFollow(b)) => a == b,
             // Two `NoViableAlternative` kinds are equal if they refer to the
             // same `Prediction` static, which belongs to one nonterminal. The
@@ -119,6 +123,7 @@ pub struct FailureReport {
 pub enum FailureReportKind {
     UnexpectedToken { expected: Vec<TerminalId> },
     ExcludedMatch { excluded_by: &'static TerminalSet },
+    RequiredMatch { required: &'static TerminalSet },
     ForbiddenFollow { forbidden: &'static TerminalSet },
 }
 
@@ -366,8 +371,9 @@ pub trait Parser<'i, 'arena>: Sized {
     /// The return is checked in this order:
     ///
     /// - The data-dependent conditions after the call.
-    /// - The post-conditions of the called symbol: its excepts (`\`), follow
-    ///   restrictions (`!>>`), and layout-aware follow restrictions (`!>>>`).
+    /// - The post-conditions of the called symbol: its excepts (`\`), required
+    ///   matches (`&`), follow restrictions (`!>>`), and layout-aware follow
+    ///   restrictions (`!>>>`).
     /// - The return slot lookahead, the terminals that can start the rest of
     ///   the alternative.
     ///
@@ -415,6 +421,9 @@ pub trait Parser<'i, 'arena>: Sized {
                     "Match excluded by {}",
                     names(excluded_by.terminals).join(", ")
                 )
+            }
+            FailureReportKind::RequiredMatch { required } => {
+                format!("Match must be {}", names(required.terminals).join(" and "))
             }
             FailureReportKind::ForbiddenFollow { forbidden } => {
                 format!(
@@ -473,13 +482,13 @@ pub trait Parser<'i, 'arena>: Sized {
     ///   farther index replaces all failures kept so far.
     /// - The first failure in the list supplies the kind of the report, its
     ///   slot, and its GSS context.
-    /// - A first failure that is an `ExcludedMatch` or a `ForbiddenFollow` is
-    ///   reported unchanged.
+    /// - A first failure that is an `ExcludedMatch`, a `RequiredMatch`, or a
+    ///   `ForbiddenFollow` is reported unchanged.
     /// - A first failure that is an `UnexpectedToken` or a
     ///   `NoViableAlternative` is reported with the expected terminals of all
     ///   `UnexpectedToken` and `NoViableAlternative` failures in the list,
-    ///   merged into one list. `ExcludedMatch` and `ForbiddenFollow` failures
-    ///   do not add to the merged list.
+    ///   merged into one list. `ExcludedMatch`, `RequiredMatch`, and
+    ///   `ForbiddenFollow` failures do not add to the merged list.
     /// - The expected terminals of an `UnexpectedToken` are its terminal set.
     /// - The expected terminals of a `NoViableAlternative` are the terminals
     ///   that can predict an alternative of the called nonterminal.
@@ -514,6 +523,9 @@ pub trait Parser<'i, 'arena>: Sized {
                     excluded_by: set,
                 }));
             }
+            GLLFailureKind::RequiredMatch(set) => {
+                return Some(report(FailureReportKind::RequiredMatch { required: set }));
+            }
             GLLFailureKind::ForbiddenFollow(set) => {
                 return Some(report(FailureReportKind::ForbiddenFollow {
                     forbidden: set,
@@ -529,7 +541,9 @@ pub trait Parser<'i, 'arena>: Sized {
                 GLLFailureKind::NoViableAlternative(prediction) => {
                     expected.extend(prediction.terminals());
                 }
-                GLLFailureKind::ExcludedMatch(_) | GLLFailureKind::ForbiddenFollow(_) => {}
+                GLLFailureKind::ExcludedMatch(_)
+                | GLLFailureKind::RequiredMatch(_)
+                | GLLFailureKind::ForbiddenFollow(_) => {}
             }
         }
 

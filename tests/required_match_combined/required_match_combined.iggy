@@ -1,0 +1,30 @@
+grammar RequiredMatchCombined
+
+Both = Word & Lower & Short
+
+ExceptAndRequired = Word \ Keyword & Lower
+
+RequiredAndFollow = Word & Lower !>> Eq Tail
+
+Never = Word & Digits
+
+@Regex
+Word = [a-zA-Z]+
+
+@Regex
+Lower = [a-z]+
+
+@Regex
+Short = [a-zA-Z] [a-zA-Z]?
+
+@Regex
+Keyword = "if" | "else"
+
+@Regex
+Eq = "="
+
+@Regex
+Tail = [=;]+
+
+@Regex
+Digits = [0-9]+

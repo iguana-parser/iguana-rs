@@ -601,6 +601,9 @@ fn collect_symbol_spans<'a>(
             let mut excepts: Vec<&Identifier> = restrictions
                 .map(|r| r.excepts.iter().collect())
                 .unwrap_or_default();
+            let mut required: Vec<&Identifier> = restrictions
+                .map(|r| r.required.iter().collect())
+                .unwrap_or_default();
             let mut follow: Vec<&Identifier> = restrictions
                 .map(|r| r.follow.iter().collect())
                 .unwrap_or_default();
@@ -616,6 +619,9 @@ fn collect_symbol_spans<'a>(
                     let (bucket, identifier) = match condition {
                         parse_tree::PostCondition::Except { identifier, .. } => {
                             (&mut excepts, identifier)
+                        }
+                        parse_tree::PostCondition::Require { identifier, .. } => {
+                            (&mut required, identifier)
                         }
                         parse_tree::PostCondition::FollowRestriction { identifier, .. } => {
                             (&mut follow, identifier)
@@ -682,7 +688,7 @@ mod tests {
 
 S
   = x:(A | A B) (A B) A* {A ","}+ A? #One
-  | X !<< A \ Kw !>> Y !>> Y !>>> Y !One B
+  | X !<< A \ Kw & X !>> Y !>> Y !>>> Y !One B
   | ()
 
 A

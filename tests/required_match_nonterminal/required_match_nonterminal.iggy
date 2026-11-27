@@ -1,0 +1,26 @@
+grammar RequiredMatchNonterminal
+
+S = Name & Lower
+
+G
+  = Name & Lower
+  | Name Digit
+
+P
+  = Path & Lower
+  | Path Digit
+
+Name = Identifier
+
+Path
+  = Identifier
+  | Identifier "." Identifier
+
+@Regex
+Identifier = [a-zA-Z]+
+
+@Regex
+Lower = [a-z]+
+
+@Regex
+Digit = [0-9]

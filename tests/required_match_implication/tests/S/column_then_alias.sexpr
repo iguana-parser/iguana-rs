@@ -1,0 +1,8 @@
+(Start
+  (Layout WS*)
+  (S
+    (Item+
+      (Item Word)
+      (Layout WS*)
+      (Item Quoted)))
+  (Layout WS*))

@@ -1,0 +1,30 @@
+grammar RequiredMatchImplication
+
+S = Item+
+
+Item
+  = Word \ Intro           #Column
+  | Word & Intro !>> Quote #IntroColumn
+  | HexLiteral             #Literal
+  | Quoted                 #Alias
+
+@NoLayout
+HexLiteral = Word & Intro Quoted
+
+@Layout
+Layout = WS* !>> WS
+
+@Regex
+Word = [a-z]+
+
+@Regex
+Intro = "x"
+
+@Regex
+Quote = "'"
+
+@Regex
+Quoted = "'" [a-z]* "'"
+
+@Regex
+WS = [\ ]

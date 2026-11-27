@@ -355,7 +355,7 @@ impl<'i, 'arena> MultipleExceptScanner<'i, 'arena> {
         result
     }
     // Whether `terminal_id` matches exactly the span `[start, end)`. Dispatches only the
-    // terminals used as syntax-level excepts.
+    // operands of the excepts and required matches in syntax rules.
     pub fn match_exact(&self, terminal_id: TerminalId, start: u32, end: u32) -> bool {
         match terminal_id {
             TerminalId(2) => match LITERAL_TRIE.index_of(self.input, start, end) {
@@ -367,7 +367,9 @@ impl<'i, 'arena> MultipleExceptScanner<'i, 'arena> {
                 None => false,
             },
             TerminalId(4) => self.input.match_literal(start, b"null") == Some(end),
-            _ => unreachable!("match_exact called for {terminal_id}, which is not an except"),
+            _ => unreachable!(
+                "match_exact called for {terminal_id}, which is not the operand of an except or a required match"
+            ),
         }
     }
 }

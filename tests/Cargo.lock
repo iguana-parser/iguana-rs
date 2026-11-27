@@ -1330,6 +1330,42 @@ dependencies = [
 ]
 
 [[package]]
+name = "required_match_combined"
+version = "0.1.0"
+dependencies = [
+ "iguana-runtime",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "required_match_implication"
+version = "0.1.0"
+dependencies = [
+ "iguana-runtime",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "required_match_nonterminal"
+version = "0.1.0"
+dependencies = [
+ "iguana-runtime",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
+name = "required_match_terminal"
+version = "0.1.0"
+dependencies = [
+ "iguana-runtime",
+ "rustc-hash 2.1.3",
+ "serde_json",
+]
+
+[[package]]
 name = "return_slot_lookahead_gll_layout"
 version = "0.1.0"
 dependencies = [

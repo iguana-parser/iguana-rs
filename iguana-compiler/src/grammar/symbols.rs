@@ -69,13 +69,14 @@ pub enum Symbol {
     Star(Box<Symbol>, Option<Box<Symbol>>), // symbol, separator
     Plus(Box<Symbol>, Option<Box<Symbol>>), // symbol, separator
     // A symbol reference with its restrictions, which correspond to the `\`,
-    // `!>>`, `!>>>`, and `!<<` operators in the concrete syntax.
+    // `&`, `!>>`, `!>>>`, and `!<<` operators in the concrete syntax.
     //
     // In the following, Id is the restricted symbol and X the restriction, always a regular
     // expression:
     //
     // - Except restriction: `Id \ X` disallows a string of Id that is also in the language
     //   of X.
+    // - Required match: `Id & X` disallows a string of Id that is not in the language of X.
     // - Follow restriction: `Id !>> X` disallows X directly after Id. `Id !>>> X` disallows
     //   X after the layout that follows Id.
     // - Precede restriction: `X !<< Id` disallows X directly before Id.
@@ -338,6 +339,8 @@ pub struct Restrictions {
     pub precede: Vec<Identifier>,
     /// The `\` restrictions.
     pub excepts: Vec<Identifier>,
+    /// The `&` restrictions.
+    pub required: Vec<Identifier>,
     /// The `!>>` restrictions.
     pub follow: Vec<Identifier>,
     /// The `!>>>` restrictions.
@@ -348,14 +351,18 @@ impl Restrictions {
     pub fn is_empty(&self) -> bool {
         self.precede.is_empty()
             && self.excepts.is_empty()
+            && self.required.is_empty()
             && self.follow.is_empty()
             && self.layout_aware_follow.is_empty()
     }
 
     /// True if any restriction is tested at or after the matched span (`\`,
-    /// `!>>`, `!>>>`).
+    /// `&`, `!>>`, `!>>>`).
     pub fn has_post_conditions(&self) -> bool {
-        !self.excepts.is_empty() || !self.follow.is_empty() || !self.layout_aware_follow.is_empty()
+        !self.excepts.is_empty()
+            || !self.required.is_empty()
+            || !self.follow.is_empty()
+            || !self.layout_aware_follow.is_empty()
     }
 
     /// The identifiers of all restrictions.
@@ -363,6 +370,7 @@ impl Restrictions {
         self.precede
             .iter()
             .chain(&self.excepts)
+            .chain(&self.required)
             .chain(&self.follow)
             .chain(&self.layout_aware_follow)
     }
@@ -518,6 +526,7 @@ impl Symbol {
         static NONE: Restrictions = Restrictions {
             precede: Vec::new(),
             excepts: Vec::new(),
+            required: Vec::new(),
             follow: Vec::new(),
             layout_aware_follow: Vec::new(),
         };
@@ -617,10 +626,10 @@ impl Symbol {
 }
 
 /// The textual representation of a symbol's restrictions, as a (before, after)
-/// pair. Precede restrictions (`!<<`) go before the symbol. Except (`\`)
-/// and follow (`!>>` and `!>>>`) restrictions go after the symbol, and the
-/// follow restrictions always come after the except ones. Within each
-/// restriction kind, the source order is preserved.
+/// pair. Precede restrictions (`!<<`) go before the symbol. Except (`\`),
+/// required match (`&`), and follow (`!>>` and `!>>>`) restrictions go after
+/// the symbol, in that order. Within each restriction kind, the source order
+/// is preserved.
 fn display_restrictions(restrictions: &Restrictions) -> (String, String) {
     let before = restrictions
         .precede
@@ -631,6 +640,7 @@ fn display_restrictions(restrictions: &Restrictions) -> (String, String) {
         .excepts
         .iter()
         .map(|e| format!(" \\ {e}"))
+        .chain(restrictions.required.iter().map(|r| format!(" & {r}")))
         .chain(restrictions.follow.iter().map(|r| format!(" !>> {r}")))
         .chain(
             restrictions
@@ -1067,10 +1077,14 @@ mod tests {
             Restrictions {
                 precede: restriction_ids!("Digit"),
                 excepts: restriction_ids!("Kw"),
+                required: restriction_ids!("Lower"),
                 follow: restriction_ids!("Eq"),
                 layout_aware_follow: restriction_ids!("Else"),
             },
         );
-        assert_eq!(symbol.to_string(), "Digit !<< Id \\ Kw !>> Eq !>>> Else");
+        assert_eq!(
+            symbol.to_string(),
+            "Digit !<< Id \\ Kw & Lower !>> Eq !>>> Else"
+        );
     }
 }

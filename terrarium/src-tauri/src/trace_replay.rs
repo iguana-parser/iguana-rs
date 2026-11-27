@@ -388,6 +388,13 @@ impl TraceReplay {
                     .collect();
                 format!("excluded by {}", names.join(", "))
             }
+            TraceFailureKind::RequiredMatch { required } => {
+                let names: Vec<String> = required
+                    .iter()
+                    .map(|id| self.symbols.terminal(id))
+                    .collect();
+                format!("must be {}", names.join(" and "))
+            }
             TraceFailureKind::ForbiddenFollow { forbidden } => {
                 let names: Vec<String> = forbidden
                     .iter()

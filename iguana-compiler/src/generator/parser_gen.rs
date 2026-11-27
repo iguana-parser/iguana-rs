@@ -689,9 +689,9 @@ impl<'a> ParserGen<'a> {
 
     fn gen_post_conditions_method(&mut self) -> TokenStream {
         let mut arms = vec![];
-        // A grammar without excepts uses neither extent; one with only follow
-        // restrictions uses just the right extent. Underscore the rest so the
-        // generated signature carries no unused parameter.
+        // The excepts and the required matches use both extents, and the follow
+        // restrictions use only the right extent. The generator underscores a
+        // parameter that no restriction uses.
         let mut uses_left_extent = false;
         let mut uses_right_extent = false;
         for nonterminal in self.grammar.nonterminals() {
@@ -702,23 +702,21 @@ impl<'a> ParserGen<'a> {
                         continue;
                     }
                     let slot = Slot::new(nonterminal, alternative, pos);
-                    // One branch per restriction kind, chained into a single
-                    // arm: the excepts over the matched span first, then the
-                    // follow restrictions at its right extent, then the
-                    // layout-aware follow restrictions at the layout's end.
+                    // One branch per restriction kind, chained into a single arm
+                    // in this order:
+                    // - The excepts, over the matched span.
+                    // - The required matches, over the matched span.
+                    // - The follow restrictions, at the right extent of the span.
+                    // - The layout-aware follow restrictions, at the end of the
+                    //   layout that follows the span.
                     let mut branches = vec![];
                     if !restrictions.excepts.is_empty() {
-                        let except_ids: Vec<_> = restrictions
+                        let checks: Vec<_> = restrictions
                             .excepts
                             .iter()
                             .map(|e| {
-                                let (terminal, _) = self.grammar.except_terminal(e);
-                                self.terminal_ids.get_id(terminal)
-                            })
-                            .collect();
-                        let checks: Vec<_> = except_ids
-                            .iter()
-                            .map(|id| {
+                                let (terminal, _) = self.grammar.match_exact_operand(e);
+                                let id = self.terminal_ids.get_id(terminal);
                                 quote! {
                                     self.scanner.match_exact(#id, left_extent, right_extent)
                                 }
@@ -733,6 +731,33 @@ impl<'a> ParserGen<'a> {
                         branches.push(quote! {
                             if #(#checks)||* {
                                 Some(GLLFailureKind::ExcludedMatch(&#except_set))
+                            } else
+                        });
+                    }
+                    if !restrictions.required.is_empty() {
+                        let checks: Vec<_> = restrictions
+                            .required
+                            .iter()
+                            .map(|r| {
+                                let (terminal, _) = self.grammar.match_exact_operand(r);
+                                let id = self.terminal_ids.get_id(terminal);
+                                quote! {
+                                    self.scanner.match_exact(#id, left_extent, right_extent)
+                                }
+                            })
+                            .collect();
+                        uses_left_extent = true;
+                        uses_right_extent = true;
+                        let required_set = format_ident!(
+                            "{}",
+                            terminal_set_name(
+                                &TerminalSetKind::Required(slot.clone()),
+                                self.grammar
+                            )
+                        );
+                        branches.push(quote! {
+                            if !(#(#checks)&&*) {
+                                Some(GLLFailureKind::RequiredMatch(&#required_set))
                             } else
                         });
                     }
@@ -797,9 +822,10 @@ impl<'a> ParserGen<'a> {
         } else {
             quote! { _right_extent }
         };
-        // With no excepts or follow restrictions there are no arms, so the
-        // match would collapse to `match slot { _ => None }`. Emit the body
-        // directly and underscore the now-unused slot parameter.
+        // With no post-conditions there are no arms, so the match would
+        // collapse to `match slot { _ => None }`. The generator emits `None` as
+        // the body and underscores the slot parameter, which the body does not
+        // use.
         let (slot, body) = if arms.is_empty() {
             (quote! { _slot }, quote! { None })
         } else {

@@ -288,6 +288,9 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input) -> Symbol {
                         parse_tree::PostCondition::Except { identifier, .. } => {
                             add_restriction(&mut restrictions.excepts, *identifier, input);
                         }
+                        parse_tree::PostCondition::Require { identifier, .. } => {
+                            add_restriction(&mut restrictions.required, *identifier, input);
+                        }
                         parse_tree::PostCondition::FollowRestriction { identifier, .. } => {
                             add_restriction(&mut restrictions.follow, *identifier, input);
                         }
@@ -777,6 +780,16 @@ S = "a"
     }
 
     #[test]
+    fn test_required_matches_land_in_the_node_of_the_other_restrictions() {
+        let symbol = first_symbol("grammar g S = Id \\ Kw & T & U !>> B C");
+        let restrictions = restrictions(&symbol);
+        assert_eq!(names(&restrictions.excepts), ["Kw"]);
+        assert_eq!(names(&restrictions.required), ["T", "U"]);
+        assert_eq!(names(&restrictions.follow), ["B"]);
+        assert!(matches!(symbol.unwrap(), Symbol::Identifier(id) if id.name == "Id"));
+    }
+
+    #[test]
     fn test_precede_and_follow_restrictions_land_in_one_node() {
         let symbol = first_symbol("grammar g S = X !<< A !>> B C");
         let restrictions = restrictions(&symbol);
@@ -989,14 +1002,14 @@ S = "a"
             .expect_err("a restriction cannot name a syntax rule");
         assert_eq!(
             messages(&errors),
-            ["follow restriction `B` must name a lexical rule, not a syntax rule"]
+            ["follow restriction `B` must refer to a lexical rule, not a syntax rule"]
         );
 
         let errors = parse_grammar("grammar g S = Token @Regex Token = [a-z]+ !>> S")
             .expect_err("a lexical rule restriction cannot name a syntax rule");
         assert_eq!(
             messages(&errors),
-            ["follow restriction `S` must name a lexical rule, not a syntax rule"]
+            ["follow restriction `S` must refer to a lexical rule, not a syntax rule"]
         );
     }
 
@@ -1020,8 +1033,73 @@ Tail = [a-z]
         .expect_err("an except operand cannot have restrictions");
         assert_eq!(
             messages(&errors),
-            ["except `Keyword` must name a lexical rule with no restrictions of its own"]
+            ["except `Keyword` must refer to a lexical rule with no restrictions of its own"]
         );
+    }
+
+    #[test]
+    fn test_required_match_operand_cannot_have_restrictions() {
+        let errors = parse_grammar(
+            r#"grammar g
+
+S = Word & Keyword
+
+@Regex
+Word = [a-z]+
+
+@Regex
+Keyword = "if" !>> Tail
+
+@Regex
+Tail = [a-z]
+"#,
+        )
+        .expect_err("a required match operand cannot have restrictions");
+        assert_eq!(
+            messages(&errors),
+            [
+                "required match `Keyword` must refer to a lexical rule with no restrictions of its own"
+            ]
+        );
+    }
+
+    #[test]
+    fn test_required_match_operand_must_be_a_lexical_rule() {
+        let errors = parse_grammar(
+            r#"grammar g
+
+S = Word & Name
+
+Name = Word
+
+@Regex
+Word = [a-z]+
+"#,
+        )
+        .expect_err("a required match operand must be a lexical rule");
+        assert_eq!(
+            messages(&errors),
+            ["required match `Name` must refer to a lexical rule, not a syntax rule"]
+        );
+    }
+
+    #[test]
+    fn test_lexical_rule_cannot_have_a_required_match() {
+        let source = r#"grammar g
+
+S = Word
+
+@Regex
+Word = [a-z]+ & Lower
+
+@Regex
+Lower = [a-z]+
+"#;
+        let errors = parse_grammar(source).expect_err("`&` is not part of the lexical rule syntax");
+        assert_eq!(errors.len(), 1);
+        let start = source.find('&').unwrap() as u32;
+        assert_eq!(errors[0].span, Span::new(start, start + 1));
+        assert!(errors[0].message.starts_with("Expected "), "{errors:?}");
     }
 
     #[test]

@@ -294,6 +294,7 @@ fn merge(first: Restrictions, second: Restrictions) -> Restrictions {
         precede: [first.precede, second.precede].concat(),
         follow: [first.follow, second.follow].concat(),
         excepts: [first.excepts, second.excepts].concat(),
+        required: [first.required, second.required].concat(),
         layout_aware_follow: [first.layout_aware_follow, second.layout_aware_follow].concat(),
     }
 }

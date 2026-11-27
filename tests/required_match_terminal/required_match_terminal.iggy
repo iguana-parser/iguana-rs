@@ -1,0 +1,18 @@
+grammar RequiredMatchTerminal
+
+S = Word & X Rest
+
+Later = "<" Word & X ">"
+
+LaterGll
+  = "<" Word & X ">"
+  | "<" Word ";"
+
+@Regex
+Word = [a-z]+
+
+@Regex
+X = "x"
+
+@Regex
+Rest = [a-z;]+

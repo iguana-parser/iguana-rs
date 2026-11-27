@@ -77,18 +77,20 @@ pub enum TokenKind {
     T31,
     // ":"
     T32,
-    // "!>>>"
+    // "&"
     T33,
-    // "!"
+    // "!>>>"
     T34,
-    // "i"
+    // "!"
     T35,
-    // "["
+    // "i"
     T36,
-    // "]"
+    // "["
     T37,
-    // "-"
+    // "]"
     T38,
+    // "-"
+    T39,
 }
 impl TokenKind {
     pub fn name(&self) -> &'static str {
@@ -126,12 +128,13 @@ impl TokenKind {
             TokenKind::T30 => "\"+\"",
             TokenKind::T31 => "\"?\"",
             TokenKind::T32 => "\":\"",
-            TokenKind::T33 => "\"!>>>\"",
-            TokenKind::T34 => "\"!\"",
-            TokenKind::T35 => "\"i\"",
-            TokenKind::T36 => "\"[\"",
-            TokenKind::T37 => "\"]\"",
-            TokenKind::T38 => "\"-\"",
+            TokenKind::T33 => "\"&\"",
+            TokenKind::T34 => "\"!>>>\"",
+            TokenKind::T35 => "\"!\"",
+            TokenKind::T36 => "\"i\"",
+            TokenKind::T37 => "\"[\"",
+            TokenKind::T38 => "\"]\"",
+            TokenKind::T39 => "\"-\"",
         }
     }
 }
@@ -1147,6 +1150,13 @@ pub enum PreCondition<'a> {
 pub enum PostCondition<'a> {
     // PostCondition = "\\" Layout Identifier #Except
     Except {
+        lit_0: Token,
+        layout: &'a Layout<'a>,
+        identifier: Token,
+        span: Span,
+    },
+    // PostCondition = "&" Layout Identifier #Require
+    Require {
         lit_0: Token,
         layout: &'a Layout<'a>,
         identifier: Token,
@@ -2418,6 +2428,10 @@ impl<'a> PostCondition<'a> {
             (PostCondition::Except { layout, .. }, 1) => Some(ParseTree::Layout(layout)),
             (PostCondition::Except { identifier, .. }, 2) => Some(ParseTree::Token(*identifier)),
             (PostCondition::Except { .. }, _) => None,
+            (PostCondition::Require { lit_0, .. }, 0) => Some(ParseTree::Token(*lit_0)),
+            (PostCondition::Require { layout, .. }, 1) => Some(ParseTree::Layout(layout)),
+            (PostCondition::Require { identifier, .. }, 2) => Some(ParseTree::Token(*identifier)),
+            (PostCondition::Require { .. }, _) => None,
             (PostCondition::FollowRestriction { lit_0, .. }, 0) => Some(ParseTree::Token(*lit_0)),
             (PostCondition::FollowRestriction { layout, .. }, 1) => Some(ParseTree::Layout(layout)),
             (PostCondition::FollowRestriction { identifier, .. }, 2) => {
@@ -2444,6 +2458,7 @@ impl<'a> PostCondition<'a> {
     pub(crate) fn child_count(&self) -> usize {
         match self {
             PostCondition::Except { .. } => 3usize,
+            PostCondition::Require { .. } => 3usize,
             PostCondition::FollowRestriction { .. } => 3usize,
             PostCondition::LayoutAwareFollowRestriction { .. } => 3usize,
             PostCondition::Exclude { .. } => 3usize,
@@ -2453,6 +2468,7 @@ impl<'a> PostCondition<'a> {
     pub fn span(&self) -> Span {
         match self {
             PostCondition::Except { span, .. } => *span,
+            PostCondition::Require { span, .. } => *span,
             PostCondition::FollowRestriction { span, .. } => *span,
             PostCondition::LayoutAwareFollowRestriction { span, .. } => *span,
             PostCondition::Exclude { span, .. } => *span,
@@ -4201,18 +4217,20 @@ fn token_kind(terminal_id: ids::TerminalId) -> TokenKind {
         ids::TerminalId(31) => TokenKind::T31,
         // ":"
         ids::TerminalId(32) => TokenKind::T32,
-        // "!>>>"
+        // "&"
         ids::TerminalId(33) => TokenKind::T33,
-        // "!"
+        // "!>>>"
         ids::TerminalId(34) => TokenKind::T34,
-        // "i"
+        // "!"
         ids::TerminalId(35) => TokenKind::T35,
-        // "["
+        // "i"
         ids::TerminalId(36) => TokenKind::T36,
-        // "]"
+        // "["
         ids::TerminalId(37) => TokenKind::T37,
-        // "-"
+        // "]"
         ids::TerminalId(38) => TokenKind::T38,
+        // "-"
+        ids::TerminalId(39) => TokenKind::T39,
         _ => unreachable!("Unknown TerminalId: {:?}", terminal_id),
     }
 }
@@ -4622,8 +4640,20 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                     span,
                 }))
             }
-            // PostCondition = "!>>" Layout Identifier #FollowRestriction
+            // PostCondition = "&" Layout Identifier #Require
             SlotId(81) => {
+                let &[identifier, layout, lit_0] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::PostCondition(self.arena.alloc(PostCondition::Require {
+                    lit_0: lit_0.unwrap_token(),
+                    layout: layout.unwrap_layout(),
+                    identifier: identifier.unwrap_token(),
+                    span,
+                }))
+            }
+            // PostCondition = "!>>" Layout Identifier #FollowRestriction
+            SlotId(85) => {
                 let &[identifier, layout, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -4635,7 +4665,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // PostCondition = "!>>>" Layout Identifier #LayoutAwareFollowRestriction
-            SlotId(85) => {
+            SlotId(89) => {
                 let &[identifier, layout, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -4649,7 +4679,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 ))
             }
             // PostCondition = "!" Layout Identifier #Exclude
-            SlotId(89) => {
+            SlotId(93) => {
                 let &[identifier, layout, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -4661,7 +4691,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Regex = Regex Layout "+" #Plus
-            SlotId(93) => {
+            SlotId(97) => {
                 let &[lit_2, layout, regex] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -4673,7 +4703,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Regex = Regex Layout "*" #Star
-            SlotId(97) => {
+            SlotId(101) => {
                 let &[lit_2, layout, regex] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -4685,7 +4715,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Regex = Regex Layout "?" #Opt
-            SlotId(101) => {
+            SlotId(105) => {
                 let &[lit_2, layout, regex] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -4697,7 +4727,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Regex = "(" Layout seqs:{Regex+ "|"}+ Layout ")" #Paren
-            SlotId(107) => {
+            SlotId(111) => {
                 let &[lit_4, layout_3, seqs, layout_1, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -4711,7 +4741,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Regex = CharClass #CharClass
-            SlotId(109) => {
+            SlotId(113) => {
                 let &[char_class] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -4721,7 +4751,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Regex = Char #Char
-            SlotId(111) => {
+            SlotId(115) => {
                 let &[char] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -4731,7 +4761,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Regex = String #String
-            SlotId(113) => {
+            SlotId(117) => {
                 let &[string] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -4741,7 +4771,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Regex = IgnoreCaseString #IgnoreCaseString
-            SlotId(115) => {
+            SlotId(119) => {
                 let &[ignore_case_string] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -4751,7 +4781,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Regex = Identifier #Identifier
-            SlotId(117) => {
+            SlotId(121) => {
                 let &[identifier] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -4761,7 +4791,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // IgnoreCaseString = "i" String
-            SlotId(120) => {
+            SlotId(124) => {
                 let &[string, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -4772,7 +4802,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // CharClass = neg:"!"? Layout "[" Layout RangeElement+ Layout "]"
-            SlotId(128) => {
+            SlotId(132) => {
                 let &[
                     lit_6,
                     layout_5,
@@ -4797,7 +4827,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // RangeElement = Range
-            SlotId(130) => {
+            SlotId(134) => {
                 let &[range] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -4807,7 +4837,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // RangeElement = RangeChar
-            SlotId(132) => {
+            SlotId(136) => {
                 let &[range_char] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -4817,7 +4847,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Range = start:RangeChar Layout "-" Layout end:RangeChar
-            SlotId(138) => {
+            SlotId(142) => {
                 let &[end, layout_3, lit_2, layout_1, start] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -4831,7 +4861,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Layout = (WS | LineComment)*
-            SlotId(140) => {
+            SlotId(144) => {
                 let &[star_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -4841,7 +4871,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Plus_0 = Rule+ Layout Rule
-            SlotId(144) => {
+            SlotId(148) => {
                 let &[rule_2, layout, rules_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -4853,7 +4883,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Plus_0 = Rule
-            SlotId(146) => {
+            SlotId(150) => {
                 let &[rule] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -4863,7 +4893,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Star_0 = Rule+
-            SlotId(148) => {
+            SlotId(152) => {
                 let &[rules] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -4873,14 +4903,14 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Star_0 =
-            SlotId(149) => {
+            SlotId(153) => {
                 let &[] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Star0(self.arena.alloc(Star0::Alt1 { span }))
             }
             // Opt_0 = Annotation
-            SlotId(151) => {
+            SlotId(155) => {
                 let &[annotation] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -4890,14 +4920,14 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Opt_0 =
-            SlotId(152) => {
+            SlotId(156) => {
                 let &[] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Opt0(self.arena.alloc(Opt0::Alt1 { span }))
             }
             // Plus_1 = {PriorityLevel ">"}+ Layout ">" Layout PriorityLevel
-            SlotId(158) => {
+            SlotId(162) => {
                 let &[
                     priority_level_4,
                     layout_3,
@@ -4918,7 +4948,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Plus_1 = PriorityLevel
-            SlotId(160) => {
+            SlotId(164) => {
                 let &[priority_level] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -4928,7 +4958,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Opt_1 = "@Layout"
-            SlotId(162) => {
+            SlotId(166) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -4938,14 +4968,14 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Opt_1 =
-            SlotId(163) => {
+            SlotId(167) => {
                 let &[] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Opt1(self.arena.alloc(Opt1::Alt1 { span }))
             }
             // Opt_2 = "@Identifier"
-            SlotId(165) => {
+            SlotId(169) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -4955,14 +4985,14 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Opt_2 =
-            SlotId(166) => {
+            SlotId(170) => {
                 let &[] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Opt2(self.arena.alloc(Opt2::Alt1 { span }))
             }
             // Opt_3 = RegexPreCondition
-            SlotId(168) => {
+            SlotId(172) => {
                 let &[regex_pre_condition] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -4972,14 +5002,14 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Opt_3 =
-            SlotId(169) => {
+            SlotId(173) => {
                 let &[] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Opt3(self.arena.alloc(Opt3::Alt1 { span }))
             }
             // Plus_3 = Regex+ Layout Regex
-            SlotId(173) => {
+            SlotId(177) => {
                 let &[regex_2, layout, regexes_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -4991,7 +5021,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Plus_3 = Regex
-            SlotId(175) => {
+            SlotId(179) => {
                 let &[regex] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5001,7 +5031,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Plus_2 = {Regex+ "|"}+ Layout "|" Layout Regex+
-            SlotId(181) => {
+            SlotId(185) => {
                 let &[regexes, layout_3, lit_2, layout_1, plus_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5015,7 +5045,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Plus_2 = Regex+
-            SlotId(183) => {
+            SlotId(187) => {
                 let &[regexes] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5025,7 +5055,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Plus_4 = RegexPostCondition+ Layout RegexPostCondition
-            SlotId(187) => {
+            SlotId(191) => {
                 let &[regex_post_condition_2, layout, regex_post_conditions_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5037,7 +5067,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Plus_4 = RegexPostCondition
-            SlotId(189) => {
+            SlotId(193) => {
                 let &[regex_post_condition] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5047,7 +5077,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Star_1 = RegexPostCondition+
-            SlotId(191) => {
+            SlotId(195) => {
                 let &[regex_post_conditions] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5057,14 +5087,14 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Star_1 =
-            SlotId(192) => {
+            SlotId(196) => {
                 let &[] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Star1(self.arena.alloc(Star1::Alt1 { span }))
             }
             // Opt_4 = Associativity
-            SlotId(194) => {
+            SlotId(198) => {
                 let &[associativity] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5074,14 +5104,14 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Opt_4 =
-            SlotId(195) => {
+            SlotId(199) => {
                 let &[] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Opt4(self.arena.alloc(Opt4::Alt1 { span }))
             }
             // Plus_5 = {Alternative "|"}+ Layout "|" Layout Alternative
-            SlotId(201) => {
+            SlotId(205) => {
                 let &[alternative_4, layout_3, lit_2, layout_1, alternatives_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5095,7 +5125,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Plus_5 = Alternative
-            SlotId(203) => {
+            SlotId(207) => {
                 let &[alternative] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5105,7 +5135,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Plus_6 = Symbol+ Layout Symbol
-            SlotId(207) => {
+            SlotId(211) => {
                 let &[symbol_2, layout, symbols_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5117,7 +5147,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Plus_6 = Symbol
-            SlotId(209) => {
+            SlotId(213) => {
                 let &[symbol] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5127,7 +5157,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Opt_5 = Label
-            SlotId(211) => {
+            SlotId(215) => {
                 let &[label] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5137,14 +5167,14 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Opt_5 =
-            SlotId(212) => {
+            SlotId(216) => {
                 let &[] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Opt5(self.arena.alloc(Opt5::Alt1 { span }))
             }
             // Plus_7 = {Symbol+ "|"}+ Layout "|" Layout Symbol+
-            SlotId(218) => {
+            SlotId(222) => {
                 let &[symbols, layout_3, lit_2, layout_1, plus_7] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5158,7 +5188,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Plus_7 = Symbol+
-            SlotId(220) => {
+            SlotId(224) => {
                 let &[symbols] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5168,7 +5198,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Plus_8 = PostCondition+ Layout PostCondition
-            SlotId(224) => {
+            SlotId(228) => {
                 let &[post_condition_2, layout, post_conditions_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5180,7 +5210,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Plus_8 = PostCondition
-            SlotId(226) => {
+            SlotId(230) => {
                 let &[post_condition] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5190,7 +5220,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Plus_9 = PreCondition+ Layout PreCondition
-            SlotId(230) => {
+            SlotId(234) => {
                 let &[pre_condition_2, layout, pre_conditions_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5202,7 +5232,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Plus_9 = PreCondition
-            SlotId(232) => {
+            SlotId(236) => {
                 let &[pre_condition] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5212,7 +5242,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Opt_6 = "!"
-            SlotId(234) => {
+            SlotId(238) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5222,14 +5252,14 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Opt_6 =
-            SlotId(235) => {
+            SlotId(239) => {
                 let &[] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Opt6(self.arena.alloc(Opt6::Alt1 { span }))
             }
             // Plus_10 = RangeElement+ Layout RangeElement
-            SlotId(239) => {
+            SlotId(243) => {
                 let &[range_element_2, layout, range_elements_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5241,7 +5271,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Plus_10 = RangeElement
-            SlotId(241) => {
+            SlotId(245) => {
                 let &[range_element] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5251,7 +5281,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Alt_0 = WS
-            SlotId(243) => {
+            SlotId(247) => {
                 let &[ws] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5261,7 +5291,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Alt_0 = LineComment
-            SlotId(245) => {
+            SlotId(249) => {
                 let &[line_comment] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5271,7 +5301,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Plus_11 = (WS | LineComment)+ (WS | LineComment)
-            SlotId(248) => {
+            SlotId(252) => {
                 let &[alt_0, plus_11] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5282,7 +5312,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Plus_11 = (WS | LineComment)
-            SlotId(250) => {
+            SlotId(254) => {
                 let &[alt_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5292,7 +5322,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Star_2 = (WS | LineComment)+
-            SlotId(252) => {
+            SlotId(256) => {
                 let &[plus_11] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5302,14 +5332,14 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Star_2 =
-            SlotId(253) => {
+            SlotId(257) => {
                 let &[] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Star2(self.arena.alloc(Star2::Alt1 { span }))
             }
             // Symbol = Identifier #Identifier
-            SlotId(330) => {
+            SlotId(334) => {
                 let &[identifier] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5319,7 +5349,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Symbol = "(" Layout seqs:{Symbol+ "|"}+ Layout ")" #Paren
-            SlotId(337) => {
+            SlotId(341) => {
                 let &[lit_4, layout_3, seqs, layout_1, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5333,7 +5363,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Symbol = String #Lit
-            SlotId(340) => {
+            SlotId(344) => {
                 let &[string] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5343,7 +5373,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Symbol = IgnoreCaseString #IgnoreCaseLit
-            SlotId(343) => {
+            SlotId(347) => {
                 let &[ignore_case_string] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5353,7 +5383,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Symbol = "{" Layout symbol:Symbol Layout sep:Symbol Layout "}" Layout "*" #StarSep
-            SlotId(354) => {
+            SlotId(358) => {
                 let &[
                     lit_8,
                     layout_7,
@@ -5382,7 +5412,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Symbol = "{" Layout symbol:Symbol Layout sep:Symbol Layout "}" Layout "+" #PlusSep
-            SlotId(365) => {
+            SlotId(369) => {
                 let &[
                     lit_8,
                     layout_7,
@@ -5411,7 +5441,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Symbol = Symbol Layout "*" #Star
-            SlotId(372) => {
+            SlotId(376) => {
                 let &[lit_2, layout, symbol] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5423,7 +5453,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Symbol = Symbol Layout "+" #Plus
-            SlotId(379) => {
+            SlotId(383) => {
                 let &[lit_2, layout, symbol] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5435,7 +5465,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Symbol = Symbol Layout "?" #Opt
-            SlotId(386) => {
+            SlotId(390) => {
                 let &[lit_2, layout, symbol] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5447,7 +5477,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Symbol = Symbol Layout conditions:PostCondition+ #PostCondition
-            SlotId(394) => {
+            SlotId(398) => {
                 let &[conditions, layout, symbol] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5459,7 +5489,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Symbol = conditions:PreCondition+ Layout Symbol #PreCondition
-            SlotId(400) => {
+            SlotId(404) => {
                 let &[symbol, layout, conditions] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5471,7 +5501,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Symbol = label:Identifier Layout ":" Layout Symbol #Labeled
-            SlotId(407) => {
+            SlotId(411) => {
                 let &[symbol, layout_3, lit_2, layout_1, label] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5485,9 +5515,9 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // The start nonterminals with layout
-            SlotId(257) | SlotId(261) | SlotId(265) | SlotId(269) | SlotId(273) | SlotId(277)
-            | SlotId(281) | SlotId(285) | SlotId(289) | SlotId(293) | SlotId(297) | SlotId(301)
-            | SlotId(305) | SlotId(309) | SlotId(313) | SlotId(317) | SlotId(321) | SlotId(325) => {
+            SlotId(261) | SlotId(265) | SlotId(269) | SlotId(273) | SlotId(277) | SlotId(281)
+            | SlotId(285) | SlotId(289) | SlotId(293) | SlotId(297) | SlotId(301) | SlotId(305)
+            | SlotId(309) | SlotId(313) | SlotId(317) | SlotId(321) | SlotId(325) | SlotId(329) => {
                 let &[after, node, before] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5499,7 +5529,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // The start nonterminals without layout
-            SlotId(327) => {
+            SlotId(331) => {
                 let &[node] = children else {
                     ParseTree::unexpected_node()
                 };

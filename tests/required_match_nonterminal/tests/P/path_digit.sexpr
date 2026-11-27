@@ -1,0 +1,4 @@
+(Start
+  (P
+    (Path Identifier "." Identifier)
+    Digit))

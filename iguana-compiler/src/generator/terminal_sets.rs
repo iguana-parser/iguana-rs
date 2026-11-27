@@ -28,9 +28,14 @@ pub enum TerminalSetKind<'a> {
     LayoutAwareFollowRestriction(Slot<'a>),
     /// The operands of the except at the grammar slot (a `\` except). A match
     /// of the symbol is rejected when one of the operands matches the same
-    /// span exactly. Except checks run by `match_exact`, and a failure
+    /// span exactly. `match_exact` performs the except checks, and a failure
     /// reports the terminal set of this kind.
     Except(Slot<'a>),
+    /// The operands of the required match at the grammar slot (a `&`
+    /// restriction). A match of the symbol is rejected when one of the
+    /// operands does not match the same span exactly. `match_exact` performs
+    /// the checks, and a failure reports the terminal set of this kind.
+    Required(Slot<'a>),
 }
 
 /// A set of terminals that the parser passes to the scanner for matching, for
@@ -115,8 +120,9 @@ pub fn terminal_sets<'a>(
     let match_any_count = match_any_ids.len();
 
     // The combined FIRST sets, which `longest_match` tests, numbered after the
-    // `match_any` sets. The except sets, which only a failure refers to, share
-    // this family. None of them is passed to `match_any`.
+    // `match_any` sets. The except and required match sets, which only a
+    // failure refers to, share this family. None of them is passed to
+    // `match_any`.
     let mut first_ids: FxHashMap<Vec<TerminalId>, usize> = FxHashMap::default();
     let mut first_set = |kind: TerminalSetKind<'a>, terminals: Vec<Terminal>| {
         let content = terminals.iter().map(|t| terminal_ids.get_id(t)).collect();
@@ -143,18 +149,27 @@ pub fn terminal_sets<'a>(
     for nonterminal in grammar.nonterminals() {
         for alternative in grammar.alternatives(nonterminal) {
             for (pos, symbol) in alternative.symbols.iter().enumerate() {
-                let excepts = &symbol.restrictions().excepts;
-                if excepts.is_empty() || symbol.as_identifier().is_none() {
+                if symbol.as_identifier().is_none() {
                     continue;
                 }
-                let terminals = excepts
-                    .iter()
-                    .map(|e| grammar.except_terminal(e).0.clone())
-                    .collect();
-                sets.push(first_set(
-                    TerminalSetKind::Except(Slot::new(nonterminal, alternative, pos)),
-                    terminals,
-                ));
+                let restrictions = symbol.restrictions();
+                let operands = |ids: &[Identifier]| -> Vec<Terminal> {
+                    ids.iter()
+                        .map(|id| grammar.match_exact_operand(id).0.clone())
+                        .collect()
+                };
+                if !restrictions.excepts.is_empty() {
+                    sets.push(first_set(
+                        TerminalSetKind::Except(Slot::new(nonterminal, alternative, pos)),
+                        operands(&restrictions.excepts),
+                    ));
+                }
+                if !restrictions.required.is_empty() {
+                    sets.push(first_set(
+                        TerminalSetKind::Required(Slot::new(nonterminal, alternative, pos)),
+                        operands(&restrictions.required),
+                    ));
+                }
             }
         }
     }

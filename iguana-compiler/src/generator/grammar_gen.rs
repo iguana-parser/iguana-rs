@@ -642,6 +642,12 @@ pub fn terminal_set_name(kind: &TerminalSetKind, grammar: &Grammar) -> String {
             slot.alternative_index(grammar),
             slot.pos()
         ),
+        TerminalSetKind::Required(slot) => format!(
+            "REQUIRED_{}_ALT{}_POS{}",
+            upper(slot.head()),
+            slot.alternative_index(grammar),
+            slot.pos()
+        ),
     }
 }
 
@@ -656,6 +662,7 @@ fn terminal_set_comment(set: &TerminalSet) -> String {
         TerminalSetKind::FollowRestriction(slot) => format!("{} !>>", slot.name()),
         TerminalSetKind::LayoutAwareFollowRestriction(slot) => format!("{} !>>>", slot.name()),
         TerminalSetKind::Except(slot) => format!("{} \\", slot.name()),
+        TerminalSetKind::Required(slot) => format!("{} &", slot.name()),
     };
     let names: Vec<_> = set.terminals.iter().map(|t| t.name.clone()).collect();
     format!("{position} {{ {} }}", names.join(", "))

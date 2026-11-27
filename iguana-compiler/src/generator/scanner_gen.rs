@@ -356,22 +356,25 @@ impl<'a> ScannerGen<'a> {
             .collect()
     }
 
-    fn syntax_except_ids(&self) -> Vec<TerminalId> {
-        let mut except_ids = Vec::new();
+    /// The terminals that the excepts (`\`) and required matches (`&`) in
+    /// syntax rules refer to, in grammar order, each listed once.
+    fn match_exact_ids(&self) -> Vec<TerminalId> {
+        let mut ids = Vec::new();
         for nonterminal in self.grammar.nonterminals() {
             for alternative in self.grammar.alternatives(nonterminal) {
                 for symbol in &alternative.symbols {
-                    for e in &symbol.restrictions().excepts {
-                        let (terminal, _) = self.grammar.except_terminal(e);
+                    let restrictions = symbol.restrictions();
+                    for operand in restrictions.excepts.iter().chain(&restrictions.required) {
+                        let (terminal, _) = self.grammar.match_exact_operand(operand);
                         let id = self.terminal_ids.get_id(terminal);
-                        if !except_ids.contains(&id) {
-                            except_ids.push(id);
+                        if !ids.contains(&id) {
+                            ids.push(id);
                         }
                     }
                 }
             }
         }
-        except_ids
+        ids
     }
 
     /// Emits `MATCH_ANY_FIRST_CHARS`, the characters that can begin a match of a
@@ -467,18 +470,18 @@ impl<'a> ScannerGen<'a> {
         }
     }
 
-    /// Emits `match_exact`, the dispatcher behind syntax-level excepts
-    /// (`Id = Name \ Keyword` in a syntax rule): whether `terminal_id` matches
-    /// exactly the span a symbol matched. Only terminals used as syntax-level
-    /// excepts get an arm; grammars without such excepts get no method. The walk
-    /// mirrors the parser generator's: excepts sit at top-level alternative
-    /// positions after desugaring.
+    /// Emits `match_exact`, the dispatcher behind the excepts and required
+    /// matches in syntax rules (`Id = Name \ Keyword`, `Id = Name & Keyword`):
+    /// whether `terminal_id` matches exactly the span a symbol matched. Only
+    /// the operands of these restrictions get an arm; grammars without them get
+    /// no method. The walk mirrors the parser generator's: the restrictions sit
+    /// at top-level alternative positions after desugaring.
     fn gen_match_exact_method(&self) -> TokenStream {
-        let except_ids = self.syntax_except_ids();
-        if except_ids.is_empty() {
+        let ids = self.match_exact_ids();
+        if ids.is_empty() {
             return quote! {};
         }
-        let arms: Vec<_> = except_ids
+        let arms: Vec<_> = ids
             .iter()
             .map(|id| {
                 let exact_match =
@@ -490,11 +493,13 @@ impl<'a> ScannerGen<'a> {
             .collect();
         quote! {
             #[comment = "Whether `terminal_id` matches exactly the span `[start, end)`. Dispatches only the
-                         terminals used as syntax-level excepts."]
+                         operands of the excepts and required matches in syntax rules."]
             pub fn match_exact(&self, terminal_id: TerminalId, start: u32, end: u32) -> bool {
                 match terminal_id {
                     #(#arms)*
-                    _ => unreachable!("match_exact called for {terminal_id}, which is not an except"),
+                    _ => unreachable!(
+                        "match_exact called for {terminal_id}, which is not the operand of an except or a required match"
+                    ),
                 }
             }
         }
@@ -770,7 +775,7 @@ impl<'a> ScannerGen<'a> {
         let mut except_checks = Vec::new();
         let mut set_checks: [Vec<Ident>; 2] = Default::default();
         for except in &rule.except {
-            let (except_terminal, _) = self.grammar.except_terminal(except);
+            let (except_terminal, _) = self.grammar.match_exact_operand(except);
             let except_id = self.terminal_ids.get_id(except_terminal).index();
             if let (scan_id, Scan::Trie(set)) = self.scan(except_id) {
                 set_checks[set.ignore_ascii_case as usize].push(literal_set_ident(scan_id));

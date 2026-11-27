@@ -1,0 +1,12 @@
+(Start
+  (Layout WS*)
+  (S
+    (Item+
+      (Item Word)
+      (Layout
+        (WS* WS))
+      (Item Word)
+      (Layout
+        (WS* WS))
+      (Item Word)))
+  (Layout WS*))

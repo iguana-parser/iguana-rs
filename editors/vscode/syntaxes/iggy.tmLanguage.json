@@ -68,6 +68,7 @@
       "patterns": [
         { "match": "!>>>|!>>|!<<|>>|<<", "name": "keyword.operator.restriction.iggy" },
         { "match": "\\\\", "name": "keyword.operator.except.iggy" },
+        { "match": "&", "name": "keyword.operator.required.iggy" },
         { "match": "=|\\||>|\\*|\\+|\\?|!", "name": "keyword.operator.iggy" }
       ]
     },

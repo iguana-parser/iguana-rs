@@ -1,0 +1,7 @@
+(Start
+  (Layout WS*)
+  (S
+    (Item+
+      (Item
+        (HexLiteral Word Quoted))))
+  (Layout WS*))

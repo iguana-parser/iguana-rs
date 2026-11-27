@@ -334,11 +334,13 @@ impl<'i, 'arena> ExceptFollowRestrictionScanner<'i, 'arena> {
         result
     }
     // Whether `terminal_id` matches exactly the span `[start, end)`. Dispatches only the
-    // terminals used as syntax-level excepts.
+    // operands of the excepts and required matches in syntax rules.
     pub fn match_exact(&self, terminal_id: TerminalId, start: u32, end: u32) -> bool {
         match terminal_id {
             TerminalId(1) => self.input.match_literal(start, b"if") == Some(end),
-            _ => unreachable!("match_exact called for {terminal_id}, which is not an except"),
+            _ => unreachable!(
+                "match_exact called for {terminal_id}, which is not the operand of an except or a required match"
+            ),
         }
     }
 }

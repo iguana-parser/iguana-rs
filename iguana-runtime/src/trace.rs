@@ -17,6 +17,9 @@ pub enum TraceFailureKind {
     UnexpectedToken { expected: Vec<TerminalId> },
     /// Nonterminal except (`\`): matched a nonterminal but it was excluded.
     ExcludedMatch { excluded_by: Vec<TerminalId> },
+    /// Required match (`&`): the symbol matched, but one of these terminals
+    /// does not match the same span exactly.
+    RequiredMatch { required: Vec<TerminalId> },
     /// Follow restriction (`!>>`): the symbol after the match is forbidden.
     ForbiddenFollow { forbidden: Vec<TerminalId> },
 }
@@ -35,6 +38,9 @@ impl From<GLLFailureKind> for TraceFailureKind {
             },
             GLLFailureKind::ExcludedMatch(set) => Self::ExcludedMatch {
                 excluded_by: set.terminals.to_vec(),
+            },
+            GLLFailureKind::RequiredMatch(set) => Self::RequiredMatch {
+                required: set.terminals.to_vec(),
             },
             GLLFailureKind::ForbiddenFollow(set) => Self::ForbiddenFollow {
                 forbidden: set.terminals.to_vec(),
@@ -125,6 +131,7 @@ impl TraceEvent {
                 let (description, terminals) = match kind {
                     TraceFailureKind::UnexpectedToken { expected } => ("expected", expected),
                     TraceFailureKind::ExcludedMatch { excluded_by } => ("excluded by", excluded_by),
+                    TraceFailureKind::RequiredMatch { required } => ("must be", required),
                     TraceFailureKind::ForbiddenFollow { forbidden } => {
                         ("forbidden follow", forbidden)
                     }

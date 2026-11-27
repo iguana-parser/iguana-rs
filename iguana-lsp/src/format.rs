@@ -634,12 +634,14 @@ impl<'a> Formatter<'a> {
                 // formatter emits them in canonical order.
                 let mut excludes = Vec::new();
                 let mut excepts = Vec::new();
+                let mut required = Vec::new();
                 let mut follow = Vec::new();
                 let mut layout_aware_follow = Vec::new();
                 for condition in conditions.post_conditions() {
                     match condition {
                         PostCondition::Exclude { identifier, .. } => excludes.push(identifier),
                         PostCondition::Except { identifier, .. } => excepts.push(identifier),
+                        PostCondition::Require { identifier, .. } => required.push(identifier),
                         PostCondition::FollowRestriction { identifier, .. } => {
                             follow.push(identifier)
                         }
@@ -657,6 +659,10 @@ impl<'a> Formatter<'a> {
                 }
                 for id in excepts {
                     out.push_str(" \\ ");
+                    out.push_str(&self.input.text(id.span()));
+                }
+                for id in required {
+                    out.push_str(" & ");
                     out.push_str(&self.input.text(id.span()));
                 }
                 for id in follow {
@@ -1103,7 +1109,7 @@ S
         let input = r#"grammar T
 
 S
-  = A !>> B \ K !X A
+  = A !>> B & R \ K !X A
 
 A
   = "a" #X
@@ -1113,11 +1119,14 @@ B
 
 @Regex
 K = "k"
+
+@Regex
+R = "a"
 "#;
         let expected = r#"grammar T
 
 S
-  = A!X \ K !>> B A
+  = A!X \ K & R !>> B A
 
 A
   = "a" #X
@@ -1127,6 +1136,9 @@ B
 
 @Regex
 K = "k"
+
+@Regex
+R = "a"
 "#;
         assert_eq!(format_source(input).unwrap(), expected);
     }

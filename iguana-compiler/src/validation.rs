@@ -379,10 +379,11 @@ fn render_labels(labels: &[String]) -> String {
     labels.iter().map(|label| format!("!{label}")).collect()
 }
 
-/// One of the four restriction operators.
+/// One of the five restriction operators.
 #[derive(Clone, Copy, PartialEq)]
 enum RestrictionKind {
     Except,
+    Require,
     Follow,
     LayoutAwareFollow,
     Precede,
@@ -393,6 +394,7 @@ impl RestrictionKind {
     fn name(self) -> &'static str {
         match self {
             RestrictionKind::Except => "except",
+            RestrictionKind::Require => "required match",
             RestrictionKind::Follow => "follow restriction",
             RestrictionKind::LayoutAwareFollow => "layout-aware follow restriction",
             RestrictionKind::Precede => "precede restriction",
@@ -400,11 +402,11 @@ impl RestrictionKind {
     }
 }
 
-/// - The operand of a restriction (`\`, `!>>`, `!>>>`, or `!<<`) must refer to
-///   a lexical rule, because the scanner matches only lexical rules.
-/// - The operand of an except (`\`) must refer to a lexical rule without
-///   restrictions of its own, because an except uses only the regex of its
-///   operand. For example, `Id \ Keyword` is an error when
+/// - The operand of a restriction (`\`, `&`, `!>>`, `!>>>`, or `!<<`) must
+///   refer to a lexical rule, because the scanner matches only lexical rules.
+/// - The operand of an except (`\`) or a required match (`&`) must refer to a
+///   lexical rule without restrictions of its own, because both use only the
+///   regex of their operand. For example, `Id \ Keyword` is an error when
 ///   `Keyword = "if" !>> Tail`.
 fn check_restriction_targets<'a>(
     grammar_def: &'a GrammarDef,
@@ -426,6 +428,7 @@ fn check_restriction_targets<'a>(
         };
         for (kind, identifiers) in [
             (RestrictionKind::Except, &restrictions.excepts),
+            (RestrictionKind::Require, &restrictions.required),
             (RestrictionKind::Follow, &restrictions.follow),
             (
                 RestrictionKind::LayoutAwareFollow,
@@ -464,7 +467,7 @@ fn check_restriction_target<'a>(
     let Some(rule) = lexical_rules.get(identifier.name.as_str()) else {
         errors.push(GrammarError {
             message: format!(
-                "{} `{}` must name a lexical rule, not a syntax rule",
+                "{} `{}` must refer to a lexical rule, not a syntax rule",
                 kind.name(),
                 identifier.name
             ),
@@ -475,10 +478,11 @@ fn check_restriction_target<'a>(
     let restricted = !rule.except.is_empty()
         || !rule.follow_restriction.is_empty()
         || rule.precede_restriction.is_some();
-    if kind == RestrictionKind::Except && restricted {
+    if matches!(kind, RestrictionKind::Except | RestrictionKind::Require) && restricted {
         errors.push(GrammarError {
             message: format!(
-                "except `{}` must name a lexical rule with no restrictions of its own",
+                "{} `{}` must refer to a lexical rule with no restrictions of its own",
+                kind.name(),
                 identifier.name
             ),
             span,
