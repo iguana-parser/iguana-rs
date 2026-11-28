@@ -428,21 +428,8 @@ fn collect_regex_spans<'a>(
     spans: &mut GrammarSpans<'a>,
 ) {
     match (gr_regex, pt_regex) {
-        (Regex::Seq(parts), parse_tree::Regex::String { string, .. }) if parts.is_empty() => {
-            spans.empty_strings.push(string.span());
-        }
-        (
-            Regex::Seq(parts),
-            parse_tree::Regex::IgnoreCaseString {
-                ignore_case_string, ..
-            },
-        ) if parts.is_empty() => {
-            spans.empty_strings.push(ignore_case_string.span());
-        }
-        (Regex::Seq(parts), parse_tree::Regex::ExactString { exact_string, .. })
-            if parts.is_empty() =>
-        {
-            spans.empty_strings.push(exact_string.span());
+        (Regex::Seq(parts), parse_tree::Regex::Literal { literal, .. }) if parts.is_empty() => {
+            spans.empty_strings.push(literal.span());
         }
         (Regex::Identifier(id), parse_tree::Regex::Identifier { identifier, .. }) => {
             let span = identifier.span();

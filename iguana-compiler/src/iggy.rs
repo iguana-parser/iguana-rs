@@ -260,17 +260,8 @@ fn convert_symbol(symbol: &parse_tree::Symbol, input: &Input, ignore_case: bool)
                 )
             }
         }
-        parse_tree::Symbol::Lit { string, .. } => {
-            Symbol::Literal(convert_string(*string, input, ignore_case))
-        }
-        parse_tree::Symbol::IgnoreCaseLit {
-            ignore_case_string, ..
-        } => Symbol::Literal(Literal::ignore_case(&string_text(
-            ignore_case_string.string(),
-            input,
-        ))),
-        parse_tree::Symbol::ExactLit { exact_string, .. } => {
-            Symbol::Literal(Literal::exact(string_text(exact_string.string(), input)))
+        parse_tree::Symbol::Literal { literal, .. } => {
+            Symbol::Literal(convert_literal(literal, input, ignore_case))
         }
         parse_tree::Symbol::StarSep { symbol, sep, .. } => Symbol::Star(
             Box::new(convert_symbol(symbol, input, ignore_case)),
@@ -359,33 +350,36 @@ fn convert_operand(
                 definition: None,
             })
         }
-        parse_tree::Operand::Lit { string, .. } => {
-            RestrictionOperand::Literal(convert_string(*string, input, ignore_case))
-        }
-        parse_tree::Operand::IgnoreCaseLit {
-            ignore_case_string, ..
-        } => RestrictionOperand::Literal(Literal::ignore_case(&string_text(
-            ignore_case_string.string(),
-            input,
-        ))),
-        parse_tree::Operand::ExactLit { exact_string, .. } => {
-            RestrictionOperand::Literal(Literal::exact(string_text(exact_string.string(), input)))
+        parse_tree::Operand::Literal { literal, .. } => {
+            RestrictionOperand::Literal(convert_literal(literal, input, ignore_case))
         }
         parse_tree::Operand::Amb(_) => panic!("unexpected ambiguity"),
     }
 }
 
-/// The literal of a string without a prefix, such as `"else"`. In a grammar
-/// with `@IgnoreCase`, the literal ignores case if it has an ASCII letter. A
-/// string without one, such as `"+"`, stays exact, because ignoring case
-/// changes only ASCII letters and validation rejects an `i` literal without a
-/// letter (`check_ignore_case_literals_have_letters`).
-fn convert_string(string: parse_tree::Token, input: &Input, ignore_case: bool) -> Literal {
-    let text = string_text(string, input);
-    if ignore_case && text.contains(|c: char| c.is_ascii_alphabetic()) {
-        Literal::ignore_case(&text)
-    } else {
-        Literal::exact(text)
+/// Converts a string literal, such as `"else"`, `i"select"`, or `s"0x"`.
+///
+/// In a grammar with `@IgnoreCase`, a string without a prefix becomes an `i`
+/// literal if it has an ASCII letter. For example, `"else"` becomes
+/// `i"else"`. But `"+"` stays `"+"`, because `i"+"` is an error in a syntax
+/// rule.
+fn convert_literal(literal: &parse_tree::Literal, input: &Input, ignore_case: bool) -> Literal {
+    match literal {
+        parse_tree::Literal::Plain { string, .. } => {
+            let text = string_text(*string, input);
+            if ignore_case && text.contains(|c: char| c.is_ascii_alphabetic()) {
+                Literal::ignore_case(&text)
+            } else {
+                Literal::exact(text)
+            }
+        }
+        parse_tree::Literal::IgnoreCase {
+            ignore_case_string, ..
+        } => Literal::ignore_case(&string_text(ignore_case_string.string(), input)),
+        parse_tree::Literal::Exact { exact_string, .. } => {
+            Literal::exact(string_text(exact_string.string(), input))
+        }
+        parse_tree::Literal::Amb(_) => panic!("unexpected ambiguity"),
     }
 }
 
@@ -449,14 +443,8 @@ fn convert_regex_operand(
                 Regex::Char(c)
             }
         }
-        parse_tree::RegexOperand::String { string, .. } => {
-            convert_string(*string, input, ignore_case).regex()
-        }
-        parse_tree::RegexOperand::IgnoreCaseString {
-            ignore_case_string, ..
-        } => Regex::ignore_case_literal(&string_text(ignore_case_string.string(), input)),
-        parse_tree::RegexOperand::ExactString { exact_string, .. } => {
-            Regex::exact_literal(&string_text(exact_string.string(), input))
+        parse_tree::RegexOperand::Literal { literal, .. } => {
+            convert_literal(literal, input, ignore_case).regex()
         }
         parse_tree::RegexOperand::Identifier { identifier, .. } => Regex::Identifier(Identifier {
             name: input.text(identifier.span()),
@@ -513,14 +501,8 @@ fn convert_regex(regex: &parse_tree::Regex, input: &Input, ignore_case: bool) ->
                 Regex::Char(c)
             }
         }
-        parse_tree::Regex::String { string, .. } => {
-            convert_string(*string, input, ignore_case).regex()
-        }
-        parse_tree::Regex::IgnoreCaseString {
-            ignore_case_string, ..
-        } => Regex::ignore_case_literal(&string_text(ignore_case_string.string(), input)),
-        parse_tree::Regex::ExactString { exact_string, .. } => {
-            Regex::exact_literal(&string_text(exact_string.string(), input))
+        parse_tree::Regex::Literal { literal, .. } => {
+            convert_literal(literal, input, ignore_case).regex()
         }
         parse_tree::Regex::Identifier { identifier, .. } => {
             let name = input.text(identifier.span());

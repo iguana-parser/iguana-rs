@@ -588,16 +588,8 @@ impl<'a> Formatter<'a> {
             Symbol::Identifier { identifier, .. } => {
                 out.push_str(&self.input.text(identifier.span()));
             }
-            Symbol::Lit { string, .. } => {
-                out.push_str(&self.input.text(string.span()));
-            }
-            Symbol::IgnoreCaseLit {
-                ignore_case_string, ..
-            } => {
-                out.push_str(&self.input.text(ignore_case_string.span()));
-            }
-            Symbol::ExactLit { exact_string, .. } => {
-                out.push_str(&self.input.text(exact_string.span()));
+            Symbol::Literal { literal, .. } => {
+                out.push_str(&self.input.text(literal.span()));
             }
             Symbol::Paren { seqs, .. } => {
                 out.push('(');
@@ -859,16 +851,8 @@ impl<'a> Formatter<'a> {
             Regex::Char { char, .. } => {
                 out.push_str(&self.input.text(char.span()));
             }
-            Regex::String { string, .. } => {
-                out.push_str(&self.input.text(string.span()));
-            }
-            Regex::IgnoreCaseString {
-                ignore_case_string, ..
-            } => {
-                out.push_str(&self.input.text(ignore_case_string.span()));
-            }
-            Regex::ExactString { exact_string, .. } => {
-                out.push_str(&self.input.text(exact_string.span()));
+            Regex::Literal { literal, .. } => {
+                out.push_str(&self.input.text(literal.span()));
             }
             Regex::Identifier { identifier, .. } => {
                 out.push_str(&self.input.text(identifier.span()));

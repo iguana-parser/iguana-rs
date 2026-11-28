@@ -26,12 +26,10 @@ RegexPostCondition
   | "!>>" RegexOperand #FollowRestriction
 
 RegexOperand
-  = CharClass        #CharClass
-  | Char             #Char
-  | String           #String
-  | IgnoreCaseString #IgnoreCaseString
-  | ExactString      #ExactString
-  | Identifier       #Identifier
+  = CharClass  #CharClass
+  | Char       #Char
+  | Literal    #Literal
+  | Identifier #Identifier
 
 PriorityLevel
   = Associativity? { Alternative "|" }+
@@ -48,9 +46,7 @@ Alternative
 Symbol
   = Identifier                                     #Identifier
   | "(" seqs:{ Symbol+ "|" }+ ")"                  #Paren
-  | String                                         #Lit
-  | IgnoreCaseString                               #IgnoreCaseLit
-  | ExactString                                    #ExactLit
+  | Literal                                        #Literal
   | "{" symbol:Symbol sep:Symbol "}" "*"           #StarSep
   | "{" symbol:Symbol sep:Symbol "}" "+"           #PlusSep
   > Symbol "*"                                     #Star
@@ -71,10 +67,8 @@ PostCondition
   | "!" Identifier #Exclude
 
 Operand
-  = Identifier       #Identifier
-  | String           #Lit
-  | IgnoreCaseString #IgnoreCaseLit
-  | ExactString      #ExactLit
+  = Identifier #Identifier
+  | Literal    #Literal
 
 Regex
   = Regex "+"                    #Plus
@@ -83,10 +77,13 @@ Regex
   | "(" seqs:{ Regex+ "|" }+ ")" #Paren
   | CharClass                    #CharClass
   | Char                         #Char
-  | String                       #String
-  | IgnoreCaseString             #IgnoreCaseString
-  | ExactString                  #ExactString
+  | Literal                      #Literal
   | Identifier                   #Identifier
+
+Literal
+  = String           #Plain
+  | IgnoreCaseString #IgnoreCase
+  | ExactString      #Exact
 
 @NoLayout
 IgnoreCaseString

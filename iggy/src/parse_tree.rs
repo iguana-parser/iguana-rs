@@ -160,6 +160,7 @@ pub type StartPreCondition<'a> = Start<&'a PreCondition<'a>, &'a Layout<'a>>;
 pub type StartPostCondition<'a> = Start<&'a PostCondition<'a>, &'a Layout<'a>>;
 pub type StartOperand<'a> = Start<&'a Operand<'a>, &'a Layout<'a>>;
 pub type StartRegex<'a> = Start<&'a Regex<'a>, &'a Layout<'a>>;
+pub type StartLiteral<'a> = Start<&'a Literal<'a>, &'a Layout<'a>>;
 pub type StartIgnoreCaseString<'a> = Start<&'a IgnoreCaseString<'a>, &'a Layout<'a>>;
 pub type StartExactString<'a> = Start<&'a ExactString<'a>, &'a Layout<'a>>;
 pub type StartCharClass<'a> = Start<&'a CharClass<'a>, &'a Layout<'a>>;
@@ -184,6 +185,7 @@ pub enum ParseTree<'a> {
     PostCondition(&'a PostCondition<'a>),
     Operand(&'a Operand<'a>),
     Regex(&'a Regex<'a>),
+    Literal(&'a Literal<'a>),
     IgnoreCaseString(&'a IgnoreCaseString<'a>),
     ExactString(&'a ExactString<'a>),
     CharClass(&'a CharClass<'a>),
@@ -261,6 +263,7 @@ impl<'a> ParseTree<'a> {
             ParseTree::PostCondition(node) => node.display_name(),
             ParseTree::Operand(node) => node.display_name(),
             ParseTree::Regex(node) => node.display_name(),
+            ParseTree::Literal(node) => node.display_name(),
             ParseTree::IgnoreCaseString(node) => node.display_name(),
             ParseTree::ExactString(node) => node.display_name(),
             ParseTree::CharClass(node) => node.display_name(),
@@ -313,6 +316,7 @@ impl<'a> ParseTree<'a> {
             ParseTree::PostCondition(node) => node.child(index),
             ParseTree::Operand(node) => node.child(index),
             ParseTree::Regex(node) => node.child(index),
+            ParseTree::Literal(node) => node.child(index),
             ParseTree::IgnoreCaseString(node) => node.child(index),
             ParseTree::ExactString(node) => node.child(index),
             ParseTree::CharClass(node) => node.child(index),
@@ -365,6 +369,7 @@ impl<'a> ParseTree<'a> {
             ParseTree::PostCondition(node) => node.child_count(),
             ParseTree::Operand(node) => node.child_count(),
             ParseTree::Regex(node) => node.child_count(),
+            ParseTree::Literal(node) => node.child_count(),
             ParseTree::IgnoreCaseString(node) => node.child_count(),
             ParseTree::ExactString(node) => node.child_count(),
             ParseTree::CharClass(node) => node.child_count(),
@@ -417,6 +422,7 @@ impl<'a> ParseTree<'a> {
             ParseTree::PostCondition(node) => node.span(),
             ParseTree::Operand(node) => node.span(),
             ParseTree::Regex(node) => node.span(),
+            ParseTree::Literal(node) => node.span(),
             ParseTree::IgnoreCaseString(node) => node.span(),
             ParseTree::ExactString(node) => node.span(),
             ParseTree::CharClass(node) => node.span(),
@@ -471,6 +477,7 @@ impl<'a> ParseTree<'a> {
             ParseTree::PostCondition(node) => matches!(node, PostCondition::Amb(_)),
             ParseTree::Operand(node) => matches!(node, Operand::Amb(_)),
             ParseTree::Regex(node) => matches!(node, Regex::Amb(_)),
+            ParseTree::Literal(node) => matches!(node, Literal::Amb(_)),
             ParseTree::IgnoreCaseString(node) => matches!(node, IgnoreCaseString::Amb(_)),
             ParseTree::ExactString(node) => matches!(node, ExactString::Amb(_)),
             ParseTree::CharClass(node) => matches!(node, CharClass::Amb(_)),
@@ -525,6 +532,7 @@ impl<'a> ParseTree<'a> {
             ParseTree::PostCondition(node) => Some(*node as *const _ as usize),
             ParseTree::Operand(node) => Some(*node as *const _ as usize),
             ParseTree::Regex(node) => Some(*node as *const _ as usize),
+            ParseTree::Literal(node) => Some(*node as *const _ as usize),
             ParseTree::IgnoreCaseString(node) => Some(*node as *const _ as usize),
             ParseTree::ExactString(node) => Some(*node as *const _ as usize),
             ParseTree::CharClass(node) => Some(*node as *const _ as usize),
@@ -577,6 +585,7 @@ impl<'a> ParseTree<'a> {
             ParseTree::PostCondition(_) => Some(grammar::POST_CONDITION),
             ParseTree::Operand(_) => Some(grammar::OPERAND),
             ParseTree::Regex(_) => Some(grammar::REGEX),
+            ParseTree::Literal(_) => Some(grammar::LITERAL),
             ParseTree::IgnoreCaseString(_) => Some(grammar::IGNORE_CASE_STRING),
             ParseTree::ExactString(_) => Some(grammar::EXACT_STRING),
             ParseTree::CharClass(_) => Some(grammar::CHAR_CLASS),
@@ -628,6 +637,7 @@ impl<'a> ParseTree<'a> {
             ParseTree::PostCondition(node) => node.origin(),
             ParseTree::Operand(node) => node.origin(),
             ParseTree::Regex(node) => node.origin(),
+            ParseTree::Literal(node) => node.origin(),
             ParseTree::IgnoreCaseString(node) => node.origin(),
             ParseTree::ExactString(node) => node.origin(),
             ParseTree::CharClass(node) => node.origin(),
@@ -755,6 +765,12 @@ impl<'a> ParseTree<'a> {
     pub(crate) fn unwrap_regex(self) -> &'a Regex<'a> {
         match self {
             ParseTree::Regex(node) => node,
+            _ => Self::unexpected_node(),
+        }
+    }
+    pub(crate) fn unwrap_literal(self) -> &'a Literal<'a> {
+        match self {
+            ParseTree::Literal(node) => node,
             _ => Self::unexpected_node(),
         }
     }
@@ -1080,19 +1096,9 @@ pub enum RegexOperand<'a> {
         char: Token,
         span: Span,
     },
-    // RegexOperand = String #String
-    String {
-        string: Token,
-        span: Span,
-    },
-    // RegexOperand = IgnoreCaseString #IgnoreCaseString
-    IgnoreCaseString {
-        ignore_case_string: &'a IgnoreCaseString<'a>,
-        span: Span,
-    },
-    // RegexOperand = ExactString #ExactString
-    ExactString {
-        exact_string: &'a ExactString<'a>,
+    // RegexOperand = Literal #Literal
+    Literal {
+        literal: &'a Literal<'a>,
         span: Span,
     },
     // RegexOperand = Identifier #Identifier
@@ -1159,19 +1165,9 @@ pub enum Symbol<'a> {
         lit_4: Token,
         span: Span,
     },
-    // Symbol = String #Lit
-    Lit {
-        string: Token,
-        span: Span,
-    },
-    // Symbol = IgnoreCaseString #IgnoreCaseLit
-    IgnoreCaseLit {
-        ignore_case_string: &'a IgnoreCaseString<'a>,
-        span: Span,
-    },
-    // Symbol = ExactString #ExactLit
-    ExactLit {
-        exact_string: &'a ExactString<'a>,
+    // Symbol = Literal #Literal
+    Literal {
+        literal: &'a Literal<'a>,
         span: Span,
     },
     // Symbol = "{" Layout symbol:Symbol Layout sep:Symbol Layout "}" Layout "*" #StarSep
@@ -1303,19 +1299,9 @@ pub enum Operand<'a> {
         identifier: Token,
         span: Span,
     },
-    // Operand = String #Lit
-    Lit {
-        string: Token,
-        span: Span,
-    },
-    // Operand = IgnoreCaseString #IgnoreCaseLit
-    IgnoreCaseLit {
-        ignore_case_string: &'a IgnoreCaseString<'a>,
-        span: Span,
-    },
-    // Operand = ExactString #ExactLit
-    ExactLit {
-        exact_string: &'a ExactString<'a>,
+    // Operand = Literal #Literal
+    Literal {
+        literal: &'a Literal<'a>,
         span: Span,
     },
     Amb(&'a [ParseTree<'a>]),
@@ -1362,24 +1348,33 @@ pub enum Regex<'a> {
         char: Token,
         span: Span,
     },
-    // Regex = String #String
-    String {
-        string: Token,
-        span: Span,
-    },
-    // Regex = IgnoreCaseString #IgnoreCaseString
-    IgnoreCaseString {
-        ignore_case_string: &'a IgnoreCaseString<'a>,
-        span: Span,
-    },
-    // Regex = ExactString #ExactString
-    ExactString {
-        exact_string: &'a ExactString<'a>,
+    // Regex = Literal #Literal
+    Literal {
+        literal: &'a Literal<'a>,
         span: Span,
     },
     // Regex = Identifier #Identifier
     Identifier {
         identifier: Token,
+        span: Span,
+    },
+    Amb(&'a [ParseTree<'a>]),
+}
+#[derive(Debug)]
+pub enum Literal<'a> {
+    // Literal = String #Plain
+    Plain {
+        string: Token,
+        span: Span,
+    },
+    // Literal = IgnoreCaseString #IgnoreCase
+    IgnoreCase {
+        ignore_case_string: &'a IgnoreCaseString<'a>,
+        span: Span,
+    },
+    // Literal = ExactString #Exact
+    Exact {
+        exact_string: &'a ExactString<'a>,
         span: Span,
     },
     Amb(&'a [ParseTree<'a>]),
@@ -2299,19 +2294,8 @@ impl<'a> RegexOperand<'a> {
             (RegexOperand::CharClass { .. }, _) => None,
             (RegexOperand::Char { char, .. }, 0) => Some(ParseTree::Token(*char)),
             (RegexOperand::Char { .. }, _) => None,
-            (RegexOperand::String { string, .. }, 0) => Some(ParseTree::Token(*string)),
-            (RegexOperand::String { .. }, _) => None,
-            (
-                RegexOperand::IgnoreCaseString {
-                    ignore_case_string, ..
-                },
-                0,
-            ) => Some(ParseTree::IgnoreCaseString(ignore_case_string)),
-            (RegexOperand::IgnoreCaseString { .. }, _) => None,
-            (RegexOperand::ExactString { exact_string, .. }, 0) => {
-                Some(ParseTree::ExactString(exact_string))
-            }
-            (RegexOperand::ExactString { .. }, _) => None,
+            (RegexOperand::Literal { literal, .. }, 0) => Some(ParseTree::Literal(literal)),
+            (RegexOperand::Literal { .. }, _) => None,
             (RegexOperand::Identifier { identifier, .. }, 0) => Some(ParseTree::Token(*identifier)),
             (RegexOperand::Identifier { .. }, _) => None,
             (RegexOperand::Amb(alts), _) => alts.get(index).copied(),
@@ -2321,9 +2305,7 @@ impl<'a> RegexOperand<'a> {
         match self {
             RegexOperand::CharClass { .. } => 1usize,
             RegexOperand::Char { .. } => 1usize,
-            RegexOperand::String { .. } => 1usize,
-            RegexOperand::IgnoreCaseString { .. } => 1usize,
-            RegexOperand::ExactString { .. } => 1usize,
+            RegexOperand::Literal { .. } => 1usize,
             RegexOperand::Identifier { .. } => 1usize,
             RegexOperand::Amb(alts) => alts.len(),
         }
@@ -2332,9 +2314,7 @@ impl<'a> RegexOperand<'a> {
         match self {
             RegexOperand::CharClass { span, .. } => *span,
             RegexOperand::Char { span, .. } => *span,
-            RegexOperand::String { span, .. } => *span,
-            RegexOperand::IgnoreCaseString { span, .. } => *span,
-            RegexOperand::ExactString { span, .. } => *span,
+            RegexOperand::Literal { span, .. } => *span,
             RegexOperand::Identifier { span, .. } => *span,
             RegexOperand::Amb(alts) => alts[0].span(),
         }
@@ -2500,19 +2480,8 @@ impl<'a> Symbol<'a> {
             (Symbol::Paren { layout_3, .. }, 3) => Some(ParseTree::Layout(layout_3)),
             (Symbol::Paren { lit_4, .. }, 4) => Some(ParseTree::Token(*lit_4)),
             (Symbol::Paren { .. }, _) => None,
-            (Symbol::Lit { string, .. }, 0) => Some(ParseTree::Token(*string)),
-            (Symbol::Lit { .. }, _) => None,
-            (
-                Symbol::IgnoreCaseLit {
-                    ignore_case_string, ..
-                },
-                0,
-            ) => Some(ParseTree::IgnoreCaseString(ignore_case_string)),
-            (Symbol::IgnoreCaseLit { .. }, _) => None,
-            (Symbol::ExactLit { exact_string, .. }, 0) => {
-                Some(ParseTree::ExactString(exact_string))
-            }
-            (Symbol::ExactLit { .. }, _) => None,
+            (Symbol::Literal { literal, .. }, 0) => Some(ParseTree::Literal(literal)),
+            (Symbol::Literal { .. }, _) => None,
             (Symbol::StarSep { lit_0, .. }, 0) => Some(ParseTree::Token(*lit_0)),
             (Symbol::StarSep { layout_1, .. }, 1) => Some(ParseTree::Layout(layout_1)),
             (Symbol::StarSep { symbol, .. }, 2) => Some(ParseTree::Symbol(symbol)),
@@ -2566,9 +2535,7 @@ impl<'a> Symbol<'a> {
         match self {
             Symbol::Identifier { .. } => 1usize,
             Symbol::Paren { .. } => 5usize,
-            Symbol::Lit { .. } => 1usize,
-            Symbol::IgnoreCaseLit { .. } => 1usize,
-            Symbol::ExactLit { .. } => 1usize,
+            Symbol::Literal { .. } => 1usize,
             Symbol::StarSep { .. } => 9usize,
             Symbol::PlusSep { .. } => 9usize,
             Symbol::Star { .. } => 3usize,
@@ -2584,9 +2551,7 @@ impl<'a> Symbol<'a> {
         match self {
             Symbol::Identifier { span, .. } => *span,
             Symbol::Paren { span, .. } => *span,
-            Symbol::Lit { span, .. } => *span,
-            Symbol::IgnoreCaseLit { span, .. } => *span,
-            Symbol::ExactLit { span, .. } => *span,
+            Symbol::Literal { span, .. } => *span,
             Symbol::StarSep { span, .. } => *span,
             Symbol::PlusSep { span, .. } => *span,
             Symbol::Star { span, .. } => *span,
@@ -2736,37 +2701,22 @@ impl<'a> Operand<'a> {
         match (self, index) {
             (Operand::Identifier { identifier, .. }, 0) => Some(ParseTree::Token(*identifier)),
             (Operand::Identifier { .. }, _) => None,
-            (Operand::Lit { string, .. }, 0) => Some(ParseTree::Token(*string)),
-            (Operand::Lit { .. }, _) => None,
-            (
-                Operand::IgnoreCaseLit {
-                    ignore_case_string, ..
-                },
-                0,
-            ) => Some(ParseTree::IgnoreCaseString(ignore_case_string)),
-            (Operand::IgnoreCaseLit { .. }, _) => None,
-            (Operand::ExactLit { exact_string, .. }, 0) => {
-                Some(ParseTree::ExactString(exact_string))
-            }
-            (Operand::ExactLit { .. }, _) => None,
+            (Operand::Literal { literal, .. }, 0) => Some(ParseTree::Literal(literal)),
+            (Operand::Literal { .. }, _) => None,
             (Operand::Amb(alts), _) => alts.get(index).copied(),
         }
     }
     pub(crate) fn child_count(&self) -> usize {
         match self {
             Operand::Identifier { .. } => 1usize,
-            Operand::Lit { .. } => 1usize,
-            Operand::IgnoreCaseLit { .. } => 1usize,
-            Operand::ExactLit { .. } => 1usize,
+            Operand::Literal { .. } => 1usize,
             Operand::Amb(alts) => alts.len(),
         }
     }
     pub fn span(&self) -> Span {
         match self {
             Operand::Identifier { span, .. } => *span,
-            Operand::Lit { span, .. } => *span,
-            Operand::IgnoreCaseLit { span, .. } => *span,
-            Operand::ExactLit { span, .. } => *span,
+            Operand::Literal { span, .. } => *span,
             Operand::Amb(alts) => alts[0].span(),
         }
     }
@@ -2808,19 +2758,8 @@ impl<'a> Regex<'a> {
             (Regex::CharClass { .. }, _) => None,
             (Regex::Char { char, .. }, 0) => Some(ParseTree::Token(*char)),
             (Regex::Char { .. }, _) => None,
-            (Regex::String { string, .. }, 0) => Some(ParseTree::Token(*string)),
-            (Regex::String { .. }, _) => None,
-            (
-                Regex::IgnoreCaseString {
-                    ignore_case_string, ..
-                },
-                0,
-            ) => Some(ParseTree::IgnoreCaseString(ignore_case_string)),
-            (Regex::IgnoreCaseString { .. }, _) => None,
-            (Regex::ExactString { exact_string, .. }, 0) => {
-                Some(ParseTree::ExactString(exact_string))
-            }
-            (Regex::ExactString { .. }, _) => None,
+            (Regex::Literal { literal, .. }, 0) => Some(ParseTree::Literal(literal)),
+            (Regex::Literal { .. }, _) => None,
             (Regex::Identifier { identifier, .. }, 0) => Some(ParseTree::Token(*identifier)),
             (Regex::Identifier { .. }, _) => None,
             (Regex::Amb(alts), _) => alts.get(index).copied(),
@@ -2834,9 +2773,7 @@ impl<'a> Regex<'a> {
             Regex::Paren { .. } => 5usize,
             Regex::CharClass { .. } => 1usize,
             Regex::Char { .. } => 1usize,
-            Regex::String { .. } => 1usize,
-            Regex::IgnoreCaseString { .. } => 1usize,
-            Regex::ExactString { .. } => 1usize,
+            Regex::Literal { .. } => 1usize,
             Regex::Identifier { .. } => 1usize,
             Regex::Amb(alts) => alts.len(),
         }
@@ -2849,9 +2786,7 @@ impl<'a> Regex<'a> {
             Regex::Paren { span, .. } => *span,
             Regex::CharClass { span, .. } => *span,
             Regex::Char { span, .. } => *span,
-            Regex::String { span, .. } => *span,
-            Regex::IgnoreCaseString { span, .. } => *span,
-            Regex::ExactString { span, .. } => *span,
+            Regex::Literal { span, .. } => *span,
             Regex::Identifier { span, .. } => *span,
             Regex::Amb(alts) => alts[0].span(),
         }
@@ -2860,6 +2795,52 @@ impl<'a> Regex<'a> {
         match self {
             Regex::Amb(_) => "Amb",
             _ => "Regex",
+        }
+    }
+    pub fn origin(&self) -> Option<Origin> {
+        None
+    }
+}
+impl<'a> Literal<'a> {
+    pub fn as_parse_tree(&'a self) -> ParseTree<'a> {
+        ParseTree::Literal(self)
+    }
+    pub(crate) fn child(&self, index: usize) -> Option<ParseTree<'a>> {
+        match (self, index) {
+            (Literal::Plain { string, .. }, 0) => Some(ParseTree::Token(*string)),
+            (Literal::Plain { .. }, _) => None,
+            (
+                Literal::IgnoreCase {
+                    ignore_case_string, ..
+                },
+                0,
+            ) => Some(ParseTree::IgnoreCaseString(ignore_case_string)),
+            (Literal::IgnoreCase { .. }, _) => None,
+            (Literal::Exact { exact_string, .. }, 0) => Some(ParseTree::ExactString(exact_string)),
+            (Literal::Exact { .. }, _) => None,
+            (Literal::Amb(alts), _) => alts.get(index).copied(),
+        }
+    }
+    pub(crate) fn child_count(&self) -> usize {
+        match self {
+            Literal::Plain { .. } => 1usize,
+            Literal::IgnoreCase { .. } => 1usize,
+            Literal::Exact { .. } => 1usize,
+            Literal::Amb(alts) => alts.len(),
+        }
+    }
+    pub fn span(&self) -> Span {
+        match self {
+            Literal::Plain { span, .. } => *span,
+            Literal::IgnoreCase { span, .. } => *span,
+            Literal::Exact { span, .. } => *span,
+            Literal::Amb(alts) => alts[0].span(),
+        }
+    }
+    pub fn display_name(&self) -> &'static str {
+        match self {
+            Literal::Amb(_) => "Amb",
+            _ => "Literal",
         }
     }
     pub fn origin(&self) -> Option<Origin> {
@@ -4511,23 +4492,9 @@ impl<'a> RegexOperand<'a> {
             _ => None,
         }
     }
-    pub fn as_string(&self) -> Option<&Token> {
+    pub fn as_literal(&self) -> Option<&Literal<'a>> {
         match self {
-            RegexOperand::String { string, .. } => Some(string),
-            _ => None,
-        }
-    }
-    pub fn as_ignore_case_string(&self) -> Option<&IgnoreCaseString<'a>> {
-        match self {
-            RegexOperand::IgnoreCaseString {
-                ignore_case_string, ..
-            } => Some(ignore_case_string),
-            _ => None,
-        }
-    }
-    pub fn as_exact_string(&self) -> Option<&ExactString<'a>> {
-        match self {
-            RegexOperand::ExactString { exact_string, .. } => Some(exact_string),
+            RegexOperand::Literal { literal, .. } => Some(literal),
             _ => None,
         }
     }
@@ -4545,15 +4512,23 @@ impl<'a> Operand<'a> {
             _ => None,
         }
     }
+    pub fn as_literal(&self) -> Option<&Literal<'a>> {
+        match self {
+            Operand::Literal { literal, .. } => Some(literal),
+            _ => None,
+        }
+    }
+}
+impl<'a> Literal<'a> {
     pub fn as_string(&self) -> Option<&Token> {
         match self {
-            Operand::Lit { string, .. } => Some(string),
+            Literal::Plain { string, .. } => Some(string),
             _ => None,
         }
     }
     pub fn as_ignore_case_string(&self) -> Option<&IgnoreCaseString<'a>> {
         match self {
-            Operand::IgnoreCaseLit {
+            Literal::IgnoreCase {
                 ignore_case_string, ..
             } => Some(ignore_case_string),
             _ => None,
@@ -4561,7 +4536,7 @@ impl<'a> Operand<'a> {
     }
     pub fn as_exact_string(&self) -> Option<&ExactString<'a>> {
         match self {
-            Operand::ExactLit { exact_string, .. } => Some(exact_string),
+            Literal::Exact { exact_string, .. } => Some(exact_string),
             _ => None,
         }
     }
@@ -4753,6 +4728,7 @@ impl<'a> IggyParseTreeBuilder<'a> {
             }
             grammar::OPERAND => ParseTree::Operand(self.arena.alloc(Operand::Amb(alternatives))),
             grammar::REGEX => ParseTree::Regex(self.arena.alloc(Regex::Amb(alternatives))),
+            grammar::LITERAL => ParseTree::Literal(self.arena.alloc(Literal::Amb(alternatives))),
             grammar::IGNORE_CASE_STRING => {
                 ParseTree::IgnoreCaseString(self.arena.alloc(IgnoreCaseString::Amb(alternatives)))
             }
@@ -4829,6 +4805,7 @@ impl<'a> IggyParseTreeBuilder<'a> {
             }
             grammar::START_OPERAND => self.start_ambiguity_node(grammar::OPERAND, alternatives),
             grammar::START_REGEX => self.start_ambiguity_node(grammar::REGEX, alternatives),
+            grammar::START_LITERAL => self.start_ambiguity_node(grammar::LITERAL, alternatives),
             grammar::START_IGNORE_CASE_STRING => {
                 self.start_ambiguity_node(grammar::IGNORE_CASE_STRING, alternatives)
             }
@@ -5062,38 +5039,18 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                     span,
                 }))
             }
-            // RegexOperand = String #String
+            // RegexOperand = Literal #Literal
             SlotId(57) => {
-                let &[string] = children else {
+                let &[literal] = children else {
                     ParseTree::unexpected_node()
                 };
-                ParseTree::RegexOperand(self.arena.alloc(RegexOperand::String {
-                    string: string.unwrap_token(),
-                    span,
-                }))
-            }
-            // RegexOperand = IgnoreCaseString #IgnoreCaseString
-            SlotId(59) => {
-                let &[ignore_case_string] = children else {
-                    ParseTree::unexpected_node()
-                };
-                ParseTree::RegexOperand(self.arena.alloc(RegexOperand::IgnoreCaseString {
-                    ignore_case_string: ignore_case_string.unwrap_ignore_case_string(),
-                    span,
-                }))
-            }
-            // RegexOperand = ExactString #ExactString
-            SlotId(61) => {
-                let &[exact_string] = children else {
-                    ParseTree::unexpected_node()
-                };
-                ParseTree::RegexOperand(self.arena.alloc(RegexOperand::ExactString {
-                    exact_string: exact_string.unwrap_exact_string(),
+                ParseTree::RegexOperand(self.arena.alloc(RegexOperand::Literal {
+                    literal: literal.unwrap_literal(),
                     span,
                 }))
             }
             // RegexOperand = Identifier #Identifier
-            SlotId(63) => {
+            SlotId(59) => {
                 let &[identifier] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5103,7 +5060,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // PriorityLevel = Associativity? Layout {Alternative "|"}+
-            SlotId(67) => {
+            SlotId(63) => {
                 let &[alternatives, layout, associativity] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5115,7 +5072,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Associativity = "left"
-            SlotId(69) => {
+            SlotId(65) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5125,7 +5082,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Associativity = "right"
-            SlotId(71) => {
+            SlotId(67) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5135,7 +5092,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Associativity = "none"
-            SlotId(73) => {
+            SlotId(69) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5145,7 +5102,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Alternative = Symbol+ Layout Label? #Symbols
-            SlotId(77) => {
+            SlotId(73) => {
                 let &[label, layout, symbols] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5157,7 +5114,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Alternative = "(" Layout ")" Layout Label? #Empty
-            SlotId(83) => {
+            SlotId(79) => {
                 let &[label, layout_3, lit_2, layout_1, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5171,7 +5128,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // PreCondition = Operand Layout "!<<"
-            SlotId(87) => {
+            SlotId(83) => {
                 let &[lit_2, layout, operand] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5183,7 +5140,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // PostCondition = "\\" Layout Operand #Except
-            SlotId(91) => {
+            SlotId(87) => {
                 let &[operand, layout, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5195,7 +5152,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // PostCondition = "&" Layout Operand #Require
-            SlotId(95) => {
+            SlotId(91) => {
                 let &[operand, layout, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5207,7 +5164,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // PostCondition = "!>>" Layout Operand #FollowRestriction
-            SlotId(99) => {
+            SlotId(95) => {
                 let &[operand, layout, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5219,7 +5176,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // PostCondition = "!>>>" Layout Operand #LayoutAwareFollowRestriction
-            SlotId(103) => {
+            SlotId(99) => {
                 let &[operand, layout, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5233,7 +5190,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 ))
             }
             // PostCondition = "!" Layout Identifier #Exclude
-            SlotId(107) => {
+            SlotId(103) => {
                 let &[identifier, layout, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5245,7 +5202,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Operand = Identifier #Identifier
-            SlotId(109) => {
+            SlotId(105) => {
                 let &[identifier] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5254,38 +5211,18 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                     span,
                 }))
             }
-            // Operand = String #Lit
-            SlotId(111) => {
-                let &[string] = children else {
+            // Operand = Literal #Literal
+            SlotId(107) => {
+                let &[literal] = children else {
                     ParseTree::unexpected_node()
                 };
-                ParseTree::Operand(self.arena.alloc(Operand::Lit {
-                    string: string.unwrap_token(),
-                    span,
-                }))
-            }
-            // Operand = IgnoreCaseString #IgnoreCaseLit
-            SlotId(113) => {
-                let &[ignore_case_string] = children else {
-                    ParseTree::unexpected_node()
-                };
-                ParseTree::Operand(self.arena.alloc(Operand::IgnoreCaseLit {
-                    ignore_case_string: ignore_case_string.unwrap_ignore_case_string(),
-                    span,
-                }))
-            }
-            // Operand = ExactString #ExactLit
-            SlotId(115) => {
-                let &[exact_string] = children else {
-                    ParseTree::unexpected_node()
-                };
-                ParseTree::Operand(self.arena.alloc(Operand::ExactLit {
-                    exact_string: exact_string.unwrap_exact_string(),
+                ParseTree::Operand(self.arena.alloc(Operand::Literal {
+                    literal: literal.unwrap_literal(),
                     span,
                 }))
             }
             // Regex = Regex Layout "+" #Plus
-            SlotId(119) => {
+            SlotId(111) => {
                 let &[lit_2, layout, regex] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5297,7 +5234,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Regex = Regex Layout "*" #Star
-            SlotId(123) => {
+            SlotId(115) => {
                 let &[lit_2, layout, regex] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5309,7 +5246,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Regex = Regex Layout "?" #Opt
-            SlotId(127) => {
+            SlotId(119) => {
                 let &[lit_2, layout, regex] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5321,7 +5258,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Regex = "(" Layout seqs:{Regex+ "|"}+ Layout ")" #Paren
-            SlotId(133) => {
+            SlotId(125) => {
                 let &[lit_4, layout_3, seqs, layout_1, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5335,7 +5272,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Regex = CharClass #CharClass
-            SlotId(135) => {
+            SlotId(127) => {
                 let &[char_class] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5345,7 +5282,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Regex = Char #Char
-            SlotId(137) => {
+            SlotId(129) => {
                 let &[char] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5354,38 +5291,18 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                     span,
                 }))
             }
-            // Regex = String #String
-            SlotId(139) => {
-                let &[string] = children else {
+            // Regex = Literal #Literal
+            SlotId(131) => {
+                let &[literal] = children else {
                     ParseTree::unexpected_node()
                 };
-                ParseTree::Regex(self.arena.alloc(Regex::String {
-                    string: string.unwrap_token(),
-                    span,
-                }))
-            }
-            // Regex = IgnoreCaseString #IgnoreCaseString
-            SlotId(141) => {
-                let &[ignore_case_string] = children else {
-                    ParseTree::unexpected_node()
-                };
-                ParseTree::Regex(self.arena.alloc(Regex::IgnoreCaseString {
-                    ignore_case_string: ignore_case_string.unwrap_ignore_case_string(),
-                    span,
-                }))
-            }
-            // Regex = ExactString #ExactString
-            SlotId(143) => {
-                let &[exact_string] = children else {
-                    ParseTree::unexpected_node()
-                };
-                ParseTree::Regex(self.arena.alloc(Regex::ExactString {
-                    exact_string: exact_string.unwrap_exact_string(),
+                ParseTree::Regex(self.arena.alloc(Regex::Literal {
+                    literal: literal.unwrap_literal(),
                     span,
                 }))
             }
             // Regex = Identifier #Identifier
-            SlotId(145) => {
+            SlotId(133) => {
                 let &[identifier] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5394,8 +5311,38 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                     span,
                 }))
             }
+            // Literal = String #Plain
+            SlotId(135) => {
+                let &[string] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Literal(self.arena.alloc(Literal::Plain {
+                    string: string.unwrap_token(),
+                    span,
+                }))
+            }
+            // Literal = IgnoreCaseString #IgnoreCase
+            SlotId(137) => {
+                let &[ignore_case_string] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Literal(self.arena.alloc(Literal::IgnoreCase {
+                    ignore_case_string: ignore_case_string.unwrap_ignore_case_string(),
+                    span,
+                }))
+            }
+            // Literal = ExactString #Exact
+            SlotId(139) => {
+                let &[exact_string] = children else {
+                    ParseTree::unexpected_node()
+                };
+                ParseTree::Literal(self.arena.alloc(Literal::Exact {
+                    exact_string: exact_string.unwrap_exact_string(),
+                    span,
+                }))
+            }
             // IgnoreCaseString = "i" String
-            SlotId(148) => {
+            SlotId(142) => {
                 let &[string, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5406,7 +5353,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // ExactString = "s" String
-            SlotId(151) => {
+            SlotId(145) => {
                 let &[string, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5417,7 +5364,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // CharClass = neg:"!"? Layout "[" Layout RangeElement+ Layout "]"
-            SlotId(159) => {
+            SlotId(153) => {
                 let &[
                     lit_6,
                     layout_5,
@@ -5442,7 +5389,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // RangeElement = Range
-            SlotId(161) => {
+            SlotId(155) => {
                 let &[range] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5452,7 +5399,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // RangeElement = RangeChar
-            SlotId(163) => {
+            SlotId(157) => {
                 let &[range_char] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5462,7 +5409,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Range = start:RangeChar Layout "-" Layout end:RangeChar
-            SlotId(169) => {
+            SlotId(163) => {
                 let &[end, layout_3, lit_2, layout_1, start] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5476,7 +5423,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Layout = (WS | LineComment)*
-            SlotId(171) => {
+            SlotId(165) => {
                 let &[star_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5486,7 +5433,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Opt_0 = "@IgnoreCase"
-            SlotId(173) => {
+            SlotId(167) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5496,14 +5443,14 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Opt_0 =
-            SlotId(174) => {
+            SlotId(168) => {
                 let &[] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Opt0(self.arena.alloc(Opt0::Alt1 { span }))
             }
             // Plus_0 = Rule+ Layout Rule
-            SlotId(178) => {
+            SlotId(172) => {
                 let &[rule_2, layout, rules_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5515,7 +5462,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Plus_0 = Rule
-            SlotId(180) => {
+            SlotId(174) => {
                 let &[rule] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5525,7 +5472,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Star_0 = Rule+
-            SlotId(182) => {
+            SlotId(176) => {
                 let &[rules] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5535,14 +5482,14 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Star_0 =
-            SlotId(183) => {
+            SlotId(177) => {
                 let &[] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Star0(self.arena.alloc(Star0::Alt1 { span }))
             }
             // Opt_1 = Annotation
-            SlotId(185) => {
+            SlotId(179) => {
                 let &[annotation] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5552,14 +5499,14 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Opt_1 =
-            SlotId(186) => {
+            SlotId(180) => {
                 let &[] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Opt1(self.arena.alloc(Opt1::Alt1 { span }))
             }
             // Plus_1 = {PriorityLevel ">"}+ Layout ">" Layout PriorityLevel
-            SlotId(192) => {
+            SlotId(186) => {
                 let &[
                     priority_level_4,
                     layout_3,
@@ -5580,7 +5527,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Plus_1 = PriorityLevel
-            SlotId(194) => {
+            SlotId(188) => {
                 let &[priority_level] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5590,7 +5537,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Opt_2 = "@Layout"
-            SlotId(196) => {
+            SlotId(190) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5600,14 +5547,14 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Opt_2 =
-            SlotId(197) => {
+            SlotId(191) => {
                 let &[] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Opt2(self.arena.alloc(Opt2::Alt1 { span }))
             }
             // Opt_3 = "@Identifier"
-            SlotId(199) => {
+            SlotId(193) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5617,14 +5564,14 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Opt_3 =
-            SlotId(200) => {
+            SlotId(194) => {
                 let &[] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Opt3(self.arena.alloc(Opt3::Alt1 { span }))
             }
             // Opt_4 = RegexPreCondition
-            SlotId(202) => {
+            SlotId(196) => {
                 let &[regex_pre_condition] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5634,14 +5581,14 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Opt_4 =
-            SlotId(203) => {
+            SlotId(197) => {
                 let &[] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Opt4(self.arena.alloc(Opt4::Alt1 { span }))
             }
             // Plus_3 = Regex+ Layout Regex
-            SlotId(207) => {
+            SlotId(201) => {
                 let &[regex_2, layout, regexes_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5653,7 +5600,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Plus_3 = Regex
-            SlotId(209) => {
+            SlotId(203) => {
                 let &[regex] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5663,7 +5610,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Plus_2 = {Regex+ "|"}+ Layout "|" Layout Regex+
-            SlotId(215) => {
+            SlotId(209) => {
                 let &[regexes, layout_3, lit_2, layout_1, plus_2] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5677,7 +5624,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Plus_2 = Regex+
-            SlotId(217) => {
+            SlotId(211) => {
                 let &[regexes] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5687,7 +5634,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Plus_4 = RegexPostCondition+ Layout RegexPostCondition
-            SlotId(221) => {
+            SlotId(215) => {
                 let &[regex_post_condition_2, layout, regex_post_conditions_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5699,7 +5646,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Plus_4 = RegexPostCondition
-            SlotId(223) => {
+            SlotId(217) => {
                 let &[regex_post_condition] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5709,7 +5656,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Star_1 = RegexPostCondition+
-            SlotId(225) => {
+            SlotId(219) => {
                 let &[regex_post_conditions] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5719,14 +5666,14 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Star_1 =
-            SlotId(226) => {
+            SlotId(220) => {
                 let &[] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Star1(self.arena.alloc(Star1::Alt1 { span }))
             }
             // Opt_5 = Associativity
-            SlotId(228) => {
+            SlotId(222) => {
                 let &[associativity] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5736,14 +5683,14 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Opt_5 =
-            SlotId(229) => {
+            SlotId(223) => {
                 let &[] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Opt5(self.arena.alloc(Opt5::Alt1 { span }))
             }
             // Plus_5 = {Alternative "|"}+ Layout "|" Layout Alternative
-            SlotId(235) => {
+            SlotId(229) => {
                 let &[alternative_4, layout_3, lit_2, layout_1, alternatives_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5757,7 +5704,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Plus_5 = Alternative
-            SlotId(237) => {
+            SlotId(231) => {
                 let &[alternative] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5767,7 +5714,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Plus_6 = Symbol+ Layout Symbol
-            SlotId(241) => {
+            SlotId(235) => {
                 let &[symbol_2, layout, symbols_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5779,7 +5726,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Plus_6 = Symbol
-            SlotId(243) => {
+            SlotId(237) => {
                 let &[symbol] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5789,7 +5736,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Opt_6 = Label
-            SlotId(245) => {
+            SlotId(239) => {
                 let &[label] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5799,14 +5746,14 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Opt_6 =
-            SlotId(246) => {
+            SlotId(240) => {
                 let &[] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Opt6(self.arena.alloc(Opt6::Alt1 { span }))
             }
             // Plus_7 = {Symbol+ "|"}+ Layout "|" Layout Symbol+
-            SlotId(252) => {
+            SlotId(246) => {
                 let &[symbols, layout_3, lit_2, layout_1, plus_7] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5820,7 +5767,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Plus_7 = Symbol+
-            SlotId(254) => {
+            SlotId(248) => {
                 let &[symbols] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5830,7 +5777,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Plus_8 = PostCondition+ Layout PostCondition
-            SlotId(258) => {
+            SlotId(252) => {
                 let &[post_condition_2, layout, post_conditions_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5842,7 +5789,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Plus_8 = PostCondition
-            SlotId(260) => {
+            SlotId(254) => {
                 let &[post_condition] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5852,7 +5799,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Plus_9 = PreCondition+ Layout PreCondition
-            SlotId(264) => {
+            SlotId(258) => {
                 let &[pre_condition_2, layout, pre_conditions_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5864,7 +5811,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Plus_9 = PreCondition
-            SlotId(266) => {
+            SlotId(260) => {
                 let &[pre_condition] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5874,7 +5821,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Opt_7 = "!"
-            SlotId(268) => {
+            SlotId(262) => {
                 let &[lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5884,14 +5831,14 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Opt_7 =
-            SlotId(269) => {
+            SlotId(263) => {
                 let &[] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Opt7(self.arena.alloc(Opt7::Alt1 { span }))
             }
             // Plus_10 = RangeElement+ Layout RangeElement
-            SlotId(273) => {
+            SlotId(267) => {
                 let &[range_element_2, layout, range_elements_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5903,7 +5850,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Plus_10 = RangeElement
-            SlotId(275) => {
+            SlotId(269) => {
                 let &[range_element] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5913,7 +5860,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Alt_0 = WS
-            SlotId(277) => {
+            SlotId(271) => {
                 let &[ws] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5923,7 +5870,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Alt_0 = LineComment
-            SlotId(279) => {
+            SlotId(273) => {
                 let &[line_comment] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5933,7 +5880,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Plus_11 = (WS | LineComment)+ (WS | LineComment)
-            SlotId(282) => {
+            SlotId(276) => {
                 let &[alt_0, plus_11] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5944,7 +5891,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Plus_11 = (WS | LineComment)
-            SlotId(284) => {
+            SlotId(278) => {
                 let &[alt_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5954,7 +5901,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Star_2 = (WS | LineComment)+
-            SlotId(286) => {
+            SlotId(280) => {
                 let &[plus_11] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5964,14 +5911,14 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Star_2 =
-            SlotId(287) => {
+            SlotId(281) => {
                 let &[] = children else {
                     ParseTree::unexpected_node()
                 };
                 ParseTree::Star2(self.arena.alloc(Star2::Alt1 { span }))
             }
             // Symbol = Identifier #Identifier
-            SlotId(376) => {
+            SlotId(374) => {
                 let &[identifier] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5981,7 +5928,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Symbol = "(" Layout seqs:{Symbol+ "|"}+ Layout ")" #Paren
-            SlotId(383) => {
+            SlotId(381) => {
                 let &[lit_4, layout_3, seqs, layout_1, lit_0] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -5994,38 +5941,18 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                     span,
                 }))
             }
-            // Symbol = String #Lit
-            SlotId(386) => {
-                let &[string] = children else {
+            // Symbol = Literal #Literal
+            SlotId(384) => {
+                let &[literal] = children else {
                     ParseTree::unexpected_node()
                 };
-                ParseTree::Symbol(self.arena.alloc(Symbol::Lit {
-                    string: string.unwrap_token(),
-                    span,
-                }))
-            }
-            // Symbol = IgnoreCaseString #IgnoreCaseLit
-            SlotId(389) => {
-                let &[ignore_case_string] = children else {
-                    ParseTree::unexpected_node()
-                };
-                ParseTree::Symbol(self.arena.alloc(Symbol::IgnoreCaseLit {
-                    ignore_case_string: ignore_case_string.unwrap_ignore_case_string(),
-                    span,
-                }))
-            }
-            // Symbol = ExactString #ExactLit
-            SlotId(392) => {
-                let &[exact_string] = children else {
-                    ParseTree::unexpected_node()
-                };
-                ParseTree::Symbol(self.arena.alloc(Symbol::ExactLit {
-                    exact_string: exact_string.unwrap_exact_string(),
+                ParseTree::Symbol(self.arena.alloc(Symbol::Literal {
+                    literal: literal.unwrap_literal(),
                     span,
                 }))
             }
             // Symbol = "{" Layout symbol:Symbol Layout sep:Symbol Layout "}" Layout "*" #StarSep
-            SlotId(403) => {
+            SlotId(395) => {
                 let &[
                     lit_8,
                     layout_7,
@@ -6054,7 +5981,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Symbol = "{" Layout symbol:Symbol Layout sep:Symbol Layout "}" Layout "+" #PlusSep
-            SlotId(414) => {
+            SlotId(406) => {
                 let &[
                     lit_8,
                     layout_7,
@@ -6083,7 +6010,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Symbol = Symbol Layout "*" #Star
-            SlotId(421) => {
+            SlotId(413) => {
                 let &[lit_2, layout, symbol] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -6095,7 +6022,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Symbol = Symbol Layout "+" #Plus
-            SlotId(428) => {
+            SlotId(420) => {
                 let &[lit_2, layout, symbol] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -6107,7 +6034,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Symbol = Symbol Layout "?" #Opt
-            SlotId(435) => {
+            SlotId(427) => {
                 let &[lit_2, layout, symbol] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -6119,7 +6046,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Symbol = Symbol Layout conditions:PostCondition+ #PostCondition
-            SlotId(443) => {
+            SlotId(435) => {
                 let &[conditions, layout, symbol] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -6131,7 +6058,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Symbol = conditions:PreCondition+ Layout Symbol #PreCondition
-            SlotId(449) => {
+            SlotId(441) => {
                 let &[symbol, layout, conditions] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -6143,7 +6070,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // Symbol = label:Identifier Layout ":" Layout Symbol #Labeled
-            SlotId(456) => {
+            SlotId(448) => {
                 let &[symbol, layout_3, lit_2, layout_1, label] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -6157,10 +6084,10 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // The start nonterminals with layout
-            SlotId(291) | SlotId(295) | SlotId(299) | SlotId(303) | SlotId(307) | SlotId(311)
-            | SlotId(315) | SlotId(319) | SlotId(323) | SlotId(327) | SlotId(331) | SlotId(335)
-            | SlotId(339) | SlotId(343) | SlotId(347) | SlotId(351) | SlotId(355) | SlotId(359)
-            | SlotId(363) | SlotId(367) | SlotId(371) => {
+            SlotId(285) | SlotId(289) | SlotId(293) | SlotId(297) | SlotId(301) | SlotId(305)
+            | SlotId(309) | SlotId(313) | SlotId(317) | SlotId(321) | SlotId(325) | SlotId(329)
+            | SlotId(333) | SlotId(337) | SlotId(341) | SlotId(345) | SlotId(349) | SlotId(353)
+            | SlotId(357) | SlotId(361) | SlotId(365) | SlotId(369) => {
                 let &[after, node, before] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -6172,7 +6099,7 @@ impl<'a> parse_tree::ParseTreeBuilder<ParseTree<'a>> for IggyParseTreeBuilder<'a
                 }))
             }
             // The start nonterminals without layout
-            SlotId(373) => {
+            SlotId(371) => {
                 let &[node] = children else {
                     ParseTree::unexpected_node()
                 };
@@ -6251,6 +6178,9 @@ pub fn create_parse_tree<'a>(
             ParseTree::Operand(visit_sppf(root_id, parser, builder).unwrap_operand())
         }
         grammar::REGEX => ParseTree::Regex(visit_sppf(root_id, parser, builder).unwrap_regex()),
+        grammar::LITERAL => {
+            ParseTree::Literal(visit_sppf(root_id, parser, builder).unwrap_literal())
+        }
         grammar::IGNORE_CASE_STRING => ParseTree::IgnoreCaseString(
             visit_sppf(root_id, parser, builder).unwrap_ignore_case_string(),
         ),
@@ -6309,6 +6239,7 @@ pub fn create_parse_tree<'a>(
         | grammar::START_POST_CONDITION
         | grammar::START_OPERAND
         | grammar::START_REGEX
+        | grammar::START_LITERAL
         | grammar::START_IGNORE_CASE_STRING
         | grammar::START_EXACT_STRING
         | grammar::START_CHAR_CLASS
